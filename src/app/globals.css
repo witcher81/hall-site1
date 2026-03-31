@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+/* פלטה: שמנת / קרם, ירוק מותג, טקסט כהה */
+:root {
+  --background: #efe6d5;
+  --background-soft: #f5efe3;
+  --card: #fdfbf7;
+  --card-muted: #f8f4eb;
+  --border-soft: #e0d4c3;
+  --foreground: #1a1a1a;
+  --muted: #5c564c;
+  --brand: #0f3b2e;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html,
+html[data-theme="light"],
+html[data-theme="dark"] {
+  --background: #efe6d5;
+  --foreground: #1a1a1a;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* רק כותרת האתר (HomeHeader) – לא כל <header> בעמוד, אחרת טקסט כהה על רקע ירוק */
+header.site-header {
+  background-color: var(--brand) !important;
+}
+
+/* קישורים וטקסט בכותרת האתר – תמיד בהירים על רקע ירוק */
+header.site-header a,
+header.site-header nav a,
+header.site-header .text-slate-200,
+header.site-header .text-slate-300,
+header.site-header .text-slate-400 {
+  color: #f8fafc !important;
+}
+
+/* תפריטים לבנים בתוך ה-header חייבים טקסט כהה */
+header.site-header .personal-menu a,
+header.site-header .personal-menu button,
+header.site-header .personal-menu span,
+header.site-header .personal-menu p {
+  color: #1a1a1a !important;
+}
+
+/* כרטיסים שהיו slate כהה – עכשיו שמנת/לבן, לא כחול כהה */
+.bg-slate-950 {
+  background-color: var(--card-muted) !important;
+}
+
+.bg-slate-900,
+.bg-slate-900\/30,
+.bg-slate-900\/40,
+.bg-slate-900\/50,
+.bg-slate-900\/60 {
+  background-color: #faf7f2 !important;
+}
+
+.bg-slate-800,
+.bg-slate-800\/60 {
+  background-color: #e8dfd0 !important;
+}
+
+/* גבולות עדינים במקום אפור כהה */
+.border-slate-800,
+.border-slate-700,
+.border-slate-600 {
+  border-color: var(--border-soft) !important;
+}
+
+/* כפתורי sky/emerald – מותג */
+.bg-sky-500 {
+  background-color: #c9a227 !important;
+}
+.hover\:bg-sky-400:hover {
+  background-color: #e5c96b !important;
+}
+.text-sky-300 {
+  color: #0f3b2e !important;
+}
+.border-sky-400 {
+  border-color: #c9a227 !important;
+}
+
+.bg-emerald-500,
+.bg-emerald-500\/90 {
+  background-color: #0f3b2e !important;
+}
+.hover\:bg-emerald-400:hover {
+  background-color: #174d3b !important;
+}
+.border-emerald-400 {
+  border-color: #0f3b2e !important;
+}
+.text-emerald-300,
+.text-emerald-100 {
+  color: #0f3b2e !important;
+}
+
+/* מצב בהיר: כרטיסים בהירים (כבר מכוסה למעלה) */
+body.theme-light header.site-header {
+  background-color: var(--brand) !important;
+}
+
+body.theme-light header.site-header .text-slate-50,
+body.theme-light header.site-header .text-slate-100,
+body.theme-light header.site-header .text-slate-200,
+body.theme-light header.site-header .text-slate-300,
+body.theme-light header.site-header .text-slate-400,
+body.theme-light header.site-header a {
+  color: #f8f6f0 !important;
+}
+
+body.theme-light header.site-header .border-slate-600,
+body.theme-light header.site-header .border-slate-700,
+body.theme-light header.site-header .border-slate-800 {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* override סופי: טקסט כהה בתוך תפריט אזור אישי גם במצב light */
+body.theme-light header.site-header .personal-menu a,
+body.theme-light header.site-header .personal-menu button,
+body.theme-light header.site-header .personal-menu span,
+body.theme-light header.site-header .personal-menu p,
+body.theme-light header.site-header .user-menu a,
+body.theme-light header.site-header .user-menu button,
+body.theme-light header.site-header .user-menu span,
+body.theme-light header.site-header .user-menu p,
+body.theme-light header.site-header .dev-switcher-menu a,
+body.theme-light header.site-header .dev-switcher-menu button,
+body.theme-light header.site-header .dev-switcher-menu span,
+body.theme-light header.site-header .dev-switcher-menu p,
+header.site-header .personal-menu a,
+header.site-header .personal-menu button,
+header.site-header .personal-menu span,
+header.site-header .personal-menu p,
+header.site-header .user-menu a,
+header.site-header .user-menu button,
+header.site-header .user-menu span,
+header.site-header .user-menu p,
+header.site-header .dev-switcher-menu a,
+header.site-header .dev-switcher-menu button,
+header.site-header .dev-switcher-menu span,
+header.site-header .dev-switcher-menu p {
+  color: #1a1a1a !important;
+}

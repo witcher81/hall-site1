@@ -1,0 +1,46 @@
+{
+  "name": "hall-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:deploy": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:fix-review-ratings": "prisma db execute --file prisma/convert-review-ratings.sql --schema prisma/schema.prisma",
+    "db:sync": "prisma db push && prisma generate",
+    "geocode:venues": "node scripts/geocode-venues.mjs",
+    "seed:packages": "node scripts/seed-event-packages.mjs",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev --turbopack",
+    "dev:stop": "powershell -NoProfile -Command \"$ErrorActionPreference='SilentlyContinue'; Get-NetTCPConnection -LocalPort 3000 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }; Start-Sleep -Milliseconds 400; if (Test-Path '.next/dev/lock') { Remove-Item -Force '.next/dev/lock' }\"",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "dev:all": "npm run dev:stop && concurrently \"npm run dev\" \"npx prisma studio --port 5555 --browser none\" \"powershell -NoProfile -Command \\\"Start-Sleep -Seconds 2; Start-Process 'http://localhost:5555'\\\"\""
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "leaflet": "^1.9.4",
+    "next": "16.1.6",
+    "prisma": "5.22.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

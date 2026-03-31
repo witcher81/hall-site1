@@ -1,0 +1,298 @@
+import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import HomeHeader from "@/components/HomeHeader";
+import { getCurrentUser } from "@/lib/auth";
+import { getSiteUrl } from "@/lib/siteUrl";
+import VenuePublicView from "./VenuePublicView";
+
+type PriceMode = "included" | "extra";
+type BuiltinAmenityKey =
+  | "hasFood"
+  | "hasDanceFloor"
+  | "hasTableSetup"
+  | "hasSoundSystem"
+  | "hasBridalRoom";
+
+function truncateMeta(s: string, max: number) {
+  const t = s.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, max - 1)}…`;
+}
+
+function absoluteImageUrl(url: string | null): string | undefined {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("/")) return `${getSiteUrl()}${url}`;
+  return undefined;
+}
+
+type PageProps = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const venueId = Number(id);
+  if (!Number.isInteger(venueId) || venueId <= 0) {
+    return { title: "אולם לא נמצא" };
+  }
+
+  const venue = await prisma.venue.findUnique({
+    where: { id: venueId },
+    select: {
+      name: true,
+      city: true,
+      address: true,
+      description: true,
+      coverImageUrl: true,
+      minGuests: true,
+      maxGuests: true,
+    },
+  });
+
+  if (!venue) {
+    return { title: "אולם לא נמצא" };
+  }
+
+  const title = `${venue.name} · ${venue.city}`;
+  const lines: string[] = [];
+  lines.push(`אולם לאירועים ב${venue.city}.`);
+  if (venue.address) lines.push(venue.address);
+  if (venue.minGuests != null || venue.maxGuests != null) {
+    lines.push(
+      `קיבולת ${venue.minGuests ?? "?"}–${venue.maxGuests ?? "?"} אורחים.`
+    );
+  }
+  if (venue.description) {
+    lines.push(truncateMeta(venue.description, 140));
+  }
+  const description = truncateMeta(lines.join(" "), 160);
+  const ogUrl = absoluteImageUrl(venue.coverImageUrl);
+
+  return {
+    title,
+    description:
+      description ||
+      `פרטים, גלריה וביקורות על ${venue.name} ב${venue.city} – Halls Hub.`,
+    alternates: {
+      canonical: `/halls/${venueId}`,
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `/halls/${venueId}`,
+      ...(ogUrl && {
+        images: [{ url: ogUrl, alt: venue.name }],
+      }),
+    },
+    twitter: {
+      card: ogUrl ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(ogUrl && { images: [ogUrl] }),
+    },
+  };
+}
+
+export default async function HallPublicPage({
+  params,
+}: PageProps) {
+  const { id } = await params;
+  const user = await getCurrentUser();
+  const venueId = Number(id);
+
+  if (!Number.isInteger(venueId) || venueId <= 0) {
+    return (
+      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+        <HomeHeader user={user} />
+        <main className="mx-auto max-w-3xl px-4 py-12 text-right">
+          <p className="text-sm text-[#2A261F]">מזהה אולם לא תקין.</p>
+          <a
+            href="/halls"
+            className="mt-4 inline-block text-sm font-medium text-[#0F3B2E] underline-offset-4 hover:underline"
+          >
+            חזרה לחיפוש אולמות
+          </a>
+        </main>
+      </div>
+    );
+  }
+
+  const venue = await prisma.venue.findUnique({
+    where: { id: venueId },
+    select: {
+      id: true,
+      name: true,
+      city: true,
+      address: true,
+      minGuests: true,
+      maxGuests: true,
+      minPrice: true,
+      maxPrice: true,
+      hallRentalMin: true,
+      hallRentalMax: true,
+      description: true,
+      eventTypes: true,
+      kashrut: true,
+      parking: true,
+      venueType: true,
+      seaView: true,
+      boutique: true,
+      accessible: true,
+      hasChuppa: true,
+      hasFood: true,
+      hasDanceFloor: true,
+      hasTableSetup: true,
+      hasSoundSystem: true,
+      hasBridalRoom: true,
+      customAmenitiesJson: true,
+      coverImageUrl: true,
+      galleryImageUrls: true,
+      galleryImages: {
+        select: {
+          url: true,
+          category: true,
+        },
+      },
+    },
+  });
+
+  if (!venue) {
+    return (
+      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+        <HomeHeader user={user} />
+        <main className="mx-auto max-w-3xl px-4 py-12 text-right">
+          <p className="text-sm text-[#2A261F]">האולם לא נמצא.</p>
+          <a
+            href="/halls"
+            className="mt-4 inline-block text-sm font-medium text-[#0F3B2E] underline-offset-4 hover:underline"
+          >
+            חזרה לחיפוש אולמות
+          </a>
+        </main>
+      </div>
+    );
+  }
+
+  const galleryImageUrls = venue.galleryImageUrls
+    ? (JSON.parse(venue.galleryImageUrls) as string[])
+    : [];
+
+  const galleryImages =
+    venue.galleryImages?.map((img) => ({
+      url: img.url,
+      category: img.category,
+    })) ?? [];
+
+  const parsedAmenities = (() => {
+    if (!venue.customAmenitiesJson) return [];
+    try {
+      const v = JSON.parse(venue.customAmenitiesJson) as unknown;
+      if (!Array.isArray(v)) return [];
+      const out: {
+        label: string;
+        checked: boolean;
+        priceMode: PriceMode;
+        extraPrice: number | null;
+      }[] = [];
+      for (const item of v) {
+        if (typeof item !== "object" || item === null) continue;
+        const o = item as Record<string, unknown>;
+        const label = typeof o.label === "string" ? o.label.trim() : "";
+        if (!label) continue;
+        out.push({
+          label,
+          checked: o.checked === true,
+          priceMode: o.priceMode === "extra" ? "extra" : "included",
+          extraPrice:
+            typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
+              ? Math.trunc(o.extraPrice)
+              : null,
+        });
+      }
+      return out;
+    } catch {
+      return [];
+    }
+  })();
+  const amenityPriceModes: Partial<Record<BuiltinAmenityKey, PriceMode>> = {};
+  const amenityExtraPrices: Partial<Record<BuiltinAmenityKey, number>> = {};
+  const customAmenities = parsedAmenities.filter((row) => {
+    if (!row.label.startsWith("__builtin__:")) return true;
+    const key = row.label.slice("__builtin__:".length) as BuiltinAmenityKey;
+    if (
+      key === "hasFood" ||
+      key === "hasDanceFloor" ||
+      key === "hasTableSetup" ||
+      key === "hasSoundSystem" ||
+      key === "hasBridalRoom"
+    ) {
+      amenityPriceModes[key] = row.priceMode;
+      if (typeof row.extraPrice === "number" && row.extraPrice > 0) {
+        amenityExtraPrices[key] = row.extraPrice;
+      }
+    }
+    return false;
+  });
+
+  let isFavorite = false;
+  if (user) {
+    try {
+      const delegate = (prisma as { favorite?: { findUnique: (q: object) => Promise<unknown> } }).favorite;
+      if (delegate) {
+        const fav = await delegate.findUnique({
+          where: {
+            userId_venueId: { userId: user.id, venueId: venue.id },
+          },
+        });
+        isFavorite = !!fav;
+      }
+    } catch {
+      // Prisma client may not have Favorite model until after "npx prisma generate"
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <HomeHeader user={user} />
+      <VenuePublicView
+        user={user}
+        isFavorite={isFavorite}
+        venue={{
+          id: venue.id,
+          name: venue.name,
+          city: venue.city,
+          address: venue.address,
+          minGuests: venue.minGuests,
+          maxGuests: venue.maxGuests,
+          minPrice: venue.minPrice,
+          maxPrice: venue.maxPrice,
+          hallRentalMin: venue.hallRentalMin,
+          hallRentalMax: venue.hallRentalMax,
+          description: venue.description,
+          eventTypes: venue.eventTypes ? (JSON.parse(venue.eventTypes) as string[]) : [],
+          kashrut: venue.kashrut,
+          parking: venue.parking,
+          venueType: venue.venueType,
+          seaView: venue.seaView,
+          boutique: venue.boutique,
+          accessible: venue.accessible,
+          hasChuppa: venue.hasChuppa,
+          hasFood: venue.hasFood,
+          hasDanceFloor: venue.hasDanceFloor,
+          hasTableSetup: venue.hasTableSetup,
+          hasSoundSystem: venue.hasSoundSystem,
+          hasBridalRoom: venue.hasBridalRoom,
+          amenityPriceModes,
+          amenityExtraPrices,
+          customAmenities:
+            customAmenities.length > 0 ? customAmenities : undefined,
+          coverImageUrl: venue.coverImageUrl,
+          galleryImageUrls,
+          galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
+        }}
+      />
+    </div>
+  );
+}

@@ -1,0 +1,350 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  // ברירת מחדל: node_modules/.prisma/client — מומלץ על Windows/OneDrive כדי למנוע EPERM על query_engine בנתיב מותאם
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String?
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         String   @default("SEEKER")
+  // פרופיל עסקי לבעל אולם / ספק שירותים
+  businessName    String?
+  businessPhone   String?
+  businessAddress String?
+  /// JSON: מערך { platform, url } לרשתות חברתיות (פרילנסרים)
+  socialLinksJson String?
+  venues        Venue[]
+  services      Service[]
+  inquiriesSent     Inquiry[]
+  serviceRequestsSent ServiceRequest[]
+  favorites         Favorite[]
+  venueReviews      VenueReview[]
+  conversationsAsP1 Conversation[] @relation("ConvP1")
+  conversationsAsP2 Conversation[] @relation("ConvP2")
+  messagesSent      Message[]
+  eventPlans        EventPlan[]
+  notifications     Notification[]
+  freelancerProfileViews FreelancerProfileView[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Venue {
+  id          Int      @id @default(autoincrement())
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+  name        String
+  city        String
+  address     String
+  minGuests   Int?
+  maxGuests   Int?
+  minPrice    Int?
+  maxPrice    Int?
+  /// טווח מחיר השכרת האולם (לאירוע) – ₪
+  hallRentalMin Int?
+  hallRentalMax Int?
+  description String?
+  // JSON string של סוגי אירועים שהאולם מתאים אליהם
+  eventTypes  String?
+  // מאפיינים מתקדמים לחיפוש
+  kashrut     String?  // למשל: "ללא", "רגיל", "מהדרין"
+  parking     String?  // למשל: "אין", "חניה צמודה", "חניון"
+  venueType   String?  // "אולם", "גן", "גן ואולם", "רופטופ"
+  seaView     Boolean? // נוף לים
+  boutique    Boolean? // מתאים לאירועי בוטיק
+  accessible  Boolean? // נגישות לנכים
+  // מאפייני שירות/ציוד באולם (לסינון ולקבלת החלטה)
+  hasChuppa      Boolean @default(false)
+  hasFood        Boolean @default(false)
+  hasDanceFloor  Boolean @default(false)
+  hasTableSetup  Boolean @default(false)
+  hasSoundSystem Boolean @default(false)
+  hasBridalRoom  Boolean @default(false)
+  /// JSON: מערך { label, checked } — שירותים/ציוד נוספים שהבעלים הוסיף
+  customAmenitiesJson String?
+  hasChuppaOutdoor Boolean @default(false)
+  hasChuppaCovered Boolean @default(false)
+  hasVeganFood     Boolean @default(false)
+  coverImageUrl     String?
+  galleryImageUrls  String? // JSON string of string[]
+  latitude          Float?
+  longitude         Float?
+  inquiries         Inquiry[]
+  favorites         Favorite[]
+  reviews           VenueReview[]
+  availabilities    VenueAvailability[]
+  galleryImages    VenueGalleryImage[]
+  conversations    Conversation[]
+  plannedInEvents  EventPlan[] @relation("EventPlanVenue")
+  pageViews        VenuePageView[]
+  eventPackages    EventPackage[]
+  /// קידום בתשלום — עד תאריך זה האולם מוצג בראש תוצאות החיפוש
+  boostExpiresAt   DateTime?
+  /// מענה אוטומטי לפניות חדשות (אופציונלי)
+  autoReplyMessage String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+/// צפייה בעמוד אולם (למדדי פופולריות שבועיים)
+model VenuePageView {
+  id        Int      @id @default(autoincrement())
+  venueId   Int
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([venueId, createdAt])
+}
+
+/// צפייה בפרופיל ספק (פרילאנסר)
+model FreelancerProfileView {
+  id             Int      @id @default(autoincrement())
+  providerUserId Int
+  provider       User     @relation(fields: [providerUserId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@index([providerUserId, createdAt])
+}
+
+model Inquiry {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  venueId       Int
+  venue         Venue    @relation(fields: [venueId], references: [id])
+  eventType     String?  // סוג אירוע: חתונה, בר מצווה וכו'
+  preferredDate String?  // תאריך משוער
+  guestCount    Int?     // כמות אורחים
+  message       String
+  status        String   @default("NEW") // NEW, READ, REPLIED
+  ownerNote     String?  // הערה/תשובה מבעל האולם
+  repliedAt     DateTime? // מתי סומן כנענה
+  /// נשלח מענה מהתבנית האוטומטית של האולם
+  autoReplyApplied Boolean @default(false)
+  /// בחירות מחפש: לכל שירות שהאולם מציע — דרך האולם או מקור חיצוני (JSON)
+  serviceChoicesJson String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, venueId])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  venueId   Int
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, venueId])
+}
+
+model Service {
+  id              Int      @id @default(autoincrement())
+  providerId      Int
+  provider        User     @relation(fields: [providerId], references: [id])
+  name            String
+  category        String?
+  shortDescription String?
+  description     String?
+  serviceArea     String?
+  /// שנות ניסיון בתחום (מספר שלם)
+  experienceYears Int?
+  /// שפות עבודה, למשל: עברית, אנגלית
+  languages       String?
+  /// זמן תגובה צפוי ללקוחות (טקסט חופשי)
+  responseTimeHint String?
+  /// JSON: קישורי רשתות חברתיות לשירות (מערך { platform, url })
+  socialLinksJson String?
+  includesTravel  Boolean  @default(false)
+  includesEquipment Boolean @default(false)
+  /// JSON: מערך { label, checked } — תוספות שכלולות במחיר שהפרילנסר הוסיף
+  customIncludesJson String?
+  /// הסבר קצר למחפשים על מה כלול במחיר (אופציונלי)
+  includesNote    String?
+  coverImageUrl   String?
+  galleryImageUrls String?
+  minPrice        Int?
+  maxPrice        Int?
+  serviceRequests ServiceRequest[]
+  conversations   Conversation[]
+  plannedAsPhotographer EventPlan[] @relation("EventPlanPhotographer")
+  plannedAsDj          EventPlan[] @relation("EventPlanDj")
+  plannedAsCatering    EventPlan[] @relation("EventPlanCatering")
+  packageLinks    EventPackageService[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// חבילת אירוע: אולם + שירותים (סגנון "טיסה+מלון" – הכל במקום אחד)
+model EventPackage {
+  id               Int                   @id @default(autoincrement())
+  title            String
+  subtitle         String?
+  description      String?
+  venueId          Int
+  venue            Venue                 @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  /// מחיר חבילה משוער (הצגה בלבד) – ₪
+  bundlePriceFrom  Int?
+  bundlePriceTo    Int?
+  /// תווית קטנה לכרטיס, למשל: "חיסכון" / "מובילים"
+  badgeLabel       String?
+  isPublished      Boolean               @default(true)
+  sortOrder        Int                   @default(0)
+  services         EventPackageService[]
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  @@index([isPublished, sortOrder])
+  @@index([venueId])
+}
+
+model EventPackageService {
+  id        Int          @id @default(autoincrement())
+  packageId Int
+  package   EventPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  serviceId Int
+  service   Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, serviceId])
+  @@index([serviceId])
+}
+
+model EventPlan {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType          String   // חתונה | בר מצווה
+  title              String?
+  eventDate          String?
+  area               String?
+  budgetMin          Int?
+  budgetMax          Int?
+  checklistJson      String? // JSON: { venue, photographer, dj, catering }
+  venueId            Int?
+  venue              Venue?   @relation("EventPlanVenue", fields: [venueId], references: [id], onDelete: SetNull)
+  photographerServiceId Int?
+  photographerService   Service? @relation("EventPlanPhotographer", fields: [photographerServiceId], references: [id], onDelete: SetNull)
+  djServiceId        Int?
+  djService          Service? @relation("EventPlanDj", fields: [djServiceId], references: [id], onDelete: SetNull)
+  cateringServiceId  Int?
+  cateringService    Service? @relation("EventPlanCatering", fields: [cateringServiceId], references: [id], onDelete: SetNull)
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String?
+  href      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+}
+
+model Conversation {
+  id             Int       @id @default(autoincrement())
+  participant1Id Int
+  participant1   User      @relation("ConvP1", fields: [participant1Id], references: [id])
+  participant2Id Int
+  participant2   User      @relation("ConvP2", fields: [participant2Id], references: [id])
+  contextKey     String
+  venueId        Int?
+  venue          Venue?    @relation(fields: [venueId], references: [id])
+  serviceId      Int?
+  service        Service?  @relation(fields: [serviceId], references: [id])
+  messages       Message[]
+  participant1LastReadAt DateTime?
+  participant2LastReadAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([participant1Id, participant2Id, contextKey])
+  @@index([participant1Id])
+  @@index([participant2Id])
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       Int
+  sender         User         @relation(fields: [senderId], references: [id])
+  body           String
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model ServiceRequest {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  serviceId    Int
+  service      Service  @relation(fields: [serviceId], references: [id])
+  eventType    String?
+  preferredDate String?
+  message      String
+  status       String   @default("NEW") // NEW, READ, REPLIED
+  providerNote String?
+  repliedAt    DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model VenueReview {
+  id        Int      @id @default(autoincrement())
+  venueId   Int
+  venue     Venue   @relation(fields: [venueId], references: [id])
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  /// דירוג בשלבים של ½ כוכב, נשמר כמספר שלם 2–10 (×2) — SQLite לא מקצר עשרוניים
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model VenueAvailability {
+  id        Int      @id @default(autoincrement())
+  venueId   Int
+  venue     Venue   @relation(fields: [venueId], references: [id])
+  date      DateTime
+  status    String  // "FREE" או "BOOKED"
+  createdAt DateTime @default(now())
+
+  @@unique([venueId, date])
+}
+
+model VenueGalleryImage {
+  id        Int                @id @default(autoincrement())
+  venueId   Int
+  venue     Venue              @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  url       String
+  // ערכים אפשריים: "HALL", "CHUPPA", "DANCE", "FOOD"
+  category  String
+  createdAt DateTime          @default(now())
+
+  @@index([venueId, category])
+}
