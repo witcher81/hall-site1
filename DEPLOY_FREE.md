@@ -17,6 +17,8 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST/DB?sslmode=require"
 JWT_SECRET="replace-with-random-long-secret"
 ```
 
+**JWT_SECRET:** on Vercel it must be **at least 32 characters**. For local `next build` (production mode), at least **16 characters** is required.
+
 If your app uses more env vars, add them too.
 
 ## 3) Push Prisma schema to Neon

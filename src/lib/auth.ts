@@ -3,9 +3,41 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
-const SESSION_COOKIE_NAME = "hall_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+/** בפרודקשן: עוגיית __Host- דורשת Secure ו-Path=/ בלי Domain — מחזקת מניעת דליפה בין דומיינים */
+export const SESSION_COOKIE_NAME = IS_PRODUCTION
+  ? "__Host-hall_session"
+  : "hall_session";
+
+let jwtSecretCache: string | null = null;
+
+function getJwtSecret(): string {
+  if (jwtSecretCache !== null) return jwtSecretCache;
+
+  const fromEnv = process.env.JWT_SECRET?.trim();
+  if (IS_PRODUCTION) {
+    const onVercel = process.env.VERCEL === "1";
+    const minLen = onVercel ? 32 : 16;
+    if (!fromEnv || fromEnv.length < minLen) {
+      throw new Error(
+        onVercel
+          ? "JWT_SECRET חייב להיות מוגדר בפרודקשן ב-Vercel (לפחות 32 תווים)."
+          : "JWT_SECRET חייב להיות מוגדר בפרודקשן (לפחות 16 תווים). הוסף ל-.env או הגדר ב-Vercel."
+      );
+    }
+    if (fromEnv === "dev-secret-change-me") {
+      throw new Error("JWT_SECRET לא יכול להיות ערך ברירת מחדל בפרודקשן.");
+    }
+    jwtSecretCache = fromEnv;
+    return jwtSecretCache;
+  }
+  jwtSecretCache =
+    fromEnv && fromEnv.length > 0 ? fromEnv : "dev-secret-change-me";
+  return jwtSecretCache;
+}
 
 export type AuthUser = {
   id: number;
@@ -25,7 +57,7 @@ export async function verifyPassword(password: string, hash: string) {
 export function createSessionToken(user: AuthUser) {
   return jwt.sign(
     { sub: user.id, email: user.email, role: user.role, name: user.name },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: SESSION_MAX_AGE_SECONDS }
   );
 }
@@ -34,7 +66,7 @@ export async function setSessionCookie(token: string) {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: IS_PRODUCTION,
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
@@ -45,6 +77,8 @@ export async function clearSessionCookie() {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: "lax",
     path: "/",
     maxAge: 0,
   });
@@ -56,7 +90,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   if (!token) return null;
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as unknown as {
+    const payload = jwt.verify(token, getJwtSecret()) as unknown as {
       sub: number | string;
       email: string;
       name: string | null;
