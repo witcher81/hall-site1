@@ -1,0 +1,16 @@
+---
+description: After security-related changes, commit and push to deploy Vercel
+alwaysApply: true
+---
+
+# Deploy after security work
+
+When adding or changing **security** (headers, CSP, auth, cookies, secrets handling, XSS/safe hrefs, Prisma/server-only, rate limits, API hardening, etc.):
+
+1. Stage only intentional files — **never** commit `.env` or real secrets.
+2. Run `git commit` with a clear message (e.g. `security: …`).
+3. Run `git push origin main` so **Vercel** rebuilds the live site.
+
+If `git push` fails (auth/network), report the error and what remains to do locally.
+
+Skip auto-push only if the user explicitly asks to hold commits or review first.
