@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import DevUserSwitcher from "./DevUserSwitcher";
 import MessagesUnreadBadge from "./MessagesUnreadBadge";
 import NotificationsUnreadBadge from "./NotificationsUnreadBadge";
+import RealtimeEventBridge from "./RealtimeEventBridge";
 
 type User = {
   id: number;
@@ -143,6 +144,7 @@ export default function HomeHeader({ user }: { user: User | null }) {
 
   return (
     <header className="site-header relative z-50 border-b border-slate-800 bg-[#0F3B2E] backdrop-blur-sm">
+      {user ? <RealtimeEventBridge /> : null}
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-3 justify-start sm:gap-4">
           <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-slate-50">

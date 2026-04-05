@@ -58,8 +58,19 @@ git push -u origin main
 3. In project Environment Variables add:
    - `DATABASE_URL` (Neon URL)
    - `JWT_SECRET` (same style as local)
+   - **`WEBHOOK_INBOUND_SECRET`** — מחרוזת אקראית ארוכה (למשל 32+ תווים). אותו ערך יופיע אצל השירות החיצוני שקורא ל־webhook.
+   - (מומלץ) **`NEXT_PUBLIC_SITE_URL`** — `https://your-domain.vercel.app` או הדומיין המותאם, ל־OG וקישורים עקביים.
    - Any other secret your app needs
 4. Deploy
+
+### Webhook באוויר (אחרי Deploy)
+
+- **URL:** `https://<הדומיין של הפרויקט>/api/webhooks/inbound`
+- **שיטה:** `POST`
+- **אימות:** כותרת `X-Hall-Webhook-Secret: <ערך זהה ל־WEBHOOK_INBOUND_SECRET ב־Vercel>`  
+  או `Authorization: Bearer <אותו סוד>`
+- **בדיקה מהירה:** פתח בדפדפן `GET https://<הדומיין>/api/webhooks/inbound` — אמור להחזיר JSON עם `ok: true` ותיאור (בלי הסוד).
+- בלי `WEBHOOK_INBOUND_SECRET` ב־Vercel — `POST` יחזיר **503**.
 
 Vercel will run:
 - `npm install`

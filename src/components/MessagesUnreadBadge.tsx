@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import {
+  HH_REALTIME_EVENT,
+  type RealtimePayload,
+} from "@/lib/realtimeEvents";
 
 /** נשלח מ־MessagesClient אחרי טעינת רשימת השיחות — עדכון מיידי של הנקודה בלי קריאה נוספת */
 export const HH_MESSAGES_UNREAD_EVENT = "hh-messages-unread";
@@ -39,9 +43,16 @@ export default function MessagesUnreadBadge() {
   }, [fetchUnread]);
 
   useEffect(() => {
-    const id = window.setInterval(() => void fetchUnread(), 45_000);
-    return () => window.clearInterval(id);
-  }, [fetchUnread]);
+    function onRealtime(e: Event) {
+      const d = (e as CustomEvent<RealtimePayload>).detail;
+      if (d?.type === "badges" && typeof d.messages === "number") {
+        setTotalUnread(d.messages);
+      }
+    }
+    window.addEventListener(HH_REALTIME_EVENT, onRealtime as EventListener);
+    return () =>
+      window.removeEventListener(HH_REALTIME_EVENT, onRealtime as EventListener);
+  }, []);
 
   useEffect(() => {
     function onFocus() {

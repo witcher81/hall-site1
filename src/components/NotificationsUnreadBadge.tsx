@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import {
+  HH_REALTIME_EVENT,
+  type RealtimePayload,
+} from "@/lib/realtimeEvents";
 
 let unreadFetchInFlight: Promise<number> | null = null;
 
@@ -38,9 +42,19 @@ export default function NotificationsUnreadBadge() {
   }, [fetchUnread]);
 
   useEffect(() => {
-    const id = window.setInterval(() => void fetchUnread(), 45_000);
-    return () => window.clearInterval(id);
-  }, [fetchUnread]);
+    function onRealtime(e: Event) {
+      const d = (e as CustomEvent<RealtimePayload>).detail;
+      if (
+        d?.type === "badges" &&
+        typeof d.notifications === "number"
+      ) {
+        setTotalUnread(d.notifications);
+      }
+    }
+    window.addEventListener(HH_REALTIME_EVENT, onRealtime as EventListener);
+    return () =>
+      window.removeEventListener(HH_REALTIME_EVENT, onRealtime as EventListener);
+  }, []);
 
   useEffect(() => {
     function onFocus() {

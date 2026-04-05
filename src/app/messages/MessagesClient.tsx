@@ -245,11 +245,57 @@ export default function MessagesClient({
 
   useEffect(() => {
     if (!selectedId) return;
-    const id = window.setInterval(() => {
-      loadMessages(selectedId);
-      loadList();
-    }, 15000);
-    return () => window.clearInterval(id);
+    let es: EventSource | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let stopped = false;
+    let lastSeenLatestId: number | null = null;
+
+    const connect = () => {
+      if (stopped) return;
+      es = new EventSource(
+        `/api/realtime/stream?conversationId=${selectedId}`
+      );
+      es.onmessage = (ev) => {
+        try {
+          const p = JSON.parse(ev.data) as {
+            type?: string;
+            conversationId?: number;
+            messageLatestId?: number;
+          };
+          if (
+            p?.type !== "conversation" ||
+            p.conversationId !== selectedId ||
+            typeof p.messageLatestId !== "number"
+          ) {
+            return;
+          }
+          const lid = p.messageLatestId;
+          if (lastSeenLatestId === null) {
+            lastSeenLatestId = lid;
+            return;
+          }
+          if (lid !== lastSeenLatestId) {
+            lastSeenLatestId = lid;
+            void loadMessages(selectedId);
+            void loadList();
+          }
+        } catch {
+          /* ignore */
+        }
+      };
+      es.onerror = () => {
+        es?.close();
+        es = null;
+        if (!stopped) reconnectTimer = setTimeout(connect, 1_200);
+      };
+    };
+
+    connect();
+    return () => {
+      stopped = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      es?.close();
+    };
   }, [selectedId, loadList, loadMessages]);
 
   useEffect(() => {
