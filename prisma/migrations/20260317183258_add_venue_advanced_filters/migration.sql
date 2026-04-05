@@ -1,7 +1,0 @@
--- AlterTable
-ALTER TABLE "Venue" ADD COLUMN "accessible" BOOLEAN;
-ALTER TABLE "Venue" ADD COLUMN "boutique" BOOLEAN;
-ALTER TABLE "Venue" ADD COLUMN "kashrut" TEXT;
-ALTER TABLE "Venue" ADD COLUMN "parking" TEXT;
-ALTER TABLE "Venue" ADD COLUMN "seaView" BOOLEAN;
-ALTER TABLE "Venue" ADD COLUMN "venueType" TEXT;
