@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -53,6 +54,27 @@ function toOptionalId(value: unknown): number | null {
   const n = Number(value);
   if (!Number.isInteger(n) || n <= 0) return null;
   return n;
+}
+
+function validateEventPlanTextFields(
+  title: string | null,
+  notes: string | null,
+  area: string | null,
+  eventDate: string | null
+): NextResponse | null {
+  if (title && title.length > USER_INPUT_MAX.EVENT_PLAN_TITLE) {
+    return badRequest("כותרת ארוכה מדי");
+  }
+  if (notes && notes.length > USER_INPUT_MAX.EVENT_PLAN_NOTES) {
+    return badRequest("הערות ארוכות מדי");
+  }
+  if (area && area.length > USER_INPUT_MAX.AREA) {
+    return badRequest("שדה אזור ארוך מדי");
+  }
+  if (eventDate && eventDate.length > USER_INPUT_MAX.DATE_STRING) {
+    return badRequest("תאריך לא תקין");
+  }
+  return null;
 }
 
 async function validateServiceCategory(
@@ -112,6 +134,9 @@ export async function POST(req: NextRequest) {
   const budgetMin = toOptionalId(body.budgetMin);
   const budgetMax = toOptionalId(body.budgetMax);
   const checklistJson = parseChecklist(body.checklist);
+
+  const textErr = validateEventPlanTextFields(title, notes, area, eventDate);
+  if (textErr) return textErr;
 
   if (venueId !== null) {
     const v = await prisma.venue.findUnique({ where: { id: venueId }, select: { id: true } });
@@ -188,6 +213,9 @@ export async function PUT(req: NextRequest) {
   const budgetMin = toOptionalId(body.budgetMin);
   const budgetMax = toOptionalId(body.budgetMax);
   const checklistJson = parseChecklist(body.checklist);
+
+  const textErrPut = validateEventPlanTextFields(title, notes, area, eventDate);
+  if (textErrPut) return textErrPut;
 
   if (venueId !== null) {
     const v = await prisma.venue.findUnique({ where: { id: venueId }, select: { id: true } });

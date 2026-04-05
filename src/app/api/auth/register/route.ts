@@ -5,6 +5,12 @@ import {
   hashPassword,
   setSessionCookie,
 } from "@/lib/auth";
+import {
+  USER_INPUT_MAX,
+  validateEmail,
+  validateNewPassword,
+  validateOptionalShortText,
+} from "@/lib/userInputValidation";
 
 const ALLOWED_ROLES = ["SEEKER", "VENUE_OWNER", "FREELANCER"] as const;
 
@@ -18,14 +24,27 @@ export async function POST(req: NextRequest) {
       role?: string;
     };
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
+    const emailResult = validateEmail(email);
+    if (!emailResult.ok) {
+      return NextResponse.json({ error: emailResult.error }, { status: 400 });
+    }
+    const normalizedEmail = emailResult.value;
+
+    const passResult = validateNewPassword(password);
+    if (!passResult.ok) {
+      return NextResponse.json({ error: passResult.error }, { status: 400 });
+    }
+    const passwordPlain = passResult.value;
+
+    const nameResult = validateOptionalShortText(
+      name,
+      USER_INPUT_MAX.DISPLAY_NAME,
+      "שם"
+    );
+    if (!nameResult.ok) {
+      return NextResponse.json({ error: nameResult.error }, { status: 400 });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
     const selectedRole = ALLOWED_ROLES.includes(
       (role || "SEEKER").toUpperCase() as (typeof ALLOWED_ROLES)[number]
     )
@@ -37,22 +56,15 @@ export async function POST(req: NextRequest) {
     });
     if (existing) {
       return NextResponse.json(
-        { error: "Email is already registered" },
+        { error: "האימייל כבר רשום" },
         { status: 409 }
       );
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      );
-    }
-
-    const passwordHash = await hashPassword(password);
+    const passwordHash = await hashPassword(passwordPlain);
     const user = await prisma.user.create({
       data: {
-        name: name?.trim() || null,
+        name: nameResult.value,
         email: normalizedEmail,
         passwordHash,
         role: selectedRole,

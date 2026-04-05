@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { isValidIsraeliPhone, normalizePhoneInput } from "@/lib/phone";
+import { USER_INPUT_MAX, validateOptionalShortText } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,15 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const name = typeof body.name === "string" ? body.name.trim() : null;
+  const nameResult = validateOptionalShortText(
+    body.name,
+    USER_INPUT_MAX.DISPLAY_NAME,
+    "שם"
+  );
+  if (!nameResult.ok) {
+    return NextResponse.json({ error: nameResult.error }, { status: 400 });
+  }
+  const name = nameResult.value;
   const phone = typeof body.phone === "string" ? body.phone.trim() : null;
   const normalizedPhone =
     phone && phone.length > 0 ? normalizePhoneInput(phone) : null;
@@ -27,7 +36,7 @@ export async function PATCH(req: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        name: name || null,
+        name,
         phone: normalizedPhone || null,
       },
     });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { dbScoreToStars, parseHalfStarRating, starsToDbScore } from "@/lib/reviewRating";
+import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -55,6 +56,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
   const body = await req.json().catch(() => null);
   const comment = typeof body?.comment === "string" ? body.comment.trim() : "";
+  if (comment.length > USER_INPUT_MAX.REVIEW_COMMENT) {
+    return badRequest("תוכן הביקורת ארוך מדי");
+  }
 
   const parsed = parseHalfStarRating(body?.rating);
   if (!parsed.ok) {

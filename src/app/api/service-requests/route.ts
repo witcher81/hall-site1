@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import {
+  USER_INPUT_MAX,
+  badRequest,
+  validateRequiredText,
+} from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -17,15 +22,33 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const serviceId = body.serviceId != null ? Number(body.serviceId) : NaN;
-  const message = (body.message as string)?.trim();
-  const eventType = (body.eventType as string)?.trim() || null;
-  const preferredDate = (body.preferredDate as string)?.trim() || null;
+  const msgResult = validateRequiredText(
+    body.message,
+    USER_INPUT_MAX.SERVICE_REQUEST_MESSAGE,
+    10,
+    "הודעה"
+  );
+  if (!msgResult.ok) {
+    return badRequest(
+      msgResult.error.includes("קצר") ? "הודעה חייבת להכיל לפחות 10 תווים" : msgResult.error
+    );
+  }
+  const message = msgResult.value;
+  const eventTypeRaw =
+    typeof body.eventType === "string" ? body.eventType.trim() || null : null;
+  if (eventTypeRaw && eventTypeRaw.length > USER_INPUT_MAX.EVENT_TYPE_FREE) {
+    return badRequest("סוג אירוע ארוך מדי");
+  }
+  const eventType = eventTypeRaw;
+  const preferredDateRaw =
+    typeof body.preferredDate === "string" ? body.preferredDate.trim() || null : null;
+  if (preferredDateRaw && preferredDateRaw.length > USER_INPUT_MAX.DATE_STRING) {
+    return badRequest("תאריך לא תקין");
+  }
+  const preferredDate = preferredDateRaw;
 
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
     return NextResponse.json({ error: "נא לבחור שירות" }, { status: 400 });
-  }
-  if (!message || message.length < 10) {
-    return NextResponse.json({ error: "הודעה חייבת להכיל לפחות 10 תווים" }, { status: 400 });
   }
 
   const service = await prisma.service.findUnique({
@@ -42,7 +65,7 @@ export async function POST(req: NextRequest) {
       serviceId,
       message,
       eventType,
-      preferredDate: preferredDate || null,
+      preferredDate,
     },
   });
 

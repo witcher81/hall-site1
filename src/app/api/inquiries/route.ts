@@ -5,6 +5,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
 import { normalizeInquiryServiceChoices } from "@/lib/venueInquiryAmenities";
+import {
+  USER_INPUT_MAX,
+  validateGuestCount,
+  badRequest,
+} from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -20,13 +25,20 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const venueId = body.venueId != null ? Number(body.venueId) : NaN;
-  let message = (body.message as string)?.trim() ?? "";
+  let message = typeof body.message === "string" ? body.message.trim() : "";
   const preferredDateRaw = (body.preferredDate as string)?.trim() || null;
-  const eventType = (body.eventType as string)?.trim() || null;
+  let eventType =
+    typeof body.eventType === "string" ? body.eventType.trim() || null : null;
   const guestCount = body.guestCount != null && body.guestCount !== "" ? Number(body.guestCount) : null;
 
   if (!Number.isInteger(venueId) || venueId <= 0) {
     return NextResponse.json({ error: "נא לבחור אולם" }, { status: 400 });
+  }
+  if (message.length > USER_INPUT_MAX.INQUIRY_MESSAGE) {
+    return badRequest("הודעת הפנייה ארוכה מדי");
+  }
+  if (eventType && eventType.length > USER_INPUT_MAX.EVENT_TYPE_FREE) {
+    return badRequest("סוג אירוע ארוך מדי");
   }
   if (!preferredDateRaw) {
     return NextResponse.json({ error: "נא לבחור תאריך אירוע" }, { status: 400 });
@@ -43,8 +55,8 @@ export async function POST(req: NextRequest) {
   }
   const preferredDate = preferredDateRaw;
 
-  if (guestCount == null || !Number.isFinite(guestCount) || guestCount < 1) {
-    return NextResponse.json({ error: "נא לציין כמות אורחים צפויה" }, { status: 400 });
+  if (!validateGuestCount(guestCount)) {
+    return NextResponse.json({ error: "נא לציין כמות אורחים תקינה" }, { status: 400 });
   }
 
   const venue = await prisma.venue.findUnique({

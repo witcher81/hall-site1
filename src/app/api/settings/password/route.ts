@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, hashPassword, verifyPassword } from "@/lib/auth";
+import { validateLoginPassword, validateNewPassword } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -11,22 +12,17 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const currentPassword = String(body.currentPassword || "");
-  const newPassword = String(body.newPassword || "");
-
-  if (!currentPassword || !newPassword) {
-    return NextResponse.json(
-      { error: "חובה למלא סיסמה נוכחית וחדשה" },
-      { status: 400 }
-    );
+  const curResult = validateLoginPassword(body.currentPassword);
+  if (!curResult.ok) {
+    return NextResponse.json({ error: "חובה למלא סיסמה נוכחית וחדשה" }, { status: 400 });
   }
+  const currentPassword = curResult.value;
 
-  if (newPassword.length < 6) {
-    return NextResponse.json(
-      { error: "הסיסמה החדשה חייבת להכיל לפחות 6 תווים" },
-      { status: 400 }
-    );
+  const newResult = validateNewPassword(body.newPassword);
+  if (!newResult.ok) {
+    return NextResponse.json({ error: newResult.error }, { status: 400 });
   }
+  const newPassword = newResult.value;
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,9 @@ export async function PATCH(
     );
   }
   const autoReplyMessage = raw.trim() || null;
+  if (autoReplyMessage && autoReplyMessage.length > USER_INPUT_MAX.AUTO_REPLY) {
+    return badRequest("הודעת מענה אוטומטי ארוכה מדי");
+  }
 
   const venue = await prisma.venue.findFirst({
     where: { id: venueId, ownerId: user.id },

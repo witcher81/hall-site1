@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -81,8 +82,8 @@ export async function POST(req: NextRequest, context: Ctx) {
 
   const body = (await req.json().catch(() => null)) as { body?: string } | null;
   const text = typeof body?.body === "string" ? body.body.trim() : "";
-  if (!text || text.length > 8000) {
-    return NextResponse.json({ error: "Invalid message body" }, { status: 400 });
+  if (!text || text.length > USER_INPUT_MAX.CHAT_MESSAGE) {
+    return badRequest("תוכן ההודעה לא תקין או ארוך מדי");
   }
 
   const msg = await prisma.message.create({

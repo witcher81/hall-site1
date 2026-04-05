@@ -7,6 +7,7 @@ import {
   sanitizeSocialLinksFromClient,
   serializeSocialLinks,
 } from "@/lib/socialLinks";
+import { USER_INPUT_MAX, validateOptionalShortText } from "@/lib/userInputValidation";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -90,6 +91,27 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: businessPhoneResult.error }, { status: 400 });
   }
 
+  const nameRes = validateOptionalShortText(name, USER_INPUT_MAX.DISPLAY_NAME, "שם");
+  if (!nameRes.ok) {
+    return NextResponse.json({ error: nameRes.error }, { status: 400 });
+  }
+  const bizNameRes = validateOptionalShortText(
+    businessName,
+    USER_INPUT_MAX.BUSINESS_NAME,
+    "שם העסק"
+  );
+  if (!bizNameRes.ok) {
+    return NextResponse.json({ error: bizNameRes.error }, { status: 400 });
+  }
+  const addrRes = validateOptionalShortText(
+    businessAddress,
+    USER_INPUT_MAX.ADDRESS,
+    "כתובת"
+  );
+  if (!addrRes.ok) {
+    return NextResponse.json({ error: addrRes.error }, { status: 400 });
+  }
+
   const socialLinksProvided = socialLinks !== undefined;
   const cleanedSocial = socialLinksProvided
     ? sanitizeSocialLinksFromClient(socialLinks)
@@ -98,11 +120,11 @@ export async function PUT(req: NextRequest) {
   const updated = await prisma.user.update({
     where: { id: user.id },
     data: {
-      name: name?.trim() || null,
+      name: nameRes.value,
       phone: phoneResult.value,
-      businessName: businessName?.trim() || null,
+      businessName: bizNameRes.value,
       businessPhone: businessPhoneResult.value,
-      businessAddress: businessAddress?.trim() || null,
+      businessAddress: addrRes.value,
       ...(socialLinksProvided
         ? { socialLinksJson: serializeSocialLinks(cleanedSocial ?? []) }
         : {}),

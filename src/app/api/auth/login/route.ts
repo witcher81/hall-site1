@@ -5,25 +5,30 @@ import {
   setSessionCookie,
   verifyPassword,
 } from "@/lib/auth";
+import { validateEmail, validateLoginPassword } from "@/lib/userInputValidation";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { email, password } = body as { email?: string; password?: string };
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
+    const emailResult = validateEmail(email);
+    if (!emailResult.ok) {
+      return NextResponse.json({ error: emailResult.error }, { status: 400 });
     }
+    const normalizedEmail = emailResult.value;
 
-    const normalizedEmail = email.toLowerCase().trim();
+    const passResult = validateLoginPassword(password);
+    if (!passResult.ok) {
+      return NextResponse.json({ error: passResult.error }, { status: 400 });
+    }
+    const passwordPlain = passResult.value;
+
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
 
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+    if (!user || !(await verifyPassword(passwordPlain, user.passwordHash))) {
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
