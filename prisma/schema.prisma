@@ -8,6 +8,7 @@ generator client {
   // ברירת מחדל: node_modules/.prisma/client — מומלץ על Windows/OneDrive כדי למנוע EPERM על query_engine בנתיב מותאם
 }
 
+// Connection string only via process env — never hardcode credentials in the repo.
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

@@ -1,6 +1,7 @@
 import HomeHeader from "@/components/HomeHeader";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sanitizeInternalAppHref } from "@/lib/safeHref";
 import { redirect } from "next/navigation";
 import NotificationsClient from "./NotificationsClient";
 
@@ -10,11 +11,15 @@ export default async function NotificationsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/auth/login");
 
-  const notifications = await prisma.notification.findMany({
+  const rows = await prisma.notification.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     take: 100,
   });
+  const notifications = rows.map((n) => ({
+    ...n,
+    href: sanitizeInternalAppHref(n.href),
+  }));
 
   return (
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">

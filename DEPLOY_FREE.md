@@ -68,5 +68,6 @@ against the production `DATABASE_URL`.
 
 ## Notes
 
-- `.env` is ignored by git, so secrets are not committed.
+- `.env` is ignored by git, so secrets are not committed. Use `.env.example` as a template only (placeholders).
+- The database URL exists only in `DATABASE_URL` on the server (Vercel env, local `.env`). Prisma reads it from the environment; `src/lib/prisma.ts` is marked `server-only` so it cannot be imported from client components.
 - Keep using `db push` while moving fast. Later, if you want stricter DB change history, move to `prisma migrate`.

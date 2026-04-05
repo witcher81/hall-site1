@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { sanitizeInternalAppHref } from "@/lib/safeHref";
 
 type NotificationItem = {
   id: number;
@@ -72,6 +73,7 @@ export default function NotificationsClient({
       ) : (
         <div className="space-y-2">
           {items.map((n) => {
+            const safeHref = sanitizeInternalAppHref(n.href);
             const row = (
               <div
                 className={`rounded-xl border p-4 text-right transition ${
@@ -92,11 +94,11 @@ export default function NotificationsClient({
                 </div>
               </div>
             );
-            if (n.href) {
+            if (safeHref) {
               return (
                 <a
                   key={n.id}
-                  href={n.href}
+                  href={safeHref}
                   onClick={() => markOne(n.id)}
                   className="block"
                 >

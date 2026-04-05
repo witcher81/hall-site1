@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sanitizeInternalAppHref } from "@/lib/safeHref";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,11 @@ export async function GET() {
     take: 100,
   });
   const unreadCount = notifications.filter((n) => !n.isRead).length;
-  return NextResponse.json({ notifications, unreadCount });
+  const safe = notifications.map((n) => ({
+    ...n,
+    href: sanitizeInternalAppHref(n.href),
+  }));
+  return NextResponse.json({ notifications: safe, unreadCount });
 }
 
 export async function PATCH(req: NextRequest) {

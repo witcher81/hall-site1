@@ -2,6 +2,7 @@
 
 import type { SocialLink, SocialPlatformId } from "@/lib/socialLinks";
 import { socialLinkDisplayLabel } from "@/lib/socialLinks";
+import { sanitizeHttpUrlForHref } from "@/lib/safeHref";
 
 function PlatformIcon({
   platform,
@@ -93,16 +94,34 @@ export default function SocialLinksRow({
     >
       {links.map((link, idx) => {
         const label = socialLinkDisplayLabel(link);
+        const safeUrl = sanitizeHttpUrlForHref(link.url);
+        const inner = (
+          <>
+            <PlatformIcon platform={link.platform} className={iconSize} />
+            <span className={labelCls}>{label}</span>
+          </>
+        );
+        const cls = `inline-flex items-center gap-1.5 rounded-md transition ${textSize} ${base} underline-offset-2 hover:underline`;
+        if (!safeUrl) {
+          return (
+            <span
+              key={`${link.platform}-${link.url}-${idx}`}
+              className={`${cls} cursor-not-allowed opacity-60`}
+              title="קישור לא תקין"
+            >
+              {inner}
+            </span>
+          );
+        }
         return (
           <a
             key={`${link.platform}-${link.url}-${idx}`}
-            href={link.url}
+            href={safeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-flex items-center gap-1.5 rounded-md transition ${textSize} ${base} underline-offset-2 hover:underline`}
+            className={cls}
           >
-            <PlatformIcon platform={link.platform} className={iconSize} />
-            <span className={labelCls}>{label}</span>
+            {inner}
           </a>
         );
       })}
