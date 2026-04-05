@@ -23,6 +23,25 @@ export const USER_INPUT_MAX = {
   AREA: 120,
   DATE_STRING: 32,
   GUEST_COUNT_MAX: 100_000,
+  /** אולם / שירות — שם */
+  VENUE_OR_SERVICE_NAME: 200,
+  CITY: 100,
+  DESCRIPTION_LONG: 20_000,
+  FOOD_KASHRUT: 200,
+  SERVICE_CATEGORY: 80,
+  SERVICE_SHORT_DESC: 500,
+  SERVICE_AREA_TEXT: 200,
+  LANGUAGES_LINE: 300,
+  RESPONSE_TIME_HINT: 120,
+  OWNER_OR_PROVIDER_NOTE: 4000,
+  /** שדה JSON מטופס (רשתות חברתיות, גלריה קיימת וכו׳) */
+  JSON_FORM_FIELD: 100_000,
+  PRICE_MAX: 2_147_483_647,
+  EXPERIENCE_YEARS_MAX: 80,
+  MAX_UPLOAD_IMAGE_BYTES: 5 * 1024 * 1024,
+  MAX_SERVICE_GALLERY_FILES: 24,
+  MAX_VENUE_GALLERY_FILES_TOTAL: 48,
+  MAX_EVENT_TYPE_LABELS: 24,
 } as const;
 
 function isReasonableEmailShape(s: string): boolean {
@@ -149,4 +168,95 @@ export function validateGuestCount(n: number | null): boolean {
   if (n == null || !Number.isFinite(n)) return false;
   if (!Number.isInteger(n)) return false;
   return n >= 1 && n <= USER_INPUT_MAX.GUEST_COUNT_MAX;
+}
+
+/** מחיר שלם או null (שדה ריק בטופס) */
+export function validateNullablePriceInt(n: number | null): boolean {
+  if (n === null) return true;
+  return (
+    Number.isInteger(n) &&
+    n >= 0 &&
+    n <= USER_INPUT_MAX.PRICE_MAX
+  );
+}
+
+export function validateExperienceYearsInt(n: number | null): boolean {
+  if (n === null) return true;
+  return (
+    Number.isInteger(n) &&
+    n >= 0 &&
+    n <= USER_INPUT_MAX.EXPERIENCE_YEARS_MAX
+  );
+}
+
+/** תמונת JPEG/PNG/WebP עד 5MB */
+export function validateUploadedImageFile(file: File): string | null {
+  if (file.size <= 0) return "קובץ תמונה ריק";
+  if (file.size > USER_INPUT_MAX.MAX_UPLOAD_IMAGE_BYTES) {
+    return "גודל התמונה חורג מהמותר (עד 5MB)";
+  }
+  const t = (file.type || "").toLowerCase();
+  const name = (file.name || "").toLowerCase();
+  const mimeOk =
+    t === "image/jpeg" ||
+    t === "image/jpg" ||
+    t === "image/png" ||
+    t === "image/webp";
+  const extOk = /\.(jpe?g|png|webp)$/i.test(name);
+  if (!mimeOk && !extOk) {
+    return "יש להעלות תמונה בפורמט JPEG, PNG או WebP";
+  }
+  return null;
+}
+
+export function formDataJsonStringTooLong(
+  entry: FormDataEntryValue | null,
+  maxLen: number
+): boolean {
+  return typeof entry === "string" && entry.length > maxLen;
+}
+
+/** מגביל מספר פריטים ואורך כל תווית */
+export function clampEventTypeLabels(types: string[]): string[] {
+  return types
+    .map((v) => v.slice(0, USER_INPUT_MAX.EVENT_TYPE_FREE).trim())
+    .filter((v) => v.length > 0)
+    .slice(0, USER_INPUT_MAX.MAX_EVENT_TYPE_LABELS);
+}
+
+export function validateGuestRange(
+  minG: number | null,
+  maxG: number | null
+): string | null {
+  if (minG !== null) {
+    if (!validateGuestCount(minG)) return "מספר אורחים מינימלי לא תקין";
+  }
+  if (maxG !== null) {
+    if (!validateGuestCount(maxG)) return "מספר אורחים מקסימלי לא תקין";
+  }
+  if (
+    minG !== null &&
+    maxG !== null &&
+    minG > maxG
+  ) {
+    return "מינימום אורחים לא יכול להיות גדול מהמקסימום";
+  }
+  return null;
+}
+
+export function validatePriceMinMax(
+  minP: number | null,
+  maxP: number | null
+): string | null {
+  if (!validateNullablePriceInt(minP) || !validateNullablePriceInt(maxP)) {
+    return "מחיר לא תקין";
+  }
+  if (
+    minP !== null &&
+    maxP !== null &&
+    minP > maxP
+  ) {
+    return "מחיר מינימום לא יכול להיות גדול ממחיר מקסימום";
+  }
+  return null;
 }

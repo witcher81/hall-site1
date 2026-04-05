@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import {
+  USER_INPUT_MAX,
+  badRequest,
+  validateOptionalLongText,
+} from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -46,7 +51,16 @@ export async function PATCH(req: NextRequest) {
   const statusRaw = (body.status as string)?.toUpperCase();
   const status =
     statusRaw === "REPLIED" ? "REPLIED" : statusRaw === "READ" ? "READ" : "NEW";
-  const providerNote = (body.providerNote as string)?.trim() || null;
+  let providerNote: string | null = null;
+  if (typeof body.providerNote === "string") {
+    const noteRes = validateOptionalLongText(
+      body.providerNote,
+      USER_INPUT_MAX.OWNER_OR_PROVIDER_NOTE,
+      "הערה"
+    );
+    if (!noteRes.ok) return badRequest(noteRes.error);
+    providerNote = noteRes.value;
+  }
 
   if (!Number.isInteger(id) || id <= 0) {
     return NextResponse.json({ error: "Invalid request id" }, { status: 400 });

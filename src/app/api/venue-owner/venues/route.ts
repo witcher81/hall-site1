@@ -4,6 +4,18 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { geocodeIsraelAddress } from "@/lib/geocode";
 import { createNotification } from "@/lib/notifications";
+import {
+  USER_INPUT_MAX,
+  badRequest,
+  clampEventTypeLabels,
+  formDataJsonStringTooLong,
+  validateGuestRange,
+  validateOptionalLongText,
+  validateOptionalShortText,
+  validatePriceMinMax,
+  validateRequiredText,
+  validateUploadedImageFile,
+} from "@/lib/userInputValidation";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -31,12 +43,14 @@ function toFloatOrNull(value: FormDataEntryValue | null): number | null {
 
 function parseEventTypes(raw: FormDataEntryValue | null): string[] {
   if (typeof raw !== "string" || raw.trim() === "") return [];
+  if (raw.length > USER_INPUT_MAX.JSON_FORM_FIELD) return [];
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed
+    const list = parsed
       .map((v) => (typeof v === "string" ? v.trim() : ""))
       .filter((v) => v.length > 0);
+    return clampEventTypeLabels(list);
   } catch {
     return [];
   }
@@ -62,6 +76,9 @@ function parseCustomAmenitiesJson(
   raw: FormDataEntryValue | null
 ): ParsedAmenitiesResult {
   if (typeof raw !== "string" || raw.trim() === "") return { json: null, error: null };
+  if (raw.length > USER_INPUT_MAX.JSON_FORM_FIELD) {
+    return { json: null, error: "נתוני שירותים מותאמים ארוכים מדי." };
+  }
   try {
     const v = JSON.parse(raw) as unknown;
     if (!Array.isArray(v)) return { json: null, error: "פורמט שירותים לא תקין." };
@@ -134,17 +151,17 @@ export async function POST(req: NextRequest) {
 
   const formData = await req.formData();
 
-  const name = (formData.get("name") as string | null)?.trim();
-  const city = (formData.get("city") as string | null)?.trim();
-  const address = (formData.get("address") as string | null)?.trim();
+  let name = (formData.get("name") as string | null)?.trim();
+  let city = (formData.get("city") as string | null)?.trim();
+  let address = (formData.get("address") as string | null)?.trim();
   const minGuests = formData.get("minGuests") as string | null;
   const maxGuests = formData.get("maxGuests") as string | null;
   const minPrice = formData.get("minPrice") as string | null;
   const maxPrice = formData.get("maxPrice") as string | null;
   const hallRentalMin = formData.get("hallRentalMin") as string | null;
   const hallRentalMax = formData.get("hallRentalMax") as string | null;
-  const description = (formData.get("description") as string | null)?.trim();
-  const autoReplyMessage =
+  let description = (formData.get("description") as string | null)?.trim();
+  let autoReplyMessage =
     (formData.get("autoReplyMessage") as string | null)?.trim() || null;
   const hasChuppa = toBool(formData.get("hasChuppa"));
   const hasFood = toBool(formData.get("hasFood"));
@@ -155,7 +172,9 @@ export async function POST(req: NextRequest) {
   const hasChuppaOutdoor = toBool(formData.get("hasChuppaOutdoor"));
   const hasChuppaCovered = toBool(formData.get("hasChuppaCovered"));
   const hasVeganFood = toBool(formData.get("hasVeganFood"));
-  const foodKashrut = (formData.get("foodKashrut") as string | null)?.trim() || null;
+  if (formDataJsonStringTooLong(formData.get("eventTypes"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+    return badRequest("נתוני סוגי אירוע ארוכים מדי");
+  }
   const eventTypes = parseEventTypes(formData.get("eventTypes"));
   const amenitiesParsed = parseCustomAmenitiesJson(
     formData.get("customAmenitiesJson")
@@ -164,6 +183,61 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: amenitiesParsed.error }, { status: 400 });
   }
   const customAmenitiesJson = amenitiesParsed.json;
+
+  const nameCheck = validateRequiredText(
+    typeof name === "string" ? name : "",
+    USER_INPUT_MAX.VENUE_OR_SERVICE_NAME,
+    1,
+    "שם האולם"
+  );
+  if (!nameCheck.ok) return badRequest(nameCheck.error);
+  const cityCheck = validateRequiredText(
+    typeof city === "string" ? city : "",
+    USER_INPUT_MAX.CITY,
+    1,
+    "עיר"
+  );
+  if (!cityCheck.ok) return badRequest(cityCheck.error);
+  const addrCheck = validateRequiredText(
+    typeof address === "string" ? address : "",
+    USER_INPUT_MAX.ADDRESS,
+    1,
+    "כתובת"
+  );
+  if (!addrCheck.ok) return badRequest(addrCheck.error);
+  name = nameCheck.value;
+  city = cityCheck.value;
+  address = addrCheck.value;
+
+  const descCheck = validateOptionalLongText(
+    description ?? null,
+    USER_INPUT_MAX.DESCRIPTION_LONG,
+    "תיאור"
+  );
+  if (!descCheck.ok) return badRequest(descCheck.error);
+  const autoChk = validateOptionalLongText(
+    autoReplyMessage,
+    USER_INPUT_MAX.AUTO_REPLY,
+    "מענה אוטומטי"
+  );
+  if (!autoChk.ok) return badRequest(autoChk.error);
+  const foodChk = validateOptionalShortText(
+    (formData.get("foodKashrut") as string | null)?.trim() || null,
+    USER_INPUT_MAX.FOOD_KASHRUT,
+    "כשרות"
+  );
+  if (!foodChk.ok) return badRequest(foodChk.error);
+
+  const gErr = validateGuestRange(toIntOrNull(minGuests), toIntOrNull(maxGuests));
+  if (gErr) return badRequest(gErr);
+  const pErr = validatePriceMinMax(toIntOrNull(minPrice), toIntOrNull(maxPrice));
+  if (pErr) return badRequest(pErr);
+  const hErr = validatePriceMinMax(
+    toIntOrNull(hallRentalMin),
+    toIntOrNull(hallRentalMax)
+  );
+  if (hErr) return badRequest(hErr);
+
   const pickedLatitude = toFloatOrNull(formData.get("latitude"));
   const pickedLongitude = toFloatOrNull(formData.get("longitude"));
   const hasWedding = eventTypes.includes("חתונה");
@@ -174,13 +248,6 @@ export async function POST(req: NextRequest) {
   if (hasWedding && !hasChuppaOutdoor && !hasChuppaCovered) {
     return NextResponse.json(
       { error: "נא לסמן לפחות אחד: חופה בחוץ או חופה מקורה." },
-      { status: 400 }
-    );
-  }
-
-  if (!name || !city || !address) {
-    return NextResponse.json(
-      { error: "Name, city and address are required" },
       { status: 400 }
     );
   }
@@ -207,6 +274,44 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const coverImageFile = formData.get("coverImage") as File | null;
+  const galleryFilesHall = formData.getAll("galleryImagesHALL") as File[];
+  const galleryFilesChuppa = formData.getAll("galleryImagesCHUPPA") as File[];
+  const galleryFilesDance = formData.getAll("galleryImagesDANCE") as File[];
+  const galleryFilesFood = formData.getAll("galleryImagesFOOD") as File[];
+  const galleryFilesLegacy = formData.getAll("galleryImages") as File[];
+
+  const galleryHallFilesToUse =
+    galleryFilesHall.length > 0 || galleryFilesLegacy.length > 0
+      ? galleryFilesHall.length > 0
+        ? galleryFilesHall
+        : galleryFilesLegacy
+      : [];
+
+  const totalGalleryFiles =
+    galleryHallFilesToUse.length +
+    galleryFilesChuppa.length +
+    galleryFilesDance.length +
+    galleryFilesFood.length;
+  if (totalGalleryFiles > USER_INPUT_MAX.MAX_VENUE_GALLERY_FILES_TOTAL) {
+    return badRequest("יותר מדי תמונות בגלריה");
+  }
+  for (const f of [
+    ...galleryHallFilesToUse,
+    ...galleryFilesChuppa,
+    ...galleryFilesDance,
+    ...galleryFilesFood,
+  ]) {
+    if (f instanceof File && f.size > 0) {
+      const imgErr = validateUploadedImageFile(f);
+      if (imgErr) return badRequest(imgErr);
+    }
+  }
+  if (coverImageFile && coverImageFile.size > 0) {
+    const imgErr = validateUploadedImageFile(coverImageFile);
+    if (imgErr) return badRequest(imgErr);
+  }
+
   // הכנת תיקיית העלאות (public/uploads)
   const uploadsDir = path.join(process.cwd(), "public", "uploads");
   await mkdir(uploadsDir, { recursive: true });
@@ -229,17 +334,8 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     await writeFile(filePath, Buffer.from(arrayBuffer));
 
-    // נשמור ב־DB נתיב יחסי מה־public
     return `/uploads/${randomName}`;
   }
-
-  const coverImageFile = formData.get("coverImage") as File | null;
-  const galleryFilesHall = formData.getAll("galleryImagesHALL") as File[];
-  const galleryFilesChuppa = formData.getAll("galleryImagesCHUPPA") as File[];
-  const galleryFilesDance = formData.getAll("galleryImagesDANCE") as File[];
-  const galleryFilesFood = formData.getAll("galleryImagesFOOD") as File[];
-  // תמיכה אחורה (אם עדיין יש לקוח ששולח galleryImages בלי קטגוריה)
-  const galleryFilesLegacy = formData.getAll("galleryImages") as File[];
 
   const coverImagePath = await saveFile(coverImageFile, "cover");
 
@@ -255,13 +351,6 @@ export async function POST(req: NextRequest) {
     }
     return images;
   }
-
-  const galleryHallFilesToUse =
-    galleryFilesHall.length > 0 || galleryFilesLegacy.length > 0
-      ? galleryFilesHall.length > 0
-        ? galleryFilesHall
-        : galleryFilesLegacy
-      : [];
 
   const galleryHall = await saveGalleryFiles(
     galleryHallFilesToUse,
@@ -304,7 +393,7 @@ export async function POST(req: NextRequest) {
       maxPrice: toIntOrNull(maxPrice),
       hallRentalMin: toIntOrNull(hallRentalMin),
       hallRentalMax: toIntOrNull(hallRentalMax),
-      description: description || null,
+      description: descCheck.value,
       eventTypes: eventTypes.length > 0 ? JSON.stringify(eventTypes) : null,
       hasChuppa: finalHasChuppa,
       hasFood: finalHasFood,
@@ -315,11 +404,11 @@ export async function POST(req: NextRequest) {
       hasChuppaOutdoor,
       hasChuppaCovered,
       hasVeganFood,
-      kashrut: foodKashrut,
+      kashrut: foodChk.value,
       coverImageUrl: coverImagePath,
       galleryImageUrls:
         galleryImagePaths.length > 0 ? JSON.stringify(galleryImagePaths) : null,
-      autoReplyMessage: autoReplyMessage || null,
+      autoReplyMessage: autoChk.value,
     },
   });
 
@@ -505,7 +594,9 @@ export async function PUT(req: NextRequest) {
   const hasChuppaOutdoor = toBool(formData.get("hasChuppaOutdoor"));
   const hasChuppaCovered = toBool(formData.get("hasChuppaCovered"));
   const hasVeganFood = toBool(formData.get("hasVeganFood"));
-  const foodKashrut = (formData.get("foodKashrut") as string | null)?.trim() || null;
+  if (formDataJsonStringTooLong(formData.get("eventTypes"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+    return badRequest("נתוני סוגי אירוע ארוכים מדי");
+  }
   const eventTypes = parseEventTypes(formData.get("eventTypes"));
   const amenitiesParsed = parseCustomAmenitiesJson(
     formData.get("customAmenitiesJson")
@@ -514,6 +605,59 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: amenitiesParsed.error }, { status: 400 });
   }
   const customAmenitiesJson = amenitiesParsed.json;
+
+  const nameCheck = validateRequiredText(
+    name ?? "",
+    USER_INPUT_MAX.VENUE_OR_SERVICE_NAME,
+    1,
+    "שם האולם"
+  );
+  if (!nameCheck.ok) return badRequest(nameCheck.error);
+  const cityCheck = validateRequiredText(city ?? "", USER_INPUT_MAX.CITY, 1, "עיר");
+  if (!cityCheck.ok) return badRequest(cityCheck.error);
+  const addrCheck = validateRequiredText(
+    address ?? "",
+    USER_INPUT_MAX.ADDRESS,
+    1,
+    "כתובת"
+  );
+  if (!addrCheck.ok) return badRequest(addrCheck.error);
+
+  let descriptionOut: string | null = existing.description;
+  if (description !== undefined) {
+    const dch = validateOptionalLongText(
+      description ?? null,
+      USER_INPUT_MAX.DESCRIPTION_LONG,
+      "תיאור"
+    );
+    if (!dch.ok) return badRequest(dch.error);
+    descriptionOut = dch.value;
+  }
+
+  const autoChk = validateOptionalLongText(
+    autoReplyMessage,
+    USER_INPUT_MAX.AUTO_REPLY,
+    "מענה אוטומטי"
+  );
+  if (!autoChk.ok) return badRequest(autoChk.error);
+  const foodChk = validateOptionalShortText(
+    (formData.get("foodKashrut") as string | null)?.trim() || null,
+    USER_INPUT_MAX.FOOD_KASHRUT,
+    "כשרות"
+  );
+  if (!foodChk.ok) return badRequest(foodChk.error);
+  const autoReplyOut = autoChk.value;
+
+  const gErrPut = validateGuestRange(toIntOrNull(minGuests), toIntOrNull(maxGuests));
+  if (gErrPut) return badRequest(gErrPut);
+  const pErrPut = validatePriceMinMax(toIntOrNull(minPrice), toIntOrNull(maxPrice));
+  if (pErrPut) return badRequest(pErrPut);
+  const hErrPut = validatePriceMinMax(
+    toIntOrNull(hallRentalMin),
+    toIntOrNull(hallRentalMax)
+  );
+  if (hErrPut) return badRequest(hErrPut);
+
   const pickedLatitude = toFloatOrNull(formData.get("latitude"));
   const pickedLongitude = toFloatOrNull(formData.get("longitude"));
   const hasWedding = eventTypes.includes("חתונה");
@@ -538,16 +682,53 @@ export async function PUT(req: NextRequest) {
     pickedLongitude >= 33 &&
     pickedLongitude <= 36;
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-
   const coverImageFile = formData.get("coverImage") as File | null;
   const galleryFilesHall = formData.getAll("galleryImagesHALL") as File[];
   const galleryFilesChuppa = formData.getAll("galleryImagesCHUPPA") as File[];
   const galleryFilesDance = formData.getAll("galleryImagesDANCE") as File[];
   const galleryFilesFood = formData.getAll("galleryImagesFOOD") as File[];
-  // תמיכה אחורה
   const galleryFilesLegacy = formData.getAll("galleryImages") as File[];
+
+  const shouldReplaceGalleryPut =
+    galleryFilesHall.length > 0 ||
+    galleryFilesChuppa.length > 0 ||
+    galleryFilesDance.length > 0 ||
+    galleryFilesFood.length > 0 ||
+    galleryFilesLegacy.length > 0;
+  const galleryHallFilesPut =
+    galleryFilesHall.length > 0 || galleryFilesLegacy.length > 0
+      ? galleryFilesHall.length > 0
+        ? galleryFilesHall
+        : galleryFilesLegacy
+      : [];
+  if (shouldReplaceGalleryPut) {
+    const totalPut =
+      galleryHallFilesPut.length +
+      galleryFilesChuppa.length +
+      galleryFilesDance.length +
+      galleryFilesFood.length;
+    if (totalPut > USER_INPUT_MAX.MAX_VENUE_GALLERY_FILES_TOTAL) {
+      return badRequest("יותר מדי תמונות בגלריה");
+    }
+    for (const f of [
+      ...galleryHallFilesPut,
+      ...galleryFilesChuppa,
+      ...galleryFilesDance,
+      ...galleryFilesFood,
+    ]) {
+      if (f instanceof File && f.size > 0) {
+        const ie = validateUploadedImageFile(f);
+        if (ie) return badRequest(ie);
+      }
+    }
+  }
+  if (coverImageFile && coverImageFile.size > 0) {
+    const ie = validateUploadedImageFile(coverImageFile);
+    if (ie) return badRequest(ie);
+  }
+
+  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  await mkdir(uploadsDir, { recursive: true });
 
   let coverImageUrl = existing.coverImageUrl;
   if (coverImageFile && coverImageFile.size > 0) {
@@ -560,14 +741,8 @@ export async function PUT(req: NextRequest) {
   }
 
   let galleryImageUrls = existing.galleryImageUrls;
-  const shouldReplaceGallery =
-    galleryFilesHall.length > 0 ||
-    galleryFilesChuppa.length > 0 ||
-    galleryFilesDance.length > 0 ||
-    galleryFilesFood.length > 0 ||
-    galleryFilesLegacy.length > 0;
 
-  if (shouldReplaceGallery) {
+  if (shouldReplaceGalleryPut) {
     // מוחקים ומחליפים את כל התמונות עבור האולם
     await prisma.venueGalleryImage.deleteMany({ where: { venueId: id } });
 
@@ -588,14 +763,7 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    const galleryHallFilesToUse =
-      galleryFilesHall.length > 0 || galleryFilesLegacy.length > 0
-        ? galleryFilesHall.length > 0
-          ? galleryFilesHall
-          : galleryFilesLegacy
-        : [];
-
-    await saveUploadedGalleryFiles(galleryHallFilesToUse, "gallery-hall", "HALL");
+    await saveUploadedGalleryFiles(galleryHallFilesPut, "gallery-hall", "HALL");
     await saveUploadedGalleryFiles(galleryFilesChuppa, "gallery-chuppa", "CHUPPA");
     await saveUploadedGalleryFiles(galleryFilesDance, "gallery-dance", "DANCE");
     await saveUploadedGalleryFiles(galleryFilesFood, "gallery-food", "FOOD");
@@ -650,10 +818,7 @@ export async function PUT(req: NextRequest) {
       maxPrice: toIntOrNull(maxPrice),
       hallRentalMin: toIntOrNull(hallRentalMin),
       hallRentalMax: toIntOrNull(hallRentalMax),
-      description:
-        description !== undefined && description !== null
-          ? (description.trim() || null)
-          : existing.description,
+      description: descriptionOut,
       eventTypes: eventTypes.length > 0 ? JSON.stringify(eventTypes) : null,
       hasChuppa: finalHasChuppa,
       hasFood: finalHasFood,
@@ -664,10 +829,10 @@ export async function PUT(req: NextRequest) {
       hasChuppaOutdoor,
       hasChuppaCovered,
       hasVeganFood,
-      kashrut: foodKashrut,
+      kashrut: foodChk.value,
       coverImageUrl,
       galleryImageUrls,
-      autoReplyMessage: autoReplyMessage || null,
+      autoReplyMessage: autoReplyOut,
       ...(coordPatch ?? {}),
     },
   });

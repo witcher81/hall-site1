@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import {
+  USER_INPUT_MAX,
+  badRequest,
+  validateOptionalLongText,
+} from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -68,7 +73,13 @@ export async function PATCH(req: NextRequest) {
     if (body.deleteOwnerNote === true) {
       nextNote = null;
     } else if (typeof body.ownerNote === "string") {
-      nextNote = body.ownerNote.trim() || null;
+      const noteRes = validateOptionalLongText(
+        body.ownerNote,
+        USER_INPUT_MAX.OWNER_OR_PROVIDER_NOTE,
+        "הערה"
+      );
+      if (!noteRes.ok) return badRequest(noteRes.error);
+      nextNote = noteRes.value;
     } else {
       return NextResponse.json({ error: "חסר תוכן ההערה" }, { status: 400 });
     }
@@ -92,7 +103,16 @@ export async function PATCH(req: NextRequest) {
   const statusRaw = (body.status as string)?.toUpperCase();
   const status =
     statusRaw === "REPLIED" ? "REPLIED" : statusRaw === "READ" ? "READ" : "NEW";
-  const ownerNote = (body.ownerNote as string)?.trim() || null;
+  let ownerNote: string | null = null;
+  if (typeof body.ownerNote === "string") {
+    const noteRes = validateOptionalLongText(
+      body.ownerNote,
+      USER_INPUT_MAX.OWNER_OR_PROVIDER_NOTE,
+      "הערה"
+    );
+    if (!noteRes.ok) return badRequest(noteRes.error);
+    ownerNote = noteRes.value;
+  }
 
   await prisma.inquiry.update({
     where: { id },

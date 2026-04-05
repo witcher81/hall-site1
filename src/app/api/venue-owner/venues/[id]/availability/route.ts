@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -84,7 +85,13 @@ export async function POST(req: NextRequest, context: RouteContext) {
     | { date?: string; status?: string }
     | null;
   const rawDate = body?.date?.trim() ?? "";
+  if (rawDate.length > USER_INPUT_MAX.DATE_STRING) {
+    return badRequest("תאריך לא תקין");
+  }
   const rawStatus = body?.status?.trim().toUpperCase() ?? "";
+  if (rawStatus.length > 16) {
+    return badRequest("סטטוס לא תקין");
+  }
 
   const date = toUtcDateOnly(rawDate);
   if (!date) {

@@ -13,6 +13,17 @@ import {
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import {
+  USER_INPUT_MAX,
+  badRequest,
+  formDataJsonStringTooLong,
+  validateExperienceYearsInt,
+  validateOptionalLongText,
+  validateOptionalShortText,
+  validatePriceMinMax,
+  validateRequiredText,
+  validateUploadedImageFile,
+} from "@/lib/userInputValidation";
 
 const MAX_INT = 2_147_483_647;
 
@@ -86,10 +97,13 @@ function parseCustomIncludesFormField(
 
 function parseGalleryJson(value: string | null): string[] {
   if (!value) return [];
+  if (value.length > USER_INPUT_MAX.JSON_FORM_FIELD) return [];
   try {
     const arr = JSON.parse(value);
     if (!Array.isArray(arr)) return [];
-    return arr.filter((x) => typeof x === "string" && x.length > 0);
+    return arr
+      .filter((x) => typeof x === "string" && x.length > 0 && x.length <= 500)
+      .slice(0, USER_INPUT_MAX.MAX_SERVICE_GALLERY_FILES);
   } catch {
     return [];
   }
@@ -148,10 +162,84 @@ export async function POST(req: NextRequest) {
   const includesNote = parseIncludesNoteField(formData.get("includesNote"));
   const minPrice = toIntOrNull((formData.get("minPrice") as string | null) ?? null);
   const maxPrice = toIntOrNull((formData.get("maxPrice") as string | null) ?? null);
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
+
+  if (formDataJsonStringTooLong(formData.get("socialLinks"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+    return badRequest("נתוני רשתות חברתיות ארוכים מדי");
+  }
+  if (formDataJsonStringTooLong(formData.get("customIncludesJson"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+    return badRequest("נתוני תוספות ארוכים מדי");
+  }
+
+  const nameCheck = validateRequiredText(
+    typeof name === "string" ? name : "",
+    USER_INPUT_MAX.VENUE_OR_SERVICE_NAME,
+    1,
+    "שם השירות"
+  );
+  if (!nameCheck.ok) return badRequest(nameCheck.error);
+  const catCheck = validateOptionalShortText(
+    category,
+    USER_INPUT_MAX.SERVICE_CATEGORY,
+    "קטגוריה"
+  );
+  if (!catCheck.ok) return badRequest(catCheck.error);
+  const shortCheck = validateOptionalLongText(
+    shortDescription,
+    USER_INPUT_MAX.SERVICE_SHORT_DESC,
+    "תיאור קצר"
+  );
+  if (!shortCheck.ok) return badRequest(shortCheck.error);
+  const descCheck = validateOptionalLongText(
+    description,
+    USER_INPUT_MAX.DESCRIPTION_LONG,
+    "תיאור"
+  );
+  if (!descCheck.ok) return badRequest(descCheck.error);
+  const areaCheck = validateOptionalShortText(
+    serviceArea,
+    USER_INPUT_MAX.SERVICE_AREA_TEXT,
+    "אזור שירות"
+  );
+  if (!areaCheck.ok) return badRequest(areaCheck.error);
+  const langCheck = validateOptionalShortText(
+    languages,
+    USER_INPUT_MAX.LANGUAGES_LINE,
+    "שפות"
+  );
+  if (!langCheck.ok) return badRequest(langCheck.error);
+  const hintCheck = validateOptionalShortText(
+    responseTimeHint,
+    USER_INPUT_MAX.RESPONSE_TIME_HINT,
+    "זמן תגובה"
+  );
+  if (!hintCheck.ok) return badRequest(hintCheck.error);
+
+  if (!validateExperienceYearsInt(experienceYears)) {
+    return badRequest("מספר שנות ניסיון לא תקין");
+  }
+  const priceErr = validatePriceMinMax(minPrice, maxPrice);
+  if (priceErr) return badRequest(priceErr);
+
   const coverImage = (formData.get("coverImage") as File | null) ?? null;
   const galleryFiles = formData.getAll("galleryImages") as File[];
+  let nonEmptyGallery = 0;
+  if (coverImage && coverImage.size > 0) {
+    const ie = validateUploadedImageFile(coverImage);
+    if (ie) return badRequest(ie);
+  }
+  for (const file of galleryFiles) {
+    if (file.size > 0) {
+      nonEmptyGallery += 1;
+      const ie = validateUploadedImageFile(file);
+      if (ie) return badRequest(ie);
+    }
+  }
+  if (nonEmptyGallery > USER_INPUT_MAX.MAX_SERVICE_GALLERY_FILES) {
+    return badRequest("יותר מדי תמונות בגלריה");
+  }
+
+  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  await mkdir(uploadsDir, { recursive: true });
   const coverImageUrl = await saveUploadedFile(coverImage, uploadsDir, "service-cover");
   const galleryImageUrls: string[] = [];
   for (const [index, file] of galleryFiles.entries()) {
@@ -159,24 +247,17 @@ export async function POST(req: NextRequest) {
     if (saved) galleryImageUrls.push(saved);
   }
 
-  if (!name) {
-    return NextResponse.json(
-      { error: "שם השירות חובה" },
-      { status: 400 }
-    );
-  }
-
   const service = await prisma.service.create({
     data: {
       providerId: user.id,
-      name,
-      category,
-      shortDescription,
-      description,
-      serviceArea,
+      name: nameCheck.value,
+      category: catCheck.value,
+      shortDescription: shortCheck.value,
+      description: descCheck.value,
+      serviceArea: areaCheck.value,
       experienceYears,
-      languages,
-      responseTimeHint,
+      languages: langCheck.value,
+      responseTimeHint: hintCheck.value,
       socialLinksJson,
       includesTravel,
       includesEquipment,
@@ -223,8 +304,6 @@ export async function PUT(req: NextRequest) {
   }
 
   const formData = await req.formData();
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
 
   const name = ((formData.get("name") as string | null)?.trim() ?? existing.name) || existing.name;
   const category =
@@ -271,8 +350,85 @@ export async function PUT(req: NextRequest) {
     ? parseIncludesNoteField(formData.get("includesNote"))
     : existing.includesNote;
 
-  let coverImageUrl = existing.coverImageUrl;
+  if (formData.get("socialLinks") !== null) {
+    if (formDataJsonStringTooLong(formData.get("socialLinks"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+      return badRequest("נתוני רשתות חברתיות ארוכים מדי");
+    }
+  }
+  if (formData.has("customIncludesJson")) {
+    if (formDataJsonStringTooLong(formData.get("customIncludesJson"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+      return badRequest("נתוני תוספות ארוכים מדי");
+    }
+  }
+
+  const nameCheckPut = validateRequiredText(
+    String(name ?? ""),
+    USER_INPUT_MAX.VENUE_OR_SERVICE_NAME,
+    1,
+    "שם השירות"
+  );
+  if (!nameCheckPut.ok) return badRequest(nameCheckPut.error);
+  const catCheckPut = validateOptionalShortText(
+    category,
+    USER_INPUT_MAX.SERVICE_CATEGORY,
+    "קטגוריה"
+  );
+  if (!catCheckPut.ok) return badRequest(catCheckPut.error);
+  const shortCheckPut = validateOptionalLongText(
+    shortDescription,
+    USER_INPUT_MAX.SERVICE_SHORT_DESC,
+    "תיאור קצר"
+  );
+  if (!shortCheckPut.ok) return badRequest(shortCheckPut.error);
+  const descCheckPut = validateOptionalLongText(
+    description,
+    USER_INPUT_MAX.DESCRIPTION_LONG,
+    "תיאור"
+  );
+  if (!descCheckPut.ok) return badRequest(descCheckPut.error);
+  const areaCheckPut = validateOptionalShortText(
+    serviceArea,
+    USER_INPUT_MAX.SERVICE_AREA_TEXT,
+    "אזור שירות"
+  );
+  if (!areaCheckPut.ok) return badRequest(areaCheckPut.error);
+  const langCheckPut = validateOptionalShortText(
+    languages,
+    USER_INPUT_MAX.LANGUAGES_LINE,
+    "שפות"
+  );
+  if (!langCheckPut.ok) return badRequest(langCheckPut.error);
+  const hintCheckPut = validateOptionalShortText(
+    responseTimeHint,
+    USER_INPUT_MAX.RESPONSE_TIME_HINT,
+    "זמן תגובה"
+  );
+  if (!hintCheckPut.ok) return badRequest(hintCheckPut.error);
+
+  if (!validateExperienceYearsInt(experienceYears)) {
+    return badRequest("מספר שנות ניסיון לא תקין");
+  }
+  const priceErrPut = validatePriceMinMax(minPrice, maxPrice);
+  if (priceErrPut) return badRequest(priceErrPut);
+
   const coverImageFile = (formData.get("coverImage") as File | null) ?? null;
+  if (coverImageFile && coverImageFile.size > 0) {
+    const ie = validateUploadedImageFile(coverImageFile);
+    if (ie) return badRequest(ie);
+  }
+
+  const galleryFiles = formData.getAll("galleryImages") as File[];
+  for (const file of galleryFiles) {
+    if (file.size > 0) {
+      const ie = validateUploadedImageFile(file);
+      if (ie) return badRequest(ie);
+    }
+  }
+
+  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  await mkdir(uploadsDir, { recursive: true });
+
+  let coverImageUrl = existing.coverImageUrl;
   if (coverImageFile && coverImageFile.size > 0) {
     const saved = await saveUploadedFile(coverImageFile, uploadsDir, "service-cover");
     if (saved) coverImageUrl = saved;
@@ -280,13 +436,18 @@ export async function PUT(req: NextRequest) {
 
   let galleryImageUrls = existing.galleryImageUrls;
   const existingGalleryRaw = (formData.get("existingGallery") as string | null) ?? null;
+  if (
+    existingGalleryRaw !== null &&
+    existingGalleryRaw.length > USER_INPUT_MAX.JSON_FORM_FIELD
+  ) {
+    return badRequest("נתוני גלריה ארוכים מדי");
+  }
   if (existingGalleryRaw !== null) {
     galleryImageUrls =
       parseGalleryJson(existingGalleryRaw).length > 0
         ? JSON.stringify(parseGalleryJson(existingGalleryRaw))
         : null;
   }
-  const galleryFiles = formData.getAll("galleryImages") as File[];
   if (galleryFiles.length > 0) {
     const current = parseGalleryJson(galleryImageUrls);
     for (const [index, file] of galleryFiles.entries()) {
@@ -299,14 +460,14 @@ export async function PUT(req: NextRequest) {
   const service = await prisma.service.update({
     where: { id },
     data: {
-      name,
-      category,
-      shortDescription,
-      description,
-      serviceArea,
+      name: nameCheckPut.value,
+      category: catCheckPut.value,
+      shortDescription: shortCheckPut.value,
+      description: descCheckPut.value,
+      serviceArea: areaCheckPut.value,
       experienceYears,
-      languages,
-      responseTimeHint,
+      languages: langCheckPut.value,
+      responseTimeHint: hintCheckPut.value,
       socialLinksJson,
       includesTravel,
       includesEquipment,
