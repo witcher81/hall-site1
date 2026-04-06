@@ -3,6 +3,11 @@
  */
 
 import { NextResponse } from "next/server";
+import {
+  ISRAELI_MOBILE_PREFIXES,
+  buildIsraeliPhone,
+  isValidIsraeliMobilePhone,
+} from "./israeliPhone";
 
 export const USER_INPUT_MAX = {
   EMAIL: 254,
@@ -23,6 +28,8 @@ export const USER_INPUT_MAX = {
   AREA: 120,
   DATE_STRING: 32,
   GUEST_COUNT_MAX: 100_000,
+  /** מספר טלפון ישראלי (ספרות בלבד, עד 10) */
+  PHONE: 16,
   /** אולם / שירות — שם */
   VENUE_OR_SERVICE_NAME: 200,
   CITY: 100,
@@ -83,6 +90,31 @@ export function validateEmail(raw: unknown): { ok: true; value: string } | { ok:
 }
 
 /** סיסמה להתחברות / הרשמה */
+/** טלפון ישראלי בהרשמה: קידומת מתוך הרשימה + 7 ספרות */
+export function validateIsraeliPhoneRegister(
+  prefixRaw: unknown,
+  digitsRaw: unknown
+): { ok: true; value: string } | { ok: false; error: string } {
+  if (typeof prefixRaw !== "string" || typeof digitsRaw !== "string") {
+    return { ok: false, error: "מספר טלפון לא תקין" };
+  }
+  const prefix = prefixRaw.trim();
+  if (!ISRAELI_MOBILE_PREFIXES.includes(prefix)) {
+    return { ok: false, error: "נא לבחור קידומת נייד תקנית (050–059)" };
+  }
+  const full = buildIsraeliPhone(prefix, digitsRaw);
+  if (!isValidIsraeliMobilePhone(full)) {
+    return {
+      ok: false,
+      error: "יש להזין 7 ספרות חוקיות אחרי הקידומת",
+    };
+  }
+  if (full.length > USER_INPUT_MAX.PHONE) {
+    return { ok: false, error: "מספר טלפון ארוך מדי" };
+  }
+  return { ok: true, value: full };
+}
+
 export function validateNewPassword(raw: unknown): { ok: true; value: string } | { ok: false; error: string } {
   if (typeof raw !== "string") {
     return { ok: false, error: "סיסמה לא תקינה" };

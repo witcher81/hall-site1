@@ -2,6 +2,7 @@
 
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ISRAELI_MOBILE_PREFIXES } from "@/lib/israeliPhone";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -30,12 +31,21 @@ function RegisterForm() {
     const name = (formData.get("name") as string) || "";
     const email = (formData.get("email") as string) || "";
     const password = (formData.get("password") as string) || "";
+    const phonePrefix = (formData.get("phonePrefix") as string) || "";
+    const phoneDigits = (formData.get("phoneDigits") as string) || "";
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role,
+          phonePrefix,
+          phoneDigits,
+        }),
       });
 
       const data = await res.json().catch(() => null);
@@ -102,6 +112,47 @@ function RegisterForm() {
           </div>
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">
+              טלפון נייד
+            </label>
+            <p className="mt-0.5 text-[11px] text-[#8A837A]">
+              קידומת נייד (050–059) ואז 7 ספרות.
+            </p>
+            <div className="mt-1.5 flex flex-row-reverse items-stretch gap-2">
+              <select
+                name="phonePrefix"
+                required
+                className="w-[5.75rem] shrink-0 rounded-xl border border-[#E0D4C3] bg-white px-2 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                defaultValue=""
+              >
+                <option value="" disabled>
+                  קידומת
+                </option>
+                {ISRAELI_MOBILE_PREFIXES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              <input
+                name="phoneDigits"
+                type="text"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                required
+                minLength={7}
+                maxLength={7}
+                pattern="[0-9]{7}"
+                placeholder="7 ספרות"
+                className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                onInput={(e) => {
+                  const el = e.currentTarget;
+                  el.value = el.value.replace(/\D/g, "").slice(0, 7);
+                }}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#5F5F5F]">
               סיסמה (לפחות 6 תווים)
             </label>
             <input
@@ -132,7 +183,7 @@ function RegisterForm() {
                   >
                     {r === "SEEKER" && "מחפש אולמות"}
                     {r === "VENUE_OWNER" && "בעל/ת אולם"}
-                    {r === "FREELANCER" && "FREE LANSER"}
+                    {r === "FREELANCER" && "פרילנסר"}
                   </button>
                 )
               )}
