@@ -10,6 +10,8 @@
     "db:generate": "prisma generate",
     "db:fix-review-ratings": "prisma db execute --file prisma/convert-review-ratings.sql --schema prisma/schema.prisma",
     "db:sync": "prisma migrate deploy && prisma generate",
+    "db:studio": "prisma studio",
+    "db:wipe-all": "prisma db execute --file prisma/wipe-all-app-data.sql --schema prisma/schema.prisma",
     "geocode:venues": "node scripts/geocode-venues.mjs",
     "seed:packages": "node scripts/seed-event-packages.mjs",
     "dev": "next dev --webpack",
