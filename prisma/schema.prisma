@@ -98,6 +98,12 @@ model Venue {
   autoReplyMessage String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  // חיפוש ציבורי (/api/venues): טווחי מספרים; ownerId — דשבורד בעל אולם
+  @@index([ownerId])
+  @@index([maxGuests])
+  @@index([minPrice])
+  @@index([maxPrice])
 }
 
 /// צפייה בעמוד אולם (למדדי פופולריות שבועיים)
@@ -140,6 +146,7 @@ model Inquiry {
   createdAt     DateTime @default(now())
 
   @@index([userId, venueId])
+  @@index([venueId, createdAt])
 }
 
 model Favorite {
@@ -188,6 +195,13 @@ model Service {
   packageLinks    EventPackageService[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  // רשימת שירותים לפי ספק; חיפוש ציבורי (/api/services/public)
+  @@index([providerId])
+  @@index([category])
+  @@index([minPrice])
+  @@index([maxPrice])
+  @@index([createdAt])
 }
 
 /// חבילת אירוע: אולם + שירותים (סגנון "טיסה+מלון" – הכל במקום אחד)
