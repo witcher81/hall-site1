@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { canShowDevUserSwitcher } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import HomeHeader from "@/components/HomeHeader";
 import type { VenueInquiryAmenitiesInput } from "@/lib/venueInquiryAmenities";
@@ -79,7 +80,10 @@ export default async function VenueInquiryPage({
 
   return (
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
-      <HomeHeader user={user} />
+      <HomeHeader
+        user={user}
+        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+      />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <p className="text-right text-xs text-[#6B6560]">
           <a href={`/halls/${venue.id}`} className="font-medium text-[#0F3B2E] hover:underline">

@@ -1,13 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import {
+  allowDevUserSwitchDeployment,
+  isAdminEmail,
+} from "@/lib/admin";
+
+export const runtime = "nodejs";
+
+async function requireAdminDevSwitch() {
+  const session = await getCurrentUser();
+  if (!session || !isAdminEmail(session.email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (!allowDevUserSwitchDeployment()) {
+    return NextResponse.json(
+      { error: "Dev user switch disabled in production" },
+      { status: 403 }
+    );
+  }
+  return null;
+}
 
 /**
- * רשימת משתמשים – רק בסביבת פיתוח. להסרה לפני פרודקשן.
+ * רשימת משתמשים – רק לאדמין (ADMIN_EMAILS).
  */
 export async function GET() {
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json({ error: "Not available" }, { status: 403 });
-  }
+  const denied = await requireAdminDevSwitch();
+  if (denied) return denied;
 
   const users = await prisma.user.findMany({
     orderBy: { id: "asc" },
@@ -26,10 +46,9 @@ export async function GET() {
  * מחיקת כל משתמשי הטסט + האולמות שלהם – רק בסביבת פיתוח.
  * שימושי כשניסית הרבה הרשמות ורוצה להתחיל מאפס.
  */
-export async function DELETE(req: NextRequest) {
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json({ error: "Not available" }, { status: 403 });
-  }
+export async function DELETE(_req: NextRequest) {
+  const denied = await requireAdminDevSwitch();
+  if (denied) return denied;
 
   // כדי למנוע בעיות קשרי גומלין, מוחקים קודם את כל האולמות ואז את המשתמשים
   const deletedVenues = await prisma.venue.deleteMany({});

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import HomeHeader from "@/components/HomeHeader";
 import { getCurrentUser } from "@/lib/auth";
+import { canShowDevUserSwitcher } from "@/lib/admin";
 import { getSiteUrl } from "@/lib/siteUrl";
 import VenuePublicView from "./VenuePublicView";
 
@@ -105,7 +106,10 @@ export default async function HallPublicPage({
   if (!Number.isInteger(venueId) || venueId <= 0) {
     return (
       <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
-        <HomeHeader user={user} />
+        <HomeHeader
+          user={user}
+          canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
           <p className="text-sm text-[#2A261F]">מזהה אולם לא תקין.</p>
           <a
@@ -161,7 +165,10 @@ export default async function HallPublicPage({
   if (!venue) {
     return (
       <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
-        <HomeHeader user={user} />
+        <HomeHeader
+          user={user}
+          canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
           <p className="text-sm text-[#2A261F]">האולם לא נמצא.</p>
           <a
@@ -255,7 +262,10 @@ export default async function HallPublicPage({
 
   return (
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
-      <HomeHeader user={user} />
+      <HomeHeader
+        user={user}
+        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+      />
       <VenuePublicView
         user={user}
         isFavorite={isFavorite}

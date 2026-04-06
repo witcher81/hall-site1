@@ -1,13 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createSessionToken, setSessionCookie } from "@/lib/auth";
+import {
+  createSessionToken,
+  getCurrentUser,
+  setSessionCookie,
+} from "@/lib/auth";
+import { allowDevUserSwitchDeployment, isAdminEmail } from "@/lib/admin";
+
+export const runtime = "nodejs";
 
 /**
- * החלפת משתמש (התחברות כ-) – רק בסביבת פיתוח. להסרה לפני פרודקשן.
+ * החלפת משתמש (התחברות כ-) – רק לאדמין (ADMIN_EMAILS).
  */
 export async function POST(req: NextRequest) {
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json({ error: "Not available" }, { status: 403 });
+  const session = await getCurrentUser();
+  if (!session || !isAdminEmail(session.email)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (!allowDevUserSwitchDeployment()) {
+    return NextResponse.json(
+      { error: "Dev user switch disabled in production" },
+      { status: 403 }
+    );
   }
 
   const body = await req.json().catch(() => ({}));

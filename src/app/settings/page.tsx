@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { canShowDevUserSwitcher } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import HomeHeader from "@/components/HomeHeader";
 import SettingsClient from "./settingsClient";
@@ -29,7 +30,10 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
-      <HomeHeader user={user} />
+      <HomeHeader
+        user={user}
+        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+      />
       <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
         <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
           HALLS HUB

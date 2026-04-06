@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import HomeHeader from "@/components/HomeHeader";
 import { getCurrentUser } from "@/lib/auth";
+import { canShowDevUserSwitcher } from "@/lib/admin";
 
 export const runtime = "nodejs";
 
@@ -38,7 +39,10 @@ export default async function HallsComparePage({
 
   return (
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
-      <HomeHeader user={user} />
+      <HomeHeader
+        user={user}
+        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+      />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <header className="mb-6 text-right">
           <h1 className="text-2xl font-semibold text-[#1A1A1A]">

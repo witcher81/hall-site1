@@ -32,7 +32,6 @@ export default function DevUserSwitcher() {
   });
 
   const fetchUsers = useCallback(() => {
-    if (process.env.NODE_ENV !== "development") return;
     fetch("/api/dev/users")
       .then((r) => r.json())
       .then((data) => setUsers(data?.users ?? []))
@@ -40,7 +39,6 @@ export default function DevUserSwitcher() {
   }, []);
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "development") return;
     fetchUsers();
   }, [fetchUsers]);
 
@@ -97,17 +95,13 @@ export default function DevUserSwitcher() {
     }
   }
 
-  if (process.env.NODE_ENV !== "development") {
-    return null;
-  }
-
   return (
     <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="rounded-full border border-amber-600/60 px-3 py-1.5 text-xs font-medium text-amber-300 transition hover:bg-amber-500/20"
-        title="החלף משתמש (פיתוח בלבד)"
+        title="החלף משתמש (אדמין בלבד)"
       >
         החלף משתמש
       </button>
@@ -124,7 +118,7 @@ export default function DevUserSwitcher() {
           />
           <div className="dev-switcher-menu absolute left-0 top-full z-20 mt-1 min-w-[260px] rounded-xl border border-[#E0D4C3] bg-[#FDFBF7] py-2 shadow-xl">
             <p className="px-3 py-1 text-xs text-[#6B6560]">
-              התחבר כ (dev only):
+              התחבר כ (אדמין):
             </p>
             {users.map((u) => (
               <button
@@ -154,7 +148,7 @@ export default function DevUserSwitcher() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <p className="mb-2 text-xs font-medium text-[#6B6560]">
-                  משתמש חדש (dev):
+                  משתמש חדש:
                 </p>
                 <input
                   type="text"
