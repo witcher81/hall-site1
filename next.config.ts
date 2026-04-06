@@ -22,6 +22,7 @@ if (isProd) {
     key: "Strict-Transport-Security",
     value: "max-age=31536000; includeSubDomains; preload",
   });
+  // CSP מגביל מאיפה נטענים סקריפטים (שכבה נוספת מעל בריחת טקסט ב-React).
   securityHeaders.push({
     key: "Content-Security-Policy",
     value: [

@@ -2,6 +2,11 @@
  * הגנה מפני XSS דרך מאפייני href (javascript:, data:, נתיבי // חיצוניים).
  */
 
+/** תווי בקרה / null — לא בתוך URL או נתיב לקישור */
+function hasDisallowedControlChars(s: string): boolean {
+  return /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(s);
+}
+
 /** נתיב פנימי לאפליקציה בלבד — חייב להתחיל ב־/ אחד, לא // */
 export function sanitizeInternalAppHref(
   href: string | null | undefined
@@ -9,6 +14,7 @@ export function sanitizeInternalAppHref(
   if (href == null) return null;
   const t = href.trim();
   if (!t) return null;
+  if (hasDisallowedControlChars(t)) return null;
   const lower = t.toLowerCase();
   if (
     lower.startsWith("javascript:") ||
@@ -34,6 +40,7 @@ export function sanitizeInternalAppHref(
 export function sanitizeHttpUrlForHref(url: string): string | null {
   const t = url.trim();
   if (!t) return null;
+  if (hasDisallowedControlChars(t)) return null;
   try {
     const u = new URL(t);
     if (u.protocol !== "http:" && u.protocol !== "https:") return null;
