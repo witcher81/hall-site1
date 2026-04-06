@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { isValidIsraeliPhone, normalizePhoneInput } from "@/lib/phone";
+import { assertPersonalPhoneAvailable } from "@/lib/phoneUnique";
 import { USER_INPUT_MAX, validateOptionalShortText } from "@/lib/userInputValidation";
 
 export async function GET() {
@@ -89,26 +91,53 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: addrRes.error }, { status: 400 });
   }
 
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      name: nameRes.value,
-      phone: phoneResult.value,
-      role: "VENUE_OWNER",
-      businessName: bizNameRes.value,
-      businessPhone: businessPhoneResult.value,
-      businessAddress: addrRes.value,
-    },
-    select: {
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      businessName: true,
-      businessPhone: true,
-      businessAddress: true,
-    },
-  });
+  if (phoneResult.value) {
+    const free = await assertPersonalPhoneAvailable(
+      phoneResult.value,
+      user.id
+    );
+    if (!free.ok) {
+      return NextResponse.json({ error: free.error }, { status: 409 });
+    }
+  }
+
+  let updated;
+  try {
+    updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        name: nameRes.value,
+        phone: phoneResult.value,
+        role: "VENUE_OWNER",
+        businessName: bizNameRes.value,
+        businessPhone: businessPhoneResult.value,
+        businessAddress: addrRes.value,
+      },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        businessName: true,
+        businessPhone: true,
+        businessAddress: true,
+      },
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      const target = e.meta?.target as string[] | undefined;
+      if (target?.includes("phone")) {
+        return NextResponse.json(
+          { error: "מספר הטלפון כבר רשום בחשבון אחר" },
+          { status: 409 }
+        );
+      }
+    }
+    throw e;
+  }
 
   return NextResponse.json({ user: updated });
 }

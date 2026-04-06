@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { assertPersonalPhoneAvailable } from "@/lib/phoneUnique";
 import {
   createSessionToken,
   hashPassword,
@@ -8,6 +10,7 @@ import {
 import {
   USER_INPUT_MAX,
   validateEmail,
+  validateIsraeliPhoneRegister,
   validateNewPassword,
   validateOptionalShortText,
 } from "@/lib/userInputValidation";
@@ -17,11 +20,13 @@ const ALLOWED_ROLES = ["SEEKER", "VENUE_OWNER", "FREELANCER"] as const;
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password, role } = body as {
+    const { name, email, password, role, phonePrefix, phoneDigits } = body as {
       name?: string;
       email?: string;
       password?: string;
       role?: string;
+      phonePrefix?: string;
+      phoneDigits?: string;
     };
 
     const emailResult = validateEmail(email);
@@ -45,11 +50,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: nameResult.error }, { status: 400 });
     }
 
+    const roleUpper = typeof role === "string" ? role.toUpperCase() : "";
     const selectedRole = ALLOWED_ROLES.includes(
-      (role || "SEEKER").toUpperCase() as (typeof ALLOWED_ROLES)[number]
+      roleUpper as (typeof ALLOWED_ROLES)[number]
     )
-      ? (role || "SEEKER").toUpperCase()
-      : "SEEKER";
+      ? (roleUpper as (typeof ALLOWED_ROLES)[number])
+      : null;
+    if (!selectedRole) {
+      return NextResponse.json(
+        { error: "נא לבחור סוג משתמש תקין" },
+        { status: 400 }
+      );
+    }
+
+    const phoneResult = validateIsraeliPhoneRegister(phonePrefix, phoneDigits);
+    if (!phoneResult.ok) {
+      return NextResponse.json({ error: phoneResult.error }, { status: 400 });
+    }
 
     const existing = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -61,15 +78,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const phoneFree = await assertPersonalPhoneAvailable(phoneResult.value);
+    if (!phoneFree.ok) {
+      return NextResponse.json({ error: phoneFree.error }, { status: 409 });
+    }
+
     const passwordHash = await hashPassword(passwordPlain);
-    const user = await prisma.user.create({
-      data: {
-        name: nameResult.value,
-        email: normalizedEmail,
-        passwordHash,
-        role: selectedRole,
-      },
-    });
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: {
+          name: nameResult.value,
+          email: normalizedEmail,
+          passwordHash,
+          role: selectedRole,
+          phone: phoneResult.value,
+        },
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === "P2002"
+      ) {
+        const target = e.meta?.target as string[] | undefined;
+        if (target?.includes("phone")) {
+          return NextResponse.json(
+            { error: "מספר הטלפון כבר רשום בחשבון אחר" },
+            { status: 409 }
+          );
+        }
+      }
+      throw e;
+    }
 
     const authUser = {
       id: user.id,

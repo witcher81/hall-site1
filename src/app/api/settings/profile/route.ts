@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { isValidIsraeliPhone, normalizePhoneInput } from "@/lib/phone";
+import { assertPersonalPhoneAvailable } from "@/lib/phoneUnique";
 import { USER_INPUT_MAX, validateOptionalShortText } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
@@ -32,6 +34,16 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  if (normalizedPhone) {
+    const free = await assertPersonalPhoneAvailable(
+      normalizedPhone,
+      user.id
+    );
+    if (!free.ok) {
+      return NextResponse.json({ error: free.error }, { status: 409 });
+    }
+  }
+
   try {
     await prisma.user.update({
       where: { id: user.id },
@@ -42,6 +54,18 @@ export async function PATCH(req: NextRequest) {
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const target = error.meta?.target as string[] | undefined;
+      if (target?.includes("phone")) {
+        return NextResponse.json(
+          { error: "מספר הטלפון כבר רשום בחשבון אחר" },
+          { status: 409 }
+        );
+      }
+    }
     console.error("Update profile error:", error);
     return NextResponse.json(
       { error: "Failed to update profile" },

@@ -74,6 +74,8 @@ export default function DevUserSwitcher() {
           email: addForm.email,
           password: addForm.password,
           role: addForm.role,
+          phonePrefix: "050",
+          phoneDigits: "0000000",
         }),
       });
       const data = await res.json().catch(() => null);

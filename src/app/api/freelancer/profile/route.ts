@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { isValidIsraeliPhone, normalizePhoneInput } from "@/lib/phone";
+import { assertPersonalPhoneAvailable } from "@/lib/phoneUnique";
 import {
   parseSocialLinksJson,
   sanitizeSocialLinksFromClient,
@@ -117,28 +119,55 @@ export async function PUT(req: NextRequest) {
     ? sanitizeSocialLinksFromClient(socialLinks)
     : null;
 
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      name: nameRes.value,
-      phone: phoneResult.value,
-      businessName: bizNameRes.value,
-      businessPhone: businessPhoneResult.value,
-      businessAddress: addrRes.value,
-      ...(socialLinksProvided
-        ? { socialLinksJson: serializeSocialLinks(cleanedSocial ?? []) }
-        : {}),
-    },
-    select: {
-      name: true,
-      email: true,
-      phone: true,
-      businessName: true,
-      businessPhone: true,
-      businessAddress: true,
-      socialLinksJson: true,
-    },
-  });
+  if (phoneResult.value) {
+    const free = await assertPersonalPhoneAvailable(
+      phoneResult.value,
+      user.id
+    );
+    if (!free.ok) {
+      return NextResponse.json({ error: free.error }, { status: 409 });
+    }
+  }
+
+  let updated;
+  try {
+    updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        name: nameRes.value,
+        phone: phoneResult.value,
+        businessName: bizNameRes.value,
+        businessPhone: businessPhoneResult.value,
+        businessAddress: addrRes.value,
+        ...(socialLinksProvided
+          ? { socialLinksJson: serializeSocialLinks(cleanedSocial ?? []) }
+          : {}),
+      },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        businessName: true,
+        businessPhone: true,
+        businessAddress: true,
+        socialLinksJson: true,
+      },
+    });
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      const target = e.meta?.target as string[] | undefined;
+      if (target?.includes("phone")) {
+        return NextResponse.json(
+          { error: "מספר הטלפון כבר רשום בחשבון אחר" },
+          { status: 409 }
+        );
+      }
+    }
+    throw e;
+  }
 
   const { socialLinksJson: sj, ...rest } = updated;
   return NextResponse.json({
