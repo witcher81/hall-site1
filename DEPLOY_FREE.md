@@ -60,8 +60,16 @@ git push -u origin main
    - `JWT_SECRET` (same style as local)
    - **`WEBHOOK_INBOUND_SECRET`** — מחרוזת אקראית ארוכה (למשל 32+ תווים). אותו ערך יופיע אצל השירות החיצוני שקורא ל־webhook.
    - (מומלץ) **`NEXT_PUBLIC_SITE_URL`** — `https://your-domain.vercel.app` או הדומיין המותאם, ל־OG וקישורים עקביים.
+   - **`ADMIN_EMAILS`** — אימייל אחד או כמה (מופרדים בפסיק, בלי רווחים מיותרים). רק משתמשים עם אימייל מהרשימה רואים את כפתור **"החלף משתמש"** בכותרת (אחרי התחברות).
+   - **`ALLOW_DEV_USER_SWITCH`** — הערך `true` רק אם אתה רוצה לאפשר החלפת משתמש **באתר החי** (פרודקשן). בלי זה, גם אדמין לא יוכל להשתמש ב־`/api/dev/switch-user` ב־Vercel — רק בפיתוח מקומי.
    - Any other secret your app needs
 4. Deploy
+
+### החלפת משתמש (אדמין) בפרודקשן
+
+1. הוסף ב־Vercel את **`ADMIN_EMAILS`** עם האימייל שאתה נכנס איתו (למשל `you@gmail.com`).
+2. אם צריך את הכלי **באוויר**: הוסף **`ALLOW_DEV_USER_SWITCH=true`** ואז Redeploy.
+3. בלי `ADMIN_EMAILS` — אף אחד לא רואה את הכפתור; ה־API מחזיר **403**.
 
 ### Webhook באוויר (אחרי Deploy)
 

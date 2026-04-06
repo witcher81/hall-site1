@@ -14,12 +14,18 @@ function RegisterForm() {
   const afterRegister = safeInternalPath(searchParams.get("redirect"));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [role, setRole] = useState("VENUE_OWNER");
+  const [role, setRole] = useState<
+    "" | "SEEKER" | "VENUE_OWNER" | "FREELANCER"
+  >("");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+    if (!role) {
+      setError("נא לבחור סוג משתמש");
+      return;
+    }
+    setLoading(true);
     const formData = new FormData(e.currentTarget);
     const name = (formData.get("name") as string) || "";
     const email = (formData.get("email") as string) || "";
@@ -136,7 +142,7 @@ function RegisterForm() {
           {error && <p className="text-xs text-red-700">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !role}
             className="w-full rounded-full bg-[#C9A227] py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
           >
             {loading ? "נרשם..." : "הרשמה"}
