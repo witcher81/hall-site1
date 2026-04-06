@@ -24,6 +24,8 @@
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",
