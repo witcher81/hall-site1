@@ -24,8 +24,10 @@ npm run dev
 | `ALLOW_DEV_USER_SWITCH` | אופציונלי | `true` רק אם באמת צריך החלפת משתמש בפרודקשן |
 | `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | אופציונלי | שניהם יחד — מפעילים rate limiting על `/api` ב־Edge |
 | `NEXT_PUBLIC_SITE_URL` | אופציונלי | כתובת קנונית / OG; בלי זה נעשה שימוש ב־`VERCEL_URL` |
+| `NEXT_PUBLIC_SENTRY_DSN` | אופציונלי | [Sentry](https://sentry.io) — מעקב שגיאות ו־performance בפרודקשן (ה-DSN מיועד להיות ציבורי) |
+| `SENTRY_AUTH_TOKEN` | אופציונלי | רק ב־Vercel/CI — העלאת source maps לסטאק מדויק (לא בקוד!) |
 
-**חשוב:** אסור להשתמש ב־`NEXT_PUBLIC_*` עבור סודות (`DATABASE_URL`, JWT, מפתחות API). קידומת זו חושפת ערכים בדפדפן.
+**חשוב:** אסור להשתמש ב־`NEXT_PUBLIC_*` עבור סודות (`DATABASE_URL`, JWT, מפתחות API). קידומת זו חושפת ערכים בדפדפן. **יוצא מן הכלל:** `NEXT_PUBLIC_SENTRY_DSN` — זה המזהה שה-SDK שולח אירועים ל-Sentry; הוא לא מעניק גישה לנתונים בחשבון.
 
 קובץ `.env` מקומי — לא להעלות ל־Git. ב־Vercel מגדירים את אותם שמות תחת **Environment Variables**.
 
@@ -45,6 +47,7 @@ npm run db:deploy    # CI / פרודקשן — מריץ מיגרציות קיי�
 - **XSS** — בריחת טקסט ב־React כברירת מחדל; `safeHref` לקישורים; `escapeHtml` לשימוש נדיר; ESLint `react/no-danger`; CSP בפרודקשן ב־`next.config.ts`.
 - **סודות בשרת** — `import "server-only"` ב־`auth.ts`; `src/lib/env.server.ts` + `src/instrumentation.ts` עוצרים טעות של `NEXT_PUBLIC_*` על שמות סודות אסורים.
 - **כותרות אבטחה** — HSTS, CSP, `X-Frame-Options`, וכו' ב־`next.config.ts`.
+- **Logging / Monitoring** — [Sentry](https://sentry.io): שגיאות צד לקוח ושרת, tracing חלקי, לוגים ל-Sentry (`enableLogs`). מופעל כשמגדירים `NEXT_PUBLIC_SENTRY_DSN` ב־Vercel. בלי DSN הקוד רץ כרגיל.
 
 ## פריסה (Vercel)
 

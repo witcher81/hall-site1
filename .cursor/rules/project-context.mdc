@@ -11,4 +11,5 @@ alwaysApply: true
 - **DB:** B-tree indexes on frequent filter columns (see `prisma/migrations/`). Not using pg_trgm for `contains` text search unless added later.
 - **Security code:** Middleware rate limits `/api/*` except `/api/webhooks/` and `/api/realtime/stream`. `src/lib/env.server.ts` + `src/instrumentation.ts` forbid dangerous `NEXT_PUBLIC_*` secret names. `auth.ts` is `server-only`. Upstash config in `src/lib/upstashEnv.ts` (Edge-safe; no `server-only` on middleware path).
 - **XSS:** React text escaping; `safeHref.ts`; `escapeHtml.ts`; CSP + headers in `next.config.ts`; ESLint `react/no-danger`.
+- **Sentry:** Optional — set `NEXT_PUBLIC_SENTRY_DSN` in Vercel for errors + tracing + logs. `withSentryConfig` in `next.config.ts` only when DSN is set. `SENTRY_AUTH_TOKEN` optional for source maps upload. Files: `src/sentry.*.config.ts`, `src/instrumentation-client.ts`, `src/app/global-error.tsx`, merged `src/instrumentation.ts` (`onRequestError`).
 - **After security changes:** commit with `security: …`, push `main` for Vercel (see deploy-after-security rule). Never commit `.env`.
