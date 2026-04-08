@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     email: user.email,
     name: user.name,
     role: user.role,
+    emailVerified: user.emailVerified,
   };
   const token = createSessionToken(authUser);
   await setSessionCookie(token);

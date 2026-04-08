@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
+  createPendingVerificationToken,
   createSessionToken,
+  setPendingVerificationCookie,
   setSessionCookie,
   verifyPassword,
+  type AuthUser,
 } from "@/lib/auth";
 import { validateEmail, validateLoginPassword } from "@/lib/userInputValidation";
 
@@ -35,11 +38,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const authUser = {
+    if (!user.emailVerified) {
+      const pending = createPendingVerificationToken(user.id);
+      await setPendingVerificationCookie(pending);
+      return NextResponse.json(
+        {
+          needVerification: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+        },
+        { status: 200 }
+      );
+    }
+
+    const authUser: AuthUser = {
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
+      emailVerified: user.emailVerified,
     };
     const token = createSessionToken(authUser);
     await setSessionCookie(token);

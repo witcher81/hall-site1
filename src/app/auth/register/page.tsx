@@ -55,16 +55,10 @@ function RegisterForm() {
         return;
       }
 
-      const userRole = data?.user?.role ?? role;
-      if (afterRegister) {
-        router.push(afterRegister);
-      } else if (userRole === "VENUE_OWNER") {
-        router.push("/dashboard/venue-owner/profile");
-      } else if (userRole === "FREELANCER") {
-        router.push("/dashboard/freelancer");
-      } else {
-        router.push("/");
-      }
+      const q = afterRegister
+        ? `?redirect=${encodeURIComponent(afterRegister)}`
+        : "";
+      router.push(`/auth/verify${q}`);
       router.refresh();
     } catch {
       setError("שגיאה בלתי צפויה");

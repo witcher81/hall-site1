@@ -30,14 +30,32 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
         setError(data?.error || "שגיאה בהתחברות");
         setLoading(false);
         return;
       }
 
-      router.push(afterLogin ?? "/dashboard/venue-owner");
+      if (data?.needVerification) {
+        const q = afterLogin
+          ? `?redirect=${encodeURIComponent(afterLogin)}`
+          : "";
+        router.push(`/auth/verify${q}`);
+        router.refresh();
+        return;
+      }
+
+      const role = data?.user?.role as string | undefined;
+      if (afterLogin) {
+        router.push(afterLogin);
+      } else if (role === "VENUE_OWNER") {
+        router.push("/dashboard/venue-owner/profile");
+      } else if (role === "FREELANCER") {
+        router.push("/dashboard/freelancer");
+      } else {
+        router.push("/");
+      }
       router.refresh();
     } catch {
       setError("שגיאה בלתי צפויה");

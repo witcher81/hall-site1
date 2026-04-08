@@ -21,6 +21,8 @@ model User {
   phone        String?  @unique
   passwordHash String
   role         String   @default("SEEKER")
+  /// אימות חשבון אחרי הרשמה (אימייל / SMS / Gmail)
+  emailVerified Boolean @default(false)
   // פרופיל עסקי לבעל אולם / ספק שירותים
   businessName    String?
   businessPhone   String?
@@ -39,8 +41,22 @@ model User {
   eventPlans        EventPlan[]
   notifications     Notification[]
   freelancerProfileViews FreelancerProfileView[]
+  verificationOtps      VerificationOtp[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+}
+
+model VerificationOtp {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  channel   String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model Venue {
