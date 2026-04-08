@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -19,22 +20,28 @@ function extractWebhookSecret(req: NextRequest): string | null {
  * כתובת בפרודקשן: `https://<הדומיין שלך>/api/webhooks/inbound`
  */
 export async function POST(req: NextRequest) {
-  const secret = process.env.WEBHOOK_INBOUND_SECRET?.trim();
-  if (!secret) {
-    return NextResponse.json(
-      { error: "Webhooks not configured (WEBHOOK_INBOUND_SECRET)" },
-      { status: 503 }
-    );
+  try {
+    const secret = process.env.WEBHOOK_INBOUND_SECRET?.trim();
+    if (!secret) {
+      return NextResponse.json(
+        { error: "Webhooks not configured (WEBHOOK_INBOUND_SECRET)" },
+        { status: 503 }
+      );
+    }
+
+    const provided = extractWebhookSecret(req);
+    if (!provided || provided !== secret) {
+      return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 });
+    }
+
+    await req.json().catch(() => ({}));
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("webhooks/inbound POST:", error);
+    Sentry.captureException(error);
+    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
-
-  const provided = extractWebhookSecret(req);
-  if (!provided || provided !== secret) {
-    return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 });
-  }
-
-  await req.json().catch(() => ({}));
-
-  return NextResponse.json({ ok: true });
 }
 
 /** בדיקה שהנתיב קיים (ללא חשיפת סוד) — שימושי אחרי פריסה */
