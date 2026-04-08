@@ -35,8 +35,10 @@ export async function POST(req: NextRequest) {
   }
 
   const emailLower = user.email.toLowerCase();
+  const isGmailAddress =
+    emailLower.endsWith("@gmail.com") || emailLower.endsWith("@googlemail.com");
   if (channel === "gmail") {
-    if (!emailLower.endsWith("@gmail.com") && !emailLower.endsWith("@googlemail.com")) {
+    if (!isGmailAddress) {
       return NextResponse.json(
         { error: "אימות Gmail זמין רק לכתובת Gmail" },
         { status: 400 }
@@ -83,7 +85,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: r.error ?? "שגיאת SMS" }, { status: 503 });
     }
   } else {
-    const variant = channel === "gmail" ? "gmail" : "email";
+    const variant =
+      channel === "gmail" || (channel === "email" && isGmailAddress)
+        ? "gmail"
+        : "email";
     const r = await sendEmailOtp(user.email, code, variant);
     if (!r.ok) {
       await prisma.verificationOtp.deleteMany({ where: { userId: uid } });

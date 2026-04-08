@@ -98,9 +98,9 @@ function CodeForm() {
     }
   }
 
+  const channelKey = channel === "gmail" ? "email" : channel;
   const labels: Record<string, string> = {
     email: "אימייל",
-    gmail: "Gmail",
     sms: "SMS",
   };
 
@@ -112,7 +112,7 @@ function CodeForm() {
         </p>
         <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">הזנת קוד</h1>
         <p className="mt-2 text-sm text-[#5F5F5F]">
-          הזן את 6 הספרות שנשלחו אליך ב{labels[channel] ?? "אימייל"}.
+          הזן את 6 הספרות שנשלחו אליך ב{labels[channelKey] ?? "אימייל"}.
         </p>
 
         <form

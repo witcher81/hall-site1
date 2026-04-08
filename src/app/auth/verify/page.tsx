@@ -8,7 +8,6 @@ type Status = {
   phoneMasked: string | null;
   canEmail: boolean;
   canSms: boolean;
-  canGmail: boolean;
   alreadyVerified?: boolean;
 };
 
@@ -58,7 +57,7 @@ function VerifyContent() {
     };
   }, [router, safeRedirect]);
 
-  async function pickChannel(channel: "email" | "sms" | "gmail") {
+  async function pickChannel(channel: "email" | "sms") {
     setError(null);
     setSending(channel);
     try {
@@ -112,13 +111,31 @@ function VerifyContent() {
           HALLS HUB
         </p>
         <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">אימות חשבון</h1>
-        <p className="mt-2 text-sm text-[#5F5F5F]">
-          בחר איך לקבל קוד בן 6 ספרות לאימות.
-        </p>
-        <p className="mt-1 text-xs text-[#6B6560]">
-          אימייל: {status.emailMasked}
-          {status.phoneMasked ? ` · טלפון: ${status.phoneMasked}` : ""}
-        </p>
+
+        <div className="mt-4 rounded-2xl border border-[#D4C4AE] bg-gradient-to-br from-white to-[#FAF6EF] px-4 py-4 shadow-[0_8px_28px_rgba(15,59,46,0.06)]">
+          <p className="text-right text-[15px] font-semibold leading-snug text-[#0F3B2E]">
+            בחרו איך לקבל קוד בן 6 ספרות לאימות
+          </p>
+          <div className="mt-3 space-y-2 border-t border-[#E8DCC8] pt-3">
+            <div className="flex flex-row-reverse items-baseline justify-between gap-3 text-sm">
+              <span className="shrink-0 text-[#8A8278]">אימייל</span>
+              <span
+                dir="ltr"
+                className="min-w-0 truncate text-left font-medium text-[#2C2C2C]"
+              >
+                {status.emailMasked}
+              </span>
+            </div>
+            {status.phoneMasked ? (
+              <div className="flex flex-row-reverse items-baseline justify-between gap-3 text-sm">
+                <span className="shrink-0 text-[#8A8278]">טלפון</span>
+                <span dir="ltr" className="font-medium text-[#2C2C2C]">
+                  {status.phoneMasked}
+                </span>
+              </div>
+            ) : null}
+          </div>
+        </div>
 
         {error && <p className="mt-3 text-xs text-red-700">{error}</p>}
 
@@ -132,20 +149,6 @@ function VerifyContent() {
             <span className="font-semibold text-[#0F3B2E]">אימייל</span>
             <span className="mt-1 block text-xs text-[#6B6560]">
               שליחת קוד לכתובת האימייל שלך
-            </span>
-          </button>
-
-          <button
-            type="button"
-            disabled={!status.canGmail || sending !== null}
-            onClick={() => pickChannel("gmail")}
-            className="w-full rounded-2xl border border-[#E0D4C3] bg-white px-4 py-4 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)] transition hover:border-[#C9A227] disabled:opacity-50"
-          >
-            <span className="font-semibold text-[#0F3B2E]">Gmail</span>
-            <span className="mt-1 block text-xs text-[#6B6560]">
-              {status.canGmail
-                ? "קוד אימות לחשבון Gmail"
-                : "זמין רק כשהאימייל נגמר ב־@gmail.com"}
             </span>
           </button>
 

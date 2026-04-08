@@ -39,12 +39,10 @@ export async function GET() {
     return NextResponse.json({ alreadyVerified: true });
   }
 
-  const email = user.email.toLowerCase();
   return NextResponse.json({
     emailMasked: maskEmail(user.email),
     phoneMasked: maskPhone(user.phone),
     canEmail: true,
     canSms: Boolean(user.phone),
-    canGmail: email.endsWith("@gmail.com") || email.endsWith("@googlemail.com"),
   });
 }
