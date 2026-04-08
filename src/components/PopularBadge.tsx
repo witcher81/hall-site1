@@ -1,4 +1,4 @@
-/** תג לכרטיסים ברשימת חיפוש — אולמות/ספקים עם צפיות רבות השבוע */
+/** תג פופולרי — רק אחרי צפיות מעורבות (זמן גלוי) וסף שבועי; ראה popularityConfig */
 export default function PopularBadge({ className = "" }: { className?: string }) {
   return (
     <span

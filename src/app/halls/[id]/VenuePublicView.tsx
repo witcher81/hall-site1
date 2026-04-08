@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { normalizeHalfStarRating } from "@/lib/reviewRating";
 import { recordVenueRecentlyViewed } from "@/lib/recentlyViewedVenues";
+import { useEngagedVenueView } from "@/lib/useEngagedViewAnalytics";
 import { WEDDING_AMENITY_STORAGE_PREFIX } from "@/lib/venueInquiryAmenities";
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 
@@ -238,13 +239,10 @@ export default function VenuePublicView({
     router.push(`/halls/${venue.id}/inquiry?date=${encodeURIComponent(ymd)}`);
   };
 
+  useEngagedVenueView(venue.id);
+
   useEffect(() => {
     recordVenueRecentlyViewed(venue.id);
-    void fetch("/api/analytics/venue-view", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ venueId: venue.id }),
-    }).catch(() => {});
   }, [venue.id]);
 
   const allImages = useMemo(() => {

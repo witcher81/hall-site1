@@ -122,7 +122,7 @@ model Venue {
   @@index([maxPrice])
 }
 
-/// צפייה בעמוד אולם (למדדי פופולריות שבועיים)
+/// צפייה מעורבת בעמוד אולם (אחרי זמן גלוי מינימלי בצד הלקוח) — לפופולריות שבועית
 model VenuePageView {
   id        Int      @id @default(autoincrement())
   venueId   Int
@@ -132,7 +132,7 @@ model VenuePageView {
   @@index([venueId, createdAt])
 }
 
-/// צפייה בפרופיל ספק (פרילאנסר)
+/// צפייה מעורבת בפרופיל ספק (אחרי זמן גלוי מינימלי) — לפופולריות שבועית
 model FreelancerProfileView {
   id             Int      @id @default(autoincrement())
   providerUserId Int

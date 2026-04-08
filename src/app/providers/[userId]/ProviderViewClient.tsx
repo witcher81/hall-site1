@@ -3,6 +3,7 @@
 import ServiceIncludeBadges from "@/components/ServiceIncludeBadges";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
+import { useEngagedFreelancerProfileView } from "@/lib/useEngagedViewAnalytics";
 import type { ServiceCustomInclude } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson, type SocialLink } from "@/lib/socialLinks";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -60,13 +61,10 @@ export default function ProviderViewClient({
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
+  useEngagedFreelancerProfileView(provider.id);
+
   useEffect(() => {
     recordProviderRecentlyViewed(provider.id);
-    void fetch("/api/analytics/freelancer-profile-view", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ providerUserId: provider.id }),
-    }).catch(() => {});
   }, [provider.id]);
 
   function isDateValid(dateStr: string): boolean {
