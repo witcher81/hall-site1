@@ -2,6 +2,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { getUpstashRedisConfig } from "@/lib/upstashEnv";
 
 type Cached = { api: Ratelimit; auth: Ratelimit } | null;
 
@@ -9,13 +10,12 @@ let limiters: Cached | undefined;
 
 function getLimiters(): Cached {
   if (limiters !== undefined) return limiters;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
+  const cfg = getUpstashRedisConfig();
+  if (!cfg) {
     limiters = null;
     return null;
   }
-  const redis = new Redis({ url, token });
+  const redis = new Redis({ url: cfg.url, token: cfg.token });
   limiters = {
     api: new Ratelimit({
       redis,
