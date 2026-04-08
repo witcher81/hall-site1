@@ -26,8 +26,18 @@ npm run dev
 | `NEXT_PUBLIC_SITE_URL` | אופציונלי | כתובת קנונית / OG; בלי זה נעשה שימוש ב־`VERCEL_URL` |
 | `NEXT_PUBLIC_SENTRY_DSN` | אופציונלי | [Sentry](https://sentry.io) — מעקב שגיאות ו־performance בפרודקשן (ה-DSN מיועד להיות ציבורי) |
 | `SENTRY_AUTH_TOKEN` | אופציונלי | רק ב־Vercel/CI — העלאת source maps לסטאק מדויק (לא בקוד!) |
+| `CRON_SECRET` | לפרודקשן אם משתמשים בתור משימות | סוד ל־`/api/cron/process-jobs` — Vercel שולח `Authorization: Bearer …` |
 
 **חשוב:** אסור להשתמש ב־`NEXT_PUBLIC_*` עבור סודות (`DATABASE_URL`, JWT, מפתחות API). קידומת זו חושפת ערכים בדפדפן. **יוצא מן הכלל:** `NEXT_PUBLIC_SENTRY_DSN` — זה המזהה שה-SDK שולח אירועים ל-Sentry; הוא לא מעניק גישה לנתונים בחשבון.
+
+### תור משימות (BackgroundJob)
+
+- מודל `BackgroundJob` ב־Prisma + מיגרציה — משימות נשמרות ב־PostgreSQL.
+- **`enqueueJob(type, payload)`** ב־`src/lib/jobQueue.ts` — מוסיף משימה (רק מקוד שרת).
+- מטפלים ב־`src/lib/jobHandlers.ts` — הוסף `case` לכל סוג `type`.
+- **`GET /api/cron/process-jobs`** — מעבד עד 15 משימות בריצה; מוגן ב־`CRON_SECRET` בפרודקשן.
+- **`vercel.json`** — Cron יומי (09:00 UTC). בתוכנית **Hobby** של Vercel Cron מוגבל ל־**פעם ביום**; ב־**Pro** אפשר לשנות ל־`*/5 * * * *` וכו'.
+- לבדיקה מקומית: `curl -H "Authorization: Bearer YOUR_CRON_SECRET" http://localhost:3000/api/cron/process-jobs` (בפיתוח בלי `CRON_SECRET` — הבקשה עוברת בלי Bearer).
 
 קובץ `.env` מקומי — לא להעלות ל־Git. ב־Vercel מגדירים את אותם שמות תחת **Environment Variables**.
 

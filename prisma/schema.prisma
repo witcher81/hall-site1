@@ -363,3 +363,23 @@ model VenueGalleryImage {
 
   @@index([venueId, category])
 }
+
+/// תור משימות רקע (מעובד ע״י /api/cron/process-jobs + Vercel Cron)
+model BackgroundJob {
+  id          Int       @id @default(autoincrement())
+  /// מזהה סוג (מטופל ב־jobHandlers)
+  type        String
+  /// JSON — מטען למטפל
+  payloadJson String?
+  status      String    @default("PENDING") // PENDING, PROCESSING, DONE, FAILED
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  lastError   String?
+  runAfter    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  processedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([status, runAfter])
+}
