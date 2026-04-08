@@ -3,11 +3,11 @@
  * מיוצא לשרת (אימות dwell) וללקוח (מדידה).
  */
 
-/** זמן מינימלי שהמשתמש רואה את העמוד (בלשונית פעילה) לפני שנספרת צפייה */
-export const ENGAGED_VIEW_MIN_MS = 15_000;
+/** זמן מינימלי שהמשתמש רואה את עמוד אולם/ספק (בלשונית פעילה) לפני שנספרת צפייה לפופולריות */
+export const ENGAGED_VIEW_MIN_MS = 90_000;
 
-/** מינימום צפיות מעורבות בשבוע האחרון לתג "פופולרי" ברשימות */
-export const MIN_WEEKLY_ENGAGED_VIEWS_FOR_BADGE = 8;
+/** מינימום צפיות מעורבות (אחרי dwell ארוך) בשבוע — כוונן לפי תעבורה */
+export const MIN_WEEKLY_ENGAGED_VIEWS_FOR_BADGE = 5;
 
 /** עד כמה ישויות בראש הדירוג מקבלות תג פופולרי */
 export const MAX_POPULAR_BADGES = 15;

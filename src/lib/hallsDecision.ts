@@ -2,6 +2,12 @@
  * חישובי "קל החלטה": Top Picks, תוויות חכמות ו"למה זה מתאים לך".
  */
 
+/** מינימום אולמות בתוצאות החיפוש כדי להציג תגי השוואה (לא רק פופולרי) */
+export const MIN_VENUES_FOR_COMPARISON_LABELS = 8;
+
+/** מינימום אולמות באותה עיר בתוצאות כדי לחשב «זול יחסית לאזור» מול חציון מקומי */
+export const MIN_VENUES_PER_CITY_FOR_BUDGET_TAG = 3;
+
 export type HallVenueLike = {
   id: number;
   name: string;
@@ -123,6 +129,15 @@ export function computeLabelWinners(
     }
   }
 
+  if (venues.length < MIN_VENUES_FOR_COMPARISON_LABELS) {
+    return {
+      bestValueId: null,
+      popularInResultsId,
+      luxuryIds: new Set(),
+      budgetAreaIds: new Set(),
+    };
+  }
+
   let bestValueId: number | null = null;
   let bestScore = Infinity;
   for (const v of venues) {
@@ -162,7 +177,7 @@ export function computeLabelWinners(
   }
   const medians = new Map<string, number>();
   for (const [city, arr] of byCity) {
-    if (arr.length < 2) continue;
+    if (arr.length < MIN_VENUES_PER_CITY_FOR_BUDGET_TAG) continue;
     const s = [...arr].sort((a, b) => a - b);
     const mid = s[Math.floor(s.length / 2)]!;
     medians.set(city, mid);
