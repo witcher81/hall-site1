@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Halls Hub — אתר Next.js
 
-## Getting Started
+פרויקט [Next.js](https://nextjs.org) (App Router) עם Prisma + PostgreSQL (Neon), פריסה ב־[Vercel](https://vercel.com).
 
-First, run the development server:
+## התחלה מקומית
 
 ```bash
+npm install
+cp .env.example .env
+# ערוך .env — DATABASE_URL, JWT_SECRET וכו'
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+פתח [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## משתני סביבה
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| משתנה | חובה בפרודקשן | הערות |
+|--------|----------------|--------|
+| `DATABASE_URL` | כן | מחרוזת חיבור PostgreSQL (למשל Neon) |
+| `JWT_SECRET` | כן | ב־Vercel לפחות 32 תווים אקראיים |
+| `WEBHOOK_INBOUND_SECRET` | אם משתמשים ב־`/api/webhooks/inbound` | אימות בקשות נכנסות |
+| `ADMIN_EMAILS` | לפי צורך | אימיילים מופרדים בפסיק (אדמין) |
+| `ALLOW_DEV_USER_SWITCH` | אופציונלי | `true` רק אם באמת צריך החלפת משתמש בפרודקשן |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | אופציונלי | שניהם יחד — מפעילים rate limiting על `/api` ב־Edge |
+| `NEXT_PUBLIC_SITE_URL` | אופציונלי | כתובת קנונית / OG; בלי זה נעשה שימוש ב־`VERCEL_URL` |
 
-## Learn More
+**חשוב:** אסור להשתמש ב־`NEXT_PUBLIC_*` עבור סודות (`DATABASE_URL`, JWT, מפתחות API). קידומת זו חושפת ערכים בדפדפן.
 
-To learn more about Next.js, take a look at the following resources:
+קובץ `.env` מקומי — לא להעלות ל־Git. ב־Vercel מגדירים את אותם שמות תחת **Environment Variables**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## מסד נתונים
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run db:migrate   # פיתוח — יוצר מיגרציה
+npm run db:deploy    # CI / פרודקשן — מריץ מיגרציות קיימות
+```
 
-## Deploy on Vercel
+הבילד (`npm run build`) כולל `prisma migrate deploy`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## מה כבר מיושם (אבטחה וביצועים)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **אינדקסים ב־PostgreSQL** — על עמודות חיפוש נפוצות (`Venue`, `Service`, `Inquiry`) — ראה `prisma/migrations/`.
+- **Rate limiting** — middleware על `/api/*` (Upstash Redis; בלי משתני Upstash אין הגבלה בקוד). מוחרגים: `/api/webhooks/`, `/api/realtime/stream`.
+- **XSS** — בריחת טקסט ב־React כברירת מחדל; `safeHref` לקישורים; `escapeHtml` לשימוש נדיר; ESLint `react/no-danger`; CSP בפרודקשן ב־`next.config.ts`.
+- **סודות בשרת** — `import "server-only"` ב־`auth.ts`; `src/lib/env.server.ts` + `src/instrumentation.ts` עוצרים טעות של `NEXT_PUBLIC_*` על שמות סודות אסורים.
+- **כותרות אבטחה** — HSTS, CSP, `X-Frame-Options`, וכו' ב־`next.config.ts`.
+
+## פריסה (Vercel)
+
+לאחר שינוי אבטחה: קומיט ברור (`security: …`), `git push origin main` — Vercel בונה מחדש. לא לכלול `.env` בקומיט.
+
+## פקודות שימושיות
+
+| פקודה | תיאור |
+|--------|--------|
+| `npm run dev` | שרת פיתוח |
+| `npm run build` | בילד ייצור |
+| `npm run lint` | ESLint |
+| `npm run db:studio` | Prisma Studio |
+
+## מבנה תיקיות (עיקרי)
+
+- `src/app` — עמודים ו־API routes
+- `src/lib` — Prisma, auth, הגנות (`safeHref`, `env.server`, `rateLimit`, …)
+- `prisma/schema.prisma` — סכמה ומיגרציות

@@ -1,0 +1,14 @@
+---
+description: Stack, env, and security features implemented in this repo
+alwaysApply: true
+---
+
+# Hall-site project context
+
+- **Stack:** Next.js App Router, React, Prisma + PostgreSQL (Neon), deploy on Vercel. Build runs `prisma migrate deploy`.
+- **Local secrets:** `.env` (gitignored). **Vercel:** same variable names in dashboard — never `NEXT_PUBLIC_*` for secrets.
+- **Required prod env (typical):** `DATABASE_URL`, `JWT_SECRET` (≥32 chars on Vercel). Optional: `WEBHOOK_INBOUND_SECRET`, `ADMIN_EMAILS`, `ALLOW_DEV_USER_SWITCH`, `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (both needed for API rate limiting in middleware).
+- **DB:** B-tree indexes on frequent filter columns (see `prisma/migrations/`). Not using pg_trgm for `contains` text search unless added later.
+- **Security code:** Middleware rate limits `/api/*` except `/api/webhooks/` and `/api/realtime/stream`. `src/lib/env.server.ts` + `src/instrumentation.ts` forbid dangerous `NEXT_PUBLIC_*` secret names. `auth.ts` is `server-only`. Upstash config in `src/lib/upstashEnv.ts` (Edge-safe; no `server-only` on middleware path).
+- **XSS:** React text escaping; `safeHref.ts`; `escapeHtml.ts`; CSP + headers in `next.config.ts`; ESLint `react/no-danger`.
+- **After security changes:** commit with `security: …`, push `main` for Vercel (see deploy-after-security rule). Never commit `.env`.
