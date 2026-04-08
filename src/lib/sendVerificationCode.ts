@@ -4,8 +4,57 @@ import { Resend } from "resend";
 
 const OTP_TTL_MIN = 10;
 
+/** תגובת שגיאה מ-Resend (לפי ה-SDK) — לשימוש במיפוי הודעות למשתמש */
+type ResendApiError = {
+  message: string;
+  name: string;
+  statusCode: number | null;
+};
+
 function isDevLog(): boolean {
   return process.env.NODE_ENV !== "production";
+}
+
+/** הודעת משתמש בעברית לפי קוד השגיאה / טקסט מ-Resend */
+function userMessageFromResendError(error: ResendApiError): string {
+  const msg = error.message.toLowerCase();
+  const name = error.name;
+
+  if (
+    name === "invalid_api_key" ||
+    name === "missing_api_key" ||
+    name === "restricted_api_key"
+  ) {
+    return "מפתח Resend לא תקין או חסר. בדוק את RESEND_API_KEY ב-Vercel.";
+  }
+  if (name === "invalid_from_address") {
+    return "כתובת השולח לא מאומתת. ב-Resend יש לאמת דומיין ולהגדיר ב-Vercel את RESEND_FROM_EMAIL (למשל noreply@הדומיין-שלך).";
+  }
+  if (name === "daily_quota_exceeded" || name === "monthly_quota_exceeded") {
+    return "מכסת המיילים ב-Resend נגמרה. נסה שוב מאוחר יותר.";
+  }
+  if (name === "rate_limit_exceeded") {
+    return "יותר מדי ניסיונות שליחה. נסה שוב בעוד כמה דקות.";
+  }
+  if (name === "validation_error") {
+    if (
+      msg.includes("domain") ||
+      msg.includes("from") ||
+      msg.includes("recipient") ||
+      msg.includes("only")
+    ) {
+      return "בפרודקשן חובה דומיין מאומת ב-Resend ו-RESEND_FROM_EMAIL מהדומיין. לא ניתן לשלוח מ-onboarding@resend.dev לכל כתובת.";
+    }
+  }
+  if (
+    msg.includes("domain") ||
+    msg.includes("verify") ||
+    (msg.includes("only") && msg.includes("email")) ||
+    msg.includes("sandbox")
+  ) {
+    return "בפרודקשן חובה דומיין מאומת ב-Resend ו-RESEND_FROM_EMAIL ב-Vercel.";
+  }
+  return "שליחת האימייל נכשלה. נסה SMS או בדוק ב-Resend לוגים.";
 }
 
 export async function sendEmailOtp(
@@ -47,13 +96,16 @@ export async function sendEmailOtp(
       html,
     });
     if (error) {
-      console.error("Resend:", error);
-      return { ok: false, error: "שליחת האימייל נכשלה" };
+      console.error("Resend error:", JSON.stringify(error));
+      return {
+        ok: false,
+        error: userMessageFromResendError(error as ResendApiError),
+      };
     }
     return { ok: true };
   } catch (e) {
     console.error("Resend exception:", e);
-    return { ok: false, error: "שליחת האימייל נכשלה" };
+    return { ok: false, error: "שליחת האימייל נכשלה (שגיאת רשת או שרת)." };
   }
 }
 
