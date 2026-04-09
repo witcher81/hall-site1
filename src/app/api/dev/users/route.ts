@@ -30,10 +30,18 @@ async function requireAdminDevSwitch() {
 async function allowedManagedUserIds(adminUserId: number): Promise<number[]> {
   const rows = await prisma.devManagedUser.findMany({
     where: { adminUserId },
-    select: { managedUserId: true },
+    select: {
+      managedUserId: true,
+      managed: {
+        select: { phone: true },
+      },
+    },
     orderBy: { managedUserId: "asc" },
   });
-  return rows.map((r) => r.managedUserId);
+  // מציגים רק משתמשי "דיבאג" שנוצרו דרך המתג (phone=null), לא משתמשים אמיתיים
+  return rows
+    .filter((r) => r.managed.phone == null)
+    .map((r) => r.managedUserId);
 }
 
 /**

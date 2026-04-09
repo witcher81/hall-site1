@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
     },
     select: { id: true },
   });
-  const canSwitch = userId === session.id || Boolean(allowedForAdmin);
+  const isDevManagedUser = user.phone == null;
+  const canSwitch =
+    userId === session.id || (Boolean(allowedForAdmin) && isDevManagedUser);
   if (!canSwitch) {
     return NextResponse.json(
       { error: "ניתן לעבור רק למשתמשים שיצרת" },
