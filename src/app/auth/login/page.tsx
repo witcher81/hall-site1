@@ -61,8 +61,12 @@ function LoginForm() {
           HALLS HUB
         </p>
         <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">התחברות</h1>
-        <a href="/" className="mt-2 block text-sm text-[#6B6560] hover:text-[#0F3B2E] hover:underline">
-          חזרה לדף הבית
+        <a
+          href="/"
+          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-[#D8C7AF] bg-white px-3 py-2 text-sm font-semibold text-[#0F3B2E] shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-[#C9A227] hover:bg-[#FFF9E6]"
+        >
+          <span aria-hidden>←</span>
+          <span>חזרה לדף הבית</span>
         </a>
 
         <form

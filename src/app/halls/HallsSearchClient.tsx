@@ -618,7 +618,7 @@ export default function HallsSearchClient({
                 setForm((f) => ({ ...f, minGuests: e.target.value }))
               }
               className={fieldClass}
-              placeholder="100"
+              placeholder="לדוגמה: 100"
             />
           </div>
           <div className="min-w-0">
@@ -631,7 +631,7 @@ export default function HallsSearchClient({
                 setForm((f) => ({ ...f, maxGuests: e.target.value }))
               }
               className={fieldClass}
-              placeholder="400"
+              placeholder="לדוגמה: 400"
             />
           </div>
           <div className="min-w-0">
@@ -644,7 +644,7 @@ export default function HallsSearchClient({
                 setForm((f) => ({ ...f, minPrice: e.target.value }))
               }
               className={fieldClass}
-              placeholder="150"
+              placeholder="לדוגמה: 150"
             />
           </div>
           <div className="min-w-0">
@@ -657,7 +657,7 @@ export default function HallsSearchClient({
                 setForm((f) => ({ ...f, maxPrice: e.target.value }))
               }
               className={fieldClass}
-              placeholder="400"
+              placeholder="לדוגמה: 400"
             />
           </div>
           <div className="min-w-0">
