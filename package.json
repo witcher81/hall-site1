@@ -17,7 +17,7 @@
     "dev": "next dev --webpack",
     "dev:turbo": "next dev --turbopack",
     "dev:stop": "powershell -NoProfile -Command \"$ErrorActionPreference='SilentlyContinue'; Get-NetTCPConnection -LocalPort 3000 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }; Start-Sleep -Milliseconds 400; if (Test-Path '.next/dev/lock') { Remove-Item -Force '.next/dev/lock' }\"",
-    "build": "prisma migrate deploy && next build",
+    "build": "node scripts/migrate-deploy-with-retry.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "dev:all": "npm run dev:stop && concurrently \"npm run dev\" \"npx prisma studio --port 5555 --browser none\" \"powershell -NoProfile -Command \\\"Start-Sleep -Seconds 2; Start-Process 'http://localhost:5555'\\\"\""
