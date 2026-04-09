@@ -122,7 +122,7 @@ const ISRAEL_CITIES = [
   "באקה אל-גרבייה",
 ];
 
-const UNIQUE_ISRAEL_CITIES = Array.from(
+export const UNIQUE_ISRAEL_CITIES = Array.from(
   new Set(ISRAEL_CITIES.map((city) => city.trim()).filter(Boolean))
 );
 

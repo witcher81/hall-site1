@@ -10,7 +10,7 @@ import {
   type SetStateAction,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import CityDatalist from "@/components/CityDatalist";
+import { UNIQUE_ISRAEL_CITIES } from "@/components/CityDatalist";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import {
@@ -47,6 +47,19 @@ const EMPTY_SEARCH_FORM = {
   hasSoundSystem: false,
   hasBridalRoom: false,
 };
+
+const EVENT_TYPE_OPTIONS = [
+  "חתונה",
+  "בר מצווה",
+  "בת מצווה",
+  "ברית",
+  "בריתה",
+  "יום הולדת",
+  "אירוע עסקי",
+  "כנס",
+  "מסיבת סיום",
+  "אירוע אחר",
+] as const;
 
 type SearchFormState = typeof EMPTY_SEARCH_FORM;
 
@@ -419,6 +432,7 @@ export default function HallsSearchClient({
   );
   const [compareIds, setCompareIds] = useState<number[]>([]);
   const [popularVenueOrder, setPopularVenueOrder] = useState<number[]>([]);
+  const [cityMenuOpen, setCityMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(() => ({ ...EMPTY_SEARCH_FORM }));
   const lastPushedQsRef = useRef<string | null>(null);
@@ -577,6 +591,44 @@ export default function HallsSearchClient({
   const fieldClass =
     "mt-2 w-full min-h-[46px] rounded-xl border border-[#E7E0CF] bg-white px-4 py-2.5 text-base text-[#1A1A1A] outline-none transition focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/25";
   const labelClass = "block text-sm font-medium text-[#0F3B2E]";
+  const stepDoneEventType = form.eventType.trim().length > 0;
+  const stepDoneCity = form.city.trim().length > 0;
+  const cityOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const city of UNIQUE_ISRAEL_CITIES) {
+      set.add(city);
+    }
+    for (const v of venues) {
+      const city = v.city?.trim();
+      if (city) set.add(city);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, "he"));
+  }, [venues]);
+  const filteredCityOptions = useMemo(() => {
+    const q = form.city.trim().toLowerCase();
+    if (!q) return cityOptions;
+    return cityOptions
+      .filter((city) => city.toLowerCase().startsWith(q));
+  }, [cityOptions, form.city]);
+  const guestsTyped =
+    form.minGuests.trim().length > 0 || form.maxGuests.trim().length > 0;
+  const guestsRequirement =
+    guestsTyped
+      ? Math.max(
+          Number(form.minGuests || 0) || 0,
+          Number(form.maxGuests || 0) || 0
+        )
+      : 0;
+  const sizeBuckets = useMemo(() => {
+    const out = { small: 0, medium: 0, large: 0 };
+    for (const v of venues) {
+      const cap = v.maxGuests ?? 0;
+      if (cap <= 120) out.small += 1;
+      else if (cap <= 300) out.medium += 1;
+      else out.large += 1;
+    }
+    return out;
+  }, [venues]);
 
   return (
     <div className="mt-6 space-y-8">
@@ -593,21 +645,102 @@ export default function HallsSearchClient({
           </div>
         </div>
 
-        {/* 6 שדות: עד xl — 3+3; מ-xl — שורה אחת של 6 (לא נשאר שדה יתום) */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <div className="min-w-0">
+        <div className="mb-5 grid grid-cols-1 gap-2 rounded-2xl bg-[#FAF8F4] p-3 text-xs font-medium text-[#5F5F5F] sm:grid-cols-3 sm:text-sm">
+          <div className={stepDoneEventType ? "text-[#0F3B2E]" : ""}>
+            1) סוג אירוע
+          </div>
+          <div className={stepDoneCity ? "text-[#0F3B2E]" : ""}>
+            2) עיר (רק אולמות שמתאימים לסוג האירוע)
+          </div>
+          <div className={guestsTyped ? "text-[#0F3B2E]" : ""}>
+            3) טווח אורחים
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="min-w-0 rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4">
+            <label className={labelClass}>סוג אירוע</label>
+            <select
+              value={form.eventType}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  eventType: e.target.value,
+                  city: "",
+                  minGuests: "",
+                  maxGuests: "",
+                }))
+              }
+              className={fieldClass}
+            >
+              <option value="">בחר סוג אירוע</option>
+              {EVENT_TYPE_OPTIONS.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="min-w-0 rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4">
             <label className={labelClass}>עיר</label>
             <input
               type="text"
               value={form.city}
               onChange={(e) =>
-                setForm((f) => ({ ...f, city: e.target.value }))
+                setForm((f) => ({
+                  ...f,
+                  city: e.target.value,
+                  minGuests: "",
+                  maxGuests: "",
+                }))
               }
-              className={fieldClass}
-              placeholder="תל אביב"
-              list="il-cities"
+              onFocus={() => setCityMenuOpen(true)}
+              onBlur={() => {
+                window.setTimeout(() => setCityMenuOpen(false), 120);
+              }}
+              disabled={!stepDoneEventType}
+              placeholder={stepDoneEventType ? "הקלד עיר או בחר מהרשימה" : "קודם בחר סוג אירוע"}
+              className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-[#F3EFE6] disabled:text-[#9A9388]`}
             />
+            {!stepDoneEventType && (
+              <p className="mt-2 text-xs text-[#8A837A]">
+                העיר נפתחת אחרי בחירת סוג אירוע.
+              </p>
+            )}
+            {stepDoneEventType && cityMenuOpen && (
+              <div className="mt-2 max-h-52 overflow-auto rounded-xl border border-[#E7E0CF] bg-white shadow-[0_10px_24px_rgba(15,59,46,0.12)]">
+                {filteredCityOptions.length === 0 ? (
+                  <p className="px-3 py-2 text-xs text-[#8A837A]">
+                    לא נמצאו ערים תואמות.
+                  </p>
+                ) : (
+                  filteredCityOptions.map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setForm((f) => ({
+                          ...f,
+                          city,
+                          minGuests: "",
+                          maxGuests: "",
+                        }));
+                        setCityMenuOpen(false);
+                      }}
+                      className="block w-full border-b border-[#F0E9DB] px-3 py-2 text-right text-sm text-[#1A1A1A] hover:bg-[#FAF8F4] last:border-b-0"
+                    >
+                      {city}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div className="min-w-0">
             <label className={labelClass}>מינימום אורחים</label>
             <input
@@ -617,8 +750,9 @@ export default function HallsSearchClient({
               onChange={(e) =>
                 setForm((f) => ({ ...f, minGuests: e.target.value }))
               }
-              className={fieldClass}
-              placeholder="לדוגמה: 100"
+              disabled={!stepDoneCity}
+              className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-[#F3EFE6] disabled:text-[#9A9388]`}
+              placeholder={stepDoneCity ? "לדוגמה: 40" : "קודם בחר עיר"}
             />
           </div>
           <div className="min-w-0">
@@ -630,10 +764,36 @@ export default function HallsSearchClient({
               onChange={(e) =>
                 setForm((f) => ({ ...f, maxGuests: e.target.value }))
               }
-              className={fieldClass}
-              placeholder="לדוגמה: 400"
+              disabled={!stepDoneCity}
+              className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-[#F3EFE6] disabled:text-[#9A9388]`}
+              placeholder={stepDoneCity ? "לדוגמה: 150" : "קודם בחר עיר"}
             />
           </div>
+        </div>
+
+        {stepDoneCity && (
+          <p className="mt-3 text-xs text-[#5F5F5F]">
+            מוצגים רק אולמות בעיר שבחרת, שמתאימים לסוג האירוע.
+            {guestsTyped && guestsRequirement > 0
+              ? ` כרגע דרישה מינימלית: ${guestsRequirement} אורחים.`
+              : ""}
+          </p>
+        )}
+
+        {stepDoneCity && (
+          <div className="mt-4 rounded-2xl border border-[#E7E0CF]/80 bg-[#FAF8F4]/80 px-4 py-3 text-xs text-[#5F5F5F]">
+            <p className="font-semibold text-[#0F3B2E]">
+              סוגי אולמות זמינים לפי גודל בתוצאות הנוכחיות
+            </p>
+            <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+              <p>קטן (עד 120): {sizeBuckets.small}</p>
+              <p>בינוני (121–300): {sizeBuckets.medium}</p>
+              <p>גדול (301+): {sizeBuckets.large}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div className="min-w-0">
             <label className={labelClass}>מחיר מינימום למנה (₪)</label>
             <input
@@ -658,18 +818,6 @@ export default function HallsSearchClient({
               }
               className={fieldClass}
               placeholder="לדוגמה: 400"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className={labelClass}>סוג אירוע</label>
-            <input
-              type="text"
-              value={form.eventType}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, eventType: e.target.value }))
-              }
-              className={fieldClass}
-              placeholder="חתונה / בר מצווה..."
             />
           </div>
         </div>
@@ -877,7 +1025,6 @@ export default function HallsSearchClient({
             עדכן עכשיו
           </button>
         </div>
-        <CityDatalist />
       </form>
 
       <RecentlyViewedBar variant="venues" />
