@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import CityDatalist from "@/components/CityDatalist";
+import CitySelect from "@/components/CitySelect";
 import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
 
 const PRESET_EVENT_TYPES: readonly string[] = [
@@ -552,19 +552,13 @@ export default function VenueEditForm({
               <label className="block text-xs font-medium text-[#5F5F5F]">
                 עיר *
               </label>
-              <input
-                type="text"
-                required
+              <CitySelect
                 value={form.city}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, city: e.target.value }))
+                onChange={(city) =>
+                  setForm((f) => ({ ...f, city }))
                 }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="תל אביב"
-                list="il-cities"
               />
             </div>
-            <CityDatalist />
             <div>
               <label className="block text-xs font-medium text-[#5F5F5F]">
                 כתובת *
