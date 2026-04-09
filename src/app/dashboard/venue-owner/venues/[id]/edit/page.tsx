@@ -156,6 +156,7 @@ export default async function VenueEditPage({
         customAmenitiesJson: venue.customAmenitiesJson ?? null,
         builtinAmenityPriceModes,
         builtinAmenityExtraPrices,
+        eventTypeProfilesJson: venue.eventTypeProfilesJson ?? null,
       }}
     />
   );

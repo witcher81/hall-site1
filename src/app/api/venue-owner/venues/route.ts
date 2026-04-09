@@ -56,6 +56,104 @@ function parseEventTypes(raw: FormDataEntryValue | null): string[] {
   }
 }
 
+type EventTypeProfile = {
+  minGuests: number | null;
+  maxGuests: number | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+  nonWeddingFoodMode: "" | "optional" | "required";
+};
+
+function parseEventTypeProfilesJson(
+  raw: FormDataEntryValue | null,
+  eventTypes: string[]
+): {
+  json: string | null;
+  derived: EventTypeProfile;
+  error: string | null;
+} {
+  const empty = {
+    minGuests: null,
+    maxGuests: null,
+    minPrice: null,
+    maxPrice: null,
+    nonWeddingFoodMode: "",
+  } satisfies EventTypeProfile;
+  if (eventTypes.length === 0) return { json: null, derived: empty, error: null };
+  if (typeof raw !== "string" || raw.trim() === "") {
+    return { json: null, derived: empty, error: null };
+  }
+  if (raw.length > USER_INPUT_MAX.JSON_FORM_FIELD) {
+    return { json: null, derived: empty, error: "נתוני טווחים לפי סוג אירוע ארוכים מדי." };
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      return { json: null, derived: empty, error: "פורמט טווחים לפי סוג אירוע לא תקין." };
+    }
+    const obj = parsed as Record<string, unknown>;
+    const clean: Record<string, EventTypeProfile> = {};
+
+    const minGuestsAll: number[] = [];
+    const maxGuestsAll: number[] = [];
+    const minPriceAll: number[] = [];
+    const maxPriceAll: number[] = [];
+
+    for (const et of eventTypes) {
+      const rawProfile = obj[et];
+      const profileObj =
+        typeof rawProfile === "object" && rawProfile !== null && !Array.isArray(rawProfile)
+          ? (rawProfile as Record<string, unknown>)
+          : {};
+      const minGuests = toIntOrNull(
+        profileObj.minGuests == null ? null : String(profileObj.minGuests)
+      );
+      const maxGuests = toIntOrNull(
+        profileObj.maxGuests == null ? null : String(profileObj.maxGuests)
+      );
+      const minPrice = toIntOrNull(
+        profileObj.minPrice == null ? null : String(profileObj.minPrice)
+      );
+      const maxPrice = toIntOrNull(
+        profileObj.maxPrice == null ? null : String(profileObj.maxPrice)
+      );
+      const nonWeddingFoodMode =
+        profileObj.nonWeddingFoodMode === "required"
+          ? "required"
+          : profileObj.nonWeddingFoodMode === "optional"
+            ? "optional"
+            : "";
+
+      const guestErr = validateGuestRange(minGuests, maxGuests);
+      if (guestErr) {
+        return { json: null, derived: empty, error: `בסוג האירוע "${et}": ${guestErr}` };
+      }
+      const priceErr = validatePriceMinMax(minPrice, maxPrice);
+      if (priceErr) {
+        return { json: null, derived: empty, error: `בסוג האירוע "${et}": ${priceErr}` };
+      }
+
+      clean[et] = { minGuests, maxGuests, minPrice, maxPrice, nonWeddingFoodMode };
+      if (minGuests != null) minGuestsAll.push(minGuests);
+      if (maxGuests != null) maxGuestsAll.push(maxGuests);
+      if (minPrice != null) minPriceAll.push(minPrice);
+      if (maxPrice != null) maxPriceAll.push(maxPrice);
+    }
+
+    const derived: EventTypeProfile = {
+      minGuests: minGuestsAll.length > 0 ? Math.min(...minGuestsAll) : null,
+      maxGuests: maxGuestsAll.length > 0 ? Math.max(...maxGuestsAll) : null,
+      minPrice: minPriceAll.length > 0 ? Math.min(...minPriceAll) : null,
+      maxPrice: maxPriceAll.length > 0 ? Math.max(...maxPriceAll) : null,
+    };
+
+    return { json: JSON.stringify(clean), derived, error: null };
+  } catch {
+    return { json: null, derived: empty, error: "פורמט טווחים לפי סוג אירוע לא תקין." };
+  }
+}
+
 /**
  * שומר customAmenitiesJson ב-SQL כדי שלא ייכשל אימות Prisma כשהלקוח לא נוצר מחדש
  * אחרי שינוי סכמה (למשל EPERM ב-prisma generate ב-Windows).
@@ -176,6 +274,20 @@ export async function POST(req: NextRequest) {
     return badRequest("נתוני סוגי אירוע ארוכים מדי");
   }
   const eventTypes = parseEventTypes(formData.get("eventTypes"));
+  const profilesParsed = parseEventTypeProfilesJson(
+    formData.get("eventTypeProfilesJson"),
+    eventTypes
+  );
+  if (profilesParsed.error) {
+    return NextResponse.json({ error: profilesParsed.error }, { status: 400 });
+  }
+  const eventTypeProfilesJson = profilesParsed.json;
+  const minGuestsResolved =
+    profilesParsed.derived.minGuests ?? toIntOrNull(minGuests);
+  const maxGuestsResolved =
+    profilesParsed.derived.maxGuests ?? toIntOrNull(maxGuests);
+  const minPriceResolved = profilesParsed.derived.minPrice ?? toIntOrNull(minPrice);
+  const maxPriceResolved = profilesParsed.derived.maxPrice ?? toIntOrNull(maxPrice);
   const amenitiesParsed = parseCustomAmenitiesJson(
     formData.get("customAmenitiesJson")
   );
@@ -228,9 +340,9 @@ export async function POST(req: NextRequest) {
   );
   if (!foodChk.ok) return badRequest(foodChk.error);
 
-  const gErr = validateGuestRange(toIntOrNull(minGuests), toIntOrNull(maxGuests));
+  const gErr = validateGuestRange(minGuestsResolved, maxGuestsResolved);
   if (gErr) return badRequest(gErr);
-  const pErr = validatePriceMinMax(toIntOrNull(minPrice), toIntOrNull(maxPrice));
+  const pErr = validatePriceMinMax(minPriceResolved, maxPriceResolved);
   if (pErr) return badRequest(pErr);
   const hErr = validatePriceMinMax(
     toIntOrNull(hallRentalMin),
@@ -387,14 +499,15 @@ export async function POST(req: NextRequest) {
       name,
       city,
       address,
-      minGuests: toIntOrNull(minGuests),
-      maxGuests: toIntOrNull(maxGuests),
-      minPrice: toIntOrNull(minPrice),
-      maxPrice: toIntOrNull(maxPrice),
+      minGuests: minGuestsResolved,
+      maxGuests: maxGuestsResolved,
+      minPrice: minPriceResolved,
+      maxPrice: maxPriceResolved,
       hallRentalMin: toIntOrNull(hallRentalMin),
       hallRentalMax: toIntOrNull(hallRentalMax),
       description: descCheck.value,
       eventTypes: eventTypes.length > 0 ? JSON.stringify(eventTypes) : null,
+      eventTypeProfilesJson,
       hasChuppa: finalHasChuppa,
       hasFood: finalHasFood,
       hasDanceFloor,
@@ -598,6 +711,20 @@ export async function PUT(req: NextRequest) {
     return badRequest("נתוני סוגי אירוע ארוכים מדי");
   }
   const eventTypes = parseEventTypes(formData.get("eventTypes"));
+  const profilesParsed = parseEventTypeProfilesJson(
+    formData.get("eventTypeProfilesJson"),
+    eventTypes
+  );
+  if (profilesParsed.error) {
+    return NextResponse.json({ error: profilesParsed.error }, { status: 400 });
+  }
+  const eventTypeProfilesJson = profilesParsed.json;
+  const minGuestsResolved =
+    profilesParsed.derived.minGuests ?? toIntOrNull(minGuests);
+  const maxGuestsResolved =
+    profilesParsed.derived.maxGuests ?? toIntOrNull(maxGuests);
+  const minPriceResolved = profilesParsed.derived.minPrice ?? toIntOrNull(minPrice);
+  const maxPriceResolved = profilesParsed.derived.maxPrice ?? toIntOrNull(maxPrice);
   const amenitiesParsed = parseCustomAmenitiesJson(
     formData.get("customAmenitiesJson")
   );
@@ -648,9 +775,9 @@ export async function PUT(req: NextRequest) {
   if (!foodChk.ok) return badRequest(foodChk.error);
   const autoReplyOut = autoChk.value;
 
-  const gErrPut = validateGuestRange(toIntOrNull(minGuests), toIntOrNull(maxGuests));
+  const gErrPut = validateGuestRange(minGuestsResolved, maxGuestsResolved);
   if (gErrPut) return badRequest(gErrPut);
-  const pErrPut = validatePriceMinMax(toIntOrNull(minPrice), toIntOrNull(maxPrice));
+  const pErrPut = validatePriceMinMax(minPriceResolved, maxPriceResolved);
   if (pErrPut) return badRequest(pErrPut);
   const hErrPut = validatePriceMinMax(
     toIntOrNull(hallRentalMin),
@@ -812,14 +939,15 @@ export async function PUT(req: NextRequest) {
       name,
       city,
       address,
-      minGuests: toIntOrNull(minGuests),
-      maxGuests: toIntOrNull(maxGuests),
-      minPrice: toIntOrNull(minPrice),
-      maxPrice: toIntOrNull(maxPrice),
+      minGuests: minGuestsResolved,
+      maxGuests: maxGuestsResolved,
+      minPrice: minPriceResolved,
+      maxPrice: maxPriceResolved,
       hallRentalMin: toIntOrNull(hallRentalMin),
       hallRentalMax: toIntOrNull(hallRentalMax),
       description: descriptionOut,
       eventTypes: eventTypes.length > 0 ? JSON.stringify(eventTypes) : null,
+      eventTypeProfilesJson,
       hasChuppa: finalHasChuppa,
       hasFood: finalHasFood,
       hasDanceFloor,

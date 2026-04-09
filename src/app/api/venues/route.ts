@@ -38,17 +38,17 @@ export async function GET(req: NextRequest) {
   const minG = minGuests && minGuests !== "" ? Number(minGuests) : NaN;
   const maxG = maxGuests && maxGuests !== "" ? Number(maxGuests) : NaN;
   const guestLimit = [minG, maxG].filter((n) => !Number.isNaN(n));
-  if (guestLimit.length > 0) {
+  if (guestLimit.length > 0 && !(eventType && eventType.length > 0)) {
     const required = Math.max(...guestLimit);
     where.maxGuests = { gte: required };
   }
   // תקציב משתמש: מינימום למנה – האולם מתאים אם המחיר המינימלי שלו למנה >= מה שהוזן
-  if (minPrice && minPrice !== "") {
+  if (minPrice && minPrice !== "" && !(eventType && eventType.length > 0)) {
     const n = Number(minPrice);
     if (!Number.isNaN(n)) where.minPrice = { gte: n };
   }
   // תקציב משתמש: מקסימום למנה – האולם מתאים אם המחיר המקסימלי שלו למנה <= מה שהוזן
-  if (maxPrice && maxPrice !== "") {
+  if (maxPrice && maxPrice !== "" && !(eventType && eventType.length > 0)) {
     const n = Number(maxPrice);
     if (!Number.isNaN(n)) where.maxPrice = { lte: n };
   }
@@ -125,6 +125,7 @@ export async function GET(req: NextRequest) {
       hasSoundSystem: true,
       hasBridalRoom: true,
       customAmenitiesJson: true,
+      eventTypeProfilesJson: true,
       coverImageUrl: true,
       galleryImageUrls: true,
       boostExpiresAt: true,
@@ -132,8 +133,53 @@ export async function GET(req: NextRequest) {
     },
   });
 
+  const minGuestsNum = minGuests && minGuests !== "" ? Number(minGuests) : NaN;
+  const maxGuestsNum = maxGuests && maxGuests !== "" ? Number(maxGuests) : NaN;
+  const minPriceNum = minPrice && minPrice !== "" ? Number(minPrice) : NaN;
+  const maxPriceNum = maxPrice && maxPrice !== "" ? Number(maxPrice) : NaN;
+  const activeEventType = eventType && eventType.length > 0 ? eventType : null;
+
+  const filteredByEventProfile = venues.filter((v) => {
+    if (!activeEventType) return true;
+    const fallback = {
+      minGuests: v.minGuests,
+      maxGuests: v.maxGuests,
+      minPrice: v.minPrice,
+      maxPrice: v.maxPrice,
+    };
+    let profile = fallback;
+    if (v.eventTypeProfilesJson) {
+      try {
+        const parsed = JSON.parse(v.eventTypeProfilesJson) as unknown;
+        if (typeof parsed === "object" && parsed && !Array.isArray(parsed)) {
+          const row = (parsed as Record<string, unknown>)[activeEventType];
+          if (typeof row === "object" && row && !Array.isArray(row)) {
+            const obj = row as Record<string, unknown>;
+            profile = {
+              minGuests:
+                typeof obj.minGuests === "number" ? obj.minGuests : fallback.minGuests,
+              maxGuests:
+                typeof obj.maxGuests === "number" ? obj.maxGuests : fallback.maxGuests,
+              minPrice:
+                typeof obj.minPrice === "number" ? obj.minPrice : fallback.minPrice,
+              maxPrice:
+                typeof obj.maxPrice === "number" ? obj.maxPrice : fallback.maxPrice,
+            };
+          }
+        }
+      } catch {
+        profile = fallback;
+      }
+    }
+    if (!Number.isNaN(minGuestsNum) && profile.maxGuests != null && profile.maxGuests < minGuestsNum) return false;
+    if (!Number.isNaN(maxGuestsNum) && profile.maxGuests != null && profile.maxGuests < maxGuestsNum) return false;
+    if (!Number.isNaN(minPriceNum) && profile.minPrice != null && profile.minPrice < minPriceNum) return false;
+    if (!Number.isNaN(maxPriceNum) && profile.maxPrice != null && profile.maxPrice > maxPriceNum) return false;
+    return true;
+  });
+
   const now = new Date();
-  const sorted = [...venues].sort((a, b) => {
+  const sorted = [...filteredByEventProfile].sort((a, b) => {
     const ab = !!(a.boostExpiresAt && a.boostExpiresAt > now);
     const bb = !!(b.boostExpiresAt && b.boostExpiresAt > now);
     if (ab !== bb) return ab ? -1 : 1;
@@ -141,7 +187,7 @@ export async function GET(req: NextRequest) {
   });
 
   const list = sorted.map((v) => {
-    const { boostExpiresAt, createdAt, customAmenitiesJson, ...rest } = v;
+    const { boostExpiresAt, createdAt, customAmenitiesJson, eventTypeProfilesJson, ...rest } = v;
     const customAmenities: { label: string; checked: boolean; priceMode: "included" | "extra" }[] = [];
     if (customAmenitiesJson) {
       try {
@@ -164,6 +210,17 @@ export async function GET(req: NextRequest) {
         /* ignore */
       }
     }
+    let eventTypeProfiles: Record<string, unknown> = {};
+    if (eventTypeProfilesJson) {
+      try {
+        const parsedProfiles = JSON.parse(eventTypeProfilesJson) as unknown;
+        if (typeof parsedProfiles === "object" && parsedProfiles && !Array.isArray(parsedProfiles)) {
+          eventTypeProfiles = parsedProfiles as Record<string, unknown>;
+        }
+      } catch {
+        eventTypeProfiles = {};
+      }
+    }
     return {
       ...rest,
       eventTypes: v.eventTypes ? (JSON.parse(v.eventTypes) as string[]) : [],
@@ -171,6 +228,7 @@ export async function GET(req: NextRequest) {
         ? (JSON.parse(v.galleryImageUrls) as string[])
         : [],
       customAmenities,
+      eventTypeProfiles,
       isBoosted: !!(boostExpiresAt && boostExpiresAt > now),
     };
   });

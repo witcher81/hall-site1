@@ -24,6 +24,13 @@ const PRESET_EVENT_TYPES: readonly string[] = [
 
 const MAX_CUSTOM_EVENT_TYPES = 20;
 type PriceMode = "included" | "extra";
+type EventTypeProfileState = {
+  minGuests: string;
+  maxGuests: string;
+  minPrice: string;
+  maxPrice: string;
+  nonWeddingFoodMode: "" | "optional" | "required";
+};
 type BuiltinAmenityKey =
   | "hasFood"
   | "hasDanceFloor"
@@ -127,6 +134,48 @@ function splitWeddingAmenities(
   return { general, wedding };
 }
 
+function parseEventTypeProfilesForForm(
+  raw: string | null | undefined,
+  eventTypes: string[]
+): Record<string, EventTypeProfileState> {
+  const out: Record<string, EventTypeProfileState> = {};
+  for (const et of eventTypes) {
+    out[et] = {
+      minGuests: "",
+      maxGuests: "",
+      minPrice: "",
+      maxPrice: "",
+      nonWeddingFoodMode: "",
+    };
+  }
+  if (!raw) return out;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
+    const obj = parsed as Record<string, unknown>;
+    for (const et of eventTypes) {
+      const row = obj[et];
+      if (typeof row !== "object" || row === null || Array.isArray(row)) continue;
+      const profile = row as Record<string, unknown>;
+      out[et] = {
+        minGuests: profile.minGuests == null ? "" : String(profile.minGuests),
+        maxGuests: profile.maxGuests == null ? "" : String(profile.maxGuests),
+        minPrice: profile.minPrice == null ? "" : String(profile.minPrice),
+        maxPrice: profile.maxPrice == null ? "" : String(profile.maxPrice),
+        nonWeddingFoodMode:
+          profile.nonWeddingFoodMode === "required"
+            ? "required"
+            : profile.nonWeddingFoodMode === "optional"
+              ? "optional"
+              : "",
+      };
+    }
+  } catch {
+    return out;
+  }
+  return out;
+}
+
 type Initial = {
   name: string;
   city: string;
@@ -153,6 +202,7 @@ type Initial = {
   customAmenitiesJson: string | null;
   builtinAmenityPriceModes: Record<BuiltinAmenityKey, PriceMode>;
   builtinAmenityExtraPrices: Record<BuiltinAmenityKey, string>;
+  eventTypeProfilesJson: string | null;
 };
 
 export default function VenueEditForm({
@@ -193,6 +243,9 @@ export default function VenueEditForm({
     )
   );
   const [eventTypeInput, setEventTypeInput] = useState("");
+  const [eventTypeProfiles, setEventTypeProfiles] = useState<
+    Record<string, EventTypeProfileState>
+  >(() => parseEventTypeProfilesForForm(initial.eventTypeProfilesJson, initial.eventTypes));
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryHallImages, setGalleryHallImages] = useState<File[]>([]);
   const [galleryChuppaImages, setGalleryChuppaImages] = useState<File[]>([]);
@@ -224,6 +277,22 @@ export default function VenueEditForm({
   const chuppaFileRef = useRef<HTMLInputElement>(null);
   const danceFileRef = useRef<HTMLInputElement>(null);
   const foodFileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setEventTypeProfiles((prev) => {
+      const next: Record<string, EventTypeProfileState> = {};
+      for (const et of eventTypes) {
+        next[et] = prev[et] ?? {
+          minGuests: "",
+          maxGuests: "",
+          minPrice: "",
+          maxPrice: "",
+          nonWeddingFoodMode: "",
+        };
+      }
+      return next;
+    });
+  }, [eventTypes]);
 
   useEffect(() => {
     if (isWeddingSelected) return;
@@ -370,15 +439,17 @@ export default function VenueEditForm({
       fd.append("name", form.name);
       fd.append("city", form.city);
       fd.append("address", form.address);
-      if (form.minGuests) fd.append("minGuests", form.minGuests);
-      if (form.maxGuests) fd.append("maxGuests", form.maxGuests);
-      if (showFoodPhotoUpload) {
-        if (form.minPrice) fd.append("minPrice", form.minPrice);
-        if (form.maxPrice) fd.append("maxPrice", form.maxPrice);
-      } else {
-        fd.append("minPrice", "");
-        fd.append("maxPrice", "");
+      const eventTypeProfilesPayload: Record<string, EventTypeProfileState> = {};
+      for (const et of eventTypes) {
+        eventTypeProfilesPayload[et] = eventTypeProfiles[et] ?? {
+          minGuests: "",
+          maxGuests: "",
+          minPrice: "",
+          maxPrice: "",
+          nonWeddingFoodMode: "",
+        };
       }
+      fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
       if (form.hallRentalMin) fd.append("hallRentalMin", form.hallRentalMin);
       if (form.hallRentalMax) fd.append("hallRentalMax", form.hallRentalMax);
       fd.append("description", form.description);
@@ -791,9 +862,26 @@ export default function VenueEditForm({
                   <input
                     type="checkbox"
                     checked={form.hasFood}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, hasFood: e.target.checked }))
-                    }
+                    onChange={(e) => {
+                      const next = e.target.checked;
+                      setForm((f) => ({ ...f, hasFood: next }));
+                      if (!next) {
+                        setEventTypeProfiles((prev) => {
+                          const nextProfiles = { ...prev };
+                          for (const et of eventTypes.filter((t) => t !== "חתונה")) {
+                            const row = nextProfiles[et] ?? {
+                              minGuests: "",
+                              maxGuests: "",
+                              minPrice: "",
+                              maxPrice: "",
+                              nonWeddingFoodMode: "",
+                            };
+                            nextProfiles[et] = { ...row, nonWeddingFoodMode: "" };
+                          }
+                          return nextProfiles;
+                        });
+                      }
+                    }}
                     className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
                   />
                   <span>מציעים אוכל גם לבר מצווה, כנס ושאר אירועים שאינם חתונה</span>
@@ -832,6 +920,62 @@ export default function VenueEditForm({
                   </>
                 )}
               </div>
+              {form.hasFood && (
+                <div className="mt-2 rounded-lg bg-white/70 p-2 text-xs text-[#2A261F]">
+                  <p className="mb-1 text-[11px] font-medium text-[#5F5F5F]">
+                    אוכל באירועים שאינם חתונה — אופציונלי או חובה
+                  </p>
+                  {eventTypes.filter((t) => t !== "חתונה").length === 0 ? (
+                    <span className="text-[11px] text-[#8A8278]">
+                      הוסף למעלה סוגי אירוע שאינם חתונה כדי להגדיר מדיניות אוכל.
+                    </span>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {eventTypes
+                        .filter((t) => t !== "חתונה")
+                        .map((et) => {
+                          const row = eventTypeProfiles[et] ?? {
+                            minGuests: "",
+                            maxGuests: "",
+                            minPrice: "",
+                            maxPrice: "",
+                            nonWeddingFoodMode: "",
+                          };
+                          return (
+                            <div
+                              key={`food-mode-${et}`}
+                              className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-[11px] shadow-sm"
+                            >
+                              <span className="text-[#2A261F]">{et}</span>
+                              <select
+                                value={row.nonWeddingFoodMode}
+                                onChange={(e) =>
+                                  setEventTypeProfiles((prev) => ({
+                                    ...prev,
+                                    [et]: {
+                                      ...row,
+                                      nonWeddingFoodMode:
+                                        e.target.value === "required"
+                                          ? "required"
+                                          : e.target.value === "optional"
+                                            ? "optional"
+                                            : "",
+                                    },
+                                  }))
+                                }
+                                className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                              >
+                                <option value="">לא מציע אוכל</option>
+                                <option value="optional">מציע אוכל (לא חובה)</option>
+                                <option value="required">אוכל חובה</option>
+                              </select>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -1003,70 +1147,79 @@ export default function VenueEditForm({
             </div>
           )}
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
-                מינימום אורחים
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.minGuests}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, minGuests: e.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="150"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
-                מקסימום אורחים
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.maxGuests}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, maxGuests: e.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="400"
-              />
-            </div>
-          </div>
-
-          {showFoodPhotoUpload && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-medium text-[#5F5F5F]">
-                  מחיר מינימום למנה (₪)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={form.minPrice}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, minPrice: e.target.value }))
-                  }
-                  className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                  placeholder="280"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[#5F5F5F]">
-                  מחיר מקסימום למנה (₪)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={form.maxPrice}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, maxPrice: e.target.value }))
-                  }
-                  className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                  placeholder="430"
-                />
+          {eventTypes.length > 0 && (
+            <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+                טווחים לפי סוג אירוע (נפרד לכל סוג)
+              </p>
+              <div className="space-y-3">
+                {eventTypes.map((et) => {
+                  const profile = eventTypeProfiles[et] ?? {
+                    minGuests: "",
+                    maxGuests: "",
+                    minPrice: "",
+                    maxPrice: "",
+                  };
+                  return (
+                    <div key={`profile-${et}`} className="rounded-lg border border-[#E0D4C3] bg-white p-3">
+                      <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">{et}</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <input
+                          type="number"
+                          min={0}
+                          value={profile.minGuests}
+                          onChange={(e) =>
+                            setEventTypeProfiles((prev) => ({
+                              ...prev,
+                              [et]: { ...profile, minGuests: e.target.value },
+                            }))
+                          }
+                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                          placeholder="מינימום אורחים"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          value={profile.maxGuests}
+                          onChange={(e) =>
+                            setEventTypeProfiles((prev) => ({
+                              ...prev,
+                              [et]: { ...profile, maxGuests: e.target.value },
+                            }))
+                          }
+                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                          placeholder="מקסימום אורחים"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          value={profile.minPrice}
+                          onChange={(e) =>
+                            setEventTypeProfiles((prev) => ({
+                              ...prev,
+                              [et]: { ...profile, minPrice: e.target.value },
+                            }))
+                          }
+                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                          placeholder="מחיר מינימום למנה (₪)"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          value={profile.maxPrice}
+                          onChange={(e) =>
+                            setEventTypeProfiles((prev) => ({
+                              ...prev,
+                              [et]: { ...profile, maxPrice: e.target.value },
+                            }))
+                          }
+                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                          placeholder="מחיר מקסימום למנה (₪)"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

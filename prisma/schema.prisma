@@ -79,6 +79,8 @@ model Venue {
   description String?
   // JSON string של סוגי אירועים שהאולם מתאים אליהם
   eventTypes  String?
+  /// JSON: לכל סוג אירוע טווח אורחים + טווח מחירי מנה (נפרד)
+  eventTypeProfilesJson String?
   // מאפיינים מתקדמים לחיפוש
   kashrut     String?  // למשל: "ללא", "רגיל", "מהדרין"
   parking     String?  // למשל: "אין", "חניה צמודה", "חניון"
