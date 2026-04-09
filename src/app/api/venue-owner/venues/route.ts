@@ -146,6 +146,7 @@ function parseEventTypeProfilesJson(
       maxGuests: maxGuestsAll.length > 0 ? Math.max(...maxGuestsAll) : null,
       minPrice: minPriceAll.length > 0 ? Math.min(...minPriceAll) : null,
       maxPrice: maxPriceAll.length > 0 ? Math.max(...maxPriceAll) : null,
+      nonWeddingFoodMode: "",
     };
 
     return { json: JSON.stringify(clean), derived, error: null };
