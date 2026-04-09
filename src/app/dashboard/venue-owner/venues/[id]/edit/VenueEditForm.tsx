@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import CitySelect from "@/components/CitySelect";
+import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
 
 const PRESET_EVENT_TYPES: readonly string[] = [
@@ -250,6 +250,10 @@ export default function VenueEditForm({
   const parsedInitialAmenities = useMemo(
     () => splitWeddingAmenities(parseCustomAmenitiesFromDb(initial.customAmenitiesJson)),
     [initial.customAmenitiesJson]
+  );
+  const cityAutocompleteExtras = useMemo(
+    () => (initial.city?.trim() ? [initial.city.trim()] : []),
+    [initial.city]
   );
   const [customAmenityInput, setCustomAmenityInput] = useState("");
   const [customAmenityRows, setCustomAmenityRows] = useState<
@@ -552,11 +556,15 @@ export default function VenueEditForm({
               <label className="block text-xs font-medium text-[#5F5F5F]">
                 עיר *
               </label>
-              <CitySelect
+              <CityAutocompleteInput
                 value={form.city}
+                required
                 onChange={(city) =>
                   setForm((f) => ({ ...f, city }))
                 }
+                extraCities={cityAutocompleteExtras}
+                placeholder="הקלד עיר או בחר מהרשימה"
+                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
               />
             </div>
             <div>

@@ -10,7 +10,7 @@ import {
   type SetStateAction,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { UNIQUE_ISRAEL_CITIES } from "@/components/CityDatalist";
+import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import {
@@ -432,7 +432,6 @@ export default function HallsSearchClient({
   );
   const [compareIds, setCompareIds] = useState<number[]>([]);
   const [popularVenueOrder, setPopularVenueOrder] = useState<number[]>([]);
-  const [cityMenuOpen, setCityMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(() => ({ ...EMPTY_SEARCH_FORM }));
   const lastPushedQsRef = useRef<string | null>(null);
@@ -593,23 +592,13 @@ export default function HallsSearchClient({
   const labelClass = "block text-sm font-medium text-[#0F3B2E]";
   const stepDoneEventType = form.eventType.trim().length > 0;
   const stepDoneCity = form.city.trim().length > 0;
-  const cityOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const city of UNIQUE_ISRAEL_CITIES) {
-      set.add(city);
-    }
-    for (const v of venues) {
-      const city = v.city?.trim();
-      if (city) set.add(city);
-    }
-    return [...set].sort((a, b) => a.localeCompare(b, "he"));
-  }, [venues]);
-  const filteredCityOptions = useMemo(() => {
-    const q = form.city.trim().toLowerCase();
-    if (!q) return cityOptions;
-    return cityOptions
-      .filter((city) => city.toLowerCase().startsWith(q));
-  }, [cityOptions, form.city]);
+  const searchExtraCities = useMemo(
+    () =>
+      venues
+        .map((v) => v.city?.trim())
+        .filter((c): c is string => Boolean(c)),
+    [venues]
+  );
   const guestsTyped =
     form.minGuests.trim().length > 0 || form.maxGuests.trim().length > 0;
   const guestsRequirement =
@@ -684,58 +673,29 @@ export default function HallsSearchClient({
 
           <div className="min-w-0 rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4">
             <label className={labelClass}>עיר</label>
-            <input
-              type="text"
+            <CityAutocompleteInput
               value={form.city}
-              onChange={(e) =>
+              onChange={(city) =>
                 setForm((f) => ({
                   ...f,
-                  city: e.target.value,
+                  city,
                   minGuests: "",
                   maxGuests: "",
                 }))
               }
-              onFocus={() => setCityMenuOpen(true)}
-              onBlur={() => {
-                window.setTimeout(() => setCityMenuOpen(false), 120);
-              }}
               disabled={!stepDoneEventType}
-              placeholder={stepDoneEventType ? "הקלד עיר או בחר מהרשימה" : "קודם בחר סוג אירוע"}
+              placeholder={
+                stepDoneEventType
+                  ? "הקלד עיר או בחר מהרשימה"
+                  : "קודם בחר סוג אירוע"
+              }
+              extraCities={searchExtraCities}
               className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-[#F3EFE6] disabled:text-[#9A9388]`}
             />
             {!stepDoneEventType && (
               <p className="mt-2 text-xs text-[#8A837A]">
                 העיר נפתחת אחרי בחירת סוג אירוע.
               </p>
-            )}
-            {stepDoneEventType && cityMenuOpen && (
-              <div className="mt-2 max-h-52 overflow-auto rounded-xl border border-[#E7E0CF] bg-white shadow-[0_10px_24px_rgba(15,59,46,0.12)]">
-                {filteredCityOptions.length === 0 ? (
-                  <p className="px-3 py-2 text-xs text-[#8A837A]">
-                    לא נמצאו ערים תואמות.
-                  </p>
-                ) : (
-                  filteredCityOptions.map((city) => (
-                    <button
-                      key={city}
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
-                        setForm((f) => ({
-                          ...f,
-                          city,
-                          minGuests: "",
-                          maxGuests: "",
-                        }));
-                        setCityMenuOpen(false);
-                      }}
-                      className="block w-full border-b border-[#F0E9DB] px-3 py-2 text-right text-sm text-[#1A1A1A] hover:bg-[#FAF8F4] last:border-b-0"
-                    >
-                      {city}
-                    </button>
-                  ))
-                )}
-              </div>
             )}
           </div>
         </div>
