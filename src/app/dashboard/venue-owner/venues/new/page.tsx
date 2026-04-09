@@ -29,9 +29,9 @@ type PriceMode = "included" | "extra";
 type EventTypeProfileState = {
   minGuests: string;
   maxGuests: string;
+  hasFoodAtEvent: boolean;
   minPrice: string;
   maxPrice: string;
-  nonWeddingFoodMode: "" | "optional" | "required";
 };
 type BuiltinAmenityKey =
   | "hasFood"
@@ -46,14 +46,6 @@ const BUILTIN_AMENITY_KEYS: BuiltinAmenityKey[] = [
   "hasSoundSystem",
   "hasBridalRoom",
 ];
-const BUILTIN_AMENITY_LABELS: Record<BuiltinAmenityKey, string> = {
-  hasFood: "אוכל",
-  hasDanceFloor: "רחבת ריקודים",
-  hasTableSetup: "סידור שולחנות",
-  hasSoundSystem: "מערכת הגברה",
-  hasBridalRoom: "חדר חתן/כלה",
-};
-
 function isPositivePrice(value: string) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0;
@@ -81,17 +73,7 @@ export default function NewVenuePage() {
     name: "",
     city: "",
     address: "",
-    minGuests: "",
-    maxGuests: "",
-    minPrice: "",
-    maxPrice: "",
     description: "",
-    hasChuppa: false,
-    hasFood: false,
-    hasDanceFloor: false,
-    hasTableSetup: false,
-    hasSoundSystem: false,
-    hasBridalRoom: false,
     hasChuppaOutdoor: false,
     hasChuppaCovered: false,
     hasVeganFood: false,
@@ -108,32 +90,10 @@ export default function NewVenuePage() {
   >({});
   const [customEventLabels, setCustomEventLabels] = useState<string[]>([]);
   const [eventTypeInput, setEventTypeInput] = useState("");
-  const [customAmenityInput, setCustomAmenityInput] = useState("");
-  const [customAmenityRows, setCustomAmenityRows] = useState<
-    { label: string; checked: boolean; priceMode: PriceMode; extraPrice: string }[]
-  >([]);
   const [customWeddingInput, setCustomWeddingInput] = useState("");
   const [customWeddingRows, setCustomWeddingRows] = useState<
     { label: string; checked: boolean; priceMode: PriceMode; extraPrice: string }[]
   >([]);
-  const [builtinAmenityPriceModes, setBuiltinAmenityPriceModes] = useState<
-    Record<BuiltinAmenityKey, PriceMode>
-  >({
-    hasFood: "included",
-    hasDanceFloor: "included",
-    hasTableSetup: "included",
-    hasSoundSystem: "included",
-    hasBridalRoom: "included",
-  });
-  const [builtinAmenityExtraPrices, setBuiltinAmenityExtraPrices] = useState<
-    Record<BuiltinAmenityKey, string>
-  >({
-    hasFood: "",
-    hasDanceFloor: "",
-    hasTableSetup: "",
-    hasSoundSystem: "",
-    hasBridalRoom: "",
-  });
   const [pickedLat, setPickedLat] = useState<number | null>(null);
   const [pickedLng, setPickedLng] = useState<number | null>(null);
   /** עולה ב-blur של עיר/כתובת — המפה מזמנת גיאוקוד מיד */
@@ -191,29 +151,6 @@ export default function NewVenuePage() {
     setError(null);
 
     try {
-      const activeBuiltin = BUILTIN_AMENITY_KEYS.filter((key) =>
-        Boolean(form[key])
-      );
-      const missingBuiltin = activeBuiltin.find(
-        (key) =>
-          builtinAmenityPriceModes[key] === "extra" &&
-          !isPositivePrice(builtinAmenityExtraPrices[key])
-      );
-      if (missingBuiltin) {
-        setError(
-          `יש להזין מחיר עבור "${BUILTIN_AMENITY_LABELS[missingBuiltin]}" כי סומן בתוספת תשלום.`
-        );
-        setCreating(false);
-        return;
-      }
-      const missingCustom = customAmenityRows.find(
-        (row) => row.checked && row.priceMode === "extra" && !isPositivePrice(row.extraPrice)
-      );
-      if (missingCustom) {
-        setError(`יש להזין מחיר עבור "${missingCustom.label}" כי סומן בתוספת תשלום.`);
-        setCreating(false);
-        return;
-      }
       const missingWedding = customWeddingRows.find(
         (row) => row.checked && row.priceMode === "extra" && !isPositivePrice(row.extraPrice)
       );
@@ -241,19 +178,25 @@ export default function NewVenuePage() {
         eventTypeProfilesPayload[et] = eventTypeProfiles[et] ?? {
           minGuests: "",
           maxGuests: "",
+          hasFoodAtEvent: false,
           minPrice: "",
           maxPrice: "",
-          nonWeddingFoodMode: "",
         };
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
       if (form.description) fd.append("description", form.description);
-      fd.append("hasChuppa", String(form.hasChuppa));
-      fd.append("hasFood", String(form.hasFood));
-      fd.append("hasDanceFloor", String(form.hasDanceFloor));
-      fd.append("hasTableSetup", String(form.hasTableSetup));
-      fd.append("hasSoundSystem", String(form.hasSoundSystem));
-      fd.append("hasBridalRoom", String(form.hasBridalRoom));
+      const anyEventFood = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasFoodAtEvent === true
+      );
+      fd.append(
+        "hasChuppa",
+        String(form.hasChuppaOutdoor || form.hasChuppaCovered)
+      );
+      fd.append("hasFood", String(anyEventFood));
+      fd.append("hasDanceFloor", "false");
+      fd.append("hasTableSetup", "false");
+      fd.append("hasSoundSystem", "false");
+      fd.append("hasBridalRoom", "false");
       fd.append("hasChuppaOutdoor", String(form.hasChuppaOutdoor));
       fd.append("hasChuppaCovered", String(form.hasChuppaCovered));
       fd.append("hasVeganFood", String(form.hasVeganFood));
@@ -263,13 +206,9 @@ export default function NewVenuePage() {
         ...BUILTIN_AMENITY_KEYS.map((key) => ({
           label: `__builtin__:${key}`,
           checked: true,
-          priceMode: builtinAmenityPriceModes[key],
-          extraPrice:
-            builtinAmenityPriceModes[key] === "extra"
-              ? Number(builtinAmenityExtraPrices[key])
-              : null,
+          priceMode: "included" as const,
+          extraPrice: null as null,
         })),
-        ...customAmenityRows,
         ...customWeddingRows.map((r) => ({
           label: `${WEDDING_CUSTOM_PREFIX} ${r.label}`.trim(),
           checked: r.checked,
@@ -326,7 +265,12 @@ export default function NewVenuePage() {
   }
 
   const isWeddingSelected = eventTypes.includes("חתונה");
-  const showFoodPhotoUpload = isWeddingSelected || form.hasFood;
+  const anyEventOffersFood = useMemo(
+    () =>
+      eventTypes.some((et) => eventTypeProfiles[et]?.hasFoodAtEvent === true),
+    [eventTypes, eventTypeProfiles]
+  );
+  const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
 
   function removeCoverImage() {
     if (coverPreview) URL.revokeObjectURL(coverPreview);
@@ -369,9 +313,9 @@ export default function NewVenuePage() {
         next[et] = prev[et] ?? {
           minGuests: "",
           maxGuests: "",
+          hasFoodAtEvent: false,
           minPrice: "",
           maxPrice: "",
-          nonWeddingFoodMode: "",
         };
       }
       return next;
@@ -382,7 +326,6 @@ export default function NewVenuePage() {
     if (isWeddingSelected) return;
     setForm((f) => ({
       ...f,
-      hasChuppa: false,
       hasChuppaOutdoor: false,
       hasChuppaCovered: false,
     }));
@@ -396,11 +339,6 @@ export default function NewVenuePage() {
     setGalleryFoodImages([]);
     if (foodFileRef.current) foodFileRef.current.value = "";
   }, [showFoodPhotoUpload, galleryFoodImages.length]);
-
-  useEffect(() => {
-    if (showFoodPhotoUpload) return;
-    setForm((f) => ({ ...f, minPrice: "", maxPrice: "" }));
-  }, [showFoodPhotoUpload]);
 
   useEffect(() => {
     const el = mapSectionRef.current;
@@ -684,188 +622,6 @@ export default function NewVenuePage() {
           {eventTypes.length > 0 && (
             <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
               <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
-                מה יש באולם?
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {[
-                  { key: "hasFood", label: "אוכל", hideWhenWedding: true },
-                  { key: "hasDanceFloor", label: "רחבת ריקודים", hideWhenWedding: false },
-                  { key: "hasTableSetup", label: "סידור שולחנות", hideWhenWedding: false },
-                  { key: "hasSoundSystem", label: "מערכת הגברה", hideWhenWedding: false },
-                  { key: "hasBridalRoom", label: "חדר חתן/כלה", hideWhenWedding: false },
-                ]
-                  .filter((item) => !item.hideWhenWedding || !isWeddingSelected)
-                  .map((item) => {
-                    const checked = Boolean(form[item.key as keyof typeof form]);
-                    return (
-                      <div
-                        key={item.key}
-                        className="flex items-center justify-between gap-2 text-xs text-[#2A261F]"
-                      >
-                        <span className="truncate">{item.label}</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setForm((f) => ({
-                              ...f,
-                              [item.key]: !checked,
-                            }))
-                          }
-                          className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] transition ${
-                            checked
-                              ? "border-[#0F3B2E] bg-[#0F3B2E] text-white"
-                              : "border-[#D4C9BC] bg-white text-[#2A261F]"
-                          }`}
-                        >
-                          <span>{checked ? "קיים באולם" : "לא מסומן"}</span>
-                        </button>
-                      {Boolean(form[item.key as keyof typeof form]) && (
-                        <>
-                          <select
-                            value={builtinAmenityPriceModes[item.key as BuiltinAmenityKey]}
-                            onChange={(e) =>
-                              setBuiltinAmenityPriceModes((prev) => ({
-                                ...prev,
-                                [item.key]:
-                                  e.target.value === "extra" ? "extra" : "included",
-                              }))
-                            }
-                            className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                          >
-                            <option value="included">כלול</option>
-                            <option value="extra">בתוספת תשלום</option>
-                          </select>
-                          {builtinAmenityPriceModes[item.key as BuiltinAmenityKey] === "extra" && (
-                            <input
-                              type="number"
-                              min={1}
-                              value={builtinAmenityExtraPrices[item.key as BuiltinAmenityKey]}
-                              onChange={(e) =>
-                                setBuiltinAmenityExtraPrices((prev) => ({
-                                  ...prev,
-                                  [item.key]: e.target.value,
-                                }))
-                              }
-                              className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                              placeholder="₪"
-                            />
-                          )}
-                        </>
-                      )}
-                      </div>
-                    );
-                  })}
-                {customAmenityRows.map((row, idx) => (
-                  <div
-                    key={`${row.label}-${idx}`}
-                    className="flex min-w-0 items-center gap-2 text-xs text-[#2A261F]"
-                  >
-                    <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                      <span className="truncate">{row.label}</span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setCustomAmenityRows((prev) =>
-                            prev.map((r, i) =>
-                              i === idx ? { ...r, checked: !r.checked } : r
-                            )
-                          )
-                        }
-                        className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
-                          row.checked
-                            ? "border-[#0F3B2E] bg-[#0F3B2E] text-white"
-                            : "border-[#D4C9BC] bg-white text-[#2A261F]"
-                        }`}
-                      >
-                        {row.checked ? "קיים באולם" : "לא מסומן"}
-                      </button>
-                    </div>
-                    <select
-                      value={row.priceMode}
-                      onChange={(e) =>
-                        setCustomAmenityRows((prev) =>
-                          prev.map((r, i) =>
-                            i === idx
-                              ? {
-                                  ...r,
-                                  priceMode:
-                                    e.target.value === "extra" ? "extra" : "included",
-                                }
-                              : r
-                          )
-                        )
-                      }
-                      className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                    >
-                      <option value="included">כלול</option>
-                      <option value="extra">בתוספת תשלום</option>
-                    </select>
-                    {row.priceMode === "extra" && (
-                      <input
-                        type="number"
-                        min={1}
-                        value={row.extraPrice}
-                        onChange={(e) =>
-                          setCustomAmenityRows((prev) =>
-                            prev.map((r, i) =>
-                              i === idx ? { ...r, extraPrice: e.target.value } : r
-                            )
-                          )
-                        }
-                        className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                        placeholder="₪"
-                      />
-                    )}
-                    <button
-                      type="button"
-                      className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
-                      onClick={() =>
-                        setCustomAmenityRows((prev) => prev.filter((_, i) => i !== idx))
-                      }
-                    >
-                      הסר
-                    </button>
-                  </div>
-                ))}
-                <div className="flex min-w-0 flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center">
-                  <input
-                    type="text"
-                    value={customAmenityInput}
-                    onChange={(e) => setCustomAmenityInput(e.target.value)}
-                    className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-                    placeholder="הוסף מאפיין משלך (לדוגמה: בריכה)…"
-                    maxLength={80}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const value = customAmenityInput.trim();
-                      if (!value) return;
-                      if (customAmenityRows.length >= 20) return;
-                      if (
-                        customAmenityRows.some(
-                          (r) => r.label.toLowerCase() === value.toLowerCase()
-                        )
-                      )
-                        return;
-                      setCustomAmenityRows((prev) => [
-                        ...prev,
-                        { label: value, checked: true, priceMode: "included", extraPrice: "" },
-                      ]);
-                      setCustomAmenityInput("");
-                    }}
-                    className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
-                  >
-                    הוסף
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {eventTypes.length > 0 && (
-            <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
                 טווחים לפי סוג אירוע (נפרד לכל סוג)
               </p>
               <div className="space-y-3">
@@ -873,9 +629,9 @@ export default function NewVenuePage() {
                   const profile = eventTypeProfiles[et] ?? {
                     minGuests: "",
                     maxGuests: "",
+                    hasFoodAtEvent: false,
                     minPrice: "",
                     maxPrice: "",
-                    nonWeddingFoodMode: "",
                   };
                   return (
                     <div key={`profile-${et}`} className="rounded-lg border border-[#E0D4C3] bg-white p-3">
@@ -907,32 +663,56 @@ export default function NewVenuePage() {
                           className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
                           placeholder="מקסימום אורחים"
                         />
-                        <input
-                          type="number"
-                          min={0}
-                          value={profile.minPrice}
-                          onChange={(e) =>
-                            setEventTypeProfiles((prev) => ({
-                              ...prev,
-                              [et]: { ...profile, minPrice: e.target.value },
-                            }))
-                          }
-                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                          placeholder="מחיר מינימום למנה (₪)"
-                        />
-                        <input
-                          type="number"
-                          min={0}
-                          value={profile.maxPrice}
-                          onChange={(e) =>
-                            setEventTypeProfiles((prev) => ({
-                              ...prev,
-                              [et]: { ...profile, maxPrice: e.target.value },
-                            }))
-                          }
-                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                          placeholder="מחיר מקסימום למנה (₪)"
-                        />
+                        <label className="flex items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
+                          <input
+                            type="checkbox"
+                            checked={profile.hasFoodAtEvent}
+                            onChange={(e) => {
+                              const on = e.target.checked;
+                              setEventTypeProfiles((prev) => ({
+                                ...prev,
+                                [et]: {
+                                  ...profile,
+                                  hasFoodAtEvent: on,
+                                  minPrice: on ? profile.minPrice : "",
+                                  maxPrice: on ? profile.maxPrice : "",
+                                },
+                              }));
+                            }}
+                            className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                          />
+                          יש אוכל באירוע מסוג זה
+                        </label>
+                        {profile.hasFoodAtEvent && (
+                          <>
+                            <input
+                              type="number"
+                              min={0}
+                              value={profile.minPrice}
+                              onChange={(e) =>
+                                setEventTypeProfiles((prev) => ({
+                                  ...prev,
+                                  [et]: { ...profile, minPrice: e.target.value },
+                                }))
+                              }
+                              className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                              placeholder="מחיר מינימום למנה (₪)"
+                            />
+                            <input
+                              type="number"
+                              min={0}
+                              value={profile.maxPrice}
+                              onChange={(e) =>
+                                setEventTypeProfiles((prev) => ({
+                                  ...prev,
+                                  [et]: { ...profile, maxPrice: e.target.value },
+                                }))
+                              }
+                              className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                              placeholder="מחיר מקסימום למנה (₪)"
+                            />
+                          </>
+                        )}
                       </div>
                     </div>
                   );
@@ -1123,159 +903,6 @@ export default function NewVenuePage() {
             </div>
           )}
 
-          {isWeddingSelected && (
-            <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-4 shadow-sm">
-              <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">
-                אוכל — חתונה לעומת אירועים אחרים
-              </p>
-              <div className="mb-3 space-y-2 text-[11px] leading-relaxed text-[#5C564C]">
-                <p>
-                  <span className="font-semibold text-[#2A261F]">למה זה לא מופיע בחתונה כשורה נפרדת?</span>
-                  {" "}
-                  בפנייה לחתונה האוכל נסדר יחד עם שאר פרטי החתונה (כשרות, סגנון וכו׳), ולכן שם אין שדה &quot;אוכל&quot; כמו
-                  ברשימת המאפיינים הכללית.
-                </p>
-                <p>
-                  <span className="font-semibold text-[#2A261F]">למה כן צריך סימון כאן?</span>
-                  {" "}
-                  אם האולם מתאים גם לבר מצווה, כנס, יום הולדת וכו׳ — לקוחות לעיתים שואלים במפורש אם יש אוכל באירועים
-                  האלה. הסימון למטה משמש רק למצב הזה.
-                </p>
-                <ul className="list-disc space-y-1 pe-4 text-right [list-style-position:inside]">
-                  <li>
-                    <span className="font-medium text-[#2A261F]">לא מסמנים</span>
-                    — אין אוכל משמעותי באירועים שאינם חתונה, או שהנושא רלוונטי רק לחתונה.
-                  </li>
-                  <li>
-                    <span className="font-medium text-[#2A261F]">מסמנים</span>
-                    — מציעים אוכל גם לסוגי אירוע שאינם חתונה; ליד הסימון בוחרים אם המחיר כמו מחירי המנות שבפרופיל או מחיר חדש (נפרד).
-                  </li>
-                </ul>
-              </div>
-              <div className="space-y-2 text-xs text-[#2A261F]">
-                <div className="flex flex-wrap items-center gap-2">
-                  <label className="flex min-w-0 flex-1 items-center gap-2 sm:max-w-md">
-                    <input
-                      type="checkbox"
-                      checked={form.hasFood}
-                      onChange={(e) => {
-                        const next = e.target.checked;
-                        setForm((f) => ({ ...f, hasFood: next }));
-                        if (!next) {
-                          setEventTypeProfiles((prev) => {
-                            const nextProfiles = { ...prev };
-                            for (const et of eventTypes.filter((t) => t !== "חתונה")) {
-                              const row = nextProfiles[et] ?? {
-                                minGuests: "",
-                                maxGuests: "",
-                                minPrice: "",
-                                maxPrice: "",
-                                nonWeddingFoodMode: "",
-                              };
-                              nextProfiles[et] = { ...row, nonWeddingFoodMode: "" };
-                            }
-                            return nextProfiles;
-                          });
-                        }
-                      }}
-                      className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
-                    />
-                    <span>מציעים אוכל גם לאירועים שאינם חתונה</span>
-                  </label>
-                  {form.hasFood && (
-                    <>
-                      <select
-                        value={builtinAmenityPriceModes.hasFood}
-                        onChange={(e) =>
-                          setBuiltinAmenityPriceModes((prev) => ({
-                            ...prev,
-                            hasFood: e.target.value === "extra" ? "extra" : "included",
-                          }))
-                        }
-                        className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                      >
-                        <option value="included">מחיר כמו מה שרשום למנה</option>
-                        <option value="extra">מחיר חדש</option>
-                      </select>
-                      {builtinAmenityPriceModes.hasFood === "extra" && (
-                        <input
-                          type="number"
-                          min={1}
-                          value={builtinAmenityExtraPrices.hasFood}
-                          onChange={(e) =>
-                            setBuiltinAmenityExtraPrices((prev) => ({
-                              ...prev,
-                              hasFood: e.target.value,
-                            }))
-                          }
-                          className="w-24 min-w-[5.5rem] rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                          placeholder="₪ למנה"
-                          title="מחיר חדש למנה באירועים שאינם חתונה"
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-                {form.hasFood && (
-                  <div className="rounded-lg bg-white/70 p-2">
-                    <p className="mb-1 text-[11px] font-medium text-[#5F5F5F]">
-                      אוכל באירועים שאינם חתונה — אופציונלי או חובה
-                    </p>
-                    {eventTypes.filter((t) => t !== "חתונה").length === 0 ? (
-                      <span className="text-[11px] text-[#8A8278]">
-                        הוסף למעלה סוגי אירוע שאינם חתונה כדי להגדיר מדיניות אוכל.
-                      </span>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {eventTypes
-                          .filter((t) => t !== "חתונה")
-                          .map((et) => {
-                            const row = eventTypeProfiles[et] ?? {
-                              minGuests: "",
-                              maxGuests: "",
-                              minPrice: "",
-                              maxPrice: "",
-                              nonWeddingFoodMode: "",
-                            };
-                            return (
-                              <div
-                                key={et}
-                                className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-[11px] shadow-sm"
-                              >
-                                <span className="text-[#2A261F]">{et}</span>
-                                <select
-                                  value={row.nonWeddingFoodMode}
-                                  onChange={(e) =>
-                                    setEventTypeProfiles((prev) => ({
-                                      ...prev,
-                                      [et]: {
-                                        ...row,
-                                        nonWeddingFoodMode:
-                                          e.target.value === "required"
-                                            ? "required"
-                                            : e.target.value === "optional"
-                                              ? "optional"
-                                              : "",
-                                      },
-                                    }))
-                                  }
-                                  className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                                >
-                                  <option value="">לא מציע אוכל</option>
-                                  <option value="optional">מציע אוכל (לא חובה)</option>
-                                  <option value="required">אוכל חובה</option>
-                                </select>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-medium text-[#5F5F5F]">
@@ -1338,13 +965,12 @@ export default function NewVenuePage() {
                   type="file"
                   multiple
                   accept="image/*"
-                  disabled={!form.hasDanceFloor}
                   onChange={(e) => {
                     const files = e.target.files;
                     if (!files) return;
                     setGalleryDanceImages((prev) => [...prev, ...Array.from(files)]);
                   }}
-                  className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B] disabled:opacity-50"
+                  className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
                 />
               </div>
               {showFoodPhotoUpload && (

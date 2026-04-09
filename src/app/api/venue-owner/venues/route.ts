@@ -62,6 +62,7 @@ type EventTypeProfile = {
   minPrice: number | null;
   maxPrice: number | null;
   nonWeddingFoodMode: "" | "optional" | "required";
+  hasFoodAtEvent?: boolean;
 };
 
 function parseEventTypeProfilesJson(
@@ -112,29 +113,62 @@ function parseEventTypeProfilesJson(
       const maxGuests = toIntOrNull(
         profileObj.maxGuests == null ? null : String(profileObj.maxGuests)
       );
-      const minPrice = toIntOrNull(
+      let minPrice = toIntOrNull(
         profileObj.minPrice == null ? null : String(profileObj.minPrice)
       );
-      const maxPrice = toIntOrNull(
+      let maxPrice = toIntOrNull(
         profileObj.maxPrice == null ? null : String(profileObj.maxPrice)
       );
-      const nonWeddingFoodMode =
-        profileObj.nonWeddingFoodMode === "required"
-          ? "required"
-          : profileObj.nonWeddingFoodMode === "optional"
-            ? "optional"
-            : "";
 
       const guestErr = validateGuestRange(minGuests, maxGuests);
       if (guestErr) {
         return { json: null, derived: empty, error: `בסוג האירוע "${et}": ${guestErr}` };
       }
-      const priceErr = validatePriceMinMax(minPrice, maxPrice);
-      if (priceErr) {
-        return { json: null, derived: empty, error: `בסוג האירוע "${et}": ${priceErr}` };
+
+      const explicitFoodFalse =
+        profileObj.hasFoodAtEvent === false || profileObj.hasFoodAtEvent === "false";
+      const explicitFoodTrue =
+        profileObj.hasFoodAtEvent === true || profileObj.hasFoodAtEvent === "true";
+      const legacyFoodMode =
+        profileObj.nonWeddingFoodMode === "required" ||
+        profileObj.nonWeddingFoodMode === "optional";
+
+      let servesFood: boolean;
+      if (explicitFoodFalse) {
+        servesFood = false;
+      } else if (explicitFoodTrue) {
+        servesFood = true;
+      } else {
+        servesFood = legacyFoodMode || minPrice != null || maxPrice != null;
       }
 
-      clean[et] = { minGuests, maxGuests, minPrice, maxPrice, nonWeddingFoodMode };
+      let nonWeddingFoodMode: "" | "optional" | "required" = "";
+      if (!servesFood) {
+        minPrice = null;
+        maxPrice = null;
+      } else {
+        const priceErr = validatePriceMinMax(minPrice, maxPrice);
+        if (priceErr) {
+          return { json: null, derived: empty, error: `בסוג האירוע "${et}": ${priceErr}` };
+        }
+        if (et !== "חתונה") {
+          nonWeddingFoodMode =
+            profileObj.nonWeddingFoodMode === "required"
+              ? "required"
+              : profileObj.nonWeddingFoodMode === "optional"
+                ? "optional"
+                : "optional";
+        }
+      }
+
+      clean[et] = {
+        minGuests,
+        maxGuests,
+        minPrice,
+        maxPrice,
+        nonWeddingFoodMode,
+        hasFoodAtEvent: servesFood,
+      };
       if (minGuests != null) minGuestsAll.push(minGuests);
       if (maxGuests != null) maxGuestsAll.push(maxGuests);
       if (minPrice != null) minPriceAll.push(minPrice);
