@@ -799,7 +799,6 @@ export default function VenueEditForm({
                                 { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
                                 { key: "hasTableSetup" as const, label: "סידור שולחנות" },
                                 { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
-                                { key: "hasBridalRoom" as const, label: "חדר חתן/כלה" },
                               ] as const
                             ).map((item) => {
                               const checked = Boolean(form[item.key]);
@@ -820,6 +819,19 @@ export default function VenueEditForm({
                                 </label>
                               );
                             })}
+                            {isWeddingEt && (
+                              <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                                <input
+                                  type="checkbox"
+                                  checked={form.hasBridalRoom}
+                                  onChange={(e) =>
+                                    setForm((f) => ({ ...f, hasBridalRoom: e.target.checked }))
+                                  }
+                                  className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                                />
+                                חדר חתן/כלה
+                              </label>
+                            )}
                             <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
                               <input
                                 type="checkbox"
