@@ -13,7 +13,7 @@ type UserRow = {
 const ROLES = [
   { value: "SEEKER", label: "מחפש אולמות" },
   { value: "VENUE_OWNER", label: "בעל/ת אולם" },
-  { value: "FREELANCER", label: "FREE LANSER" },
+  { value: "FREELANCER", label: "פרילנסר" },
 ] as const;
 
 export default function DevUserSwitcher() {
@@ -66,7 +66,7 @@ export default function DevUserSwitcher() {
     setAddLoading(true);
     setAddError(null);
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/dev/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -74,8 +74,6 @@ export default function DevUserSwitcher() {
           email: addForm.email,
           password: addForm.password,
           role: addForm.role,
-          phonePrefix: "050",
-          phoneDigits: "0000000",
         }),
       });
       const data = await res.json().catch(() => null);
@@ -120,7 +118,7 @@ export default function DevUserSwitcher() {
           />
           <div className="dev-switcher-menu absolute left-0 top-full z-20 mt-1 min-w-[260px] rounded-xl border border-[#E0D4C3] bg-[#FDFBF7] py-2 shadow-xl">
             <p className="px-3 py-1 text-xs text-[#6B6560]">
-              התחבר כ (אדמין):
+              התחבר כ (רק משתמשים שיצרת):
             </p>
             {users.map((u) => (
               <button

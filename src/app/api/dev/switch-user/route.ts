@@ -41,6 +41,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
+  const allowedForAdmin = await prisma.devManagedUser.findFirst({
+    where: {
+      adminUserId: session.id,
+      managedUserId: userId,
+    },
+    select: { id: true },
+  });
+  const canSwitch = userId === session.id || Boolean(allowedForAdmin);
+  if (!canSwitch) {
+    return NextResponse.json(
+      { error: "ניתן לעבור רק למשתמשים שיצרת" },
+      { status: 403 }
+    );
+  }
+
   const authUser = {
     id: user.id,
     email: user.email,

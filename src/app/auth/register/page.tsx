@@ -172,14 +172,14 @@ function RegisterForm() {
             <p className="block text-xs font-medium text-[#5F5F5F]">
               סוג משתמש
             </p>
-            <div className="mt-2 flex flex-wrap justify-end gap-2">
+            <div className="mt-2 grid grid-cols-3 gap-2">
               {(["SEEKER", "VENUE_OWNER", "FREELANCER"] as const).map(
                 (r) => (
                   <button
                     key={r}
                     type="button"
                     onClick={() => setRole(r)}
-                    className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                    className={`w-full rounded-full border px-3 py-1.5 text-center text-xs transition ${
                       role === r
                         ? "border-[#C9A227] bg-[#FFF9E6] font-semibold text-[#0F3B2E]"
                         : "border-[#E0D4C3] bg-white text-[#5F5F5F] hover:border-[#C9A227]/50"
