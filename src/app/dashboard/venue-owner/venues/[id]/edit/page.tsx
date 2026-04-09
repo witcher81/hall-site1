@@ -148,6 +148,8 @@ export default async function VenueEditPage({
         hasTableSetup: venue.hasTableSetup,
         hasSoundSystem: venue.hasSoundSystem,
         hasBridalRoom: venue.hasBridalRoom,
+        hasVeganFood: venue.hasVeganFood ?? false,
+        foodKashrut: venue.kashrut ?? "",
         coverImageUrl: venue.coverImageUrl ?? null,
         galleryImageUrls: galleryUrls,
         foodGalleryImageCount,

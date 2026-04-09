@@ -76,6 +76,10 @@ export default function NewVenuePage() {
     description: "",
     hasChuppaOutdoor: false,
     hasChuppaCovered: false,
+    hasDanceFloor: false,
+    hasTableSetup: false,
+    hasSoundSystem: false,
+    hasBridalRoom: false,
     hasVeganFood: false,
     foodKashrut: "",
   });
@@ -173,30 +177,36 @@ export default function NewVenuePage() {
         fd.append("latitude", String(pickedLat));
         fd.append("longitude", String(pickedLng));
       }
+      const weddingSelected = eventTypes.includes("חתונה");
+      const anyEventFood =
+        weddingSelected ||
+        eventTypes.some(
+          (et) =>
+            et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
+        );
       const eventTypeProfilesPayload: Record<string, EventTypeProfileState> = {};
       for (const et of eventTypes) {
-        eventTypeProfilesPayload[et] = eventTypeProfiles[et] ?? {
+        const row = eventTypeProfiles[et] ?? {
           minGuests: "",
           maxGuests: "",
-          hasFoodAtEvent: false,
+          hasFoodAtEvent: et === "חתונה",
           minPrice: "",
           maxPrice: "",
         };
+        eventTypeProfilesPayload[et] =
+          et === "חתונה" ? { ...row, hasFoodAtEvent: true } : row;
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
       if (form.description) fd.append("description", form.description);
-      const anyEventFood = eventTypes.some(
-        (et) => eventTypeProfiles[et]?.hasFoodAtEvent === true
-      );
       fd.append(
         "hasChuppa",
         String(form.hasChuppaOutdoor || form.hasChuppaCovered)
       );
       fd.append("hasFood", String(anyEventFood));
-      fd.append("hasDanceFloor", "false");
-      fd.append("hasTableSetup", "false");
-      fd.append("hasSoundSystem", "false");
-      fd.append("hasBridalRoom", "false");
+      fd.append("hasDanceFloor", String(form.hasDanceFloor));
+      fd.append("hasTableSetup", String(form.hasTableSetup));
+      fd.append("hasSoundSystem", String(form.hasSoundSystem));
+      fd.append("hasBridalRoom", String(form.hasBridalRoom));
       fd.append("hasChuppaOutdoor", String(form.hasChuppaOutdoor));
       fd.append("hasChuppaCovered", String(form.hasChuppaCovered));
       fd.append("hasVeganFood", String(form.hasVeganFood));
@@ -205,7 +215,16 @@ export default function NewVenuePage() {
       const customAmenitiesPayload = [
         ...BUILTIN_AMENITY_KEYS.map((key) => ({
           label: `__builtin__:${key}`,
-          checked: true,
+          checked:
+            key === "hasFood"
+              ? anyEventFood
+              : key === "hasDanceFloor"
+                ? form.hasDanceFloor
+                : key === "hasTableSetup"
+                  ? form.hasTableSetup
+                  : key === "hasSoundSystem"
+                    ? form.hasSoundSystem
+                    : form.hasBridalRoom,
           priceMode: "included" as const,
           extraPrice: null as null,
         })),
@@ -267,7 +286,10 @@ export default function NewVenuePage() {
   const isWeddingSelected = eventTypes.includes("חתונה");
   const anyEventOffersFood = useMemo(
     () =>
-      eventTypes.some((et) => eventTypeProfiles[et]?.hasFoodAtEvent === true),
+      eventTypes.includes("חתונה") ||
+      eventTypes.some(
+        (et) => et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
+      ),
     [eventTypes, eventTypeProfiles]
   );
   const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
@@ -310,13 +332,16 @@ export default function NewVenuePage() {
     setEventTypeProfiles((prev) => {
       const next: Record<string, EventTypeProfileState> = {};
       for (const et of eventTypes) {
-        next[et] = prev[et] ?? {
-          minGuests: "",
-          maxGuests: "",
-          hasFoodAtEvent: false,
-          minPrice: "",
-          maxPrice: "",
-        };
+        const base =
+          prev[et] ?? {
+            minGuests: "",
+            maxGuests: "",
+            hasFoodAtEvent: et === "חתונה",
+            minPrice: "",
+            maxPrice: "",
+          };
+        next[et] =
+          et === "חתונה" ? { ...base, hasFoodAtEvent: true } : base;
       }
       return next;
     });
@@ -626,13 +651,16 @@ export default function NewVenuePage() {
               </p>
               <div className="space-y-3">
                 {eventTypes.map((et) => {
+                  const isWeddingEt = et === "חתונה";
                   const profile = eventTypeProfiles[et] ?? {
                     minGuests: "",
                     maxGuests: "",
-                    hasFoodAtEvent: false,
+                    hasFoodAtEvent: isWeddingEt,
                     minPrice: "",
                     maxPrice: "",
                   };
+                  const showMealPrices =
+                    isWeddingEt || profile.hasFoodAtEvent === true;
                   return (
                     <div key={`profile-${et}`} className="rounded-lg border border-[#E0D4C3] bg-white p-3">
                       <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">{et}</p>
@@ -663,27 +691,34 @@ export default function NewVenuePage() {
                           className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
                           placeholder="מקסימום אורחים"
                         />
-                        <label className="flex items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
-                          <input
-                            type="checkbox"
-                            checked={profile.hasFoodAtEvent}
-                            onChange={(e) => {
-                              const on = e.target.checked;
-                              setEventTypeProfiles((prev) => ({
-                                ...prev,
-                                [et]: {
-                                  ...profile,
-                                  hasFoodAtEvent: on,
-                                  minPrice: on ? profile.minPrice : "",
-                                  maxPrice: on ? profile.maxPrice : "",
-                                },
-                              }));
-                            }}
-                            className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
-                          />
-                          יש אוכל באירוע מסוג זה
-                        </label>
-                        {profile.hasFoodAtEvent && (
+                        {!isWeddingEt && (
+                          <label className="flex items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
+                            <input
+                              type="checkbox"
+                              checked={profile.hasFoodAtEvent}
+                              onChange={(e) => {
+                                const on = e.target.checked;
+                                setEventTypeProfiles((prev) => ({
+                                  ...prev,
+                                  [et]: {
+                                    ...profile,
+                                    hasFoodAtEvent: on,
+                                    minPrice: on ? profile.minPrice : "",
+                                    maxPrice: on ? profile.maxPrice : "",
+                                  },
+                                }));
+                              }}
+                              className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                            />
+                            יש אוכל באירוע מסוג זה
+                          </label>
+                        )}
+                        {isWeddingEt && (
+                          <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
+                            בחתונה מניחים שיש אוכל — הזינו טווח מחירים למנה. למטה: חופה, כשרות ופרטים נוספים לחתונה.
+                          </p>
+                        )}
+                        {showMealPrices && (
                           <>
                             <input
                               type="number"
@@ -713,6 +748,178 @@ export default function NewVenuePage() {
                             />
                           </>
                         )}
+                        {isWeddingEt && (
+                          <>
+                            <p className="mb-1 text-xs font-semibold text-[#0F3B2E] sm:col-span-2">
+                              פרטי חתונה
+                            </p>
+                            <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
+                              בטופס פנייה לחתונה יופיעו כאן סוגי החופה והפרטים הנוספים. חובה לסמן לפחות אחד: חופה בחוץ או חופה מקורה.
+                            </p>
+                            {(
+                              [
+                                {
+                                  key: "hasChuppaOutdoor" as const,
+                                  label: "חופה בחוץ",
+                                },
+                                {
+                                  key: "hasChuppaCovered" as const,
+                                  label: "חופה מקורה",
+                                },
+                              ] as const
+                            ).map((opt) => {
+                              const checked = form[opt.key];
+                              return (
+                                <div
+                                  key={opt.key}
+                                  className="flex items-center justify-between rounded-full bg-[#FAF8F4] px-3 py-1 text-xs text-[#0F3B2E]"
+                                >
+                                  <span>{opt.label}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setForm((f) => ({
+                                        ...f,
+                                        [opt.key]: !checked,
+                                      }))
+                                    }
+                                    className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
+                                      checked
+                                        ? "border-[#0F3B2E] bg-[#0F3B2E] text-white"
+                                        : "border-[#D4C9BC] bg-white text-[#2A261F]"
+                                    }`}
+                                  >
+                                    {checked ? "מסומן" : "לא מסומן"}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            <div className="sm:col-span-2">
+                              <label className="block text-xs text-[#2A261F]">כשרות אוכל</label>
+                              <select
+                                value={form.foodKashrut}
+                                onChange={(e) =>
+                                  setForm((f) => ({ ...f, foodKashrut: e.target.value }))
+                                }
+                                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                              >
+                                <option value="">לא נבחר</option>
+                                <option value="ללא">ללא</option>
+                                <option value="רגיל">רגיל</option>
+                                <option value="מהדרין">מהדרין</option>
+                              </select>
+                            </div>
+                            <p className="text-[11px] font-medium text-[#0F3B2E] sm:col-span-2">
+                              פרטים נוספים רק לחתונה (אופציונלי)
+                            </p>
+                            {customWeddingRows.map((row, idx) => (
+                              <div
+                                key={`wedding-${row.label}-${idx}`}
+                                className="flex min-w-0 items-center gap-2 text-xs text-[#0F3B2E] sm:col-span-2"
+                              >
+                                <label className="flex min-w-0 flex-1 items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={row.checked}
+                                    onChange={(e) =>
+                                      setCustomWeddingRows((prev) =>
+                                        prev.map((r, i) =>
+                                          i === idx ? { ...r, checked: e.target.checked } : r
+                                        )
+                                      )
+                                    }
+                                    className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#C9A227] focus:ring-[#C9A227]"
+                                  />
+                                  <span className="truncate">{row.label}</span>
+                                </label>
+                                <select
+                                  value={row.priceMode}
+                                  onChange={(e) =>
+                                    setCustomWeddingRows((prev) =>
+                                      prev.map((r, i) =>
+                                        i === idx
+                                          ? {
+                                              ...r,
+                                              priceMode:
+                                                e.target.value === "extra" ? "extra" : "included",
+                                            }
+                                          : r
+                                      )
+                                    )
+                                  }
+                                  className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                                >
+                                  <option value="included">כלול</option>
+                                  <option value="extra">בתוספת תשלום</option>
+                                </select>
+                                {row.priceMode === "extra" && (
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    value={row.extraPrice}
+                                    onChange={(e) =>
+                                      setCustomWeddingRows((prev) =>
+                                        prev.map((r, i) =>
+                                          i === idx ? { ...r, extraPrice: e.target.value } : r
+                                        )
+                                      )
+                                    }
+                                    className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                                    placeholder="₪"
+                                  />
+                                )}
+                                <button
+                                  type="button"
+                                  className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+                                  onClick={() =>
+                                    setCustomWeddingRows((prev) =>
+                                      prev.filter((_, i) => i !== idx)
+                                    )
+                                  }
+                                >
+                                  הסר
+                                </button>
+                              </div>
+                            ))}
+                            <div className="flex min-w-0 flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center">
+                              <input
+                                type="text"
+                                value={customWeddingInput}
+                                onChange={(e) => setCustomWeddingInput(e.target.value)}
+                                className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                                placeholder="הוסף פרט חתונה משלך…"
+                                maxLength={80}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const value = customWeddingInput.trim();
+                                  if (!value) return;
+                                  if (customWeddingRows.length >= 20) return;
+                                  if (
+                                    customWeddingRows.some(
+                                      (r) => r.label.toLowerCase() === value.toLowerCase()
+                                    )
+                                  )
+                                    return;
+                                  setCustomWeddingRows((prev) => [
+                                    ...prev,
+                                    {
+                                      label: value,
+                                      checked: true,
+                                      priceMode: "included",
+                                      extraPrice: "",
+                                    },
+                                  ]);
+                                  setCustomWeddingInput("");
+                                }}
+                                className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
+                              >
+                                הוסף
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
@@ -720,6 +927,48 @@ export default function NewVenuePage() {
               </div>
             </div>
           )}
+
+          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+              מה יש באולם? (לסינון בחיפוש — שייך לאולם הזה בלבד)
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {(
+                [
+                  { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
+                  { key: "hasTableSetup" as const, label: "סידור שולחנות" },
+                  { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
+                  { key: "hasBridalRoom" as const, label: "חדר חתן/כלה" },
+                ] as const
+              ).map((item) => (
+                <label
+                  key={item.key}
+                  className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]"
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(form[item.key])}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, [item.key]: e.target.checked }))
+                    }
+                    className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                  />
+                  {item.label}
+                </label>
+              ))}
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={form.hasVeganFood}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, hasVeganFood: e.target.checked }))
+                  }
+                  className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                />
+                אפשרות לאוכל טבעוני
+              </label>
+            </div>
+          </div>
 
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">
@@ -735,173 +984,6 @@ export default function NewVenuePage() {
               placeholder="אולם מודרני, כשרות, חניה..."
             />
           </div>
-
-          {isWeddingSelected && (
-            <div className="rounded-xl border border-[#C9A227]/40 bg-[#0F3B2E]/12 p-3">
-              <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">
-                פרטי חתונה
-              </p>
-              <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C]">
-                בטופס פנייה לחתונה יופיעו כאן סוגי החופה והפרטים הנוספים. חובה לסמן לפחות אחד: חופה בחוץ או חופה
-                מקורה.
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {[
-                  {
-                    key: "hasChuppaOutdoor" as const,
-                    label: "חופה בחוץ",
-                  },
-                  {
-                    key: "hasChuppaCovered" as const,
-                    label: "חופה מקורה",
-                  },
-                ].map((opt) => {
-                  const checked = form[opt.key];
-                  return (
-                    <div
-                      key={opt.key}
-                      className="flex items-center justify-between rounded-full bg-white/80 px-3 py-1 text-xs text-[#0F3B2E]"
-                    >
-                      <span>{opt.label}</span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setForm((f) => ({
-                            ...f,
-                            [opt.key]: !checked,
-                          }))
-                        }
-                        className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
-                          checked
-                            ? "border-[#0F3B2E] bg-[#0F3B2E] text-white"
-                            : "border-[#D4C9BC] bg-[#F8F4EC] text-[#2A261F]"
-                        }`}
-                      >
-                        {checked ? "מסומן" : "לא מסומן"}
-                      </button>
-                    </div>
-                  );
-                })}
-                <div>
-                  <label className="block text-xs text-[#2A261F]">כשרות אוכל</label>
-                  <select
-                    value={form.foodKashrut}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, foodKashrut: e.target.value }))
-                    }
-                    className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-                  >
-                    <option value="">לא נבחר</option>
-                    <option value="ללא">ללא</option>
-                    <option value="רגיל">רגיל</option>
-                    <option value="מהדרין">מהדרין</option>
-                  </select>
-                </div>
-                <p className="text-[11px] font-medium text-[#0F3B2E] sm:col-span-2">
-                  פרטים נוספים רק לחתונה (אופציונלי)
-                </p>
-                {customWeddingRows.map((row, idx) => (
-                  <div
-                    key={`wedding-${row.label}-${idx}`}
-                    className="flex min-w-0 items-center gap-2 text-xs text-[#0F3B2E] sm:col-span-2"
-                  >
-                    <label className="flex min-w-0 flex-1 items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={row.checked}
-                        onChange={(e) =>
-                          setCustomWeddingRows((prev) =>
-                            prev.map((r, i) =>
-                              i === idx ? { ...r, checked: e.target.checked } : r
-                            )
-                          )
-                        }
-                        className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#C9A227] focus:ring-[#C9A227]"
-                      />
-                      <span className="truncate">{row.label}</span>
-                    </label>
-                    <select
-                      value={row.priceMode}
-                      onChange={(e) =>
-                        setCustomWeddingRows((prev) =>
-                          prev.map((r, i) =>
-                            i === idx
-                              ? {
-                                  ...r,
-                                  priceMode:
-                                    e.target.value === "extra" ? "extra" : "included",
-                                }
-                              : r
-                          )
-                        )
-                      }
-                      className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                    >
-                      <option value="included">כלול</option>
-                      <option value="extra">בתוספת תשלום</option>
-                    </select>
-                    {row.priceMode === "extra" && (
-                      <input
-                        type="number"
-                        min={1}
-                        value={row.extraPrice}
-                        onChange={(e) =>
-                          setCustomWeddingRows((prev) =>
-                            prev.map((r, i) =>
-                              i === idx ? { ...r, extraPrice: e.target.value } : r
-                            )
-                          )
-                        }
-                        className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                        placeholder="₪"
-                      />
-                    )}
-                    <button
-                      type="button"
-                      className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
-                      onClick={() =>
-                        setCustomWeddingRows((prev) => prev.filter((_, i) => i !== idx))
-                      }
-                    >
-                      הסר
-                    </button>
-                  </div>
-                ))}
-                <div className="flex min-w-0 flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center">
-                  <input
-                    type="text"
-                    value={customWeddingInput}
-                    onChange={(e) => setCustomWeddingInput(e.target.value)}
-                    className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-                    placeholder="הוסף פרט חתונה משלך…"
-                    maxLength={80}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const value = customWeddingInput.trim();
-                      if (!value) return;
-                      if (customWeddingRows.length >= 20) return;
-                      if (
-                        customWeddingRows.some(
-                          (r) => r.label.toLowerCase() === value.toLowerCase()
-                        )
-                      )
-                        return;
-                      setCustomWeddingRows((prev) => [
-                        ...prev,
-                        { label: value, checked: true, priceMode: "included", extraPrice: "" },
-                      ]);
-                      setCustomWeddingInput("");
-                    }}
-                    className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
-                  >
-                    הוסף
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -965,12 +1047,13 @@ export default function NewVenuePage() {
                   type="file"
                   multiple
                   accept="image/*"
+                  disabled={!form.hasDanceFloor}
                   onChange={(e) => {
                     const files = e.target.files;
                     if (!files) return;
                     setGalleryDanceImages((prev) => [...prev, ...Array.from(files)]);
                   }}
-                  className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+                  className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B] disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               {showFoodPhotoUpload && (

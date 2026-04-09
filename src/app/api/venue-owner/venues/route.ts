@@ -134,7 +134,9 @@ function parseEventTypeProfilesJson(
         profileObj.nonWeddingFoodMode === "optional";
 
       let servesFood: boolean;
-      if (explicitFoodFalse) {
+      if (et === "חתונה") {
+        servesFood = true;
+      } else if (explicitFoodFalse) {
         servesFood = false;
       } else if (explicitFoodTrue) {
         servesFood = true;
