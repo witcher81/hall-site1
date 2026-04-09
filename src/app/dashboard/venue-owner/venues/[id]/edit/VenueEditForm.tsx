@@ -789,6 +789,50 @@ export default function VenueEditForm({
                             />
                           </>
                         )}
+                        <div className="mt-1 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
+                          <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+                            מה יש באולם? (לסינון בחיפוש — שייך לאולם הזה בלבד)
+                          </p>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {(
+                              [
+                                { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
+                                { key: "hasTableSetup" as const, label: "סידור שולחנות" },
+                                { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
+                                { key: "hasBridalRoom" as const, label: "חדר חתן/כלה" },
+                              ] as const
+                            ).map((item) => {
+                              const checked = Boolean(form[item.key]);
+                              return (
+                                <label
+                                  key={item.key}
+                                  className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={(e) =>
+                                      setForm((f) => ({ ...f, [item.key]: e.target.checked }))
+                                    }
+                                    className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                                  />
+                                  {item.label}
+                                </label>
+                              );
+                            })}
+                            <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
+                              <input
+                                type="checkbox"
+                                checked={form.hasVeganFood}
+                                onChange={(e) =>
+                                  setForm((f) => ({ ...f, hasVeganFood: e.target.checked }))
+                                }
+                                className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                              />
+                              אפשרות לאוכל טבעוני
+                            </label>
+                          </div>
+                        </div>
                         {isWeddingEt && (
                           <>
                             <p className="mb-1 text-xs font-semibold text-[#0F3B2E] sm:col-span-2">
@@ -969,52 +1013,12 @@ export default function VenueEditForm({
             </div>
           )}
 
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
-              מה יש באולם? (לסינון בחיפוש — שייך לאולם הזה בלבד)
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {(
-                [
-                  { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
-                  { key: "hasTableSetup" as const, label: "סידור שולחנות" },
-                  { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
-                  { key: "hasBridalRoom" as const, label: "חדר חתן/כלה" },
-                ] as const
-              ).map((item) => {
-                const checked = Boolean(form[item.key]);
-                return (
-                  <label
-                    key={item.key}
-                    className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, [item.key]: e.target.checked }))
-                      }
-                      className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
-                    />
-                    {item.label}
-                  </label>
-                );
-              })}
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
-                <input
-                  type="checkbox"
-                  checked={form.hasVeganFood}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, hasVeganFood: e.target.checked }))
-                  }
-                  className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
-                />
-                אפשרות לאוכל טבעוני
-              </label>
-            </div>
-            {customAmenityRows.length > 0 && (
-              <div className="mt-3 space-y-2 border-t border-[#E0D4C3]/80 pt-3">
-                <p className="text-[11px] font-medium text-[#5F5F5F]">שירותים/ציוד נוספים</p>
+          {customAmenityRows.length > 0 && (
+            <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+                שירותים/ציוד נוספים באולם
+              </p>
+              <div className="space-y-2">
                 {customAmenityRows.map((row, idx) => (
                   <div
                     key={`${row.label}-${idx}`}
@@ -1074,8 +1078,8 @@ export default function VenueEditForm({
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">
