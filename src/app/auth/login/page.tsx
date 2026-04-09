@@ -37,15 +37,6 @@ function LoginForm() {
         return;
       }
 
-      if (data?.needVerification) {
-        const q = afterLogin
-          ? `?redirect=${encodeURIComponent(afterLogin)}`
-          : "";
-        router.push(`/auth/verify${q}`);
-        router.refresh();
-        return;
-      }
-
       const role = data?.user?.role as string | undefined;
       if (afterLogin) {
         router.push(afterLogin);

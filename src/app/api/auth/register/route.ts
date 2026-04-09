@@ -3,9 +3,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { assertPersonalPhoneAvailable } from "@/lib/phoneUnique";
 import {
-  createPendingVerificationToken,
+  createSessionToken,
   hashPassword,
-  setPendingVerificationCookie,
+  setSessionCookie,
+  type AuthUser,
 } from "@/lib/auth";
 import {
   USER_INPUT_MAX,
@@ -93,6 +94,7 @@ export async function POST(req: NextRequest) {
           passwordHash,
           role: selectedRole,
           phone: phoneResult.value,
+          emailVerified: true,
         },
       });
     } catch (e) {
@@ -111,21 +113,17 @@ export async function POST(req: NextRequest) {
       throw e;
     }
 
-    const pending = createPendingVerificationToken(user.id);
-    await setPendingVerificationCookie(pending);
+    const authUser: AuthUser = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      emailVerified: user.emailVerified,
+    };
+    const token = createSessionToken(authUser);
+    await setSessionCookie(token);
 
-    return NextResponse.json(
-      {
-        needVerification: true,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        },
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({ user: authUser }, { status: 201 });
   } catch (error) {
     console.error("Register error:", error);
     return NextResponse.json(

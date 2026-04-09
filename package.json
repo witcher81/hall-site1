@@ -34,7 +34,6 @@
     "prisma": "5.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "resend": "^6.10.0",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
