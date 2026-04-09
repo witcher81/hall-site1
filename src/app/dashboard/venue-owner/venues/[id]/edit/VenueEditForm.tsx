@@ -184,8 +184,6 @@ type Initial = {
   maxGuests: string | number;
   minPrice: string | number;
   maxPrice: string | number;
-  hallRentalMin: string | number;
-  hallRentalMax: string | number;
   description: string;
   hasChuppa: boolean;
   hasChuppaOutdoor: boolean;
@@ -223,8 +221,6 @@ export default function VenueEditForm({
     maxGuests: String(initial.maxGuests),
     minPrice: String(initial.minPrice),
     maxPrice: String(initial.maxPrice),
-    hallRentalMin: String(initial.hallRentalMin),
-    hallRentalMax: String(initial.hallRentalMax),
     description: initial.description,
     hasChuppa: initial.hasChuppa,
     hasChuppaOutdoor: initial.hasChuppaOutdoor,
@@ -450,8 +446,6 @@ export default function VenueEditForm({
         };
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
-      if (form.hallRentalMin) fd.append("hallRentalMin", form.hallRentalMin);
-      if (form.hallRentalMax) fd.append("hallRentalMax", form.hallRentalMax);
       fd.append("description", form.description);
       fd.append("hasChuppa", String(form.hasChuppa));
       fd.append("hasChuppaOutdoor", String(form.hasChuppaOutdoor));
@@ -1223,39 +1217,6 @@ export default function VenueEditForm({
               </div>
             </div>
           )}
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
-                מינימום השכרת אולם (₪, לאירוע)
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.hallRentalMin}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hallRentalMin: e.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="8000"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
-                מקסימום השכרת אולם (₪, לאירוע)
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.hallRentalMax}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hallRentalMax: e.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="20000"
-              />
-            </div>
-          </div>
 
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">

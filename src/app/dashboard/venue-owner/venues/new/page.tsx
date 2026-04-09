@@ -85,8 +85,6 @@ export default function NewVenuePage() {
     maxGuests: "",
     minPrice: "",
     maxPrice: "",
-    hallRentalMin: "",
-    hallRentalMax: "",
     description: "",
     hasChuppa: false,
     hasFood: false,
@@ -249,8 +247,6 @@ export default function NewVenuePage() {
         };
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
-      if (form.hallRentalMin) fd.append("hallRentalMin", form.hallRentalMin);
-      if (form.hallRentalMax) fd.append("hallRentalMax", form.hallRentalMax);
       if (form.description) fd.append("description", form.description);
       fd.append("hasChuppa", String(form.hasChuppa));
       fd.append("hasFood", String(form.hasFood));
@@ -947,39 +943,6 @@ export default function NewVenuePage() {
               </div>
             </div>
           )}
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
-                מינימום השכרת אולם (₪, לאירוע)
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.hallRentalMin}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hallRentalMin: e.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="8000"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
-                מקסימום השכרת אולם (₪, לאירוע)
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.hallRentalMax}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hallRentalMax: e.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="20000"
-              />
-            </div>
-          </div>
 
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">

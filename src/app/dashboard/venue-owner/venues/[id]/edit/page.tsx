@@ -138,8 +138,6 @@ export default async function VenueEditPage({
         maxGuests: venue.maxGuests ?? "",
         minPrice: venue.minPrice ?? "",
         maxPrice: venue.maxPrice ?? "",
-        hallRentalMin: venue.hallRentalMin ?? "",
-        hallRentalMax: venue.hallRentalMax ?? "",
         description: venue.description ?? "",
         eventTypes: venue.eventTypes ? (JSON.parse(venue.eventTypes) as string[]) : [],
         hasChuppa: venue.hasChuppa,

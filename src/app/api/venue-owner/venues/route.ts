@@ -257,8 +257,6 @@ export async function POST(req: NextRequest) {
   const maxGuests = formData.get("maxGuests") as string | null;
   const minPrice = formData.get("minPrice") as string | null;
   const maxPrice = formData.get("maxPrice") as string | null;
-  const hallRentalMin = formData.get("hallRentalMin") as string | null;
-  const hallRentalMax = formData.get("hallRentalMax") as string | null;
   let description = (formData.get("description") as string | null)?.trim();
   let autoReplyMessage =
     (formData.get("autoReplyMessage") as string | null)?.trim() || null;
@@ -345,11 +343,6 @@ export async function POST(req: NextRequest) {
   if (gErr) return badRequest(gErr);
   const pErr = validatePriceMinMax(minPriceResolved, maxPriceResolved);
   if (pErr) return badRequest(pErr);
-  const hErr = validatePriceMinMax(
-    toIntOrNull(hallRentalMin),
-    toIntOrNull(hallRentalMax)
-  );
-  if (hErr) return badRequest(hErr);
 
   const pickedLatitude = toFloatOrNull(formData.get("latitude"));
   const pickedLongitude = toFloatOrNull(formData.get("longitude"));
@@ -504,8 +497,8 @@ export async function POST(req: NextRequest) {
       maxGuests: maxGuestsResolved,
       minPrice: minPriceResolved,
       maxPrice: maxPriceResolved,
-      hallRentalMin: toIntOrNull(hallRentalMin),
-      hallRentalMax: toIntOrNull(hallRentalMax),
+      hallRentalMin: null,
+      hallRentalMax: null,
       description: descCheck.value,
       eventTypes: eventTypes.length > 0 ? JSON.stringify(eventTypes) : null,
       eventTypeProfilesJson,
@@ -694,8 +687,6 @@ export async function PUT(req: NextRequest) {
   const maxGuests = formData.get("maxGuests") as string | null;
   const minPrice = formData.get("minPrice") as string | null;
   const maxPrice = formData.get("maxPrice") as string | null;
-  const hallRentalMin = formData.get("hallRentalMin") as string | null;
-  const hallRentalMax = formData.get("hallRentalMax") as string | null;
   const description = (formData.get("description") as string | null)?.trim();
   const autoReplyMessage =
     (formData.get("autoReplyMessage") as string | null)?.trim() || null;
@@ -780,11 +771,6 @@ export async function PUT(req: NextRequest) {
   if (gErrPut) return badRequest(gErrPut);
   const pErrPut = validatePriceMinMax(minPriceResolved, maxPriceResolved);
   if (pErrPut) return badRequest(pErrPut);
-  const hErrPut = validatePriceMinMax(
-    toIntOrNull(hallRentalMin),
-    toIntOrNull(hallRentalMax)
-  );
-  if (hErrPut) return badRequest(hErrPut);
 
   const pickedLatitude = toFloatOrNull(formData.get("latitude"));
   const pickedLongitude = toFloatOrNull(formData.get("longitude"));
@@ -944,8 +930,8 @@ export async function PUT(req: NextRequest) {
       maxGuests: maxGuestsResolved,
       minPrice: minPriceResolved,
       maxPrice: maxPriceResolved,
-      hallRentalMin: toIntOrNull(hallRentalMin),
-      hallRentalMax: toIntOrNull(hallRentalMax),
+      hallRentalMin: existing.hallRentalMin,
+      hallRentalMax: existing.hallRentalMax,
       description: descriptionOut,
       eventTypes: eventTypes.length > 0 ? JSON.stringify(eventTypes) : null,
       eventTypeProfilesJson,
