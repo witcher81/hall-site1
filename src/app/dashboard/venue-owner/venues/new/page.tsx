@@ -32,6 +32,11 @@ type EventTypeProfileState = {
   hasFoodAtEvent: boolean;
   minPrice: string;
   maxPrice: string;
+  hasDanceFloor: boolean;
+  hasTableSetup: boolean;
+  hasSoundSystem: boolean;
+  hasBridalRoom: boolean;
+  hasVeganFood: boolean;
 };
 type BuiltinAmenityKey =
   | "hasFood"
@@ -184,6 +189,21 @@ export default function NewVenuePage() {
           (et) =>
             et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
         );
+      const anyEventDanceFloor = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasDanceFloor === true
+      );
+      const anyEventTableSetup = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasTableSetup === true
+      );
+      const anyEventSoundSystem = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasSoundSystem === true
+      );
+      const anyEventBridalRoom = eventTypes.some(
+        (et) => et === "חתונה" && eventTypeProfiles[et]?.hasBridalRoom === true
+      );
+      const anyEventVeganFood = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasVeganFood === true
+      );
       const eventTypeProfilesPayload: Record<string, EventTypeProfileState> = {};
       for (const et of eventTypes) {
         const row = eventTypeProfiles[et] ?? {
@@ -192,9 +212,16 @@ export default function NewVenuePage() {
           hasFoodAtEvent: et === "חתונה",
           minPrice: "",
           maxPrice: "",
+          hasDanceFloor: false,
+          hasTableSetup: false,
+          hasSoundSystem: false,
+          hasBridalRoom: false,
+          hasVeganFood: false,
         };
         eventTypeProfilesPayload[et] =
-          et === "חתונה" ? { ...row, hasFoodAtEvent: true } : row;
+          et === "חתונה"
+            ? { ...row, hasFoodAtEvent: true }
+            : { ...row, hasBridalRoom: false };
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
       if (form.description) fd.append("description", form.description);
@@ -203,13 +230,13 @@ export default function NewVenuePage() {
         String(form.hasChuppaOutdoor || form.hasChuppaCovered)
       );
       fd.append("hasFood", String(anyEventFood));
-      fd.append("hasDanceFloor", String(form.hasDanceFloor));
-      fd.append("hasTableSetup", String(form.hasTableSetup));
-      fd.append("hasSoundSystem", String(form.hasSoundSystem));
-      fd.append("hasBridalRoom", String(form.hasBridalRoom));
+      fd.append("hasDanceFloor", String(anyEventDanceFloor));
+      fd.append("hasTableSetup", String(anyEventTableSetup));
+      fd.append("hasSoundSystem", String(anyEventSoundSystem));
+      fd.append("hasBridalRoom", String(anyEventBridalRoom));
       fd.append("hasChuppaOutdoor", String(form.hasChuppaOutdoor));
       fd.append("hasChuppaCovered", String(form.hasChuppaCovered));
-      fd.append("hasVeganFood", String(form.hasVeganFood));
+      fd.append("hasVeganFood", String(anyEventVeganFood));
       fd.append("foodKashrut", form.foodKashrut || "");
       fd.append("eventTypes", JSON.stringify(eventTypes));
       const customAmenitiesPayload = [
@@ -219,12 +246,12 @@ export default function NewVenuePage() {
             key === "hasFood"
               ? anyEventFood
               : key === "hasDanceFloor"
-                ? form.hasDanceFloor
+                ? anyEventDanceFloor
                 : key === "hasTableSetup"
-                  ? form.hasTableSetup
+                  ? anyEventTableSetup
                   : key === "hasSoundSystem"
-                    ? form.hasSoundSystem
-                    : form.hasBridalRoom,
+                    ? anyEventSoundSystem
+                    : anyEventBridalRoom,
           priceMode: "included" as const,
           extraPrice: null as null,
         })),
@@ -292,6 +319,10 @@ export default function NewVenuePage() {
       ),
     [eventTypes, eventTypeProfiles]
   );
+  const anyEventHasDanceFloor = useMemo(
+    () => eventTypes.some((et) => eventTypeProfiles[et]?.hasDanceFloor === true),
+    [eventTypes, eventTypeProfiles]
+  );
   const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
 
   function removeCoverImage() {
@@ -339,9 +370,16 @@ export default function NewVenuePage() {
             hasFoodAtEvent: et === "חתונה",
             minPrice: "",
             maxPrice: "",
+            hasDanceFloor: false,
+            hasTableSetup: false,
+            hasSoundSystem: false,
+            hasBridalRoom: false,
+            hasVeganFood: false,
           };
         next[et] =
-          et === "חתונה" ? { ...base, hasFoodAtEvent: true } : base;
+          et === "חתונה"
+            ? { ...base, hasFoodAtEvent: true }
+            : { ...base, hasBridalRoom: false };
       }
       return next;
     });
@@ -658,6 +696,11 @@ export default function NewVenuePage() {
                     hasFoodAtEvent: isWeddingEt,
                     minPrice: "",
                     maxPrice: "",
+                    hasDanceFloor: false,
+                    hasTableSetup: false,
+                    hasSoundSystem: false,
+                    hasBridalRoom: false,
+                    hasVeganFood: false,
                   };
                   const showMealPrices =
                     isWeddingEt || profile.hasFoodAtEvent === true;
@@ -766,9 +809,12 @@ export default function NewVenuePage() {
                               >
                                 <input
                                   type="checkbox"
-                                  checked={Boolean(form[item.key])}
+                                  checked={Boolean(profile[item.key])}
                                   onChange={(e) =>
-                                    setForm((f) => ({ ...f, [item.key]: e.target.checked }))
+                                    setEventTypeProfiles((prev) => ({
+                                      ...prev,
+                                      [et]: { ...profile, [item.key]: e.target.checked },
+                                    }))
                                   }
                                   className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
                                 />
@@ -779,9 +825,12 @@ export default function NewVenuePage() {
                               <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
                                 <input
                                   type="checkbox"
-                                  checked={form.hasBridalRoom}
+                                  checked={profile.hasBridalRoom}
                                   onChange={(e) =>
-                                    setForm((f) => ({ ...f, hasBridalRoom: e.target.checked }))
+                                    setEventTypeProfiles((prev) => ({
+                                      ...prev,
+                                      [et]: { ...profile, hasBridalRoom: e.target.checked },
+                                    }))
                                   }
                                   className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
                                 />
@@ -791,9 +840,12 @@ export default function NewVenuePage() {
                             <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
                               <input
                                 type="checkbox"
-                                checked={form.hasVeganFood}
+                                checked={profile.hasVeganFood}
                                 onChange={(e) =>
-                                  setForm((f) => ({ ...f, hasVeganFood: e.target.checked }))
+                                  setEventTypeProfiles((prev) => ({
+                                    ...prev,
+                                    [et]: { ...profile, hasVeganFood: e.target.checked },
+                                  }))
                                 }
                                 className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
                               />
@@ -1058,7 +1110,7 @@ export default function NewVenuePage() {
                   type="file"
                   multiple
                   accept="image/*"
-                  disabled={!form.hasDanceFloor}
+                  disabled={!anyEventHasDanceFloor}
                   onChange={(e) => {
                     const files = e.target.files;
                     if (!files) return;

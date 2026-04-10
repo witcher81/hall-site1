@@ -30,6 +30,11 @@ type EventTypeProfileState = {
   hasFoodAtEvent: boolean;
   minPrice: string;
   maxPrice: string;
+  hasDanceFloor: boolean;
+  hasTableSetup: boolean;
+  hasSoundSystem: boolean;
+  hasBridalRoom: boolean;
+  hasVeganFood: boolean;
 };
 type BuiltinAmenityKey =
   | "hasFood"
@@ -128,7 +133,14 @@ function splitWeddingAmenities(
 
 function parseEventTypeProfilesForForm(
   raw: string | null | undefined,
-  eventTypes: string[]
+  eventTypes: string[],
+  fallbackAmenities: {
+    hasDanceFloor: boolean;
+    hasTableSetup: boolean;
+    hasSoundSystem: boolean;
+    hasBridalRoom: boolean;
+    hasVeganFood: boolean;
+  }
 ): Record<string, EventTypeProfileState> {
   const out: Record<string, EventTypeProfileState> = {};
   for (const et of eventTypes) {
@@ -138,6 +150,11 @@ function parseEventTypeProfilesForForm(
       hasFoodAtEvent: false,
       minPrice: "",
       maxPrice: "",
+      hasDanceFloor: fallbackAmenities.hasDanceFloor,
+      hasTableSetup: fallbackAmenities.hasTableSetup,
+      hasSoundSystem: fallbackAmenities.hasSoundSystem,
+      hasBridalRoom: false,
+      hasVeganFood: fallbackAmenities.hasVeganFood,
     };
   }
   if (!raw) return out;
@@ -145,6 +162,19 @@ function parseEventTypeProfilesForForm(
     const parsed = JSON.parse(raw) as unknown;
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
     const obj = parsed as Record<string, unknown>;
+    const boolOrFallback = (
+      profile: Record<string, unknown>,
+      key:
+        | "hasDanceFloor"
+        | "hasTableSetup"
+        | "hasSoundSystem"
+        | "hasBridalRoom"
+        | "hasVeganFood",
+      fallback: boolean
+    ) =>
+      key in profile
+        ? profile[key] === true || profile[key] === "true"
+        : fallback;
     for (const et of eventTypes) {
       const row = obj[et];
       if (typeof row !== "object" || row === null || Array.isArray(row)) continue;
@@ -164,6 +194,31 @@ function parseEventTypeProfilesForForm(
           hasFoodAtEvent: true,
           minPrice: minP,
           maxPrice: maxP,
+          hasDanceFloor: boolOrFallback(
+            profile,
+            "hasDanceFloor",
+            fallbackAmenities.hasDanceFloor
+          ),
+          hasTableSetup: boolOrFallback(
+            profile,
+            "hasTableSetup",
+            fallbackAmenities.hasTableSetup
+          ),
+          hasSoundSystem: boolOrFallback(
+            profile,
+            "hasSoundSystem",
+            fallbackAmenities.hasSoundSystem
+          ),
+          hasBridalRoom: boolOrFallback(
+            profile,
+            "hasBridalRoom",
+            fallbackAmenities.hasBridalRoom
+          ),
+          hasVeganFood: boolOrFallback(
+            profile,
+            "hasVeganFood",
+            fallbackAmenities.hasVeganFood
+          ),
         };
         continue;
       }
@@ -183,6 +238,27 @@ function parseEventTypeProfilesForForm(
         hasFoodAtEvent,
         minPrice: hasFoodAtEvent ? minP : "",
         maxPrice: hasFoodAtEvent ? maxP : "",
+        hasDanceFloor: boolOrFallback(
+          profile,
+          "hasDanceFloor",
+          fallbackAmenities.hasDanceFloor
+        ),
+        hasTableSetup: boolOrFallback(
+          profile,
+          "hasTableSetup",
+          fallbackAmenities.hasTableSetup
+        ),
+        hasSoundSystem: boolOrFallback(
+          profile,
+          "hasSoundSystem",
+          fallbackAmenities.hasSoundSystem
+        ),
+        hasBridalRoom: false,
+        hasVeganFood: boolOrFallback(
+          profile,
+          "hasVeganFood",
+          fallbackAmenities.hasVeganFood
+        ),
       };
     }
   } catch {
@@ -260,7 +336,15 @@ export default function VenueEditForm({
   const [eventTypeInput, setEventTypeInput] = useState("");
   const [eventTypeProfiles, setEventTypeProfiles] = useState<
     Record<string, EventTypeProfileState>
-  >(() => parseEventTypeProfilesForForm(initial.eventTypeProfilesJson, initial.eventTypes));
+  >(() =>
+    parseEventTypeProfilesForForm(initial.eventTypeProfilesJson, initial.eventTypes, {
+      hasDanceFloor: initial.hasDanceFloor,
+      hasTableSetup: initial.hasTableSetup,
+      hasSoundSystem: initial.hasSoundSystem,
+      hasBridalRoom: initial.hasBridalRoom,
+      hasVeganFood: initial.hasVeganFood,
+    })
+  );
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryHallImages, setGalleryHallImages] = useState<File[]>([]);
   const [galleryChuppaImages, setGalleryChuppaImages] = useState<File[]>([]);
@@ -314,7 +398,17 @@ export default function VenueEditForm({
           hasFoodAtEvent: et === "חתונה",
           minPrice: "",
           maxPrice: "",
+          hasDanceFloor: false,
+          hasTableSetup: false,
+          hasSoundSystem: false,
+          hasBridalRoom: false,
+          hasVeganFood: false,
         };
+        if (et === "חתונה") {
+          next[et] = { ...next[et], hasFoodAtEvent: true };
+        } else {
+          next[et] = { ...next[et], hasBridalRoom: false };
+        }
       }
       return next;
     });
@@ -441,27 +535,49 @@ export default function VenueEditForm({
           hasFoodAtEvent: et === "חתונה",
           minPrice: "",
           maxPrice: "",
+          hasDanceFloor: false,
+          hasTableSetup: false,
+          hasSoundSystem: false,
+          hasBridalRoom: false,
+          hasVeganFood: false,
         };
         eventTypeProfilesPayload[et] =
-          et === "חתונה" ? { ...row, hasFoodAtEvent: true } : row;
+          et === "חתונה"
+            ? { ...row, hasFoodAtEvent: true }
+            : { ...row, hasBridalRoom: false };
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
       fd.append("description", form.description);
       fd.append("hasChuppa", String(form.hasChuppa));
       fd.append("hasChuppaOutdoor", String(form.hasChuppaOutdoor));
       fd.append("hasChuppaCovered", String(form.hasChuppaCovered));
-      fd.append("hasVeganFood", String(form.hasVeganFood));
+      const anyEventVeganFood = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasVeganFood === true
+      );
+      fd.append("hasVeganFood", String(anyEventVeganFood));
       fd.append("foodKashrut", form.foodKashrut || "");
       const anyEventFood =
         eventTypes.includes("חתונה") ||
         eventTypes.some(
           (et) => et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
         );
+      const anyEventDanceFloor = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasDanceFloor === true
+      );
+      const anyEventTableSetup = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasTableSetup === true
+      );
+      const anyEventSoundSystem = eventTypes.some(
+        (et) => eventTypeProfiles[et]?.hasSoundSystem === true
+      );
+      const anyEventBridalRoom = eventTypes.some(
+        (et) => et === "חתונה" && eventTypeProfiles[et]?.hasBridalRoom === true
+      );
       fd.append("hasFood", String(anyEventFood));
-      fd.append("hasDanceFloor", String(form.hasDanceFloor));
-      fd.append("hasTableSetup", String(form.hasTableSetup));
-      fd.append("hasSoundSystem", String(form.hasSoundSystem));
-      fd.append("hasBridalRoom", String(form.hasBridalRoom));
+      fd.append("hasDanceFloor", String(anyEventDanceFloor));
+      fd.append("hasTableSetup", String(anyEventTableSetup));
+      fd.append("hasSoundSystem", String(anyEventSoundSystem));
+      fd.append("hasBridalRoom", String(anyEventBridalRoom));
       if (eventTypes.length > 0) {
         fd.append("eventTypes", JSON.stringify(eventTypes));
       }
@@ -471,7 +587,13 @@ export default function VenueEditForm({
           checked:
             key === "hasFood"
               ? anyEventFood
-              : Boolean(form[key as keyof typeof form]),
+              : key === "hasDanceFloor"
+                ? anyEventDanceFloor
+                : key === "hasTableSetup"
+                  ? anyEventTableSetup
+                  : key === "hasSoundSystem"
+                    ? anyEventSoundSystem
+                    : anyEventBridalRoom,
           priceMode: builtinAmenityPriceModes[key],
           extraPrice:
             builtinAmenityPriceModes[key] === "extra"
@@ -699,6 +821,11 @@ export default function VenueEditForm({
                     hasFoodAtEvent: isWeddingEt,
                     minPrice: "",
                     maxPrice: "",
+                    hasDanceFloor: false,
+                    hasTableSetup: false,
+                    hasSoundSystem: false,
+                    hasBridalRoom: false,
+                    hasVeganFood: false,
                   };
                   const showMealPrices =
                     isWeddingEt || profile.hasFoodAtEvent === true;
@@ -801,7 +928,6 @@ export default function VenueEditForm({
                                 { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
                               ] as const
                             ).map((item) => {
-                              const checked = Boolean(form[item.key]);
                               return (
                                 <label
                                   key={item.key}
@@ -809,9 +935,12 @@ export default function VenueEditForm({
                                 >
                                   <input
                                     type="checkbox"
-                                    checked={checked}
+                                    checked={Boolean(profile[item.key])}
                                     onChange={(e) =>
-                                      setForm((f) => ({ ...f, [item.key]: e.target.checked }))
+                                      setEventTypeProfiles((prev) => ({
+                                        ...prev,
+                                        [et]: { ...profile, [item.key]: e.target.checked },
+                                      }))
                                     }
                                     className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
                                   />
@@ -823,9 +952,12 @@ export default function VenueEditForm({
                               <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
                                 <input
                                   type="checkbox"
-                                  checked={form.hasBridalRoom}
+                                  checked={profile.hasBridalRoom}
                                   onChange={(e) =>
-                                    setForm((f) => ({ ...f, hasBridalRoom: e.target.checked }))
+                                    setEventTypeProfiles((prev) => ({
+                                      ...prev,
+                                      [et]: { ...profile, hasBridalRoom: e.target.checked },
+                                    }))
                                   }
                                   className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
                                 />
@@ -835,9 +967,12 @@ export default function VenueEditForm({
                             <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
                               <input
                                 type="checkbox"
-                                checked={form.hasVeganFood}
+                                checked={profile.hasVeganFood}
                                 onChange={(e) =>
-                                  setForm((f) => ({ ...f, hasVeganFood: e.target.checked }))
+                                  setEventTypeProfiles((prev) => ({
+                                    ...prev,
+                                    [et]: { ...profile, hasVeganFood: e.target.checked },
+                                  }))
                                 }
                                 className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
                               />

@@ -63,7 +63,16 @@ type EventTypeProfile = {
   maxPrice: number | null;
   nonWeddingFoodMode: "" | "optional" | "required";
   hasFoodAtEvent?: boolean;
+  hasDanceFloor?: boolean;
+  hasTableSetup?: boolean;
+  hasSoundSystem?: boolean;
+  hasBridalRoom?: boolean;
+  hasVeganFood?: boolean;
 };
+
+function boolFromUnknown(value: unknown): boolean {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
 
 function parseEventTypeProfilesJson(
   raw: FormDataEntryValue | null,
@@ -170,6 +179,12 @@ function parseEventTypeProfilesJson(
         maxPrice,
         nonWeddingFoodMode,
         hasFoodAtEvent: servesFood,
+        hasDanceFloor: boolFromUnknown(profileObj.hasDanceFloor),
+        hasTableSetup: boolFromUnknown(profileObj.hasTableSetup),
+        hasSoundSystem: boolFromUnknown(profileObj.hasSoundSystem),
+        hasBridalRoom:
+          et === "חתונה" ? boolFromUnknown(profileObj.hasBridalRoom) : false,
+        hasVeganFood: boolFromUnknown(profileObj.hasVeganFood),
       };
       if (minGuests != null) minGuestsAll.push(minGuests);
       if (maxGuests != null) maxGuestsAll.push(maxGuests);
