@@ -150,3 +150,44 @@ header.site-header .dev-switcher-menu span,
 header.site-header .dev-switcher-menu p {
   color: #1a1a1a !important;
 }
+
+/* צ'קבוקס מותג — דשבורד אולמות (וי לבן על ירוק, מסגרת זהב ב-hover) */
+input.checkbox-hall {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  flex-shrink: 0;
+  border-radius: 0.3125rem;
+  border: 1.5px solid #d4c9bc;
+  background-color: #fff;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input.checkbox-hall:hover {
+  border-color: #c9a227;
+}
+
+input.checkbox-hall:checked {
+  background-color: #0f3b2e;
+  border-color: #0f3b2e;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3.5 7L6 9.5L11 4' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 0.7rem;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+input.checkbox-hall:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fdfbf7, 0 0 0 4px rgba(201, 162, 39, 0.5);
+}
+
+input.checkbox-hall:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

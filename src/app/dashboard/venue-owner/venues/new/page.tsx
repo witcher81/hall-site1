@@ -751,7 +751,7 @@ export default function NewVenuePage() {
                                   },
                                 }));
                               }}
-                              className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                              className="checkbox-hall shrink-0"
                             />
                             יש אוכל באירוע מסוג זה
                           </label>
@@ -816,7 +816,7 @@ export default function NewVenuePage() {
                                       [et]: { ...profile, [item.key]: e.target.checked },
                                     }))
                                   }
-                                  className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                                  className="checkbox-hall shrink-0"
                                 />
                                 {item.label}
                               </label>
@@ -832,7 +832,7 @@ export default function NewVenuePage() {
                                       [et]: { ...profile, hasBridalRoom: e.target.checked },
                                     }))
                                   }
-                                  className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                                  className="checkbox-hall shrink-0"
                                 />
                                 חדר חתן/כלה
                               </label>
@@ -847,7 +847,7 @@ export default function NewVenuePage() {
                                     [et]: { ...profile, hasVeganFood: e.target.checked },
                                   }))
                                 }
-                                className="h-4 w-4 rounded border-[#D4C9BC] bg-white text-[#0F3B2E] focus:ring-[#C9A227]"
+                                className="checkbox-hall shrink-0"
                               />
                               אפשרות לאוכל טבעוני
                             </label>
@@ -933,7 +933,7 @@ export default function NewVenuePage() {
                                         )
                                       )
                                     }
-                                    className="h-4 w-4 shrink-0 rounded border-[#D4C9BC] bg-white text-[#C9A227] focus:ring-[#C9A227]"
+                                    className="checkbox-hall shrink-0"
                                   />
                                   <span className="truncate">{row.label}</span>
                                 </label>
