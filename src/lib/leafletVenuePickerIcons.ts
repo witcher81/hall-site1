@@ -1,7 +1,8 @@
 import L from "leaflet";
 
+/** בלי margin שלילי — אחרת קצה הסיכה לא יושב על ה־lat/lng (Leaflet מיישר לפי iconAnchor על תיבת iconSize). */
 const WRAP =
-  "width:32px;height:42px;margin-left:-16px;margin-top:-42px;filter:drop-shadow(0 2px 5px rgba(0,0,0,.45))";
+  "width:32px;height:42px;filter:drop-shadow(0 2px 5px rgba(0,0,0,.45))";
 
 /** סיכת אולם במפה — כחול + האות «א» */
 export const venueHallPickerMarkerIcon = L.divIcon({
