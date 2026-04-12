@@ -3,7 +3,6 @@ export const PARKING_KINDS = [
   "none",
   "adjacent",
   "nearby",
-  "public_street",
   "paid_lot",
 ] as const;
 
@@ -15,8 +14,18 @@ export function isValidParkingKind(s: string): s is ParkingKind {
   return KIND_SET.has(s);
 }
 
+/** ערך מהמסד או מטופס ישן — public_street אוחד ל־nearby */
+export function coerceParkingKindFromStorage(
+  s: string | null | undefined
+): ParkingKind | null {
+  const t = typeof s === "string" ? s.trim() : "";
+  if (t === "public_street") return "nearby";
+  if (isValidParkingKind(t)) return t;
+  return null;
+}
+
 export function parkingKindNeedsMap(kind: ParkingKind | ""): boolean {
-  return kind === "nearby" || kind === "public_street" || kind === "paid_lot";
+  return kind === "nearby" || kind === "paid_lot";
 }
 
 export function parkingKindHasAnyParking(kind: ParkingKind | ""): boolean {
@@ -27,7 +36,6 @@ export const PARKING_KIND_LABELS: Record<ParkingKind, string> = {
   none: "אין / לא רלוונטי",
   adjacent: "חניה צמודה לאולם (ללא סימון במפה)",
   nearby: "חניה בקרבת מקום — יש לסמן במפה את מיקום החניה",
-  public_street: "חניה ברחוב / חניון ציבורי בקרבת מקום — לסמן במפה",
   paid_lot: "חניון בתשלום בקרבת מקום — לסמן במפה",
 };
 
@@ -53,7 +61,8 @@ export function inferParkingKindFromDb(venue: {
   parkingLongitude: number | null;
 }): ParkingKind {
   const raw = venue.parkingKind?.trim();
-  if (raw && isValidParkingKind(raw)) return raw;
+  const coerced = raw ? coerceParkingKindFromStorage(raw) : null;
+  if (coerced) return coerced;
   if (!venue.hasParkingNearby) return "none";
   if (hasValidIsraelParkingCoords(venue.parkingLatitude, venue.parkingLongitude)) {
     return "nearby";

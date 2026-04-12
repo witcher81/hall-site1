@@ -20,7 +20,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import {
-  isValidParkingKind,
+  coerceParkingKindFromStorage,
   parkingKindHasAnyParking,
   parkingKindNeedsMap,
   type ParkingKind,
@@ -145,11 +145,8 @@ function parseParkingFromForm(formData: FormData): {
   error: string | null;
 } {
   const kindRaw = formData.get("parkingKind");
-  let kind: ParkingKind | null = null;
-  if (typeof kindRaw === "string") {
-    const t = kindRaw.trim();
-    if (isValidParkingKind(t)) kind = t;
-  }
+  let kind: ParkingKind | null =
+    typeof kindRaw === "string" ? coerceParkingKindFromStorage(kindRaw) : null;
   if (!kind) {
     const legacy = formData.get("parkingNearby");
     if (legacy === "no") kind = "none";

@@ -793,9 +793,9 @@ export default function VenueEditForm({
               מיקום האולם על המפה (אולם + חניה)
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C]">
-              <span className="font-semibold text-[#0F3B2E]">סיכה כחולה</span> — האולם.{" "}
-              <span className="font-semibold text-[#c2410c]">סיכה כתומה</span> — חניה (כשבוחרים
-              אפשרות שדורשת סימון במפה).
+              <span className="font-semibold text-[#1d4ed8]">סיכה כחולה עם «א»</span> — מיקום האולם.{" "}
+              <span className="font-semibold text-[#c2410c]">סיכה כתומה עם «ח»</span> — חניה (כשבוחרים
+              סוג שדורש סימון במפה).
             </p>
             <div className="mb-3 rounded-lg border border-[#E8D5C4] bg-white/80 px-3 py-2">
               <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">

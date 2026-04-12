@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { defaultVenueMarkerIcon } from "@/lib/leafletVenueIcon";
-import { parkingMarkerIcon } from "@/lib/leafletParkingIcon";
+import {
+  venueHallPickerMarkerIcon,
+  venueParkingPickerMarkerIcon,
+} from "@/lib/leafletVenuePickerIcons";
 import { createRoadTileLayer } from "@/lib/leafletRoadLayer";
 import {
-  googleMapsOpenPinUrl,
+  googleMapsExplorerUrl,
   googleStreetViewOpenUrl,
 } from "@/lib/googleStreetViewUrl";
 import { tryExactCityCoords } from "@/lib/israel-city-coords";
@@ -82,6 +84,24 @@ function OrangePinGlyph({ className }: { className?: string }) {
 
 function isValidIsraelLatLng(lat: number, lng: number) {
   return lat >= 29 && lat <= 34 && lng >= 33 && lng <= 36;
+}
+
+const HALL_MARKER_TOOLTIP = "מיקום האולם — סיכה כחולה עם האות «א»";
+const PARKING_MARKER_TOOLTIP = "מיקום חניה — סיכה כתומה עם האות «ח»";
+
+function addHallMarkerToMap(map: L.Map, lat: number, lng: number) {
+  return L.marker([lat, lng], { icon: venueHallPickerMarkerIcon })
+    .bindTooltip(HALL_MARKER_TOOLTIP, { direction: "top", offset: [0, -44] })
+    .addTo(map);
+}
+
+function addParkingMarkerToMap(map: L.Map, lat: number, lng: number) {
+  return L.marker([lat, lng], {
+    icon: venueParkingPickerMarkerIcon,
+    draggable: true,
+  })
+    .bindTooltip(PARKING_MARKER_TOOLTIP, { direction: "top", offset: [0, -44] })
+    .addTo(map);
 }
 
 export default function VenueLocationPicker({
@@ -230,15 +250,14 @@ export default function VenueLocationPicker({
       const parkCfg = parkingOnSameMapRef.current;
       if (placingParkingRef.current && parkCfg?.active) {
         if (!markerRef.current) {
-          setHint("קבעו קודם את מיקום האולם (סיכה כחולה) לפני סימון החניה.");
+          setHint(
+            "קבעו קודם את מיקום האולם (סיכה כחולה עם «א») לפני סימון החניה."
+          );
           return;
         }
         const { lat, lng } = e.latlng;
         if (!parkingMarkerRef.current) {
-          parkingMarkerRef.current = L.marker([lat, lng], {
-            icon: parkingMarkerIcon,
-            draggable: true,
-          }).addTo(map);
+          parkingMarkerRef.current = addParkingMarkerToMap(map, lat, lng);
           attachParkingDragEnd(parkingMarkerRef.current);
         } else {
           parkingMarkerRef.current.setLatLng([lat, lng]);
@@ -252,7 +271,7 @@ export default function VenueLocationPicker({
       clearParkingBecauseVenueMoved();
 
       if (!markerRef.current) {
-        markerRef.current = L.marker([lat, lng], { icon: defaultVenueMarkerIcon }).addTo(map);
+        markerRef.current = addHallMarkerToMap(map, lat, lng);
       } else {
         markerRef.current.setLatLng([lat, lng]);
       }
@@ -321,7 +340,7 @@ export default function VenueLocationPicker({
         removeParkingMarkerLayer();
         parkingOnSameMapRef.current?.onClear();
         if (!markerRef.current) {
-          markerRef.current = L.marker([lat, lng], { icon: defaultVenueMarkerIcon }).addTo(map);
+          markerRef.current = addHallMarkerToMap(map, lat, lng);
         } else {
           markerRef.current.setLatLng([lat, lng]);
         }
@@ -461,7 +480,7 @@ export default function VenueLocationPicker({
       const map = mapRef.current;
       if (!map || markerRef.current) return;
       const { lat, lng } = iv;
-      markerRef.current = L.marker([lat, lng], { icon: defaultVenueMarkerIcon }).addTo(map);
+      markerRef.current = addHallMarkerToMap(map, lat, lng);
       setPicked({ lat, lng });
       map.flyTo([lat, lng], 16);
       syncMapAfterFly(map);
@@ -494,10 +513,7 @@ export default function VenueLocationPicker({
       isValidIsraelLatLng(lat, lng)
     ) {
       if (!parkingMarkerRef.current) {
-        parkingMarkerRef.current = L.marker([lat, lng], {
-          icon: parkingMarkerIcon,
-          draggable: true,
-        }).addTo(map);
+        parkingMarkerRef.current = addParkingMarkerToMap(map, lat, lng);
       } else {
         parkingMarkerRef.current.setLatLng([lat, lng]);
       }
@@ -541,8 +557,9 @@ export default function VenueLocationPicker({
       {parkingOnSameMap != null && (
         <div className="space-y-2 rounded-xl border border-[#E8D5C4] bg-[#FFFBF7] px-3 py-2">
           <p className="text-[11px] leading-relaxed text-[#5C564C]">
-            <span className="font-semibold text-[#0F3B2E]">כחול</span> — האולם.{" "}
-            <span className="font-semibold text-[#c2410c]">כתום</span> — חניה (רק כשיש חניה).
+            <span className="font-semibold text-[#1d4ed8]">כחול + «א»</span> — מיקום האולם.{" "}
+            <span className="font-semibold text-[#c2410c]">כתום + «ח»</span> — חניה (כשבוחרים סוג
+            שדורש סימון במפה).
           </p>
           {!picked ? (
             <p className="text-[11px] text-[#6B6560]">
@@ -563,7 +580,7 @@ export default function VenueLocationPicker({
                 >
                   <OrangePinGlyph className="shrink-0" />
                   {!parkingOnSameMap.active
-                    ? "יש לבחור באפשרות «יש חניה» ברדיו"
+                    ? "יש לבחור סוג חניה שדורש סימון במפה (למשל «בקרבת מקום»)"
                     : placingParking
                       ? "לחצו על המפה במקום החניה (או בטלו)"
                       : hasParkingPin
@@ -593,12 +610,12 @@ export default function VenueLocationPicker({
                     return (
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                         <a
-                          href={googleMapsOpenPinUrl(pLat, pLng)}
+                          href={googleMapsExplorerUrl(pLat, pLng)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[11px] font-medium text-[#0F3B2E] underline underline-offset-2 hover:opacity-90"
                         >
-                          פתח את נקודת החניה ב-Google Maps
+                          פתח את מיקום החניה ב-Google Maps (מפת סייר)
                         </a>
                         <button
                           type="button"
@@ -625,7 +642,15 @@ export default function VenueLocationPicker({
       )}
 
       {picked && (
-        <div className="flex flex-wrap items-center gap-3 text-[11px]">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px]">
+          <a
+            href={googleMapsExplorerUrl(picked.lat, picked.lng)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-[#0F3B2E] underline underline-offset-2 hover:opacity-90"
+          >
+            פתח את מיקום האולם ב-Google Maps (מפת סייר)
+          </a>
           <a
             href={googleStreetViewOpenUrl(picked.lat, picked.lng)}
             target="_blank"
