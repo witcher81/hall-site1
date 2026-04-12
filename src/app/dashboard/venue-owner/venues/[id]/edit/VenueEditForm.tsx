@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   FormEvent,
   useEffect,
@@ -10,6 +11,21 @@ import {
 } from "react";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
+
+const ParkingLocationPicker = dynamic(
+  () => import("@/components/ParkingLocationPicker"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex h-56 w-full items-center justify-center rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] text-[11px] text-[#6B6560]"
+        aria-hidden
+      >
+        טוען מפת חניה…
+      </div>
+    ),
+  }
+);
 
 const PRESET_EVENT_TYPES: readonly string[] = [
   "חתונה",
@@ -30,11 +46,13 @@ type EventTypeProfileState = {
   hasFoodAtEvent: boolean;
   minPrice: string;
   maxPrice: string;
-  hasDanceFloor: boolean;
-  hasTableSetup: boolean;
-  hasSoundSystem: boolean;
-  hasBridalRoom: boolean;
   hasVeganFood: boolean;
+  customHallRows: {
+    label: string;
+    checked: boolean;
+    priceMode: PriceMode;
+    extraPrice: string;
+  }[];
 };
 type BuiltinAmenityKey =
   | "hasFood"
@@ -131,30 +149,66 @@ function splitWeddingAmenities(
   return { general, wedding };
 }
 
+function parseCustomHallItemsFromProfileJson(
+  profile: Record<string, unknown>
+): EventTypeProfileState["customHallRows"] {
+  const raw = profile.customHallItems;
+  if (!Array.isArray(raw)) return [];
+  const out: EventTypeProfileState["customHallRows"] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (out.length >= 20) break;
+    if (typeof item !== "object" || item === null) continue;
+    const o = item as Record<string, unknown>;
+    const label = typeof o.label === "string" ? o.label.trim() : "";
+    if (!label || label.length > 80) continue;
+    const k = label.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push({
+      label,
+      checked: o.checked === true,
+      priceMode: o.priceMode === "extra" ? "extra" : "included",
+      extraPrice:
+        typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
+          ? String(Math.trunc(o.extraPrice))
+          : "",
+    });
+  }
+  return out;
+}
+
+function mergeLegacyWeddingIntoWeddingProfile(
+  profiles: Record<string, EventTypeProfileState>,
+  weddingLegacy: EventTypeProfileState["customHallRows"]
+) {
+  const p = profiles["חתונה"];
+  if (!p || weddingLegacy.length === 0) return;
+  const seen = new Set(p.customHallRows.map((r) => r.label.toLowerCase()));
+  for (const w of weddingLegacy) {
+    const k = w.label.toLowerCase();
+    if (!seen.has(k)) {
+      p.customHallRows.push({ ...w });
+      seen.add(k);
+    }
+  }
+}
+
 function parseEventTypeProfilesForForm(
   raw: string | null | undefined,
   eventTypes: string[],
-  fallbackAmenities: {
-    hasDanceFloor: boolean;
-    hasTableSetup: boolean;
-    hasSoundSystem: boolean;
-    hasBridalRoom: boolean;
-    hasVeganFood: boolean;
-  }
+  fallbackVegan: boolean
 ): Record<string, EventTypeProfileState> {
   const out: Record<string, EventTypeProfileState> = {};
   for (const et of eventTypes) {
     out[et] = {
       minGuests: "",
       maxGuests: "",
-      hasFoodAtEvent: false,
+      hasFoodAtEvent: et === "חתונה",
       minPrice: "",
       maxPrice: "",
-      hasDanceFloor: fallbackAmenities.hasDanceFloor,
-      hasTableSetup: fallbackAmenities.hasTableSetup,
-      hasSoundSystem: fallbackAmenities.hasSoundSystem,
-      hasBridalRoom: false,
-      hasVeganFood: fallbackAmenities.hasVeganFood,
+      hasVeganFood: fallbackVegan,
+      customHallRows: [],
     };
   }
   if (!raw) return out;
@@ -162,19 +216,10 @@ function parseEventTypeProfilesForForm(
     const parsed = JSON.parse(raw) as unknown;
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
     const obj = parsed as Record<string, unknown>;
-    const boolOrFallback = (
-      profile: Record<string, unknown>,
-      key:
-        | "hasDanceFloor"
-        | "hasTableSetup"
-        | "hasSoundSystem"
-        | "hasBridalRoom"
-        | "hasVeganFood",
-      fallback: boolean
-    ) =>
-      key in profile
-        ? profile[key] === true || profile[key] === "true"
-        : fallback;
+    const boolVegan = (profile: Record<string, unknown>) =>
+      "hasVeganFood" in profile
+        ? profile.hasVeganFood === true || profile.hasVeganFood === "true"
+        : fallbackVegan;
     for (const et of eventTypes) {
       const row = obj[et];
       if (typeof row !== "object" || row === null || Array.isArray(row)) continue;
@@ -187,6 +232,7 @@ function parseEventTypeProfilesForForm(
         profile.maxPrice == null || profile.maxPrice === ""
           ? ""
           : String(profile.maxPrice);
+      const customHallRows = parseCustomHallItemsFromProfileJson(profile);
       if (et === "חתונה") {
         out[et] = {
           minGuests: profile.minGuests == null ? "" : String(profile.minGuests),
@@ -194,31 +240,8 @@ function parseEventTypeProfilesForForm(
           hasFoodAtEvent: true,
           minPrice: minP,
           maxPrice: maxP,
-          hasDanceFloor: boolOrFallback(
-            profile,
-            "hasDanceFloor",
-            fallbackAmenities.hasDanceFloor
-          ),
-          hasTableSetup: boolOrFallback(
-            profile,
-            "hasTableSetup",
-            fallbackAmenities.hasTableSetup
-          ),
-          hasSoundSystem: boolOrFallback(
-            profile,
-            "hasSoundSystem",
-            fallbackAmenities.hasSoundSystem
-          ),
-          hasBridalRoom: boolOrFallback(
-            profile,
-            "hasBridalRoom",
-            fallbackAmenities.hasBridalRoom
-          ),
-          hasVeganFood: boolOrFallback(
-            profile,
-            "hasVeganFood",
-            fallbackAmenities.hasVeganFood
-          ),
+          hasVeganFood: boolVegan(profile),
+          customHallRows,
         };
         continue;
       }
@@ -238,27 +261,8 @@ function parseEventTypeProfilesForForm(
         hasFoodAtEvent,
         minPrice: hasFoodAtEvent ? minP : "",
         maxPrice: hasFoodAtEvent ? maxP : "",
-        hasDanceFloor: boolOrFallback(
-          profile,
-          "hasDanceFloor",
-          fallbackAmenities.hasDanceFloor
-        ),
-        hasTableSetup: boolOrFallback(
-          profile,
-          "hasTableSetup",
-          fallbackAmenities.hasTableSetup
-        ),
-        hasSoundSystem: boolOrFallback(
-          profile,
-          "hasSoundSystem",
-          fallbackAmenities.hasSoundSystem
-        ),
-        hasBridalRoom: false,
-        hasVeganFood: boolOrFallback(
-          profile,
-          "hasVeganFood",
-          fallbackAmenities.hasVeganFood
-        ),
+        hasVeganFood: boolVegan(profile),
+        customHallRows,
       };
     }
   } catch {
@@ -294,6 +298,11 @@ type Initial = {
   builtinAmenityPriceModes: Record<BuiltinAmenityKey, PriceMode>;
   builtinAmenityExtraPrices: Record<BuiltinAmenityKey, string>;
   eventTypeProfilesJson: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  hasParkingNearby: boolean;
+  parkingLatitude: number | null;
+  parkingLongitude: number | null;
 };
 
 export default function VenueEditForm({
@@ -336,15 +345,18 @@ export default function VenueEditForm({
   const [eventTypeInput, setEventTypeInput] = useState("");
   const [eventTypeProfiles, setEventTypeProfiles] = useState<
     Record<string, EventTypeProfileState>
-  >(() =>
-    parseEventTypeProfilesForForm(initial.eventTypeProfilesJson, initial.eventTypes, {
-      hasDanceFloor: initial.hasDanceFloor,
-      hasTableSetup: initial.hasTableSetup,
-      hasSoundSystem: initial.hasSoundSystem,
-      hasBridalRoom: initial.hasBridalRoom,
-      hasVeganFood: initial.hasVeganFood,
-    })
-  );
+  >(() => {
+    const base = parseEventTypeProfilesForForm(
+      initial.eventTypeProfilesJson,
+      initial.eventTypes,
+      initial.hasVeganFood
+    );
+    const weddingLegacy = splitWeddingAmenities(
+      parseCustomAmenitiesFromDb(initial.customAmenitiesJson)
+    ).wedding;
+    mergeLegacyWeddingIntoWeddingProfile(base, weddingLegacy);
+    return base;
+  });
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryHallImages, setGalleryHallImages] = useState<File[]>([]);
   const [galleryChuppaImages, setGalleryChuppaImages] = useState<File[]>([]);
@@ -354,17 +366,26 @@ export default function VenueEditForm({
     () => splitWeddingAmenities(parseCustomAmenitiesFromDb(initial.customAmenitiesJson)),
     [initial.customAmenitiesJson]
   );
+  const [customHallGeneralInput, setCustomHallGeneralInput] = useState("");
+  const [customHallInputByEvent, setCustomHallInputByEvent] = useState<
+    Record<string, string>
+  >({});
   const cityAutocompleteExtras = useMemo(
     () => (initial.city?.trim() ? [initial.city.trim()] : []),
     [initial.city]
   );
   const [customAmenityRows, setCustomAmenityRows] = useState<
     { label: string; checked: boolean; priceMode: PriceMode; extraPrice: string }[]
-  >(parsedInitialAmenities.general);
-  const [customWeddingInput, setCustomWeddingInput] = useState("");
-  const [customWeddingRows, setCustomWeddingRows] = useState<
-    { label: string; checked: boolean; priceMode: PriceMode; extraPrice: string }[]
-  >(parsedInitialAmenities.wedding);
+  >(() => parsedInitialAmenities.general);
+  const [parkingNearby, setParkingNearby] = useState<"yes" | "no">(() =>
+    initial.hasParkingNearby ? "yes" : "no"
+  );
+  const [parkingLat, setParkingLat] = useState<number | null>(() =>
+    initial.parkingLatitude != null ? initial.parkingLatitude : null
+  );
+  const [parkingLng, setParkingLng] = useState<number | null>(() =>
+    initial.parkingLongitude != null ? initial.parkingLongitude : null
+  );
   const [builtinAmenityPriceModes, setBuiltinAmenityPriceModes] = useState<
     Record<BuiltinAmenityKey, PriceMode>
   >(initial.builtinAmenityPriceModes);
@@ -381,6 +402,7 @@ export default function VenueEditForm({
     [eventTypes, eventTypeProfiles]
   );
   const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
+  const anyEventHasDanceFloor = form.hasDanceFloor;
 
   const coverFileRef = useRef<HTMLInputElement>(null);
   const hallFileRef = useRef<HTMLInputElement>(null);
@@ -392,27 +414,31 @@ export default function VenueEditForm({
     setEventTypeProfiles((prev) => {
       const next: Record<string, EventTypeProfileState> = {};
       for (const et of eventTypes) {
-        next[et] = prev[et] ?? {
-          minGuests: "",
-          maxGuests: "",
-          hasFoodAtEvent: et === "חתונה",
-          minPrice: "",
-          maxPrice: "",
-          hasDanceFloor: false,
-          hasTableSetup: false,
-          hasSoundSystem: false,
-          hasBridalRoom: false,
-          hasVeganFood: false,
-        };
-        if (et === "חתונה") {
-          next[et] = { ...next[et], hasFoodAtEvent: true };
-        } else {
-          next[et] = { ...next[et], hasBridalRoom: false };
-        }
+        const base =
+          prev[et] ?? {
+            minGuests: "",
+            maxGuests: "",
+            hasFoodAtEvent: et === "חתונה",
+            minPrice: "",
+            maxPrice: "",
+            hasVeganFood: false,
+            customHallRows: [],
+          };
+        next[et] =
+          et === "חתונה"
+            ? { ...base, hasFoodAtEvent: true, customHallRows: base.customHallRows ?? [] }
+            : { ...base, customHallRows: base.customHallRows ?? [] };
       }
       return next;
     });
   }, [eventTypes]);
+
+  useEffect(() => {
+    if (parkingNearby !== "yes") {
+      setParkingLat(null);
+      setParkingLng(null);
+    }
+  }, [parkingNearby]);
 
   useEffect(() => {
     if (isWeddingSelected) return;
@@ -514,20 +540,47 @@ export default function VenueEditForm({
         setSaving(false);
         return;
       }
-      const missingWedding = customWeddingRows.find(
+      const missingGeneral = customAmenityRows.find(
         (row) => row.checked && row.priceMode === "extra" && !isPositivePrice(row.extraPrice)
       );
-      if (missingWedding) {
-        setError(`יש להזין מחיר עבור "${missingWedding.label}" כי סומן בתוספת תשלום.`);
+      if (missingGeneral) {
+        setError(`יש להזין מחיר עבור "${missingGeneral.label}" כי סומן בתוספת תשלום.`);
         setSaving(false);
         return;
+      }
+      for (const et of eventTypes) {
+        const rows = eventTypeProfiles[et]?.customHallRows ?? [];
+        const bad = rows.find(
+          (row) => row.checked && row.priceMode === "extra" && !isPositivePrice(row.extraPrice)
+        );
+        if (bad) {
+          setError(
+            `בסוג האירוע "${et}": יש להזין מחיר עבור "${bad.label}" (בתוספת תשלום).`
+          );
+          setSaving(false);
+          return;
+        }
+      }
+      if (parkingNearby === "yes") {
+        if (initial.latitude == null || initial.longitude == null) {
+          setError(
+            "כדי לסמן חניה חייב להיות לאולם מיקום במערכת. ודאו שהכתובת נשמרה עם קואורדינטות."
+          );
+          setSaving(false);
+          return;
+        }
+        if (parkingLat == null || parkingLng == null) {
+          setError("כשמסמנים שיש חניה — נא לסמן במפה את מיקום החניה.");
+          setSaving(false);
+          return;
+        }
       }
 
       const fd = new FormData();
       fd.append("name", form.name);
       fd.append("city", form.city);
       fd.append("address", form.address);
-      const eventTypeProfilesPayload: Record<string, EventTypeProfileState> = {};
+      const eventTypeProfilesPayload: Record<string, unknown> = {};
       for (const et of eventTypes) {
         const row = eventTypeProfiles[et] ?? {
           minGuests: "",
@@ -535,16 +588,28 @@ export default function VenueEditForm({
           hasFoodAtEvent: et === "חתונה",
           minPrice: "",
           maxPrice: "",
-          hasDanceFloor: false,
-          hasTableSetup: false,
-          hasSoundSystem: false,
-          hasBridalRoom: false,
           hasVeganFood: false,
+          customHallRows: [] as EventTypeProfileState["customHallRows"],
         };
-        eventTypeProfilesPayload[et] =
+        const base =
           et === "חתונה"
-            ? { ...row, hasFoodAtEvent: true }
-            : { ...row, hasBridalRoom: false };
+            ? { ...row, hasFoodAtEvent: true as const }
+            : { ...row };
+        const items = base.customHallRows.map((r) => ({
+          label: r.label,
+          checked: r.checked,
+          priceMode: r.priceMode,
+          extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
+        }));
+        eventTypeProfilesPayload[et] = {
+          minGuests: base.minGuests,
+          maxGuests: base.maxGuests,
+          minPrice: base.minPrice,
+          maxPrice: base.maxPrice,
+          hasFoodAtEvent: base.hasFoodAtEvent,
+          hasVeganFood: base.hasVeganFood,
+          ...(items.length > 0 ? { customHallItems: items } : {}),
+        };
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
       fd.append("description", form.description);
@@ -561,18 +626,10 @@ export default function VenueEditForm({
         eventTypes.some(
           (et) => et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
         );
-      const anyEventDanceFloor = eventTypes.some(
-        (et) => eventTypeProfiles[et]?.hasDanceFloor === true
-      );
-      const anyEventTableSetup = eventTypes.some(
-        (et) => eventTypeProfiles[et]?.hasTableSetup === true
-      );
-      const anyEventSoundSystem = eventTypes.some(
-        (et) => eventTypeProfiles[et]?.hasSoundSystem === true
-      );
-      const anyEventBridalRoom = eventTypes.some(
-        (et) => et === "חתונה" && eventTypeProfiles[et]?.hasBridalRoom === true
-      );
+      const anyEventDanceFloor = form.hasDanceFloor;
+      const anyEventTableSetup = form.hasTableSetup;
+      const anyEventSoundSystem = form.hasSoundSystem;
+      const anyEventBridalRoom = form.hasBridalRoom;
       fd.append("hasFood", String(anyEventFood));
       fd.append("hasDanceFloor", String(anyEventDanceFloor));
       fd.append("hasTableSetup", String(anyEventTableSetup));
@@ -601,14 +658,14 @@ export default function VenueEditForm({
               : null,
         })),
         ...customAmenityRows,
-        ...customWeddingRows.map((r) => ({
-          label: `${WEDDING_CUSTOM_PREFIX} ${r.label}`.trim(),
-          checked: r.checked,
-          priceMode: r.priceMode,
-          extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
-        })),
       ];
       fd.append("customAmenitiesJson", JSON.stringify(customAmenitiesPayload));
+
+      fd.append("parkingNearby", parkingNearby);
+      if (parkingNearby === "yes" && parkingLat != null && parkingLng != null) {
+        fd.append("parkingLatitude", String(parkingLat));
+        fd.append("parkingLongitude", String(parkingLng));
+      }
 
       if (coverImage) fd.append("coverImage", coverImage);
       galleryHallImages.forEach((file) => fd.append("galleryImagesHALL", file));
@@ -807,6 +864,195 @@ export default function VenueEditForm({
             </div>
           </div>
 
+          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+              מה יש באולם? (כללי — לכל סוגי האירועים)
+            </p>
+            <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
+              סימון כאן משפיע על החיפוש והפנייה. למטה אפשר להוסיף פרטים נוספים לכל סוג אירוע בנפרד.
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {(
+                [
+                  { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
+                  { key: "hasTableSetup" as const, label: "סידור שולחנות" },
+                  { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
+                  { key: "hasBridalRoom" as const, label: "חדר חתן/כלה" },
+                ] as const
+              ).map((item) => (
+                <label
+                  key={item.key}
+                  className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]"
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(form[item.key])}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, [item.key]: e.target.checked }))
+                    }
+                    className="checkbox-hall shrink-0"
+                  />
+                  {item.label}
+                </label>
+              ))}
+            </div>
+            <div className="mt-3 border-t border-[#E0D4C3]/70 pt-3">
+              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+                פרטים נוספים באולם (כללי)
+              </p>
+              {customAmenityRows.map((row, idx) => (
+                <div
+                  key={`gen-${row.label}-${idx}`}
+                  className="mb-2 flex min-w-0 flex-wrap items-center gap-2 text-xs text-[#2A261F]"
+                >
+                  <label className="flex min-w-0 items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={row.checked}
+                      onChange={(e) =>
+                        setCustomAmenityRows((prev) =>
+                          prev.map((r, i) =>
+                            i === idx ? { ...r, checked: e.target.checked } : r
+                          )
+                        )
+                      }
+                      className="checkbox-hall shrink-0"
+                    />
+                    <span className="truncate">{row.label}</span>
+                  </label>
+                  <select
+                    value={row.priceMode}
+                    onChange={(e) =>
+                      setCustomAmenityRows((prev) =>
+                        prev.map((r, i) =>
+                          i === idx
+                            ? {
+                                ...r,
+                                priceMode:
+                                  e.target.value === "extra" ? "extra" : "included",
+                              }
+                            : r
+                        )
+                      )
+                    }
+                    className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                  >
+                    <option value="included">כלול</option>
+                    <option value="extra">בתוספת תשלום</option>
+                  </select>
+                  {row.priceMode === "extra" && (
+                    <input
+                      type="number"
+                      min={1}
+                      value={row.extraPrice}
+                      onChange={(e) =>
+                        setCustomAmenityRows((prev) =>
+                          prev.map((r, i) =>
+                            i === idx ? { ...r, extraPrice: e.target.value } : r
+                          )
+                        )
+                      }
+                      className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                      placeholder="₪"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+                    onClick={() =>
+                      setCustomAmenityRows((prev) => prev.filter((_, i) => i !== idx))
+                    }
+                  >
+                    הסר
+                  </button>
+                </div>
+              ))}
+              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                <input
+                  type="text"
+                  value={customHallGeneralInput}
+                  onChange={(e) => setCustomHallGeneralInput(e.target.value)}
+                  className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                  placeholder="הוסף פרט משלך…"
+                  maxLength={80}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const value = customHallGeneralInput.trim();
+                    if (!value) return;
+                    if (customAmenityRows.length >= 20) return;
+                    if (
+                      customAmenityRows.some(
+                        (r) => r.label.toLowerCase() === value.toLowerCase()
+                      )
+                    )
+                      return;
+                    setCustomAmenityRows((prev) => [
+                      ...prev,
+                      {
+                        label: value,
+                        checked: true,
+                        priceMode: "included",
+                        extraPrice: "",
+                      },
+                    ]);
+                    setCustomHallGeneralInput("");
+                  }}
+                  className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
+                >
+                  הוסף
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+              חניה באזור האולם *
+            </p>
+            <div className="flex flex-wrap gap-4 text-xs text-[#2A261F]">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="parkingNearbyEdit"
+                  checked={parkingNearby === "yes"}
+                  onChange={() => setParkingNearby("yes")}
+                  className="h-4 w-4 accent-[#0F3B2E]"
+                />
+                כן, יש חניה — אסמן במפה
+              </label>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="radio"
+                  name="parkingNearbyEdit"
+                  checked={parkingNearby === "no"}
+                  onChange={() => setParkingNearby("no")}
+                  className="h-4 w-4 accent-[#0F3B2E]"
+                />
+                לא / לא רלוונטי
+              </label>
+            </div>
+            {parkingNearby === "yes" ? (
+              <div className="mt-3">
+                <ParkingLocationPicker
+                  venueLat={initial.latitude}
+                  venueLng={initial.longitude}
+                  parkingLat={parkingLat}
+                  parkingLng={parkingLng}
+                  onParkingPick={(lat, lng) => {
+                    setParkingLat(lat);
+                    setParkingLng(lng);
+                  }}
+                  onParkingClear={() => {
+                    setParkingLat(null);
+                    setParkingLng(null);
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
+
           {eventTypes.length > 0 && (
             <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
               <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
@@ -821,11 +1067,8 @@ export default function VenueEditForm({
                     hasFoodAtEvent: isWeddingEt,
                     minPrice: "",
                     maxPrice: "",
-                    hasDanceFloor: false,
-                    hasTableSetup: false,
-                    hasSoundSystem: false,
-                    hasBridalRoom: false,
                     hasVeganFood: false,
+                    customHallRows: [],
                   };
                   const showMealPrices =
                     isWeddingEt || profile.hasFoodAtEvent === true;
@@ -917,67 +1160,162 @@ export default function VenueEditForm({
                           </>
                         )}
                         <div className="mt-1 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
+                          <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                            <input
+                              type="checkbox"
+                              checked={profile.hasVeganFood}
+                              onChange={(e) =>
+                                setEventTypeProfiles((prev) => ({
+                                  ...prev,
+                                  [et]: { ...profile, hasVeganFood: e.target.checked },
+                                }))
+                              }
+                              className="checkbox-hall shrink-0"
+                            />
+                            אפשרות לאוכל טבעוני (בסוג אירוע זה)
+                          </label>
+                        </div>
+                        <div className="mt-1 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
                           <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
-                            מה יש באולם? (לסינון בחיפוש — שייך לאולם הזה בלבד)
+                            מה יש באולם לסוג &quot;{et}&quot;? (אופציונלי)
                           </p>
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            {(
-                              [
-                                { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
-                                { key: "hasTableSetup" as const, label: "סידור שולחנות" },
-                                { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
-                              ] as const
-                            ).map((item) => {
-                              return (
-                                <label
-                                  key={item.key}
-                                  className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={Boolean(profile[item.key])}
-                                    onChange={(e) =>
-                                      setEventTypeProfiles((prev) => ({
-                                        ...prev,
-                                        [et]: { ...profile, [item.key]: e.target.checked },
-                                      }))
-                                    }
-                                    className="checkbox-hall shrink-0"
-                                  />
-                                  {item.label}
-                                </label>
-                              );
-                            })}
-                            {isWeddingEt && (
-                              <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                          <p className="mb-2 text-[11px] text-[#6B6560]">
+                            פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה.
+                          </p>
+                          {profile.customHallRows.map((row, idx) => (
+                            <div
+                              key={`hall-${et}-${row.label}-${idx}`}
+                              className="mb-2 flex min-w-0 items-center gap-2 text-xs text-[#2A261F]"
+                            >
+                              <label className="flex min-w-0 flex-1 items-center gap-2">
                                 <input
                                   type="checkbox"
-                                  checked={profile.hasBridalRoom}
+                                  checked={row.checked}
                                   onChange={(e) =>
                                     setEventTypeProfiles((prev) => ({
                                       ...prev,
-                                      [et]: { ...profile, hasBridalRoom: e.target.checked },
+                                      [et]: {
+                                        ...profile,
+                                        customHallRows: profile.customHallRows.map((r, i) =>
+                                          i === idx ? { ...r, checked: e.target.checked } : r
+                                        ),
+                                      },
                                     }))
                                   }
                                   className="checkbox-hall shrink-0"
                                 />
-                                חדר חתן/כלה
+                                <span className="truncate">{row.label}</span>
                               </label>
-                            )}
-                            <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
-                              <input
-                                type="checkbox"
-                                checked={profile.hasVeganFood}
+                              <select
+                                value={row.priceMode}
                                 onChange={(e) =>
                                   setEventTypeProfiles((prev) => ({
                                     ...prev,
-                                    [et]: { ...profile, hasVeganFood: e.target.checked },
+                                    [et]: {
+                                      ...profile,
+                                      customHallRows: profile.customHallRows.map((r, i) =>
+                                        i === idx
+                                          ? {
+                                              ...r,
+                                              priceMode:
+                                                e.target.value === "extra" ? "extra" : "included",
+                                            }
+                                          : r
+                                      ),
+                                    },
                                   }))
                                 }
-                                className="checkbox-hall shrink-0"
-                              />
-                              אפשרות לאוכל טבעוני
-                            </label>
+                                className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                              >
+                                <option value="included">כלול</option>
+                                <option value="extra">בתוספת תשלום</option>
+                              </select>
+                              {row.priceMode === "extra" && (
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={row.extraPrice}
+                                  onChange={(e) =>
+                                    setEventTypeProfiles((prev) => ({
+                                      ...prev,
+                                      [et]: {
+                                        ...profile,
+                                        customHallRows: profile.customHallRows.map((r, i) =>
+                                          i === idx ? { ...r, extraPrice: e.target.value } : r
+                                        ),
+                                      },
+                                    }))
+                                  }
+                                  className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                                  placeholder="₪"
+                                />
+                              )}
+                              <button
+                                type="button"
+                                className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+                                onClick={() =>
+                                  setEventTypeProfiles((prev) => ({
+                                    ...prev,
+                                    [et]: {
+                                      ...profile,
+                                      customHallRows: profile.customHallRows.filter(
+                                        (_, i) => i !== idx
+                                      ),
+                                    },
+                                  }))
+                                }
+                              >
+                                הסר
+                              </button>
+                            </div>
+                          ))}
+                          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                            <input
+                              type="text"
+                              value={customHallInputByEvent[et] ?? ""}
+                              onChange={(e) =>
+                                setCustomHallInputByEvent((prev) => ({
+                                  ...prev,
+                                  [et]: e.target.value,
+                                }))
+                              }
+                              className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                              placeholder="הוסף פרט משלך לאולם…"
+                              maxLength={80}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const value = (customHallInputByEvent[et] ?? "").trim();
+                                if (!value) return;
+                                if (profile.customHallRows.length >= 20) return;
+                                if (
+                                  profile.customHallRows.some(
+                                    (r) => r.label.toLowerCase() === value.toLowerCase()
+                                  )
+                                )
+                                  return;
+                                setEventTypeProfiles((prev) => ({
+                                  ...prev,
+                                  [et]: {
+                                    ...profile,
+                                    customHallRows: [
+                                      ...profile.customHallRows,
+                                      {
+                                        label: value,
+                                        checked: true,
+                                        priceMode: "included",
+                                        extraPrice: "",
+                                      },
+                                    ],
+                                  },
+                                }));
+                                setCustomHallInputByEvent((prev) => ({ ...prev, [et]: "" }));
+                              }}
+                              className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
+                            >
+                              הוסף
+                            </button>
                           </div>
                         </div>
                         {isWeddingEt && (
@@ -1041,189 +1379,12 @@ export default function VenueEditForm({
                                 <option value="מהדרין">מהדרין</option>
                               </select>
                             </div>
-                            <p className="text-[11px] font-medium text-[#0F3B2E] sm:col-span-2">
-                              פרטים נוספים רק לחתונה (אופציונלי)
-                            </p>
-                            {customWeddingRows.map((row, idx) => (
-                              <div
-                                key={`wedding-${row.label}-${idx}`}
-                                className="flex min-w-0 items-center gap-2 text-xs text-[#0F3B2E] sm:col-span-2"
-                              >
-                                <label className="flex min-w-0 flex-1 items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={row.checked}
-                                    onChange={(e) =>
-                                      setCustomWeddingRows((prev) =>
-                                        prev.map((r, i) =>
-                                          i === idx ? { ...r, checked: e.target.checked } : r
-                                        )
-                                      )
-                                    }
-                                    className="checkbox-hall shrink-0"
-                                  />
-                                  <span className="truncate">{row.label}</span>
-                                </label>
-                                <select
-                                  value={row.priceMode}
-                                  onChange={(e) =>
-                                    setCustomWeddingRows((prev) =>
-                                      prev.map((r, i) =>
-                                        i === idx
-                                          ? {
-                                              ...r,
-                                              priceMode:
-                                                e.target.value === "extra" ? "extra" : "included",
-                                            }
-                                          : r
-                                      )
-                                    )
-                                  }
-                                  className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                                >
-                                  <option value="included">כלול</option>
-                                  <option value="extra">בתוספת תשלום</option>
-                                </select>
-                                {row.priceMode === "extra" && (
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    value={row.extraPrice}
-                                    onChange={(e) =>
-                                      setCustomWeddingRows((prev) =>
-                                        prev.map((r, i) =>
-                                          i === idx ? { ...r, extraPrice: e.target.value } : r
-                                        )
-                                      )
-                                    }
-                                    className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                                    placeholder="₪"
-                                  />
-                                )}
-                                <button
-                                  type="button"
-                                  className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
-                                  onClick={() =>
-                                    setCustomWeddingRows((prev) =>
-                                      prev.filter((_, i) => i !== idx)
-                                    )
-                                  }
-                                >
-                                  הסר
-                                </button>
-                              </div>
-                            ))}
-                            <div className="flex min-w-0 flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center">
-                              <input
-                                type="text"
-                                value={customWeddingInput}
-                                onChange={(e) => setCustomWeddingInput(e.target.value)}
-                                className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-                                placeholder="הוסף פרט חתונה משלך…"
-                                maxLength={80}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const value = customWeddingInput.trim();
-                                  if (!value) return;
-                                  if (customWeddingRows.length >= 20) return;
-                                  if (
-                                    customWeddingRows.some(
-                                      (r) => r.label.toLowerCase() === value.toLowerCase()
-                                    )
-                                  )
-                                    return;
-                                  setCustomWeddingRows((prev) => [
-                                    ...prev,
-                                    {
-                                      label: value,
-                                      checked: true,
-                                      priceMode: "included",
-                                      extraPrice: "",
-                                    },
-                                  ]);
-                                  setCustomWeddingInput("");
-                                }}
-                                className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
-                              >
-                                הוסף
-                              </button>
-                            </div>
                           </>
                         )}
                       </div>
                     </div>
                   );
                 })}
-              </div>
-            </div>
-          )}
-
-          {customAmenityRows.length > 0 && (
-            <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
-                שירותים/ציוד נוספים באולם
-              </p>
-              <div className="space-y-2">
-                {customAmenityRows.map((row, idx) => (
-                  <div
-                    key={`${row.label}-${idx}`}
-                    className="flex flex-wrap items-center gap-2 text-xs text-[#2A261F]"
-                  >
-                    <label className="flex min-w-0 items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={row.checked}
-                        onChange={(e) =>
-                          setCustomAmenityRows((prev) =>
-                            prev.map((r, i) =>
-                              i === idx ? { ...r, checked: e.target.checked } : r
-                            )
-                          )
-                        }
-                        className="checkbox-hall shrink-0"
-                      />
-                      <span className="truncate">{row.label}</span>
-                    </label>
-                    <select
-                      value={row.priceMode}
-                      onChange={(e) =>
-                        setCustomAmenityRows((prev) =>
-                          prev.map((r, i) =>
-                            i === idx
-                              ? {
-                                  ...r,
-                                  priceMode:
-                                    e.target.value === "extra" ? "extra" : "included",
-                                }
-                              : r
-                          )
-                        )
-                      }
-                      className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                    >
-                      <option value="included">כלול</option>
-                      <option value="extra">בתוספת תשלום</option>
-                    </select>
-                    {row.priceMode === "extra" && (
-                      <input
-                        type="number"
-                        min={1}
-                        value={row.extraPrice}
-                        onChange={(e) =>
-                          setCustomAmenityRows((prev) =>
-                            prev.map((r, i) =>
-                              i === idx ? { ...r, extraPrice: e.target.value } : r
-                            )
-                          )
-                        }
-                        className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                        placeholder="₪"
-                      />
-                    )}
-                  </div>
-                ))}
               </div>
             </div>
           )}
@@ -1367,6 +1528,7 @@ export default function VenueEditForm({
                     type="file"
                     multiple
                     accept="image/*"
+                    disabled={!anyEventHasDanceFloor}
                     onChange={(e) => {
                       const files = e.target.files;
                       if (!files) return;
@@ -1375,7 +1537,7 @@ export default function VenueEditForm({
                         ...Array.from(files),
                       ]);
                     }}
-                    className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+                    className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B] disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
 

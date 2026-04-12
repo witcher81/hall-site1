@@ -63,15 +63,111 @@ type EventTypeProfile = {
   maxPrice: number | null;
   nonWeddingFoodMode: "" | "optional" | "required";
   hasFoodAtEvent?: boolean;
-  hasDanceFloor?: boolean;
-  hasTableSetup?: boolean;
-  hasSoundSystem?: boolean;
-  hasBridalRoom?: boolean;
-  hasVeganFood?: boolean;
 };
 
-function boolFromUnknown(value: unknown): boolean {
-  return value === true || value === "true" || value === 1 || value === "1";
+const MAX_CUSTOM_HALL_ITEMS_PER_EVENT = 20;
+
+function parseCustomHallItemsForEventProfile(
+  profileObj: Record<string, unknown>,
+  et: string
+): {
+  items: {
+    label: string;
+    checked: boolean;
+    priceMode: "included" | "extra";
+    extraPrice: number | null;
+  }[];
+  error: string | null;
+} {
+  const raw = profileObj.customHallItems;
+  if (raw == null) {
+    return { items: [], error: null };
+  }
+  if (!Array.isArray(raw)) {
+    return {
+      items: [],
+      error: `בסוג האירוע "${et}": פורמט "מה יש באולם" (מותאם) לא תקין.`,
+    };
+  }
+  const rows: {
+    label: string;
+    checked: boolean;
+    priceMode: "included" | "extra";
+    extraPrice: number | null;
+  }[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (rows.length >= MAX_CUSTOM_HALL_ITEMS_PER_EVENT) break;
+    if (typeof item !== "object" || item === null) continue;
+    const o = item as Record<string, unknown>;
+    const label = typeof o.label === "string" ? o.label.trim() : "";
+    if (!label || label.length > 80) continue;
+    const dedupe = label.toLowerCase();
+    if (seen.has(dedupe)) continue;
+    seen.add(dedupe);
+    const priceMode = o.priceMode === "extra" ? "extra" : "included";
+    const checked = o.checked === true;
+    let extraPrice: number | null = null;
+    if (priceMode === "extra") {
+      const rawPrice = o.extraPrice;
+      const n =
+        typeof rawPrice === "number"
+          ? rawPrice
+          : typeof rawPrice === "string"
+            ? Number(rawPrice)
+            : NaN;
+      if (checked && (!Number.isFinite(n) || n <= 0 || n > MAX_INT)) {
+        return {
+          items: [],
+          error: `בסוג האירוע "${et}": נדרש מחיר תקין עבור "${label}" (בתוספת תשלום).`,
+        };
+      }
+      if (Number.isFinite(n) && n > 0) {
+        extraPrice = Math.trunc(n);
+      }
+    }
+    rows.push({ label, checked, priceMode, extraPrice });
+  }
+  return { items: rows, error: null };
+}
+
+function parseParkingFromForm(formData: FormData): {
+  hasParkingNearby: boolean;
+  parkingLatitude: number | null;
+  parkingLongitude: number | null;
+  error: string | null;
+} {
+  const raw = formData.get("parkingNearby");
+  if (raw !== "yes" && raw !== "no") {
+    return {
+      hasParkingNearby: false,
+      parkingLatitude: null,
+      parkingLongitude: null,
+      error: "נא לבחור האם יש חניה באזור האולם.",
+    };
+  }
+  const hasParkingNearby = raw === "yes";
+  if (!hasParkingNearby) {
+    return { hasParkingNearby: false, parkingLatitude: null, parkingLongitude: null, error: null };
+  }
+  const parkingLatitude = toFloatOrNull(formData.get("parkingLatitude"));
+  const parkingLongitude = toFloatOrNull(formData.get("parkingLongitude"));
+  const ok =
+    parkingLatitude != null &&
+    parkingLongitude != null &&
+    parkingLatitude >= 29 &&
+    parkingLatitude <= 34 &&
+    parkingLongitude >= 33 &&
+    parkingLongitude <= 36;
+  if (!ok) {
+    return {
+      hasParkingNearby: true,
+      parkingLatitude,
+      parkingLongitude,
+      error: "כשמסמנים שיש חניה — נא לסמן במפה את מיקום החניה.",
+    };
+  }
+  return { hasParkingNearby: true, parkingLatitude, parkingLongitude, error: null };
 }
 
 function parseEventTypeProfilesJson(
@@ -103,7 +199,7 @@ function parseEventTypeProfilesJson(
       return { json: null, derived: empty, error: "פורמט טווחים לפי סוג אירוע לא תקין." };
     }
     const obj = parsed as Record<string, unknown>;
-    const clean: Record<string, EventTypeProfile> = {};
+    const clean: Record<string, Record<string, unknown>> = {};
 
     const minGuestsAll: number[] = [];
     const maxGuestsAll: number[] = [];
@@ -172,20 +268,23 @@ function parseEventTypeProfilesJson(
         }
       }
 
-      clean[et] = {
+      const hallCustom = parseCustomHallItemsForEventProfile(profileObj, et);
+      if (hallCustom.error) {
+        return { json: null, derived: empty, error: hallCustom.error };
+      }
+
+      const stored: Record<string, unknown> = {
         minGuests,
         maxGuests,
         minPrice,
         maxPrice,
         nonWeddingFoodMode,
         hasFoodAtEvent: servesFood,
-        hasDanceFloor: boolFromUnknown(profileObj.hasDanceFloor),
-        hasTableSetup: boolFromUnknown(profileObj.hasTableSetup),
-        hasSoundSystem: boolFromUnknown(profileObj.hasSoundSystem),
-        hasBridalRoom:
-          et === "חתונה" ? boolFromUnknown(profileObj.hasBridalRoom) : false,
-        hasVeganFood: boolFromUnknown(profileObj.hasVeganFood),
       };
+      if (hallCustom.items.length > 0) {
+        stored.customHallItems = hallCustom.items;
+      }
+      clean[et] = stored;
       if (minGuests != null) minGuestsAll.push(minGuests);
       if (maxGuests != null) maxGuestsAll.push(maxGuests);
       if (minPrice != null) minPriceAll.push(minPrice);
@@ -409,6 +508,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const parkingParsedPost = parseParkingFromForm(formData);
+  if (parkingParsedPost.error) {
+    return badRequest(parkingParsedPost.error);
+  }
+
   const hasPickedCoords =
     pickedLatitude != null &&
     pickedLongitude != null &&
@@ -563,6 +667,13 @@ export async function POST(req: NextRequest) {
       hasChuppaCovered,
       hasVeganFood,
       kashrut: foodChk.value,
+      hasParkingNearby: parkingParsedPost.hasParkingNearby,
+      parkingLatitude: parkingParsedPost.hasParkingNearby
+        ? parkingParsedPost.parkingLatitude
+        : null,
+      parkingLongitude: parkingParsedPost.hasParkingNearby
+        ? parkingParsedPost.parkingLongitude
+        : null,
       coverImageUrl: coverImagePath,
       galleryImageUrls:
         galleryImagePaths.length > 0 ? JSON.stringify(galleryImagePaths) : null,
@@ -837,6 +948,11 @@ export async function PUT(req: NextRequest) {
     );
   }
 
+  const parkingParsedPut = parseParkingFromForm(formData);
+  if (parkingParsedPut.error) {
+    return badRequest(parkingParsedPut.error);
+  }
+
   const addressOrCityChanged =
     city !== existing.city || address !== existing.address;
   const hasPickedCoords =
@@ -996,6 +1112,13 @@ export async function PUT(req: NextRequest) {
       hasChuppaCovered,
       hasVeganFood,
       kashrut: foodChk.value,
+      hasParkingNearby: parkingParsedPut.hasParkingNearby,
+      parkingLatitude: parkingParsedPut.hasParkingNearby
+        ? parkingParsedPut.parkingLatitude
+        : null,
+      parkingLongitude: parkingParsedPut.hasParkingNearby
+        ? parkingParsedPut.parkingLongitude
+        : null,
       coverImageUrl,
       galleryImageUrls,
       autoReplyMessage: autoReplyOut,

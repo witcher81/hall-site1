@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Venue" ADD COLUMN "hasParkingNearby" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Venue" ADD COLUMN "parkingLatitude" DOUBLE PRECISION;
+ALTER TABLE "Venue" ADD COLUMN "parkingLongitude" DOUBLE PRECISION;

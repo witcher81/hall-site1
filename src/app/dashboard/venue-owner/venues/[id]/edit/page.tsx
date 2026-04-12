@@ -157,6 +157,11 @@ export default async function VenueEditPage({
         builtinAmenityPriceModes,
         builtinAmenityExtraPrices,
         eventTypeProfilesJson: venue.eventTypeProfilesJson ?? null,
+        latitude: venue.latitude ?? null,
+        longitude: venue.longitude ?? null,
+        hasParkingNearby: venue.hasParkingNearby,
+        parkingLatitude: venue.parkingLatitude ?? null,
+        parkingLongitude: venue.parkingLongitude ?? null,
       }}
     />
   );

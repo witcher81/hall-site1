@@ -58,6 +58,7 @@ export default async function VenueInquiryPage({
       hasSoundSystem: true,
       hasBridalRoom: true,
       customAmenitiesJson: true,
+      eventTypeProfilesJson: true,
     },
   });
 
@@ -76,6 +77,7 @@ export default async function VenueInquiryPage({
     hasSoundSystem: venue.hasSoundSystem,
     hasBridalRoom: venue.hasBridalRoom,
     customAmenitiesJson: venue.customAmenitiesJson,
+    eventTypeProfilesJson: venue.eventTypeProfilesJson,
   };
 
   return (

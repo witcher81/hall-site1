@@ -38,6 +38,8 @@ export type VenueInquiryAmenitiesInput = {
   hasSoundSystem?: boolean | null;
   hasBridalRoom?: boolean | null;
   customAmenitiesJson?: string | null;
+  /** פרופילים לפי סוג אירוע — customHallItems לפי סוג נבחר */
+  eventTypeProfilesJson?: string | null;
 };
 
 export type InquiryServiceContext = {
@@ -131,6 +133,37 @@ export function getVenueServiceOptionsForInquiry(
       generalIdx += 1;
     }
   }
+
+  const etKey = eventType;
+  if (etKey && v.eventTypeProfilesJson) {
+    try {
+      const profiles = JSON.parse(v.eventTypeProfilesJson) as unknown;
+      if (typeof profiles === "object" && profiles !== null && !Array.isArray(profiles)) {
+        const rawProfile = (profiles as Record<string, unknown>)[etKey];
+        if (typeof rawProfile === "object" && rawProfile !== null && !Array.isArray(rawProfile)) {
+          const po = rawProfile as Record<string, unknown>;
+          const items = po.customHallItems;
+          if (Array.isArray(items)) {
+            let hallIdx = 0;
+            for (const item of items) {
+              if (typeof item !== "object" || item === null) continue;
+              const o = item as Record<string, unknown>;
+              const label = typeof o.label === "string" ? o.label.trim() : "";
+              if (!label || o.checked !== true) continue;
+              out.push({
+                id: `service:eventHallCustom:${hallIdx}`,
+                label,
+              });
+              hallIdx += 1;
+            }
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   return out;
 }
 

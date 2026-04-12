@@ -104,6 +104,10 @@ model Venue {
   galleryImageUrls  String? // JSON string of string[]
   latitude          Float?
   longitude         Float?
+  /// יש חניה באזור — כשמסומן, אפשר לשמור מיקום נפרד במפה (סיכת חניה)
+  hasParkingNearby  Boolean @default(false)
+  parkingLatitude   Float?
+  parkingLongitude  Float?
   inquiries         Inquiry[]
   favorites         Favorite[]
   reviews           VenueReview[]
