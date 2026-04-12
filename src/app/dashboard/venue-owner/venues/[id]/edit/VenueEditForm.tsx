@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
+import { validatePriceMinMax } from "@/lib/userInputValidation";
 import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
 import {
   PARKING_KINDS,
@@ -53,6 +54,8 @@ type EventTypeProfileState = {
   minPrice: string;
   maxPrice: string;
   hasVeganFood: boolean;
+  veganMinPrice: string;
+  veganMaxPrice: string;
   customHallRows: {
     label: string;
     checked: boolean;
@@ -80,6 +83,13 @@ const HALL_GENERAL_PRICE_KEYS = [
 function isPositivePrice(value: string) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0;
+}
+
+function mealIntOrNull(s: string): number | null {
+  const t = s.trim();
+  if (t === "") return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? Math.trunc(n) : null;
 }
 
 function parseCustomAmenitiesFromDb(
@@ -218,6 +228,8 @@ function parseEventTypeProfilesForForm(
       minPrice: "",
       maxPrice: "",
       hasVeganFood: fallbackVegan,
+      veganMinPrice: "",
+      veganMaxPrice: "",
       customHallRows: [],
     };
   }
@@ -242,6 +254,14 @@ function parseEventTypeProfilesForForm(
         profile.maxPrice == null || profile.maxPrice === ""
           ? ""
           : String(profile.maxPrice);
+      const veganMinP =
+        profile.veganMinPrice == null || profile.veganMinPrice === ""
+          ? ""
+          : String(profile.veganMinPrice);
+      const veganMaxP =
+        profile.veganMaxPrice == null || profile.veganMaxPrice === ""
+          ? ""
+          : String(profile.veganMaxPrice);
       const customHallRows = parseCustomHallItemsFromProfileJson(profile);
       if (et === "חתונה") {
         out[et] = {
@@ -251,6 +271,8 @@ function parseEventTypeProfilesForForm(
           minPrice: minP,
           maxPrice: maxP,
           hasVeganFood: boolVegan(profile),
+          veganMinPrice: veganMinP,
+          veganMaxPrice: veganMaxP,
           customHallRows,
         };
         continue;
@@ -272,6 +294,8 @@ function parseEventTypeProfilesForForm(
         minPrice: hasFoodAtEvent ? minP : "",
         maxPrice: hasFoodAtEvent ? maxP : "",
         hasVeganFood: boolVegan(profile),
+        veganMinPrice: hasFoodAtEvent ? veganMinP : "",
+        veganMaxPrice: hasFoodAtEvent ? veganMaxP : "",
         customHallRows,
       };
     }
@@ -435,6 +459,8 @@ export default function VenueEditForm({
             minPrice: "",
             maxPrice: "",
             hasVeganFood: false,
+            veganMinPrice: "",
+            veganMaxPrice: "",
             customHallRows: [],
           };
         next[et] =
@@ -573,6 +599,29 @@ export default function VenueEditForm({
         }
       }
       for (const et of eventTypes) {
+        const profile = eventTypeProfiles[et];
+        if (!profile) continue;
+        const showMealPrices = et === "חתונה" || profile.hasFoodAtEvent === true;
+        if (!profile.hasVeganFood || !showMealPrices) continue;
+        const vm = mealIntOrNull(profile.veganMinPrice);
+        const vx = mealIntOrNull(profile.veganMaxPrice);
+        if (vm != null || vx != null) {
+          if (vm == null || vx == null) {
+            setError(
+              `בסוג האירוע "${et}": יש להזין גם מחיר מינימום וגם מחיר מקסימום למנה טבעונית.`
+            );
+            setSaving(false);
+            return;
+          }
+          const vErr = validatePriceMinMax(vm, vx);
+          if (vErr) {
+            setError(`בסוג האירוע "${et}" (טבעוני): ${vErr}`);
+            setSaving(false);
+            return;
+          }
+        }
+      }
+      for (const et of eventTypes) {
         const rows = eventTypeProfiles[et]?.customHallRows ?? [];
         const bad = rows.find(
           (row) => row.checked && row.priceMode === "extra" && !isPositivePrice(row.extraPrice)
@@ -615,6 +664,8 @@ export default function VenueEditForm({
           minPrice: "",
           maxPrice: "",
           hasVeganFood: false,
+          veganMinPrice: "",
+          veganMaxPrice: "",
           customHallRows: [] as EventTypeProfileState["customHallRows"],
         };
         const base =
@@ -627,6 +678,14 @@ export default function VenueEditForm({
           priceMode: r.priceMode,
           extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
         }));
+        const showMealPricesPayload = et === "חתונה" || base.hasFoodAtEvent === true;
+        const veganPayload: Record<string, unknown> = {};
+        if (base.hasVeganFood && showMealPricesPayload) {
+          const vm = mealIntOrNull(base.veganMinPrice);
+          const vx = mealIntOrNull(base.veganMaxPrice);
+          if (vm != null) veganPayload.veganMinPrice = vm;
+          if (vx != null) veganPayload.veganMaxPrice = vx;
+        }
         eventTypeProfilesPayload[et] = {
           minGuests: base.minGuests,
           maxGuests: base.maxGuests,
@@ -634,6 +693,7 @@ export default function VenueEditForm({
           maxPrice: base.maxPrice,
           hasFoodAtEvent: base.hasFoodAtEvent,
           hasVeganFood: base.hasVeganFood,
+          ...veganPayload,
           ...(items.length > 0 ? { customHallItems: items } : {}),
         };
       }
@@ -974,11 +1034,11 @@ export default function VenueEditForm({
               סימון כאן משפיע על החיפוש והפנייה. לכל פריט אפשר לבחור אם הוא כלול או בתוספת תשלום. למטה
               אפשר להוסיף פרטים נוספים לכל סוג אירוע בנפרד.
             </p>
-            <div className="space-y-2.5">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {HALL_GENERAL_PRICE_KEYS.map((item) => (
                 <div
                   key={item.key}
-                  className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-[#2A261F]"
+                  className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
                 >
                   <label className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2">
                     <input
@@ -1027,10 +1087,11 @@ export default function VenueEditForm({
               <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
                 פרטים נוספים באולם (כללי)
               </p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {customAmenityRows.map((row, idx) => (
                 <div
                   key={`gen-${row.label}-${idx}`}
-                  className="mb-2 flex min-w-0 flex-wrap items-center gap-2 text-xs text-[#2A261F]"
+                  className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
                 >
                   <label className="flex min-w-0 items-center gap-2">
                     <input
@@ -1094,7 +1155,8 @@ export default function VenueEditForm({
                   </button>
                 </div>
               ))}
-              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+              </div>
+              <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                 <input
                   type="text"
                   value={customHallGeneralInput}
@@ -1149,6 +1211,8 @@ export default function VenueEditForm({
                     minPrice: "",
                     maxPrice: "",
                     hasVeganFood: false,
+                    veganMinPrice: "",
+                    veganMaxPrice: "",
                     customHallRows: [],
                   };
                   const showMealPrices =
@@ -1197,6 +1261,8 @@ export default function VenueEditForm({
                                     hasFoodAtEvent: on,
                                     minPrice: on ? profile.minPrice : "",
                                     maxPrice: on ? profile.maxPrice : "",
+                                    veganMinPrice: on ? profile.veganMinPrice : "",
+                                    veganMaxPrice: on ? profile.veganMaxPrice : "",
                                   },
                                 }));
                               }}
@@ -1240,21 +1306,62 @@ export default function VenueEditForm({
                             />
                           </>
                         )}
-                        <div className="mt-1 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
+                        <div className="mt-1 space-y-2 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
                           <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
                             <input
                               type="checkbox"
                               checked={profile.hasVeganFood}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const on = e.target.checked;
                                 setEventTypeProfiles((prev) => ({
                                   ...prev,
-                                  [et]: { ...profile, hasVeganFood: e.target.checked },
-                                }))
-                              }
+                                  [et]: {
+                                    ...profile,
+                                    hasVeganFood: on,
+                                    veganMinPrice: on ? profile.veganMinPrice : "",
+                                    veganMaxPrice: on ? profile.veganMaxPrice : "",
+                                  },
+                                }));
+                              }}
                               className="checkbox-hall shrink-0"
                             />
                             אפשרות לאוכל טבעוני (בסוג אירוע זה)
                           </label>
+                          {profile.hasVeganFood && showMealPrices && (
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:pe-8">
+                              <input
+                                type="number"
+                                min={0}
+                                value={profile.veganMinPrice}
+                                onChange={(e) =>
+                                  setEventTypeProfiles((prev) => ({
+                                    ...prev,
+                                    [et]: { ...profile, veganMinPrice: e.target.value },
+                                  }))
+                                }
+                                className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                                placeholder="מחיר מינימום למנה (טבעוני, ₪)"
+                              />
+                              <input
+                                type="number"
+                                min={0}
+                                value={profile.veganMaxPrice}
+                                onChange={(e) =>
+                                  setEventTypeProfiles((prev) => ({
+                                    ...prev,
+                                    [et]: { ...profile, veganMaxPrice: e.target.value },
+                                  }))
+                                }
+                                className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                                placeholder="מחיר מקסימום למנה (טבעוני, ₪)"
+                              />
+                            </div>
+                          )}
+                          {profile.hasVeganFood && !showMealPrices && (
+                            <p className="text-[11px] text-[#6B6560]">
+                              כדי להזין מחיר למנה טבעונית, סמנו גם שיש אוכל באירוע מסוג זה.
+                            </p>
+                          )}
                         </div>
                         <div className="mt-1 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
                           <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
@@ -1263,10 +1370,11 @@ export default function VenueEditForm({
                           <p className="mb-2 text-[11px] text-[#6B6560]">
                             פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה.
                           </p>
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           {profile.customHallRows.map((row, idx) => (
                             <div
                               key={`hall-${et}-${row.label}-${idx}`}
-                              className="mb-2 flex min-w-0 items-center gap-2 text-xs text-[#2A261F]"
+                              className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
                             >
                               <label className="flex min-w-0 flex-1 items-center gap-2">
                                 <input
@@ -1350,7 +1458,8 @@ export default function VenueEditForm({
                               </button>
                             </div>
                           ))}
-                          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                          </div>
+                          <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                             <input
                               type="text"
                               value={customHallInputByEvent[et] ?? ""}
