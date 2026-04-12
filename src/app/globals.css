@@ -191,3 +191,9 @@ input.checkbox-hall:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* Leaflet — סיכת חניה (divIcon) ללא מסגרת ברירת מחדל */
+.leaflet-parking-pin {
+  background: transparent !important;
+  border: none !important;
+}
