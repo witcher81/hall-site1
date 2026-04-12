@@ -11,6 +11,12 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
+import {
+  PARKING_KINDS,
+  PARKING_KIND_LABELS,
+  parkingKindNeedsMap,
+  type ParkingKind,
+} from "@/lib/venueParkingKind";
 
 const PRESET_EVENT_TYPES: readonly string[] = [
   "חתונה",
@@ -107,7 +113,7 @@ export default function NewVenuePage() {
   const [customAmenityRows, setCustomAmenityRows] = useState<
     { label: string; checked: boolean; priceMode: PriceMode; extraPrice: string }[]
   >([]);
-  const [parkingNearby, setParkingNearby] = useState<"" | "yes" | "no">("");
+  const [parkingKind, setParkingKind] = useState<"" | ParkingKind>("");
   const [parkingLat, setParkingLat] = useState<number | null>(null);
   const [parkingLng, setParkingLng] = useState<number | null>(null);
   const [pickedLat, setPickedLat] = useState<number | null>(null);
@@ -188,19 +194,21 @@ export default function NewVenuePage() {
           return;
         }
       }
-      if (parkingNearby !== "yes" && parkingNearby !== "no") {
-        setError("נא לבחור האם יש חניה באזור האולם.");
+      if (parkingKind === "") {
+        setError("נא לבחור סוג חניה באזור האולם.");
         setCreating(false);
         return;
       }
       if (
-        parkingNearby === "yes" &&
+        parkingKindNeedsMap(parkingKind) &&
         (pickedLat == null ||
           pickedLng == null ||
           parkingLat == null ||
           parkingLng == null)
       ) {
-        setError("כשמסמנים שיש חניה — נא לקבוע מיקום אולם במפה ולסמן במפת החניה את מיקום החניה.");
+        setError(
+          "כשבוחרים חניה בקרבת מקום או חניון — נא לקבוע מיקום אולם במפה ולסמן את מיקום החניה (סיכה כתומה)."
+        );
         setCreating(false);
         return;
       }
@@ -304,8 +312,12 @@ export default function NewVenuePage() {
       ];
       fd.append("customAmenitiesJson", JSON.stringify(customAmenitiesPayload));
 
-      fd.append("parkingNearby", parkingNearby);
-      if (parkingNearby === "yes" && parkingLat != null && parkingLng != null) {
+      fd.append("parkingKind", parkingKind);
+      if (
+        parkingKindNeedsMap(parkingKind) &&
+        parkingLat != null &&
+        parkingLng != null
+      ) {
         fd.append("parkingLatitude", String(parkingLat));
         fd.append("parkingLongitude", String(parkingLng));
       }
@@ -426,11 +438,11 @@ export default function NewVenuePage() {
   }, [eventTypes]);
 
   useEffect(() => {
-    if (parkingNearby !== "yes") {
+    if (!parkingKindNeedsMap(parkingKind)) {
       setParkingLat(null);
       setParkingLng(null);
     }
-  }, [parkingNearby]);
+  }, [parkingKind]);
 
   useEffect(() => {
     if (isWeddingSelected) return;
@@ -596,34 +608,26 @@ export default function NewVenuePage() {
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C]">
               <span className="font-semibold text-[#0F3B2E]">סיכה כחולה</span> — האולם.{" "}
-              <span className="font-semibold text-[#c2410c]">סיכה כתומה</span> — חניה (אחרי
-              שמסמנים &quot;יש חניה&quot;).
+              <span className="font-semibold text-[#c2410c]">סיכה כתומה</span> — חניה (כשבוחרים
+              אפשרות שדורשת סימון במפה).
             </p>
             <div className="mb-3 rounded-lg border border-[#E8D5C4] bg-white/80 px-3 py-2">
               <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
                 חניה באזור האולם *
               </p>
-              <div className="flex flex-wrap gap-4 text-xs text-[#2A261F]">
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
-                    type="radio"
-                    name="parkingNearby"
-                    checked={parkingNearby === "yes"}
-                    onChange={() => setParkingNearby("yes")}
-                    className="h-4 w-4 accent-[#0F3B2E]"
-                  />
-                  כן, יש חניה — אסמן במפה למטה
-                </label>
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
-                    type="radio"
-                    name="parkingNearby"
-                    checked={parkingNearby === "no"}
-                    onChange={() => setParkingNearby("no")}
-                    className="h-4 w-4 accent-[#0F3B2E]"
-                  />
-                  לא / לא רלוונטי
-                </label>
+              <div className="flex flex-col gap-2.5 text-xs text-[#2A261F]">
+                {PARKING_KINDS.map((k) => (
+                  <label key={k} className="flex cursor-pointer items-start gap-2">
+                    <input
+                      type="radio"
+                      name="parkingKind"
+                      checked={parkingKind === k}
+                      onChange={() => setParkingKind(k)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-[#0F3B2E]"
+                    />
+                    <span>{PARKING_KIND_LABELS[k]}</span>
+                  </label>
+                ))}
               </div>
             </div>
             {loadVenueMap ? (
@@ -632,7 +636,7 @@ export default function NewVenuePage() {
                 formAddress={form.address}
                 formFieldsSyncNonce={formFieldsSyncNonce}
                 parkingOnSameMap={
-                  parkingNearby === "yes"
+                  parkingKindNeedsMap(parkingKind)
                     ? {
                         active: true,
                         lat: parkingLat,

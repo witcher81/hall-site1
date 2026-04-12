@@ -19,6 +19,12 @@ import {
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import {
+  isValidParkingKind,
+  parkingKindHasAnyParking,
+  parkingKindNeedsMap,
+  type ParkingKind,
+} from "@/lib/venueParkingKind";
 
 const MAX_INT = 2_147_483_647;
 
@@ -132,23 +138,50 @@ function parseCustomHallItemsForEventProfile(
 }
 
 function parseParkingFromForm(formData: FormData): {
+  parkingKind: ParkingKind;
   hasParkingNearby: boolean;
   parkingLatitude: number | null;
   parkingLongitude: number | null;
   error: string | null;
 } {
-  const raw = formData.get("parkingNearby");
-  if (raw !== "yes" && raw !== "no") {
+  const kindRaw = formData.get("parkingKind");
+  let kind: ParkingKind | null = null;
+  if (typeof kindRaw === "string") {
+    const t = kindRaw.trim();
+    if (isValidParkingKind(t)) kind = t;
+  }
+  if (!kind) {
+    const legacy = formData.get("parkingNearby");
+    if (legacy === "no") kind = "none";
+    else if (legacy === "yes") kind = "nearby";
+  }
+  if (!kind) {
     return {
+      parkingKind: "none",
       hasParkingNearby: false,
       parkingLatitude: null,
       parkingLongitude: null,
-      error: "נא לבחור האם יש חניה באזור האולם.",
+      error: "נא לבחור סוג חניה באזור האולם.",
     };
   }
-  const hasParkingNearby = raw === "yes";
-  if (!hasParkingNearby) {
-    return { hasParkingNearby: false, parkingLatitude: null, parkingLongitude: null, error: null };
+  const hasParkingNearby = parkingKindHasAnyParking(kind);
+  if (kind === "none") {
+    return {
+      parkingKind: "none",
+      hasParkingNearby: false,
+      parkingLatitude: null,
+      parkingLongitude: null,
+      error: null,
+    };
+  }
+  if (!parkingKindNeedsMap(kind)) {
+    return {
+      parkingKind: kind,
+      hasParkingNearby: true,
+      parkingLatitude: null,
+      parkingLongitude: null,
+      error: null,
+    };
   }
   const parkingLatitude = toFloatOrNull(formData.get("parkingLatitude"));
   const parkingLongitude = toFloatOrNull(formData.get("parkingLongitude"));
@@ -161,13 +194,21 @@ function parseParkingFromForm(formData: FormData): {
     parkingLongitude <= 36;
   if (!ok) {
     return {
+      parkingKind: kind,
       hasParkingNearby: true,
       parkingLatitude,
       parkingLongitude,
-      error: "כשמסמנים שיש חניה — נא לסמן במפה את מיקום החניה.",
+      error:
+        "כשבוחרים חניה בקרבת מקום או חניון — נא לסמן במפה את מיקום החניה הרלוונטית.",
     };
   }
-  return { hasParkingNearby: true, parkingLatitude, parkingLongitude, error: null };
+  return {
+    parkingKind: kind,
+    hasParkingNearby: true,
+    parkingLatitude,
+    parkingLongitude,
+    error: null,
+  };
 }
 
 function parseEventTypeProfilesJson(
@@ -668,12 +709,9 @@ export async function POST(req: NextRequest) {
       hasVeganFood,
       kashrut: foodChk.value,
       hasParkingNearby: parkingParsedPost.hasParkingNearby,
-      parkingLatitude: parkingParsedPost.hasParkingNearby
-        ? parkingParsedPost.parkingLatitude
-        : null,
-      parkingLongitude: parkingParsedPost.hasParkingNearby
-        ? parkingParsedPost.parkingLongitude
-        : null,
+      parkingKind: parkingParsedPost.parkingKind,
+      parkingLatitude: parkingParsedPost.parkingLatitude,
+      parkingLongitude: parkingParsedPost.parkingLongitude,
       coverImageUrl: coverImagePath,
       galleryImageUrls:
         galleryImagePaths.length > 0 ? JSON.stringify(galleryImagePaths) : null,
@@ -1113,12 +1151,9 @@ export async function PUT(req: NextRequest) {
       hasVeganFood,
       kashrut: foodChk.value,
       hasParkingNearby: parkingParsedPut.hasParkingNearby,
-      parkingLatitude: parkingParsedPut.hasParkingNearby
-        ? parkingParsedPut.parkingLatitude
-        : null,
-      parkingLongitude: parkingParsedPut.hasParkingNearby
-        ? parkingParsedPut.parkingLongitude
-        : null,
+      parkingKind: parkingParsedPut.parkingKind,
+      parkingLatitude: parkingParsedPut.parkingLatitude,
+      parkingLongitude: parkingParsedPut.parkingLongitude,
       coverImageUrl,
       galleryImageUrls,
       autoReplyMessage: autoReplyOut,

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import VenueEditForm from "./VenueEditForm";
 
 type PriceMode = "included" | "extra";
@@ -159,7 +160,12 @@ export default async function VenueEditPage({
         eventTypeProfilesJson: venue.eventTypeProfilesJson ?? null,
         latitude: venue.latitude ?? null,
         longitude: venue.longitude ?? null,
-        hasParkingNearby: venue.hasParkingNearby,
+        parkingKind: inferParkingKindFromDb({
+          parkingKind: venue.parkingKind,
+          hasParkingNearby: venue.hasParkingNearby,
+          parkingLatitude: venue.parkingLatitude ?? null,
+          parkingLongitude: venue.parkingLongitude ?? null,
+        }),
         parkingLatitude: venue.parkingLatitude ?? null,
         parkingLongitude: venue.parkingLongitude ?? null,
       }}
