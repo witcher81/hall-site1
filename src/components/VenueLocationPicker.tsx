@@ -4,10 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { defaultVenueMarkerIcon } from "@/lib/leafletVenueIcon";
+import { parkingMarkerIcon } from "@/lib/leafletParkingIcon";
 import { createRoadTileLayer } from "@/lib/leafletRoadLayer";
 import { googleStreetViewOpenUrl } from "@/lib/googleStreetViewUrl";
 import { tryExactCityCoords } from "@/lib/israel-city-coords";
 import { fetchAddressOnMap } from "@/components/venueMapAddressGeocode";
+
+export type ParkingOnSameMapConfig = {
+  active: boolean;
+  lat: number | null;
+  lng: number | null;
+  onPick: (lat: number, lng: number) => void;
+  onClear: () => void;
+};
 
 type Props = {
   onPick: (payload: {
@@ -20,10 +29,13 @@ type Props = {
   formCity?: string;
   formAddress?: string;
   formFieldsSyncNonce?: number;
+  /** חניה — אותה מפה (סיכה כתומה) */
+  parkingOnSameMap?: ParkingOnSameMapConfig | null;
+  /** עריכת אולם: מיקום שמור מהשרת */
+  initialVenue?: { lat: number; lng: number } | null;
 };
 
 const CITY_DEBOUNCE_MS = 220;
-/** כתובת: debounce ארוך יותר כדי לא להציף את ה-API בזמן הקלדה — לא משנה את runForwardGeocode */
 const ADDRESS_DEBOUNCE_MS = 450;
 const SUPPRESS_FORM_GEOCODE_MS = 2500;
 
@@ -34,7 +46,6 @@ function syncMapLayout(map: L.Map) {
   });
 }
 
-/** אחרי flyTo — אריחים בחלק העליון של המיכל לפעמים נשארים אפורים עד invalidateSize */
 function syncMapAfterFly(map: L.Map) {
   const bump = () => {
     syncMapLayout(map);
@@ -46,31 +57,67 @@ function syncMapAfterFly(map: L.Map) {
   map.once("moveend", bump);
 }
 
+function OrangePinGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="22"
+      height="28"
+      viewBox="0 0 32 42"
+      aria-hidden
+    >
+      <path
+        fill="#ea580c"
+        stroke="#fff"
+        strokeWidth="2"
+        d="M16 1C8.3 1 2 7.1 2 14.5c0 10.2 14 26.5 14 26.5S30 24.7 30 14.5C30 7.1 23.7 1 16 1z"
+      />
+      <circle cx="16" cy="14" r="5" fill="#fff" />
+    </svg>
+  );
+}
+
+function isValidIsraelLatLng(lat: number, lng: number) {
+  return lat >= 29 && lat <= 34 && lng >= 33 && lng <= 36;
+}
+
 export default function VenueLocationPicker({
   onPick,
   onClear,
   formCity = "",
   formAddress = "",
   formFieldsSyncNonce = 0,
+  parkingOnSameMap = null,
+  initialVenue = null,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const parkingMarkerRef = useRef<L.Marker | null>(null);
   const onPickRef = useRef(onPick);
   const onClearRef = useRef(onClear);
   const suppressFormGeocodeUntilRef = useRef(0);
   const forwardAbortRef = useRef<AbortController | null>(null);
-  /** נפרד מ-forwardAbortRef — גיאוקוד כתובת לא מבטל את העיר אלא אם מתחילים כתובת/עיר מחדש בכוונה */
   const addressForwardAbortRef = useRef<AbortController | null>(null);
   const formCityRef = useRef(formCity);
   const formAddressRef = useRef(formAddress);
   const runForwardRef = useRef<(c: string) => Promise<void>>(async () => {});
+  const parkingOnSameMapRef = useRef<ParkingOnSameMapConfig | null>(null);
+  parkingOnSameMapRef.current = parkingOnSameMap ?? null;
+  const initialVenueRef = useRef(initialVenue);
+  initialVenueRef.current = initialVenue;
 
   const [loading, setLoading] = useState(false);
   const [hint, setHint] = useState(
     "לחץ על המפה או מלא עיר וכתובת — המפה תתעדכן. אפשר לגרור את הסיכה למיקום המדויק."
   );
   const [picked, setPicked] = useState<{ lat: number; lng: number } | null>(null);
+  const [placingParking, setPlacingParking] = useState(false);
+  const placingParkingRef = useRef(false);
+
+  useEffect(() => {
+    placingParkingRef.current = placingParking;
+  }, [placingParking]);
 
   useEffect(() => {
     onPickRef.current = onPick;
@@ -83,7 +130,17 @@ export default function VenueLocationPicker({
   formCityRef.current = formCity;
   formAddressRef.current = formAddress;
 
+  const removeParkingMarkerLayer = useCallback(() => {
+    const map = mapRef.current;
+    const pm = parkingMarkerRef.current;
+    if (map && pm) {
+      map.removeLayer(pm);
+      parkingMarkerRef.current = null;
+    }
+  }, []);
+
   const removeMarkerOnly = useCallback(() => {
+    removeParkingMarkerLayer();
     const map = mapRef.current;
     const marker = markerRef.current;
     if (map && marker) {
@@ -91,15 +148,30 @@ export default function VenueLocationPicker({
       markerRef.current = null;
     }
     setPicked(null);
-  }, []);
+  }, [removeParkingMarkerLayer]);
 
   const clearPin = useCallback(() => {
     removeMarkerOnly();
+    setPlacingParking(false);
     setHint(
       "לחץ על המפה או מלא עיר וכתובת — המפה תתעדכן. אפשר לגרור את הסיכה למיקום המדויק."
     );
     onClearRef.current?.();
   }, [removeMarkerOnly]);
+
+  const attachParkingDragEnd = useCallback((marker: L.Marker) => {
+    marker.off("dragend");
+    marker.on("dragend", () => {
+      const p = parkingMarkerRef.current?.getLatLng();
+      const cfg = parkingOnSameMapRef.current;
+      if (p && cfg?.active) cfg.onPick(p.lat, p.lng);
+    });
+  }, []);
+
+  const clearParkingBecauseVenueMoved = useCallback(() => {
+    removeParkingMarkerLayer();
+    parkingOnSameMapRef.current?.onClear();
+  }, [removeParkingMarkerLayer]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -135,7 +207,6 @@ export default function VenueLocationPicker({
     let forwardAfterReadyTimer: number | undefined;
     map.whenReady(() => {
       syncMapLayout(map);
-      /** אחרי layout + invalidateSize — Leaflet לפעמים עדיין 0×0 ב-microtask הראשון */
       forwardAfterReadyTimer = window.setTimeout(() => {
         forwardAfterReadyTimer = undefined;
         syncMapLayout(map);
@@ -153,7 +224,30 @@ export default function VenueLocationPicker({
     }
 
     map.on("click", async (e: L.LeafletMouseEvent) => {
+      const parkCfg = parkingOnSameMapRef.current;
+      if (placingParkingRef.current && parkCfg?.active) {
+        if (!markerRef.current) {
+          setHint("קבעו קודם את מיקום האולם (סיכה כחולה) לפני סימון החניה.");
+          return;
+        }
+        const { lat, lng } = e.latlng;
+        if (!parkingMarkerRef.current) {
+          parkingMarkerRef.current = L.marker([lat, lng], {
+            icon: parkingMarkerIcon,
+            draggable: true,
+          }).addTo(map);
+          attachParkingDragEnd(parkingMarkerRef.current);
+        } else {
+          parkingMarkerRef.current.setLatLng([lat, lng]);
+        }
+        parkCfg.onPick(lat, lng);
+        setPlacingParking(false);
+        return;
+      }
+
       const { lat, lng } = e.latlng;
+      clearParkingBecauseVenueMoved();
+
       if (!markerRef.current) {
         markerRef.current = L.marker([lat, lng], { icon: defaultVenueMarkerIcon }).addTo(map);
       } else {
@@ -195,9 +289,10 @@ export default function VenueLocationPicker({
       resizeObs?.disconnect();
       map.remove();
       markerRef.current = null;
+      parkingMarkerRef.current = null;
       mapRef.current = null;
     };
-  }, []);
+  }, [attachParkingDragEnd, clearParkingBecauseVenueMoved]);
 
   const applyForwardResult = useCallback(
     (
@@ -220,6 +315,8 @@ export default function VenueLocationPicker({
 
       if (data.mode === "address") {
         const { lat, lng } = data;
+        removeParkingMarkerLayer();
+        parkingOnSameMapRef.current?.onClear();
         if (!markerRef.current) {
           markerRef.current = L.marker([lat, lng], { icon: defaultVenueMarkerIcon }).addTo(map);
         } else {
@@ -238,13 +335,9 @@ export default function VenueLocationPicker({
         setHint("הסימון לפי הכתובת שהזנת. אפשר לגרור במפה אם צריך לדייק.");
       }
     },
-    [removeMarkerOnly]
+    [removeMarkerOnly, removeParkingMarkerLayer]
   );
 
-  /**
-   * זום לפי עיר בלבד — לא שולחים כתובת חלקית ל-API (זה כשל ומונע זום).
-   * גיבוי מקומי אם הרשת/נומינטים נכשלים.
-   */
   const runForwardGeocode = useCallback(
     async (city: string) => {
       const map = mapRef.current;
@@ -311,7 +404,6 @@ export default function VenueLocationPicker({
     [applyForwardResult]
   );
 
-  /** גיאוקוד כתובת — קובץ נפרד; מבטל רק בקשת עיר פתוחה כדי שלא ידרסו זום כתובת */
   const runAddressForwardGeocode = useCallback(
     async (city: string, address: string) => {
       const map = mapRef.current;
@@ -331,7 +423,6 @@ export default function VenueLocationPicker({
 
   runForwardRef.current = runForwardGeocode;
 
-  /** blur — עיר תמיד; כתובת רק אם יש מספיק תווים */
   useEffect(() => {
     if (formFieldsSyncNonce <= 0) return;
     const c = formCity.trim();
@@ -343,7 +434,6 @@ export default function VenueLocationPicker({
     }
   }, [formFieldsSyncNonce, formCity, formAddress, runForwardGeocode, runAddressForwardGeocode]);
 
-  /** הקלדה: עיר בלבד או כתובת — runForwardGeocode נשאר ללא שינוי */
   useEffect(() => {
     const c = formCity.trim();
     const a = formAddress.trim();
@@ -360,6 +450,83 @@ export default function VenueLocationPicker({
     return () => window.clearTimeout(t);
   }, [formCity, formAddress, runForwardGeocode, runAddressForwardGeocode]);
 
+  /** מיקום אולם שמור (עריכה) */
+  useEffect(() => {
+    const iv = initialVenueRef.current;
+    if (!iv || !isValidIsraelLatLng(iv.lat, iv.lng)) return;
+    const t = window.setTimeout(() => {
+      const map = mapRef.current;
+      if (!map || markerRef.current) return;
+      const { lat, lng } = iv;
+      markerRef.current = L.marker([lat, lng], { icon: defaultVenueMarkerIcon }).addTo(map);
+      setPicked({ lat, lng });
+      map.flyTo([lat, lng], 16);
+      syncMapAfterFly(map);
+      onPickRef.current({
+        lat,
+        lng,
+        city: formCityRef.current.trim() || null,
+        address: formAddressRef.current.trim() || null,
+      });
+      setHint("מיקום האולם מהנתונים השמורים. אפשר לשנות בלחיצה על המפה.");
+    }, 140);
+    return () => window.clearTimeout(t);
+  }, [initialVenue?.lat, initialVenue?.lng]);
+
+  /** סנכרון סיכת חניה מההורה */
+  useEffect(() => {
+    const map = mapRef.current;
+    const cfg = parkingOnSameMap;
+    if (!map || !cfg?.active || !markerRef.current) {
+      if (!cfg?.active) {
+        setPlacingParking(false);
+        removeParkingMarkerLayer();
+      }
+      return;
+    }
+    const { lat, lng } = cfg;
+    if (
+      lat != null &&
+      lng != null &&
+      isValidIsraelLatLng(lat, lng)
+    ) {
+      if (!parkingMarkerRef.current) {
+        parkingMarkerRef.current = L.marker([lat, lng], {
+          icon: parkingMarkerIcon,
+          draggable: true,
+        }).addTo(map);
+      } else {
+        parkingMarkerRef.current.setLatLng([lat, lng]);
+      }
+      attachParkingDragEnd(parkingMarkerRef.current);
+    } else if (parkingMarkerRef.current) {
+      map.removeLayer(parkingMarkerRef.current);
+      parkingMarkerRef.current = null;
+    }
+  }, [
+    parkingOnSameMap?.active,
+    parkingOnSameMap?.lat,
+    parkingOnSameMap?.lng,
+    picked,
+    removeParkingMarkerLayer,
+    attachParkingDragEnd,
+  ]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const cross =
+      placingParking && parkingOnSameMap?.active && picked != null;
+    el.style.cursor = cross ? "crosshair" : "";
+  }, [placingParking, parkingOnSameMap?.active, picked]);
+
+  const hasParkingPin =
+    parkingOnSameMap != null &&
+    parkingOnSameMap.active &&
+    parkingOnSameMap.lat != null &&
+    parkingOnSameMap.lng != null &&
+    isValidIsraelLatLng(parkingOnSameMap.lat, parkingOnSameMap.lng);
+
   return (
     <div className="space-y-2">
       <div
@@ -367,6 +534,76 @@ export default function VenueLocationPicker({
         className="h-64 w-full rounded-2xl bg-[#FAF8F4]"
       />
       <p className="text-[11px] text-[#6B6560]">{loading ? "טוען..." : hint}</p>
+
+      {parkingOnSameMap != null && (
+        <div className="space-y-2 rounded-xl border border-[#E8D5C4] bg-[#FFFBF7] px-3 py-2">
+          <p className="text-[11px] leading-relaxed text-[#5C564C]">
+            <span className="font-semibold text-[#0F3B2E]">כחול</span> — האולם.{" "}
+            <span className="font-semibold text-[#c2410c]">כתום</span> — חניה (רק כשיש חניה).
+          </p>
+          {!picked ? (
+            <p className="text-[11px] text-[#6B6560]">
+              קבעו קודם את מיקום האולם על המפה, ואז אפשר לסמן חניה.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPlacingParking((p) => !p)}
+                  disabled={!parkingOnSameMap.active}
+                  className={`inline-flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                    placingParking
+                      ? "border-[#ea580c] bg-[#fff7ed] text-[#9a3412] ring-2 ring-[#ea580c]/30"
+                      : "border-[#fdba74] bg-white text-[#9a3412] hover:bg-[#fff7ed]"
+                  }`}
+                >
+                  <OrangePinGlyph className="shrink-0" />
+                  {!parkingOnSameMap.active
+                    ? "יש לבחור באפשרות «יש חניה» ברדיו"
+                    : placingParking
+                      ? "לחצו על המפה במקום החניה (או בטלו)"
+                      : hasParkingPin
+                        ? "הזזת חניה — לחץ כאן ואז על המפה"
+                        : "שים סיכת חניה כתומה — לחץ כאן ואז על המפה"}
+                </button>
+                {placingParking && (
+                  <button
+                    type="button"
+                    onClick={() => setPlacingParking(false)}
+                    className="rounded-lg border border-[#D4C9BC] px-2 py-1.5 text-[11px] text-[#6B6560] hover:bg-white"
+                  >
+                    ביטול
+                  </button>
+                )}
+              </div>
+              {placingParking && parkingOnSameMap.active && (
+                <p className="text-[11px] font-medium text-[#c2410c]">
+                  מצב סימון: לחיצה אחת על המפה מניחה או מזיזה את הסיכה הכתומה.
+                </p>
+              )}
+              {parkingOnSameMap.active && hasParkingPin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const map = mapRef.current;
+                    if (map && parkingMarkerRef.current) {
+                      map.removeLayer(parkingMarkerRef.current);
+                      parkingMarkerRef.current = null;
+                    }
+                    setPlacingParking(false);
+                    parkingOnSameMap.onClear();
+                  }}
+                  className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+                >
+                  נקה סימון חניה
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       {picked && (
         <div className="flex flex-wrap items-center gap-3 text-[11px]">
           <a

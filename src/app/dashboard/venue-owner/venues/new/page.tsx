@@ -71,21 +71,6 @@ const VenueLocationPicker = dynamic(
   }
 );
 
-const ParkingLocationPicker = dynamic(
-  () => import("@/components/ParkingLocationPicker"),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className="flex h-56 w-full items-center justify-center rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] text-[11px] text-[#6B6560]"
-        aria-hidden
-      >
-        טוען מפת חניה…
-      </div>
-    ),
-  }
-);
-
 export default function NewVenuePage() {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
@@ -609,11 +594,60 @@ export default function NewVenuePage() {
                 </span>
               ) : null}
             </p>
+            <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C]">
+              <span className="font-semibold text-[#0F3B2E]">סיכה כחולה</span> — האולם.{" "}
+              <span className="font-semibold text-[#c2410c]">סיכה כתומה</span> — חניה (אחרי
+              שמסמנים &quot;יש חניה&quot;).
+            </p>
+            <div className="mb-3 rounded-lg border border-[#E8D5C4] bg-white/80 px-3 py-2">
+              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+                חניה באזור האולם *
+              </p>
+              <div className="flex flex-wrap gap-4 text-xs text-[#2A261F]">
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="radio"
+                    name="parkingNearby"
+                    checked={parkingNearby === "yes"}
+                    onChange={() => setParkingNearby("yes")}
+                    className="h-4 w-4 accent-[#0F3B2E]"
+                  />
+                  כן, יש חניה — אסמן במפה למטה
+                </label>
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="radio"
+                    name="parkingNearby"
+                    checked={parkingNearby === "no"}
+                    onChange={() => setParkingNearby("no")}
+                    className="h-4 w-4 accent-[#0F3B2E]"
+                  />
+                  לא / לא רלוונטי
+                </label>
+              </div>
+            </div>
             {loadVenueMap ? (
               <VenueLocationPicker
                 formCity={form.city}
                 formAddress={form.address}
                 formFieldsSyncNonce={formFieldsSyncNonce}
+                parkingOnSameMap={
+                  parkingNearby === "yes"
+                    ? {
+                        active: true,
+                        lat: parkingLat,
+                        lng: parkingLng,
+                        onPick: (la, ln) => {
+                          setParkingLat(la);
+                          setParkingLng(ln);
+                        },
+                        onClear: () => {
+                          setParkingLat(null);
+                          setParkingLng(null);
+                        },
+                      }
+                    : null
+                }
                 onPick={({ lat, lng, city, address }) => {
                   setPickedLat(lat);
                   setPickedLng(lng);
@@ -626,6 +660,8 @@ export default function NewVenuePage() {
                 onClear={() => {
                   setPickedLat(null);
                   setPickedLng(null);
+                  setParkingLat(null);
+                  setParkingLng(null);
                 }}
               />
             ) : (
@@ -885,56 +921,6 @@ export default function NewVenuePage() {
                 </button>
               </div>
             </div>
-          </div>
-
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
-              חניה באזור האולם *
-            </p>
-            <div className="flex flex-wrap gap-4 text-xs text-[#2A261F]">
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="radio"
-                  name="parkingNearby"
-                  checked={parkingNearby === "yes"}
-                  onChange={() => setParkingNearby("yes")}
-                  className="h-4 w-4 accent-[#0F3B2E]"
-                />
-                כן, יש חניה — אסמן במפה
-              </label>
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="radio"
-                  name="parkingNearby"
-                  checked={parkingNearby === "no"}
-                  onChange={() => setParkingNearby("no")}
-                  className="h-4 w-4 accent-[#0F3B2E]"
-                />
-                לא / לא רלוונטי
-              </label>
-            </div>
-            {parkingNearby === "yes" && loadVenueMap ? (
-              <div className="mt-3">
-                <ParkingLocationPicker
-                  venueLat={pickedLat}
-                  venueLng={pickedLng}
-                  parkingLat={parkingLat}
-                  parkingLng={parkingLng}
-                  onParkingPick={(lat, lng) => {
-                    setParkingLat(lat);
-                    setParkingLng(lng);
-                  }}
-                  onParkingClear={() => {
-                    setParkingLat(null);
-                    setParkingLng(null);
-                  }}
-                />
-              </div>
-            ) : parkingNearby === "yes" ? (
-              <p className="mt-2 text-[11px] text-[#6B6560]">
-                המפה נטענת — אחרי שמיקום האולם יופיע, יוצג כאן סימון החניה.
-              </p>
-            ) : null}
           </div>
 
           {eventTypes.length > 0 && (
