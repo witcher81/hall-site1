@@ -6,7 +6,10 @@ import "leaflet/dist/leaflet.css";
 import { defaultVenueMarkerIcon } from "@/lib/leafletVenueIcon";
 import { parkingMarkerIcon } from "@/lib/leafletParkingIcon";
 import { createRoadTileLayer } from "@/lib/leafletRoadLayer";
-import { googleStreetViewOpenUrl } from "@/lib/googleStreetViewUrl";
+import {
+  googleMapsOpenPinUrl,
+  googleStreetViewOpenUrl,
+} from "@/lib/googleStreetViewUrl";
 import { tryExactCityCoords } from "@/lib/israel-city-coords";
 import { fetchAddressOnMap } from "@/components/venueMapAddressGeocode";
 
@@ -582,23 +585,40 @@ export default function VenueLocationPicker({
                   מצב סימון: לחיצה אחת על המפה מניחה או מזיזה את הסיכה הכתומה.
                 </p>
               )}
-              {parkingOnSameMap.active && hasParkingPin && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const map = mapRef.current;
-                    if (map && parkingMarkerRef.current) {
-                      map.removeLayer(parkingMarkerRef.current);
-                      parkingMarkerRef.current = null;
-                    }
-                    setPlacingParking(false);
-                    parkingOnSameMap.onClear();
-                  }}
-                  className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
-                >
-                  נקה סימון חניה
-                </button>
-              )}
+              {parkingOnSameMap.active && hasParkingPin
+                ? (() => {
+                    const pLat = parkingOnSameMap.lat;
+                    const pLng = parkingOnSameMap.lng;
+                    if (pLat == null || pLng == null) return null;
+                    return (
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <a
+                          href={googleMapsOpenPinUrl(pLat, pLng)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] font-medium text-[#0F3B2E] underline underline-offset-2 hover:opacity-90"
+                        >
+                          פתח את נקודת החניה ב-Google Maps
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const map = mapRef.current;
+                            if (map && parkingMarkerRef.current) {
+                              map.removeLayer(parkingMarkerRef.current);
+                              parkingMarkerRef.current = null;
+                            }
+                            setPlacingParking(false);
+                            parkingOnSameMap.onClear();
+                          }}
+                          className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+                        >
+                          נקה סימון חניה
+                        </button>
+                      </div>
+                    );
+                  })()
+                : null}
             </>
           )}
         </div>
