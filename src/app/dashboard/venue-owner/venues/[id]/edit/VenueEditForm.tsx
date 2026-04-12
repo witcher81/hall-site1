@@ -64,15 +64,19 @@ type BuiltinAmenityKey =
   | "hasFood"
   | "hasDanceFloor"
   | "hasTableSetup"
-  | "hasSoundSystem"
-  | "hasBridalRoom";
+  | "hasSoundSystem";
 const BUILTIN_AMENITY_KEYS: BuiltinAmenityKey[] = [
   "hasFood",
   "hasDanceFloor",
   "hasTableSetup",
   "hasSoundSystem",
-  "hasBridalRoom",
 ];
+
+const HALL_GENERAL_PRICE_KEYS = [
+  { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
+  { key: "hasTableSetup" as const, label: "סידור שולחנות" },
+  { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
+] as const;
 function isPositivePrice(value: string) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0;
@@ -293,7 +297,6 @@ type Initial = {
   hasDanceFloor: boolean;
   hasTableSetup: boolean;
   hasSoundSystem: boolean;
-  hasBridalRoom: boolean;
   hasVeganFood: boolean;
   foodKashrut: string;
   eventTypes: string[];
@@ -337,7 +340,6 @@ export default function VenueEditForm({
     hasDanceFloor: initial.hasDanceFloor,
     hasTableSetup: initial.hasTableSetup,
     hasSoundSystem: initial.hasSoundSystem,
-    hasBridalRoom: initial.hasBridalRoom,
     hasVeganFood: initial.hasVeganFood,
     foodKashrut: initial.foodKashrut,
   });
@@ -559,6 +561,17 @@ export default function VenueEditForm({
         setSaving(false);
         return;
       }
+      for (const { key, label } of HALL_GENERAL_PRICE_KEYS) {
+        if (
+          form[key] &&
+          builtinAmenityPriceModes[key] === "extra" &&
+          !isPositivePrice(builtinAmenityExtraPrices[key])
+        ) {
+          setError(`יש להזין מחיר עבור "${label}" כי נבחר «בתוספת תשלום».`);
+          setSaving(false);
+          return;
+        }
+      }
       for (const et of eventTypes) {
         const rows = eventTypeProfiles[et]?.customHallRows ?? [];
         const bad = rows.find(
@@ -642,12 +655,11 @@ export default function VenueEditForm({
       const anyEventDanceFloor = form.hasDanceFloor;
       const anyEventTableSetup = form.hasTableSetup;
       const anyEventSoundSystem = form.hasSoundSystem;
-      const anyEventBridalRoom = form.hasBridalRoom;
       fd.append("hasFood", String(anyEventFood));
       fd.append("hasDanceFloor", String(anyEventDanceFloor));
       fd.append("hasTableSetup", String(anyEventTableSetup));
       fd.append("hasSoundSystem", String(anyEventSoundSystem));
-      fd.append("hasBridalRoom", String(anyEventBridalRoom));
+      fd.append("hasBridalRoom", "false");
       if (eventTypes.length > 0) {
         fd.append("eventTypes", JSON.stringify(eventTypes));
       }
@@ -661,9 +673,7 @@ export default function VenueEditForm({
                 ? anyEventDanceFloor
                 : key === "hasTableSetup"
                   ? anyEventTableSetup
-                  : key === "hasSoundSystem"
-                    ? anyEventSoundSystem
-                    : anyEventBridalRoom,
+                  : anyEventSoundSystem,
           priceMode: builtinAmenityPriceModes[key],
           extraPrice:
             builtinAmenityPriceModes[key] === "extra"
@@ -961,31 +971,56 @@ export default function VenueEditForm({
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
             <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
-              סימון כאן משפיע על החיפוש והפנייה. למטה אפשר להוסיף פרטים נוספים לכל סוג אירוע בנפרד.
+              סימון כאן משפיע על החיפוש והפנייה. לכל פריט אפשר לבחור אם הוא כלול או בתוספת תשלום. למטה
+              אפשר להוסיף פרטים נוספים לכל סוג אירוע בנפרד.
             </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {(
-                [
-                  { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
-                  { key: "hasTableSetup" as const, label: "סידור שולחנות" },
-                  { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
-                  { key: "hasBridalRoom" as const, label: "חדר חתן/כלה" },
-                ] as const
-              ).map((item) => (
-                <label
+            <div className="space-y-2.5">
+              {HALL_GENERAL_PRICE_KEYS.map((item) => (
+                <div
                   key={item.key}
-                  className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]"
+                  className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-[#2A261F]"
                 >
-                  <input
-                    type="checkbox"
-                    checked={Boolean(form[item.key])}
+                  <label className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(form[item.key])}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, [item.key]: e.target.checked }))
+                      }
+                      className="checkbox-hall shrink-0"
+                    />
+                    <span className="font-medium">{item.label}</span>
+                  </label>
+                  <select
+                    value={builtinAmenityPriceModes[item.key]}
                     onChange={(e) =>
-                      setForm((f) => ({ ...f, [item.key]: e.target.checked }))
+                      setBuiltinAmenityPriceModes((prev) => ({
+                        ...prev,
+                        [item.key]:
+                          e.target.value === "extra" ? "extra" : "included",
+                      }))
                     }
-                    className="checkbox-hall shrink-0"
-                  />
-                  {item.label}
-                </label>
+                    className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                  >
+                    <option value="included">כלול</option>
+                    <option value="extra">בתוספת תשלום</option>
+                  </select>
+                  {builtinAmenityPriceModes[item.key] === "extra" && (
+                    <input
+                      type="number"
+                      min={1}
+                      value={builtinAmenityExtraPrices[item.key]}
+                      onChange={(e) =>
+                        setBuiltinAmenityExtraPrices((prev) => ({
+                          ...prev,
+                          [item.key]: e.target.value,
+                        }))
+                      }
+                      className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                      placeholder="₪"
+                    />
+                  )}
+                </div>
               ))}
             </div>
             <div className="mt-3 border-t border-[#E0D4C3]/70 pt-3">

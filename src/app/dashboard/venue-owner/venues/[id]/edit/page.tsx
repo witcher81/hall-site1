@@ -8,8 +8,7 @@ type BuiltinAmenityKey =
   | "hasFood"
   | "hasDanceFloor"
   | "hasTableSetup"
-  | "hasSoundSystem"
-  | "hasBridalRoom";
+  | "hasSoundSystem";
 
 export default async function VenueEditPage({
   params,
@@ -88,14 +87,12 @@ export default async function VenueEditPage({
     hasDanceFloor: "included",
     hasTableSetup: "included",
     hasSoundSystem: "included",
-    hasBridalRoom: "included",
   };
   const builtinAmenityExtraPrices: Record<BuiltinAmenityKey, string> = {
     hasFood: "",
     hasDanceFloor: "",
     hasTableSetup: "",
     hasSoundSystem: "",
-    hasBridalRoom: "",
   };
   if (venue.customAmenitiesJson) {
     try {
@@ -148,7 +145,6 @@ export default async function VenueEditPage({
         hasDanceFloor: venue.hasDanceFloor,
         hasTableSetup: venue.hasTableSetup,
         hasSoundSystem: venue.hasSoundSystem,
-        hasBridalRoom: venue.hasBridalRoom,
         hasVeganFood: venue.hasVeganFood ?? false,
         foodKashrut: venue.kashrut ?? "",
         coverImageUrl: venue.coverImageUrl ?? null,
