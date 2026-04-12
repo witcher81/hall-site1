@@ -89,9 +89,16 @@ function isValidIsraelLatLng(lat: number, lng: number) {
 const HALL_MARKER_TOOLTIP = "מיקום האולם — סיכה כחולה עם האות «א»";
 const PARKING_MARKER_TOOLTIP = "מיקום חניה — סיכה כתומה עם האות «ח»";
 
+/** Leaflet + עמוד RTL: המפה חייבת ltr כדי שה-tooltip יישב מעל הסיכה ולא מוזז לצד. */
+const markerTooltipOpts: L.TooltipOptions = {
+  direction: "top",
+  offset: L.point(0, -12),
+  className: "venue-picker-marker-tooltip",
+};
+
 function addHallMarkerToMap(map: L.Map, lat: number, lng: number) {
   return L.marker([lat, lng], { icon: venueHallPickerMarkerIcon })
-    .bindTooltip(HALL_MARKER_TOOLTIP, { direction: "top", offset: [0, -44] })
+    .bindTooltip(HALL_MARKER_TOOLTIP, markerTooltipOpts)
     .addTo(map);
 }
 
@@ -100,7 +107,7 @@ function addParkingMarkerToMap(map: L.Map, lat: number, lng: number) {
     icon: venueParkingPickerMarkerIcon,
     draggable: true,
   })
-    .bindTooltip(PARKING_MARKER_TOOLTIP, { direction: "top", offset: [0, -44] })
+    .bindTooltip(PARKING_MARKER_TOOLTIP, markerTooltipOpts)
     .addTo(map);
 }
 
@@ -550,6 +557,7 @@ export default function VenueLocationPicker({
     <div className="space-y-2">
       <div
         ref={containerRef}
+        dir="ltr"
         className="h-64 w-full rounded-2xl bg-[#FAF8F4]"
       />
       <p className="text-[11px] text-[#6B6560]">{loading ? "טוען..." : hint}</p>

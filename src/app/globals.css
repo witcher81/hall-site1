@@ -193,7 +193,14 @@ input.checkbox-hall:disabled {
 }
 
 /* Leaflet — סיכת חניה (divIcon) ללא מסגרת ברירת מחדל */
-.leaflet-parking-pin {
+.leaflet-parking-pin,
+.leaflet-hall-pin {
   background: transparent !important;
   border: none !important;
+}
+
+/* טקסט בעברית; בלי direction על ה-tooltip כדי שלא ייזוז חץ העוגן של Leaflet */
+.leaflet-tooltip.venue-picker-marker-tooltip {
+  text-align: right;
+  max-width: 14rem;
 }
