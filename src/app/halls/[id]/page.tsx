@@ -4,6 +4,7 @@ import HomeHeader from "@/components/HomeHeader";
 import { getCurrentUser } from "@/lib/auth";
 import { canShowDevUserSwitcher } from "@/lib/admin";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
 import VenuePublicView from "./VenuePublicView";
 
 type PriceMode = "included" | "extra";
@@ -138,6 +139,7 @@ export default async function HallPublicPage({
       hallRentalMax: true,
       description: true,
       eventTypes: true,
+      eventTypeProfilesJson: true,
       kashrut: true,
       parking: true,
       venueType: true,
@@ -191,6 +193,14 @@ export default async function HallPublicPage({
       url: img.url,
       category: img.category,
     })) ?? [];
+
+  const eventTypesList = venue.eventTypes
+    ? (JSON.parse(venue.eventTypes) as string[])
+    : [];
+  const eventTypeProfiles = parseVenueEventTypeProfilesForPublic(
+    venue.eventTypeProfilesJson,
+    eventTypesList
+  );
 
   const parsedAmenities = (() => {
     if (!venue.customAmenitiesJson) return [];
@@ -281,7 +291,8 @@ export default async function HallPublicPage({
           hallRentalMin: venue.hallRentalMin,
           hallRentalMax: venue.hallRentalMax,
           description: venue.description,
-          eventTypes: venue.eventTypes ? (JSON.parse(venue.eventTypes) as string[]) : [],
+          eventTypes: eventTypesList,
+          eventTypeProfiles,
           kashrut: venue.kashrut,
           parking: venue.parking,
           venueType: venue.venueType,

@@ -7,6 +7,7 @@ import { recordVenueRecentlyViewed } from "@/lib/recentlyViewedVenues";
 import { useEngagedVenueView } from "@/lib/useEngagedViewAnalytics";
 import { WEDDING_AMENITY_STORAGE_PREFIX } from "@/lib/venueInquiryAmenities";
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
+import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
 
 type User = { id: number; email: string; name: string | null; role?: string } | null;
 type PriceMode = "included" | "extra";
@@ -52,6 +53,8 @@ type Venue = {
   }[];
   amenityPriceModes?: Partial<Record<BuiltinAmenityKey, PriceMode>>;
   amenityExtraPrices?: Partial<Record<BuiltinAmenityKey, number>>;
+  /** פרופיל לפי סוג אירוע — מ־eventTypeProfilesJson בשרת */
+  eventTypeProfiles?: Record<string, PublicEventTypeProfile>;
 };
 
 /** שבב שירות — שם בולט + תג סטטוס מחיר (כלול / בתוספת) */
@@ -125,6 +128,95 @@ function AmenityOfferPill({
         {badgeText}
       </span>
     </span>
+  );
+}
+
+function EventTypeProfilePanel({
+  eventLabel,
+  profile,
+}: {
+  eventLabel: string;
+  profile: PublicEventTypeProfile;
+}) {
+  const checkedHall = profile.customHallItems.filter((i) => i.checked);
+  const hasGuestRange =
+    profile.minGuests != null || profile.maxGuests != null;
+  const hasMealRange =
+    profile.hasFoodAtEvent &&
+    (profile.minPrice != null || profile.maxPrice != null);
+
+  return (
+    <div
+      className="mt-4 rounded-xl border border-[#0F3B2E]/20 bg-gradient-to-br from-white to-[#FAF8F4] p-4 text-right shadow-inner sm:p-5"
+      dir="rtl"
+    >
+      <p className="text-sm font-bold text-[#0F3B2E] sm:text-base">
+        פרטים לפי סוג: {eventLabel}
+      </p>
+      <dl className="mt-3 space-y-3 text-sm text-[#2A261F]">
+        <div>
+          <dt className="text-xs font-semibold text-[#6B6560]">טווח אורחים</dt>
+          <dd className="mt-0.5 font-medium tabular-nums">
+            {hasGuestRange
+              ? `${profile.minGuests ?? "?"}–${profile.maxGuests ?? "?"} אורחים`
+              : "לא צוין טווח נפרד לסוג זה."}
+          </dd>
+        </div>
+        {profile.hasFoodAtEvent ? (
+          <div>
+            <dt className="text-xs font-semibold text-[#6B6560]">מחיר למנה</dt>
+            <dd className="mt-0.5 font-medium tabular-nums">
+              {hasMealRange
+                ? `₪${profile.minPrice ?? "?"}–${profile.maxPrice ?? "?"}`
+                : "לא צוין מחיר למנה בפרופיל לסוג זה."}
+            </dd>
+          </div>
+        ) : (
+          <div>
+            <dt className="text-xs font-semibold text-[#6B6560]">אוכל באירוע</dt>
+            <dd className="mt-0.5">
+              לסוג זה לא מוגדרת ארוחה או מנה (מחיר למנה לא רלוונטי).
+            </dd>
+          </div>
+        )}
+        {profile.hasFoodAtEvent && profile.hasVeganFood ? (
+          <div>
+            <dt className="text-xs font-semibold text-[#6B6560]">אפשרות טבעונית</dt>
+            <dd className="mt-0.5">
+              {profile.veganSameAsMealPrice
+                ? "כן — במחיר כמו המנה הרגילה."
+                : profile.veganMinPrice != null || profile.veganMaxPrice != null
+                  ? `מחיר למנה טבעונית: ₪${profile.veganMinPrice ?? "?"}–${profile.veganMaxPrice ?? "?"}`
+                  : "כן — פרטי מחיר לא הוזנו."}
+            </dd>
+          </div>
+        ) : null}
+      </dl>
+      {checkedHall.length > 0 ? (
+        <div className="mt-4 border-t border-[#E8E0D4] pt-3">
+          <p className="text-xs font-semibold text-[#6B6560]">
+            מה מסומן לסוג זה באולם
+          </p>
+          <ul className="mt-2 space-y-1.5 text-sm">
+            {checkedHall.map((item) => (
+              <li
+                key={item.label}
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-[#E0D4C3]/90 bg-[#FFFBF7] px-3 py-2"
+              >
+                <span className="font-medium text-[#0F3B2E]">{item.label}</span>
+                <span className="shrink-0 text-xs text-[#5F5F5F]">
+                  {item.priceMode === "extra"
+                    ? item.extraPrice != null && item.extraPrice > 0
+                      ? `בתוספת ₪${item.extraPrice}`
+                      : "בתוספת תשלום"
+                    : "כלול"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -234,6 +326,9 @@ export default function VenuePublicView({
   const [activeCategory, setActiveCategory] = useState<
     "ALL" | "HALL" | "CHUPPA" | "DANCE" | "FOOD"
   >("ALL");
+  const [expandedEventType, setExpandedEventType] = useState<string | null>(
+    null
+  );
 
   const handleCalendarDaySelect = (ymd: string) => {
     router.push(`/halls/${venue.id}/inquiry?date=${encodeURIComponent(ymd)}`);
@@ -664,18 +759,38 @@ export default function VenuePublicView({
               סוגי אירועים מתאימים
             </p>
             <p className="mt-1 text-xs text-[#6B6560] sm:text-sm">
-              האולם מתאים לאירועים מהסוגים הבאים.
+              האולם מתאים לאירועים מהסוגים הבאים. לחצו על סוג כדי לראות טווח
+              אורחים, מחירי מנה (כשהם רלוונטיים) ומה מסומן באולם לפי סוג.
             </p>
             <div className="mt-3 flex flex-wrap gap-2.5 sm:gap-3">
-              {venue.eventTypes.map((et) => (
-                <span
-                  key={et}
-                  className="rounded-2xl border border-[#0F3B2E]/25 bg-[#E8F0EC] px-3.5 py-2 text-sm font-semibold text-[#0F3B2E] shadow-sm sm:px-4 sm:py-2.5 sm:text-[15px]"
-                >
-                  {et}
-                </span>
-              ))}
+              {venue.eventTypes.map((et) => {
+                const open = expandedEventType === et;
+                return (
+                  <button
+                    key={et}
+                    type="button"
+                    onClick={() =>
+                      setExpandedEventType((cur) => (cur === et ? null : et))
+                    }
+                    aria-expanded={open}
+                    className={`rounded-2xl border px-3.5 py-2 text-sm font-semibold shadow-sm transition sm:px-4 sm:py-2.5 sm:text-[15px] ${
+                      open
+                        ? "border-[#C9A227] bg-[#FFF9E6] text-[#0F3B2E] ring-2 ring-[#C9A227]/35"
+                        : "border-[#0F3B2E]/25 bg-[#E8F0EC] text-[#0F3B2E] hover:border-[#0F3B2E]/40 hover:bg-[#DFEAE4]"
+                    }`}
+                  >
+                    {et}
+                  </button>
+                );
+              })}
             </div>
+            {expandedEventType &&
+              venue.eventTypeProfiles?.[expandedEventType] != null && (
+                <EventTypeProfilePanel
+                  eventLabel={expandedEventType}
+                  profile={venue.eventTypeProfiles[expandedEventType]}
+                />
+              )}
           </div>
         )}
 
