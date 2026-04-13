@@ -432,10 +432,28 @@ export default function NewVenuePage() {
         method: "POST",
         body: fd,
       });
-      const data = await res.json().catch(() => null);
+      const raw = await res.text();
+      let data: { error?: string } | null = null;
+      try {
+        data = raw ? (JSON.parse(raw) as { error?: string }) : null;
+      } catch {
+        data = null;
+      }
 
       if (!res.ok) {
-        setError(data?.error || "יצירת האולם נכשלה");
+        const fromJson = data?.error?.trim();
+        const fromStatus =
+          res.status === 413
+            ? "הנתונים או התמונות גדולים מדי לשרת. נסו להקטין קבצים או לשלוח פחות תמונות."
+            : res.status === 401
+              ? "נדרשת התחברות מחדש."
+              : null;
+        setError(
+          fromJson ||
+            fromStatus ||
+            (raw && raw.length < 800 ? raw.trim().slice(0, 500) : null) ||
+            `יצירת האולם נכשלה (קוד ${res.status}).`
+        );
         setCreating(false);
         return;
       }

@@ -16,9 +16,7 @@ import {
   validateRequiredText,
   validateUploadedImageFile,
 } from "@/lib/userInputValidation";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
+import { saveVenueImageFile } from "@/lib/venueImageUpload";
 import {
   coerceParkingKindFromStorage,
   parkingKindHasAnyParking,
@@ -479,6 +477,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  try {
   const formData = await req.formData();
 
   let name = (formData.get("name") as string | null)?.trim();
@@ -654,32 +653,7 @@ export async function POST(req: NextRequest) {
     if (imgErr) return badRequest(imgErr);
   }
 
-  // הכנת תיקיית העלאות (public/uploads)
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-
-  async function saveFile(file: File | null, prefix: string) {
-    if (!file) return null;
-    if (file.size === 0) return null;
-
-    const ext =
-      (file.type && file.type.includes("jpeg")) || file.name.endsWith(".jpg")
-        ? ".jpg"
-        : file.name.endsWith(".png")
-        ? ".png"
-        : file.name.endsWith(".webp")
-        ? ".webp"
-        : "";
-
-    const randomName = `${prefix}-${crypto.randomUUID()}${ext}`;
-    const filePath = path.join(uploadsDir, randomName);
-    const arrayBuffer = await file.arrayBuffer();
-    await writeFile(filePath, Buffer.from(arrayBuffer));
-
-    return `/uploads/${randomName}`;
-  }
-
-  const coverImagePath = await saveFile(coverImageFile, "cover");
+  const coverImagePath = await saveVenueImageFile(coverImageFile, "cover");
 
   async function saveGalleryFiles(
     files: File[],
@@ -688,7 +662,7 @@ export async function POST(req: NextRequest) {
   ) {
     const images: { url: string; category: string }[] = [];
     for (const [index, file] of files.entries()) {
-      const saved = await saveFile(file, `${prefix}-${index}`);
+      const saved = await saveVenueImageFile(file, `${prefix}-${index}`);
       if (saved) images.push({ url: saved, category });
     }
     return images;
@@ -812,6 +786,24 @@ export async function POST(req: NextRequest) {
   );
 
   return NextResponse.json({ venue }, { status: 201 });
+  } catch (e) {
+    console.error("POST /api/venue-owner/venues", e);
+    const msg = e instanceof Error ? e.message : String(e);
+    const readOnlyFs =
+      /EROFS|read-only file system|EACCES|EPERM/i.test(msg) &&
+      !process.env.BLOB_READ_WRITE_TOKEN;
+    const dev = process.env.NODE_ENV === "development";
+    return NextResponse.json(
+      {
+        error: readOnlyFs
+          ? "שמירת תמונות נכשלה: ב-Vercel יש להגדיר BLOB_READ_WRITE_TOKEN (Vercel Blob) בהגדרות הפרויקט."
+          : dev
+            ? msg.slice(0, 500)
+            : "שגיאת שרת בשמירת האולם. נסה שוב או פנה לתמיכה.",
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(req: NextRequest) {
@@ -871,27 +863,6 @@ export async function DELETE(req: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
-async function saveUploadedFile(
-  file: File | null,
-  uploadsDir: string,
-  prefix: string
-): Promise<string | null> {
-  if (!file || file.size === 0) return null;
-  const ext =
-    (file.type && file.type.includes("jpeg")) || file.name.endsWith(".jpg")
-      ? ".jpg"
-      : file.name.endsWith(".png")
-        ? ".png"
-        : file.name.endsWith(".webp")
-          ? ".webp"
-          : "";
-  const randomName = `${prefix}-${crypto.randomUUID()}${ext}`;
-  const filePath = path.join(uploadsDir, randomName);
-  const arrayBuffer = await file.arrayBuffer();
-  await writeFile(filePath, Buffer.from(arrayBuffer));
-  return `/uploads/${randomName}`;
-}
-
 export async function PUT(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) {
@@ -918,6 +889,7 @@ export async function PUT(req: NextRequest) {
     );
   }
 
+  try {
   const formData = await req.formData();
   const name = (formData.get("name") as string | null)?.trim() ?? existing.name;
   const city = (formData.get("city") as string | null)?.trim() ?? existing.city;
@@ -1086,16 +1058,9 @@ export async function PUT(req: NextRequest) {
     if (ie) return badRequest(ie);
   }
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-
   let coverImageUrl = existing.coverImageUrl;
   if (coverImageFile && coverImageFile.size > 0) {
-    const saved = await saveUploadedFile(
-      coverImageFile as File,
-      uploadsDir,
-      "cover"
-    );
+    const saved = await saveVenueImageFile(coverImageFile as File, "cover");
     if (saved) coverImageUrl = saved;
   }
 
@@ -1113,9 +1078,8 @@ export async function PUT(req: NextRequest) {
       category: string
     ) {
       for (const [index, file] of files.entries()) {
-        const saved = await saveUploadedFile(
+        const saved = await saveVenueImageFile(
           file as File,
-          uploadsDir,
           `${prefix}-${index}`
         );
         if (saved) imagesToCreate.push({ url: saved, category });
@@ -1215,4 +1179,22 @@ export async function PUT(req: NextRequest) {
   }
 
   return NextResponse.json({ venue });
+  } catch (e) {
+    console.error("PUT /api/venue-owner/venues", e);
+    const msg = e instanceof Error ? e.message : String(e);
+    const readOnlyFs =
+      /EROFS|read-only file system|EACCES|EPERM/i.test(msg) &&
+      !process.env.BLOB_READ_WRITE_TOKEN;
+    const dev = process.env.NODE_ENV === "development";
+    return NextResponse.json(
+      {
+        error: readOnlyFs
+          ? "שמירת תמונות נכשלה: ב-Vercel יש להגדיר BLOB_READ_WRITE_TOKEN (Vercel Blob) בהגדרות הפרויקט."
+          : dev
+            ? msg.slice(0, 500)
+            : "שגיאת שרת בעדכון האולם. נסה שוב או פנה לתמיכה.",
+      },
+      { status: 500 }
+    );
+  }
 }

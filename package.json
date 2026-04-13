@@ -27,6 +27,7 @@
     "@sentry/nextjs": "^10.47.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
+    "@vercel/blob": "^2.3.3",
     "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",
