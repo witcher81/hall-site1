@@ -384,19 +384,6 @@ function parseEventTypeProfilesJson(
   }
 }
 
-/**
- * שומר customAmenitiesJson ב-SQL כדי שלא ייכשל אימות Prisma כשהלקוח לא נוצר מחדש
- * אחרי שינוי סכמה (למשל EPERM ב-prisma generate ב-Windows).
- */
-async function persistCustomAmenitiesJson(
-  venueId: number,
-  json: string | null
-): Promise<void> {
-  await prisma.$executeRaw`
-    UPDATE Venue SET customAmenitiesJson = ${json} WHERE id = ${venueId}
-  `;
-}
-
 type ParsedAmenitiesResult = { json: string | null; error: string | null };
 
 /** עד 40 פריטים, עד 80 תווים לתווית — נשמר כ-JSON במסד */
@@ -730,22 +717,9 @@ export async function POST(req: NextRequest) {
       galleryImageUrls:
         galleryImagePaths.length > 0 ? JSON.stringify(galleryImagePaths) : null,
       autoReplyMessage: autoChk.value,
+      customAmenitiesJson,
     },
   });
-
-  try {
-    await persistCustomAmenitiesJson(venue.id, customAmenitiesJson);
-  } catch (e) {
-    console.error("persistCustomAmenitiesJson (create):", e);
-    await prisma.venue.delete({ where: { id: venue.id } });
-    return NextResponse.json(
-      {
-        error:
-          "שמירת מאפיינים מותאמים נכשלה. הרץ בטרמינל: npx prisma db push && npx prisma generate (עצור קודם את שרת הפיתוח).",
-      },
-      { status: 500 }
-    );
-  }
 
   venue = await prisma.venue.update({
     where: { id: venue.id },
@@ -1161,22 +1135,10 @@ export async function PUT(req: NextRequest) {
       coverImageUrl,
       galleryImageUrls,
       autoReplyMessage: autoReplyOut,
+      customAmenitiesJson,
       ...(coordPatch ?? {}),
     },
   });
-
-  try {
-    await persistCustomAmenitiesJson(id, customAmenitiesJson);
-  } catch (e) {
-    console.error("persistCustomAmenitiesJson (update):", e);
-    return NextResponse.json(
-      {
-        error:
-          "שמירת מאפיינים מותאמים נכשלה. הרץ בטרמינל: npx prisma db push && npx prisma generate (עצור קודם את שרת הפיתוח).",
-      },
-      { status: 500 }
-    );
-  }
 
   return NextResponse.json({ venue });
   } catch (e) {
