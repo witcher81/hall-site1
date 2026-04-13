@@ -18,6 +18,12 @@ import {
   parkingKindNeedsMap,
   type ParkingKind,
 } from "@/lib/venueParkingKind";
+import HallGeneralAmenitiesDnd, {
+  assignHallGeneralRowIds,
+  type BuiltinAmenityKeyFull,
+  type HallGeneralCustomRow,
+  type HallGeneralPriceMode,
+} from "@/components/HallGeneralAmenitiesDnd";
 
 const VenueLocationPicker = dynamic(
   () => import("@/components/VenueLocationPicker"),
@@ -63,11 +69,7 @@ type EventTypeProfileState = {
     extraPrice: string;
   }[];
 };
-type BuiltinAmenityKey =
-  | "hasFood"
-  | "hasDanceFloor"
-  | "hasTableSetup"
-  | "hasSoundSystem";
+type BuiltinAmenityKey = BuiltinAmenityKeyFull;
 const BUILTIN_AMENITY_KEYS: BuiltinAmenityKey[] = [
   "hasFood",
   "hasDanceFloor",
@@ -328,7 +330,7 @@ type Initial = {
   galleryImageUrls: string[];
   foodGalleryImageCount: number;
   customAmenitiesJson: string | null;
-  builtinAmenityPriceModes: Record<BuiltinAmenityKey, PriceMode>;
+  builtinAmenityPriceModes: Record<BuiltinAmenityKey, HallGeneralPriceMode>;
   builtinAmenityExtraPrices: Record<BuiltinAmenityKey, string>;
   eventTypeProfilesJson: string | null;
   latitude: number | null;
@@ -406,9 +408,9 @@ export default function VenueEditForm({
     () => (initial.city?.trim() ? [initial.city.trim()] : []),
     [initial.city]
   );
-  const [customAmenityRows, setCustomAmenityRows] = useState<
-    { label: string; checked: boolean; priceMode: PriceMode; extraPrice: string }[]
-  >(() => parsedInitialAmenities.general);
+  const [customAmenityRows, setCustomAmenityRows] = useState<HallGeneralCustomRow[]>(() =>
+    assignHallGeneralRowIds(parsedInitialAmenities.general)
+  );
   const [parkingKind, setParkingKind] = useState<ParkingKind>(
     () => initial.parkingKind
   );
@@ -424,7 +426,7 @@ export default function VenueEditForm({
   );
   const [mapFieldSyncNonce, setMapFieldSyncNonce] = useState(0);
   const [builtinAmenityPriceModes, setBuiltinAmenityPriceModes] = useState<
-    Record<BuiltinAmenityKey, PriceMode>
+    Record<BuiltinAmenityKey, HallGeneralPriceMode>
   >(initial.builtinAmenityPriceModes);
   const [builtinAmenityExtraPrices, setBuiltinAmenityExtraPrices] = useState<
     Record<BuiltinAmenityKey, string>
@@ -740,7 +742,12 @@ export default function VenueEditForm({
               ? Number(builtinAmenityExtraPrices[key])
               : null,
         })),
-        ...customAmenityRows,
+        ...customAmenityRows.map((r) => ({
+          label: r.label,
+          checked: r.checked,
+          priceMode: r.priceMode,
+          extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
+        })),
       ];
       fd.append("customAmenitiesJson", JSON.stringify(customAmenitiesPayload));
 
@@ -1030,170 +1037,22 @@ export default function VenueEditForm({
             <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
-            <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
-              סימון כאן משפיע על החיפוש והפנייה. לכל פריט אפשר לבחור אם הוא כלול או בתוספת תשלום. למטה
-              אפשר להוסיף פרטים נוספים לכל סוג אירוע בנפרד.
-            </p>
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              {HALL_GENERAL_PRICE_KEYS.map((item) => (
-                <div
-                  key={item.key}
-                  className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
-                >
-                  <label className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(form[item.key])}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, [item.key]: e.target.checked }))
-                      }
-                      className="checkbox-hall shrink-0"
-                    />
-                    <span className="font-medium">{item.label}</span>
-                  </label>
-                  <select
-                    value={builtinAmenityPriceModes[item.key]}
-                    onChange={(e) =>
-                      setBuiltinAmenityPriceModes((prev) => ({
-                        ...prev,
-                        [item.key]:
-                          e.target.value === "extra" ? "extra" : "included",
-                      }))
-                    }
-                    className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                  >
-                    <option value="included">כלול</option>
-                    <option value="extra">בתוספת תשלום</option>
-                  </select>
-                  {builtinAmenityPriceModes[item.key] === "extra" && (
-                    <input
-                      type="number"
-                      min={1}
-                      value={builtinAmenityExtraPrices[item.key]}
-                      onChange={(e) =>
-                        setBuiltinAmenityExtraPrices((prev) => ({
-                          ...prev,
-                          [item.key]: e.target.value,
-                        }))
-                      }
-                      className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                      placeholder="₪"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 border-t border-[#E0D4C3]/70 pt-3">
-              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
-                פרטים נוספים באולם (כללי)
-              </p>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {customAmenityRows.map((row, idx) => (
-                <div
-                  key={`gen-${row.label}-${idx}`}
-                  className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
-                >
-                  <label className="flex min-w-0 items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={row.checked}
-                      onChange={(e) =>
-                        setCustomAmenityRows((prev) =>
-                          prev.map((r, i) =>
-                            i === idx ? { ...r, checked: e.target.checked } : r
-                          )
-                        )
-                      }
-                      className="checkbox-hall shrink-0"
-                    />
-                    <span className="truncate">{row.label}</span>
-                  </label>
-                  <select
-                    value={row.priceMode}
-                    onChange={(e) =>
-                      setCustomAmenityRows((prev) =>
-                        prev.map((r, i) =>
-                          i === idx
-                            ? {
-                                ...r,
-                                priceMode:
-                                  e.target.value === "extra" ? "extra" : "included",
-                              }
-                            : r
-                        )
-                      )
-                    }
-                    className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                  >
-                    <option value="included">כלול</option>
-                    <option value="extra">בתוספת תשלום</option>
-                  </select>
-                  {row.priceMode === "extra" && (
-                    <input
-                      type="number"
-                      min={1}
-                      value={row.extraPrice}
-                      onChange={(e) =>
-                        setCustomAmenityRows((prev) =>
-                          prev.map((r, i) =>
-                            i === idx ? { ...r, extraPrice: e.target.value } : r
-                          )
-                        )
-                      }
-                      className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                      placeholder="₪"
-                    />
-                  )}
-                  <button
-                    type="button"
-                    className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
-                    onClick={() =>
-                      setCustomAmenityRows((prev) => prev.filter((_, i) => i !== idx))
-                    }
-                  >
-                    הסר
-                  </button>
-                </div>
-              ))}
-              </div>
-              <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-                <input
-                  type="text"
-                  value={customHallGeneralInput}
-                  onChange={(e) => setCustomHallGeneralInput(e.target.value)}
-                  className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-                  placeholder="הוסף פרט משלך…"
-                  maxLength={80}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const value = customHallGeneralInput.trim();
-                    if (!value) return;
-                    if (customAmenityRows.length >= 20) return;
-                    if (
-                      customAmenityRows.some(
-                        (r) => r.label.toLowerCase() === value.toLowerCase()
-                      )
-                    )
-                      return;
-                    setCustomAmenityRows((prev) => [
-                      ...prev,
-                      {
-                        label: value,
-                        checked: true,
-                        priceMode: "included",
-                        extraPrice: "",
-                      },
-                    ]);
-                    setCustomHallGeneralInput("");
-                  }}
-                  className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
-                >
-                  הוסף
-                </button>
-              </div>
-            </div>
+            <HallGeneralAmenitiesDnd
+              hasDanceFloor={form.hasDanceFloor}
+              hasTableSetup={form.hasTableSetup}
+              hasSoundSystem={form.hasSoundSystem}
+              onSetHallBuiltin={(key, checked) =>
+                setForm((f) => ({ ...f, [key]: checked }))
+              }
+              builtinAmenityPriceModes={builtinAmenityPriceModes}
+              setBuiltinAmenityPriceModes={setBuiltinAmenityPriceModes}
+              builtinAmenityExtraPrices={builtinAmenityExtraPrices}
+              setBuiltinAmenityExtraPrices={setBuiltinAmenityExtraPrices}
+              customAmenityRows={customAmenityRows}
+              setCustomAmenityRows={setCustomAmenityRows}
+              customHallGeneralInput={customHallGeneralInput}
+              setCustomHallGeneralInput={setCustomHallGeneralInput}
+            />
           </div>
 
           {eventTypes.length > 0 && (
