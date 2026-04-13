@@ -70,7 +70,7 @@ export function newHallGeneralCustomRow(label: string): HallGeneralCustomRow {
   return {
     id,
     label,
-    checked: true,
+    checked: false,
     priceMode: "included",
     extraPrice: "",
   };
@@ -489,7 +489,8 @@ export default function HallGeneralAmenitiesDnd({
           </button>
         </div>
         <p className="mt-2 text-[10px] text-[#9A928A]">
-          אחרי הוספה הפריט מופיע בעמודת «כלול»; גררו ל«בתוספת תשלום» אם רלוונטי.
+          אחרי הוספה הפריט מופיע ב«לא פעיל» — גררו ל«כלול במחיר» או ל«בתוספת תשלום», או סמנו את התיבה
+          ואז בחרו עמודה.
         </p>
       </div>
     </>
