@@ -313,6 +313,9 @@ function parseEventTypeProfilesJson(
 
       const hasVeganFoodParsed =
         profileObj.hasVeganFood === true || profileObj.hasVeganFood === "true";
+      const veganSameAsMealPrice =
+        profileObj.veganSameAsMealPrice === true ||
+        profileObj.veganSameAsMealPrice === "true";
       let veganMinPrice = toIntOrNull(
         profileObj.veganMinPrice == null ? null : String(profileObj.veganMinPrice)
       );
@@ -322,6 +325,9 @@ function parseEventTypeProfilesJson(
       if (!hasVeganFoodParsed || !servesFood) {
         veganMinPrice = null;
         veganMaxPrice = null;
+      } else if (veganSameAsMealPrice) {
+        veganMinPrice = minPrice;
+        veganMaxPrice = maxPrice;
       } else if (veganMinPrice != null || veganMaxPrice != null) {
         if (veganMinPrice == null || veganMaxPrice == null) {
           return {
@@ -350,6 +356,9 @@ function parseEventTypeProfilesJson(
         hasVeganFood: hasVeganFoodParsed,
       };
       if (hasVeganFoodParsed && servesFood) {
+        if (veganSameAsMealPrice) {
+          stored.veganSameAsMealPrice = true;
+        }
         if (veganMinPrice != null) stored.veganMinPrice = veganMinPrice;
         if (veganMaxPrice != null) stored.veganMaxPrice = veganMaxPrice;
       }

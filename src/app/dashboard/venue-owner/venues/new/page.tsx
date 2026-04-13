@@ -44,6 +44,8 @@ type EventTypeProfileState = {
   minPrice: string;
   maxPrice: string;
   hasVeganFood: boolean;
+  /** מחיר טבעוני = טווח המנה הרגילה */
+  veganSameAsMealPrice: boolean;
   veganMinPrice: string;
   veganMaxPrice: string;
   customHallRows: {
@@ -261,6 +263,7 @@ export default function NewVenuePage() {
         if (!profile) continue;
         const showMealPrices = et === "חתונה" || profile.hasFoodAtEvent === true;
         if (!profile.hasVeganFood || !showMealPrices) continue;
+        if (profile.veganSameAsMealPrice) continue;
         const vm = mealIntOrNull(profile.veganMinPrice);
         const vx = mealIntOrNull(profile.veganMaxPrice);
         if (vm != null || vx != null) {
@@ -310,6 +313,7 @@ export default function NewVenuePage() {
           minPrice: "",
           maxPrice: "",
           hasVeganFood: false,
+          veganSameAsMealPrice: true,
           veganMinPrice: "",
           veganMaxPrice: "",
           customHallRows: [] as EventTypeProfileState["customHallRows"],
@@ -327,10 +331,14 @@ export default function NewVenuePage() {
         const showMealPricesPayload = et === "חתונה" || base.hasFoodAtEvent === true;
         const veganPayload: Record<string, unknown> = {};
         if (base.hasVeganFood && showMealPricesPayload) {
-          const vm = mealIntOrNull(base.veganMinPrice);
-          const vx = mealIntOrNull(base.veganMaxPrice);
-          if (vm != null) veganPayload.veganMinPrice = vm;
-          if (vx != null) veganPayload.veganMaxPrice = vx;
+          if (base.veganSameAsMealPrice) {
+            veganPayload.veganSameAsMealPrice = true;
+          } else {
+            const vm = mealIntOrNull(base.veganMinPrice);
+            const vx = mealIntOrNull(base.veganMaxPrice);
+            if (vm != null) veganPayload.veganMinPrice = vm;
+            if (vx != null) veganPayload.veganMaxPrice = vx;
+          }
         }
         eventTypeProfilesPayload[et] = {
           minGuests: base.minGuests,
@@ -499,6 +507,7 @@ export default function NewVenuePage() {
             minPrice: "",
             maxPrice: "",
             hasVeganFood: false,
+            veganSameAsMealPrice: true,
             veganMinPrice: "",
             veganMaxPrice: "",
             customHallRows: [],
@@ -896,6 +905,7 @@ export default function NewVenuePage() {
                     minPrice: "",
                     maxPrice: "",
                     hasVeganFood: false,
+                    veganSameAsMealPrice: true,
                     veganMinPrice: "",
                     veganMaxPrice: "",
                     customHallRows: [],
@@ -946,6 +956,8 @@ export default function NewVenuePage() {
                                     hasFoodAtEvent: on,
                                     minPrice: on ? profile.minPrice : "",
                                     maxPrice: on ? profile.maxPrice : "",
+                                    hasVeganFood: on ? profile.hasVeganFood : false,
+                                    veganSameAsMealPrice: on ? profile.veganSameAsMealPrice : true,
                                     veganMinPrice: on ? profile.veganMinPrice : "",
                                     veganMaxPrice: on ? profile.veganMaxPrice : "",
                                   },
@@ -991,63 +1003,85 @@ export default function NewVenuePage() {
                             />
                           </>
                         )}
-                        <div className="mt-1 space-y-2 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
-                          <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-                            <input
-                              type="checkbox"
-                              checked={profile.hasVeganFood}
-                              onChange={(e) => {
-                                const on = e.target.checked;
-                                setEventTypeProfiles((prev) => ({
-                                  ...prev,
-                                  [et]: {
-                                    ...profile,
-                                    hasVeganFood: on,
-                                    veganMinPrice: on ? profile.veganMinPrice : "",
-                                    veganMaxPrice: on ? profile.veganMaxPrice : "",
-                                  },
-                                }));
-                              }}
-                              className="checkbox-hall shrink-0"
-                            />
-                            אפשרות לאוכל טבעוני (בסוג אירוע זה)
-                          </label>
-                          {profile.hasVeganFood && showMealPrices && (
-                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:pe-8">
+                        {showMealPrices && (
+                          <div className="mt-1 space-y-2 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
+                            <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
                               <input
-                                type="number"
-                                min={0}
-                                value={profile.veganMinPrice}
-                                onChange={(e) =>
+                                type="checkbox"
+                                checked={profile.hasVeganFood}
+                                onChange={(e) => {
+                                  const on = e.target.checked;
                                   setEventTypeProfiles((prev) => ({
                                     ...prev,
-                                    [et]: { ...profile, veganMinPrice: e.target.value },
-                                  }))
-                                }
-                                className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                                placeholder="מחיר מינימום למנה (טבעוני, ₪)"
+                                    [et]: {
+                                      ...profile,
+                                      hasVeganFood: on,
+                                      veganSameAsMealPrice: on ? profile.veganSameAsMealPrice : true,
+                                      veganMinPrice: on ? profile.veganMinPrice : "",
+                                      veganMaxPrice: on ? profile.veganMaxPrice : "",
+                                    },
+                                  }));
+                                }}
+                                className="checkbox-hall shrink-0"
                               />
-                              <input
-                                type="number"
-                                min={0}
-                                value={profile.veganMaxPrice}
-                                onChange={(e) =>
-                                  setEventTypeProfiles((prev) => ({
-                                    ...prev,
-                                    [et]: { ...profile, veganMaxPrice: e.target.value },
-                                  }))
-                                }
-                                className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                                placeholder="מחיר מקסימום למנה (טבעוני, ₪)"
-                              />
-                            </div>
-                          )}
-                          {profile.hasVeganFood && !showMealPrices && (
-                            <p className="text-[11px] text-[#6B6560]">
-                              כדי להזין מחיר למנה טבעונית, סמנו גם שיש אוכל באירוע מסוג זה.
-                            </p>
-                          )}
-                        </div>
+                              אפשרות לאוכל טבעוני (בסוג אירוע זה)
+                            </label>
+                            {profile.hasVeganFood && (
+                              <>
+                                <label className="flex cursor-pointer items-center gap-2 text-[11px] text-[#2A261F] sm:pe-8">
+                                  <input
+                                    type="checkbox"
+                                    checked={profile.veganSameAsMealPrice}
+                                    onChange={(e) => {
+                                      const same = e.target.checked;
+                                      setEventTypeProfiles((prev) => ({
+                                        ...prev,
+                                        [et]: {
+                                          ...profile,
+                                          veganSameAsMealPrice: same,
+                                          veganMinPrice: same ? "" : profile.veganMinPrice,
+                                          veganMaxPrice: same ? "" : profile.veganMaxPrice,
+                                        },
+                                      }));
+                                    }}
+                                    className="checkbox-hall shrink-0"
+                                  />
+                                  אותו מחיר כמו למנה שצוין למעלה
+                                </label>
+                                {!profile.veganSameAsMealPrice && (
+                                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:pe-8">
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={profile.veganMinPrice}
+                                      onChange={(e) =>
+                                        setEventTypeProfiles((prev) => ({
+                                          ...prev,
+                                          [et]: { ...profile, veganMinPrice: e.target.value },
+                                        }))
+                                      }
+                                      className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                                      placeholder="מחיר מינימום למנה (טבעוני, ₪)"
+                                    />
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={profile.veganMaxPrice}
+                                      onChange={(e) =>
+                                        setEventTypeProfiles((prev) => ({
+                                          ...prev,
+                                          [et]: { ...profile, veganMaxPrice: e.target.value },
+                                        }))
+                                      }
+                                      className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                                      placeholder="מחיר מקסימום למנה (טבעוני, ₪)"
+                                    />
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        )}
                         <div className="mt-1 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
                           <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
                             מה יש באולם לסוג &quot;{et}&quot;? (אופציונלי)
