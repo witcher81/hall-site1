@@ -3,7 +3,7 @@ import { sanitizeInternalAppHref } from "@/lib/safeHref";
 
 type CreateNotificationInput = {
   userId: number;
-  type: "NEW_REQUEST" | "INQUIRY_REPLIED" | "NEW_VENUE_IN_CITY";
+  type: "NEW_REQUEST" | "INQUIRY_REPLIED" | "NEW_VENUE_IN_CITY" | "WELCOME";
   title: string;
   body?: string | null;
   href?: string | null;
