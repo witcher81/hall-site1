@@ -22,7 +22,7 @@ import {
   type SearchFilters,
 } from "@/lib/hallsDecision";
 import {
-  PARKING_KIND_LABELS,
+  PARKING_KIND_SHORT_LABELS,
   PARKING_KINDS,
   resolveParkingFilterFromSearchParams,
 } from "@/lib/venueParkingKind";
@@ -860,7 +860,7 @@ export default function HallsSearchClient({
                 <option value="">לא משנה</option>
                 {PARKING_KINDS.map((k) => (
                   <option key={k} value={k}>
-                    {PARKING_KIND_LABELS[k]}
+                    {PARKING_KIND_SHORT_LABELS[k]}
                   </option>
                 ))}
               </select>

@@ -56,6 +56,14 @@ export const PARKING_KIND_LABELS: Record<ParkingKind, string> = {
   paid_lot: "חניון בתשלום בקרבת מקום — לסמן במפה",
 };
 
+/** תוויות קצרות לחיפוש — אותם ארבעה סוגים כמו בטופס בעלים, בלי טקסט ההדרכה הארוך */
+export const PARKING_KIND_SHORT_LABELS: Record<ParkingKind, string> = {
+  none: "ללא חניה / לא רלוונטי",
+  adjacent: "חניה צמודה לאולם",
+  nearby: "חניה בקרבת מקום (מסומנת במפה)",
+  paid_lot: "חניון בתשלום בקרבת מקום",
+};
+
 function hasValidIsraelParkingCoords(
   lat: number | null,
   lng: number | null
