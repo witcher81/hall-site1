@@ -23,6 +23,7 @@ import {
   parkingKindNeedsMap,
   type ParkingKind,
 } from "@/lib/venueParkingKind";
+import { parseVenueTypeFromForm } from "@/lib/venueTypeOptions";
 
 const MAX_INT = 2_147_483_647;
 
@@ -556,6 +557,11 @@ export async function POST(req: NextRequest) {
   );
   if (!foodChk.ok) return badRequest(foodChk.error);
 
+  const venueTypeParsed = parseVenueTypeFromForm(formData.get("venueType"));
+  if (venueTypeParsed.error) {
+    return badRequest(venueTypeParsed.error);
+  }
+
   const gErr = validateGuestRange(minGuestsResolved, maxGuestsResolved);
   if (gErr) return badRequest(gErr);
   const pErr = validatePriceMinMax(minPriceResolved, maxPriceResolved);
@@ -709,6 +715,7 @@ export async function POST(req: NextRequest) {
       hasChuppaCovered,
       hasVeganFood,
       kashrut: foodChk.value,
+      venueType: venueTypeParsed.value!,
       hasParkingNearby: parkingParsedPost.hasParkingNearby,
       parkingKind: parkingParsedPost.parkingKind,
       parkingLatitude: parkingParsedPost.parkingLatitude,
@@ -953,6 +960,11 @@ export async function PUT(req: NextRequest) {
   if (!foodChk.ok) return badRequest(foodChk.error);
   const autoReplyOut = autoChk.value;
 
+  const venueTypeParsedPut = parseVenueTypeFromForm(formData.get("venueType"));
+  if (venueTypeParsedPut.error) {
+    return badRequest(venueTypeParsedPut.error);
+  }
+
   const gErrPut = validateGuestRange(minGuestsResolved, maxGuestsResolved);
   if (gErrPut) return badRequest(gErrPut);
   const pErrPut = validatePriceMinMax(minPriceResolved, maxPriceResolved);
@@ -1128,6 +1140,7 @@ export async function PUT(req: NextRequest) {
       hasChuppaCovered,
       hasVeganFood,
       kashrut: foodChk.value,
+      venueType: venueTypeParsedPut.value!,
       hasParkingNearby: parkingParsedPut.hasParkingNearby,
       parkingKind: parkingParsedPut.parkingKind,
       parkingLatitude: parkingParsedPut.parkingLatitude,

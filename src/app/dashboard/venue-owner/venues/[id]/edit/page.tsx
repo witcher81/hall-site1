@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
+import { resolveVenueTypeInitial } from "@/lib/venueTypeOptions";
 import VenueEditForm from "./VenueEditForm";
 
 type PriceMode = "included" | "extra";
@@ -164,6 +165,7 @@ export default async function VenueEditPage({
         }),
         parkingLatitude: venue.parkingLatitude ?? null,
         parkingLongitude: venue.parkingLongitude ?? null,
+        venueType: resolveVenueTypeInitial(venue.venueType),
       }}
     />
   );

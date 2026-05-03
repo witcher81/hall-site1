@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveParkingFilterFromSearchParams } from "@/lib/venueParkingKind";
+import { VENUE_TYPE_VALUE_SET } from "@/lib/venueTypeOptions";
 
 /**
  * רשימת אולמות לציבור (מחפשים) – עם סינון אופציונלי
@@ -78,6 +79,12 @@ export async function GET(req: NextRequest) {
     where.parkingKind = { equals: parkingKindFilter };
   }
   if (venueType && venueType !== "") {
+    if (!VENUE_TYPE_VALUE_SET.has(venueType)) {
+      return NextResponse.json(
+        { error: "סוג מקום לא תקין", venues: [] },
+        { status: 400 }
+      );
+    }
     where.venueType = { equals: venueType };
   }
 

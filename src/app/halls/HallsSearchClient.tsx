@@ -26,6 +26,7 @@ import {
   PARKING_KINDS,
   resolveParkingFilterFromSearchParams,
 } from "@/lib/venueParkingKind";
+import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
 
 const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
 
@@ -874,10 +875,11 @@ export default function HallsSearchClient({
                 className={fieldClass}
               >
                 <option value="">כל הסוגים</option>
-                <option value="אולם">אולם</option>
-                <option value="גן">גן אירועים</option>
-                <option value="גן ואולם">גן ואולם</option>
-                <option value="רופטופ">רופטופ</option>
+                {VENUE_TYPE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

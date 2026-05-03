@@ -18,6 +18,7 @@ import {
   parkingKindNeedsMap,
   type ParkingKind,
 } from "@/lib/venueParkingKind";
+import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
 import HallGeneralAmenitiesDnd, {
   assignHallGeneralRowIds,
   type BuiltinAmenityKeyFull,
@@ -376,6 +377,7 @@ type Initial = {
   parkingKind: ParkingKind;
   parkingLatitude: number | null;
   parkingLongitude: number | null;
+  venueType: string;
 };
 
 export default function VenueEditForm({
@@ -406,6 +408,7 @@ export default function VenueEditForm({
     hasSoundSystem: initial.hasSoundSystem,
     hasVeganFood: initial.hasVeganFood,
     foodKashrut: initial.foodKashrut,
+    venueType: initial.venueType,
   });
   const [eventTypes, setEventTypes] = useState<string[]>(initial.eventTypes);
   const [customEventLabels, setCustomEventLabels] = useState<string[]>(() =>
@@ -697,6 +700,7 @@ export default function VenueEditForm({
       fd.append("name", form.name);
       fd.append("city", form.city);
       fd.append("address", form.address);
+      fd.append("venueType", form.venueType);
       const eventTypeProfilesPayload: Record<string, unknown> = {};
       for (const et of eventTypes) {
         const row = eventTypeProfiles[et] ?? {
@@ -908,6 +912,26 @@ export default function VenueEditForm({
                 placeholder="רחוב, מספר"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-[#5F5F5F]">
+              סוג המקום *
+            </label>
+            <select
+              required
+              value={form.venueType}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, venueType: e.target.value }))
+              }
+              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+            >
+              {VENUE_TYPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">

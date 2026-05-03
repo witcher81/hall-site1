@@ -18,6 +18,7 @@ import {
   parkingKindNeedsMap,
   type ParkingKind,
 } from "@/lib/venueParkingKind";
+import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
 import HallGeneralAmenitiesDnd, {
   type BuiltinAmenityKeyFull,
   type HallGeneralCustomRow,
@@ -102,6 +103,7 @@ export default function NewVenuePage() {
     name: "",
     city: "",
     address: "",
+    venueType: "אולם",
     description: "",
     hasChuppaOutdoor: false,
     hasChuppaCovered: false,
@@ -287,6 +289,7 @@ export default function NewVenuePage() {
       fd.append("name", form.name);
       fd.append("city", form.city);
       fd.append("address", form.address);
+      fd.append("venueType", form.venueType);
       if (pickedLat != null && pickedLng != null) {
         fd.append("latitude", String(pickedLat));
         fd.append("longitude", String(pickedLng));
@@ -693,6 +696,26 @@ export default function NewVenuePage() {
                 placeholder="לדוגמה: הרצל 15 או יוני נתניהו 30"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-[#5F5F5F]">
+              סוג המקום *
+            </label>
+            <select
+              required
+              value={form.venueType}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, venueType: e.target.value }))
+              }
+              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+            >
+              {VENUE_TYPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div
