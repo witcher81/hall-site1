@@ -38,6 +38,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Prisma client מותאם אישית / גנרטור — לא ללינט
+    "generated/**",
   ]),
 ]);
 

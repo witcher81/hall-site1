@@ -20,6 +20,7 @@
     "build": "node scripts/migrate-deploy-with-retry.mjs && next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "dev:all": "npm run dev:stop && concurrently \"npm run dev\" \"npx prisma studio --port 5555 --browser none\" \"powershell -NoProfile -Command \\\"Start-Sleep -Seconds 2; Start-Process 'http://localhost:5555'\\\"\""
   },
   "dependencies": {
