@@ -1,21 +1,32 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type HallGeneralPriceMode = "included" | "extra";
 
-export type HallGeneralBuiltinKey =
-  | "hasDanceFloor"
-  | "hasTableSetup"
-  | "hasSoundSystem";
+/** כל פריטי «מוצרים שהאולם מציעה» — סדר תצוגה כמו בחיפוש */
+export const HALL_VENUE_PRODUCT_DND_ITEMS = [
+  { key: "seaView", label: "נוף לים", supportsExtraPrice: false as const },
+  { key: "boutique", label: "אירועי בוטיק", supportsExtraPrice: false as const },
+  { key: "accessible", label: "נגישות לנכים", supportsExtraPrice: false as const },
+  { key: "hasChuppa", label: "כולל חופה", supportsExtraPrice: false as const },
+  { key: "hasFood", label: "כולל אוכל", supportsExtraPrice: true as const },
+  { key: "hasTableSetup", label: "סידור שולחנות", supportsExtraPrice: true as const },
+  { key: "hasDanceFloor", label: "רחבת ריקודים", supportsExtraPrice: true as const },
+  { key: "hasSoundSystem", label: "מערכת הגברה", supportsExtraPrice: true as const },
+  { key: "hasBridalRoom", label: "חדר חתן/כלה", supportsExtraPrice: false as const },
+] as const;
 
-/** כולל hasFood — תואם ל-state בטפסי אולם (מעדכנים רק מפתחות האולם) */
-export type BuiltinAmenityKeyFull =
-  | "hasFood"
-  | "hasDanceFloor"
-  | "hasTableSetup"
-  | "hasSoundSystem";
+export type HallGeneralBuiltinKey = (typeof HALL_VENUE_PRODUCT_DND_ITEMS)[number]["key"];
+
+/** תואם לטפסי אולם + JSON מובנה */
+export type BuiltinAmenityKeyFull = HallGeneralBuiltinKey;
+
+export const VENUE_PRODUCT_BUILTIN_KEYS: HallGeneralBuiltinKey[] =
+  HALL_VENUE_PRODUCT_DND_ITEMS.map((i) => i.key);
+
+export type VenueProductBools = Record<HallGeneralBuiltinKey, boolean>;
 
 export type HallGeneralCustomRow = {
   id: string;
@@ -25,15 +36,6 @@ export type HallGeneralCustomRow = {
   extraPrice: string;
 };
 
-const HALL_GENERAL_ITEMS: readonly {
-  key: HallGeneralBuiltinKey;
-  label: string;
-}[] = [
-  { key: "hasDanceFloor", label: "רחבת ריקודים" },
-  { key: "hasTableSetup", label: "סידור שולחנות" },
-  { key: "hasSoundSystem", label: "מערכת הגברה" },
-];
-
 const DND_MIME = "application/x-hall-general-amenity";
 
 type DragPayload =
@@ -42,6 +44,10 @@ type DragPayload =
 
 type DropZone = "included" | "extra" | "inactive";
 
+function itemMeta(key: HallGeneralBuiltinKey) {
+  return HALL_VENUE_PRODUCT_DND_ITEMS.find((x) => x.key === key)!;
+}
+
 function parsePayload(raw: string): DragPayload | null {
   try {
     const o = JSON.parse(raw) as unknown;
@@ -49,7 +55,7 @@ function parsePayload(raw: string): DragPayload | null {
     const rec = o as Record<string, unknown>;
     if (rec.kind === "builtin" && typeof rec.key === "string") {
       const key = rec.key as HallGeneralBuiltinKey;
-      if (HALL_GENERAL_ITEMS.some((x) => x.key === key)) return { kind: "builtin", key };
+      if (VENUE_PRODUCT_BUILTIN_KEYS.includes(key)) return { kind: "builtin", key };
       return null;
     }
     if (rec.kind === "custom" && typeof rec.id === "string" && rec.id.length > 0) {
@@ -93,10 +99,10 @@ type BuiltinPriceModes = Record<BuiltinAmenityKeyFull, HallGeneralPriceMode>;
 type BuiltinExtraPrices = Record<BuiltinAmenityKeyFull, string>;
 
 type Props = {
-  hasDanceFloor: boolean;
-  hasTableSetup: boolean;
-  hasSoundSystem: boolean;
+  productBools: VenueProductBools;
   onSetHallBuiltin: (key: HallGeneralBuiltinKey, checked: boolean) => void;
+  /** פריטים שמנוהלים במקום אחר (חתונה / אוכל מאירועים) — לא מוצגים ב-DND */
+  excludedBuiltinKeys?: readonly HallGeneralBuiltinKey[];
   builtinAmenityPriceModes: BuiltinPriceModes;
   setBuiltinAmenityPriceModes: Dispatch<SetStateAction<BuiltinPriceModes>>;
   builtinAmenityExtraPrices: BuiltinExtraPrices;
@@ -107,20 +113,10 @@ type Props = {
   setCustomHallGeneralInput: Dispatch<SetStateAction<string>>;
 };
 
-function hallBool(
-  key: HallGeneralBuiltinKey,
-  p: Pick<Props, "hasDanceFloor" | "hasTableSetup" | "hasSoundSystem">
-) {
-  if (key === "hasDanceFloor") return p.hasDanceFloor;
-  if (key === "hasTableSetup") return p.hasTableSetup;
-  return p.hasSoundSystem;
-}
-
 export default function HallGeneralAmenitiesDnd({
-  hasDanceFloor,
-  hasTableSetup,
-  hasSoundSystem,
+  productBools,
   onSetHallBuiltin,
+  excludedBuiltinKeys = [],
   builtinAmenityPriceModes,
   setBuiltinAmenityPriceModes,
   builtinAmenityExtraPrices,
@@ -130,7 +126,14 @@ export default function HallGeneralAmenitiesDnd({
   customHallGeneralInput,
   setCustomHallGeneralInput,
 }: Props) {
-  const formBools = { hasDanceFloor, hasTableSetup, hasSoundSystem };
+  const dndItems = useMemo(
+    () =>
+      HALL_VENUE_PRODUCT_DND_ITEMS.filter(
+        (item) => !excludedBuiltinKeys.includes(item.key)
+      ),
+    [excludedBuiltinKeys]
+  );
+
   const [dragOver, setDragOver] = useState<DropZone | null>(null);
 
   useEffect(() => {
@@ -195,6 +198,7 @@ export default function HallGeneralAmenitiesDnd({
 
   const renderBuiltinCard = (key: HallGeneralBuiltinKey, label: string, zone: DropZone) => {
     const inExtra = zone === "extra";
+    const { supportsExtraPrice } = itemMeta(key);
     return (
       <div
         key={`${zone}-b-${key}`}
@@ -219,7 +223,7 @@ export default function HallGeneralAmenitiesDnd({
           />
           <span className="font-medium">{label}</span>
         </label>
-        {inExtra && (
+        {inExtra && supportsExtraPrice ? (
           <input
             type="number"
             min={1}
@@ -234,7 +238,7 @@ export default function HallGeneralAmenitiesDnd({
             className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
             placeholder="₪"
           />
-        )}
+        ) : null}
       </div>
     );
   };
@@ -300,14 +304,14 @@ export default function HallGeneralAmenitiesDnd({
     );
   };
 
-  const inactiveBuiltins = HALL_GENERAL_ITEMS.filter((item) => !hallBool(item.key, formBools));
+  const inactiveBuiltins = dndItems.filter((item) => !productBools[item.key]);
   const inactiveCustoms = customAmenityRows.filter((r) => !r.checked);
 
-  const includedBuiltins = HALL_GENERAL_ITEMS.filter(
-    (item) => hallBool(item.key, formBools) && builtinAmenityPriceModes[item.key] === "included"
+  const includedBuiltins = dndItems.filter(
+    (item) => productBools[item.key] && builtinAmenityPriceModes[item.key] === "included"
   );
-  const extraBuiltins = HALL_GENERAL_ITEMS.filter(
-    (item) => hallBool(item.key, formBools) && builtinAmenityPriceModes[item.key] === "extra"
+  const extraBuiltins = dndItems.filter(
+    (item) => productBools[item.key] && builtinAmenityPriceModes[item.key] === "extra"
   );
   const includedCustoms = customAmenityRows.filter((r) => r.checked && r.priceMode === "included");
   const extraCustoms = customAmenityRows.filter((r) => r.checked && r.priceMode === "extra");

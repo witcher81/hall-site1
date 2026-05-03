@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import {
+  type BuiltinAmenityKeyFull,
+  VENUE_PRODUCT_BUILTIN_KEYS,
+} from "@/components/HallGeneralAmenitiesDnd";
 import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import { resolveVenueTypeInitial } from "@/lib/venueTypeOptions";
 import VenueEditForm from "./VenueEditForm";
@@ -35,11 +39,7 @@ function anyEventOffersFoodFromStored(
 }
 
 type PriceMode = "included" | "extra";
-type BuiltinAmenityKey =
-  | "hasFood"
-  | "hasDanceFloor"
-  | "hasTableSetup"
-  | "hasSoundSystem";
+type BuiltinAmenityKey = BuiltinAmenityKeyFull;
 
 export default async function VenueEditPage({
   params,
@@ -126,18 +126,12 @@ export default async function VenueEditPage({
   const foodGalleryImageCount = await prisma.venueGalleryImage.count({
     where: { venueId: venue.id, category: "FOOD" },
   });
-  const builtinAmenityPriceModes: Record<BuiltinAmenityKey, PriceMode> = {
-    hasFood: "included",
-    hasDanceFloor: "included",
-    hasTableSetup: "included",
-    hasSoundSystem: "included",
-  };
-  const builtinAmenityExtraPrices: Record<BuiltinAmenityKey, string> = {
-    hasFood: "",
-    hasDanceFloor: "",
-    hasTableSetup: "",
-    hasSoundSystem: "",
-  };
+  const builtinAmenityPriceModes = Object.fromEntries(
+    VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, "included" as PriceMode])
+  ) as Record<BuiltinAmenityKey, PriceMode>;
+  const builtinAmenityExtraPrices = Object.fromEntries(
+    VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, ""])
+  ) as Record<BuiltinAmenityKey, string>;
   if (venue.customAmenitiesJson) {
     try {
       const parsed = JSON.parse(venue.customAmenitiesJson) as unknown;

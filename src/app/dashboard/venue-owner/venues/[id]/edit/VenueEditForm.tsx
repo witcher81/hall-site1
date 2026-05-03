@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
   FormEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -19,15 +20,16 @@ import {
   type ParkingKind,
 } from "@/lib/venueParkingKind";
 import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
+import { VENUE_OFFER_PRODUCTS_HEADING } from "@/components/VenueOfferProductsSection";
 import HallGeneralAmenitiesDnd, {
   assignHallGeneralRowIds,
   type BuiltinAmenityKeyFull,
+  type HallGeneralBuiltinKey,
   type HallGeneralCustomRow,
   type HallGeneralPriceMode,
+  type VenueProductBools,
+  VENUE_PRODUCT_BUILTIN_KEYS,
 } from "@/components/HallGeneralAmenitiesDnd";
-import VenueOfferProductsSection, {
-  type VenueOfferProductsSlice,
-} from "@/components/VenueOfferProductsSection";
 
 const VenueLocationPicker = dynamic(
   () => import("@/components/VenueLocationPicker"),
@@ -75,14 +77,10 @@ type EventTypeProfileState = {
   }[];
 };
 type BuiltinAmenityKey = BuiltinAmenityKeyFull;
-const BUILTIN_AMENITY_KEYS: BuiltinAmenityKey[] = [
-  "hasFood",
-  "hasDanceFloor",
-  "hasTableSetup",
-  "hasSoundSystem",
-];
+const BUILTIN_AMENITY_KEYS: BuiltinAmenityKey[] = [...VENUE_PRODUCT_BUILTIN_KEYS];
 
 const HALL_GENERAL_PRICE_KEYS = [
+  { key: "hasFood" as const, label: "כולל אוכל" },
   { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
   { key: "hasTableSetup" as const, label: "סידור שולחנות" },
   { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
@@ -494,7 +492,14 @@ export default function VenueEditForm({
   );
   const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
 
-  const offerProductsValues: VenueOfferProductsSlice = {
+  const excludedDndBuiltinKeys = useMemo((): HallGeneralBuiltinKey[] => {
+    const out: HallGeneralBuiltinKey[] = [];
+    if (isWeddingSelected) out.push("hasChuppa");
+    if (anyEventOffersFood) out.push("hasFood");
+    return out;
+  }, [isWeddingSelected, anyEventOffersFood]);
+
+  const hallProductBools: VenueProductBools = {
     seaView: form.seaView,
     boutique: form.boutique,
     accessible: form.accessible,
@@ -510,22 +515,22 @@ export default function VenueEditForm({
     hasBridalRoom: form.hasBridalRoom,
   };
 
-  function handleOfferProductChange<K extends keyof VenueOfferProductsSlice>(
-    key: K,
-    checked: boolean
-  ) {
-    if (key === "hasChuppa" && isWeddingSelected) return;
-    if (key === "hasFood" && anyEventOffersFood) return;
-    if (key === "hasChuppa") {
-      setForm((f) => ({ ...f, productHasChuppa: checked }));
-      return;
-    }
-    if (key === "hasFood") {
-      setForm((f) => ({ ...f, productHasFood: checked }));
-      return;
-    }
-    setForm((f) => ({ ...f, [key]: checked }) as typeof f);
-  }
+  const setHallBuiltin = useCallback(
+    (key: HallGeneralBuiltinKey, checked: boolean) => {
+      if (key === "hasChuppa") {
+        if (isWeddingSelected) return;
+        setForm((f) => ({ ...f, productHasChuppa: checked }));
+        return;
+      }
+      if (key === "hasFood") {
+        if (anyEventOffersFood) return;
+        setForm((f) => ({ ...f, productHasFood: checked }));
+        return;
+      }
+      setForm((f) => ({ ...f, [key]: checked }) as typeof f);
+    },
+    [isWeddingSelected, anyEventOffersFood]
+  );
   const anyEventHasDanceFloor = form.hasDanceFloor;
 
   const coverFileRef = useRef<HTMLInputElement>(null);
@@ -674,9 +679,18 @@ export default function VenueEditForm({
         setSaving(false);
         return;
       }
+      const anyEventFoodValidate =
+        eventTypes.includes("חתונה") ||
+        eventTypes.some(
+          (et) => et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
+        );
       for (const { key, label } of HALL_GENERAL_PRICE_KEYS) {
+        const pricingActive =
+          key === "hasFood"
+            ? anyEventFoodValidate || form.productHasFood
+            : form[key];
         if (
-          form[key] &&
+          pricingActive &&
           builtinAmenityPriceModes[key] === "extra" &&
           !isPositivePrice(builtinAmenityExtraPrices[key])
         ) {
@@ -827,22 +841,29 @@ export default function VenueEditForm({
         fd.append("eventTypes", JSON.stringify(eventTypes));
       }
       const customAmenitiesPayload = [
-        ...BUILTIN_AMENITY_KEYS.map((key) => ({
-          label: `__builtin__:${key}`,
-          checked:
+        ...BUILTIN_AMENITY_KEYS.map((key) => {
+          const checked =
             key === "hasFood"
               ? hasFoodForApi
-              : key === "hasDanceFloor"
-                ? anyEventDanceFloor
-                : key === "hasTableSetup"
-                  ? anyEventTableSetup
-                  : anyEventSoundSystem,
-          priceMode: builtinAmenityPriceModes[key],
-          extraPrice:
-            builtinAmenityPriceModes[key] === "extra"
-              ? Number(builtinAmenityExtraPrices[key])
-              : null,
-        })),
+              : key === "hasChuppa"
+                ? hasChuppaForApi
+                : key === "hasDanceFloor"
+                  ? anyEventDanceFloor
+                  : key === "hasTableSetup"
+                    ? anyEventTableSetup
+                    : key === "hasSoundSystem"
+                      ? anyEventSoundSystem
+                      : Boolean(form[key as keyof typeof form]);
+          return {
+            label: `__builtin__:${key}`,
+            checked,
+            priceMode: builtinAmenityPriceModes[key],
+            extraPrice:
+              builtinAmenityPriceModes[key] === "extra"
+                ? Number(builtinAmenityExtraPrices[key])
+                : null,
+          };
+        }),
         ...customAmenityRows.map((r) => ({
           label: r.label,
           checked: r.checked,
@@ -1155,25 +1176,19 @@ export default function VenueEditForm({
           </div>
 
           <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <VenueOfferProductsSection
-              values={offerProductsValues}
-              onChange={handleOfferProductChange}
-              chuppaDetailLocked={isWeddingSelected}
-              foodLockedFromEvents={anyEventOffersFood}
-            />
-          </div>
-
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+            <p className="mb-1 text-xs font-semibold text-[#5F5F5F]">
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
+            <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+              {VENUE_OFFER_PRODUCTS_HEADING}
+              {isWeddingSelected || anyEventOffersFood
+                ? " — חופה ואוכל לפי חתונה/סוגי אירוע מוגדרים למטה (לא כפול כאן)."
+                : " — גרירה לעמודות «כלול במחיר» או «בתוספת תשלום» (כשמחיר נפרד רלוונטי)."}
+            </p>
             <HallGeneralAmenitiesDnd
-              hasDanceFloor={form.hasDanceFloor}
-              hasTableSetup={form.hasTableSetup}
-              hasSoundSystem={form.hasSoundSystem}
-              onSetHallBuiltin={(key, checked) =>
-                setForm((f) => ({ ...f, [key]: checked }))
-              }
+              productBools={hallProductBools}
+              onSetHallBuiltin={setHallBuiltin}
+              excludedBuiltinKeys={excludedDndBuiltinKeys}
               builtinAmenityPriceModes={builtinAmenityPriceModes}
               setBuiltinAmenityPriceModes={setBuiltinAmenityPriceModes}
               builtinAmenityExtraPrices={builtinAmenityExtraPrices}
