@@ -71,7 +71,9 @@ export default function DevUserSwitcher() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: addForm.name || undefined,
-          email: addForm.email,
+          ...(addForm.email.trim()
+            ? { email: addForm.email.trim() }
+            : {}),
           password: addForm.password,
           role: addForm.role,
         }),
@@ -159,10 +161,13 @@ export default function DevUserSwitcher() {
                   }
                   className="mb-1.5 w-full rounded border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] placeholder:text-[#8A837A]"
                 />
+                <p className="mb-1 text-[11px] leading-snug text-[#6B6560]">
+                  אימייל (אופציונלי): אם תשאיר ריק, תיווצר כתובת טכנית ייחודית על
+                  בסיס אימייל האדמין שלך (+תג) — כדי שלא תאבד את מתג ההחלפה.
+                </p>
                 <input
                   type="email"
-                  required
-                  placeholder="אימייל *"
+                  placeholder="אימייל (ריק = אוטומטי)"
                   value={addForm.email}
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, email: e.target.value }))

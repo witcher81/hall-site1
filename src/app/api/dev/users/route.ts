@@ -6,6 +6,7 @@ import {
   allowDevUserSwitchDeployment,
   isAdminEmail,
 } from "@/lib/admin";
+import { buildManagedDevUserEmailForAdmin } from "@/lib/devManagedUserEmail";
 import {
   validateEmail,
   validateNewPassword,
@@ -87,9 +88,14 @@ export async function POST(req: NextRequest) {
     role?: string;
   };
 
-  const emailResult = validateEmail(body.email);
-  if (!emailResult.ok) {
-    return NextResponse.json({ error: emailResult.error }, { status: 400 });
+  const rawEmail =
+    typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const useCustomEmail = rawEmail.length > 0;
+  if (useCustomEmail) {
+    const emailResult = validateEmail(rawEmail);
+    if (!emailResult.ok) {
+      return NextResponse.json({ error: emailResult.error }, { status: 400 });
+    }
   }
   const passResult = validateNewPassword(body.password);
   if (!passResult.ok) {
@@ -100,33 +106,49 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "סוג משתמש לא תקין" }, { status: 400 });
   }
 
-  try {
-    const passwordHash = await hashPassword(passResult.value);
-    const user = await prisma.user.create({
-      data: {
-        name: (body.name ?? "").trim() || null,
-        email: emailResult.value,
-        passwordHash,
-        role: roleUpper,
-        emailVerified: true,
-        phone: null,
-      },
-      select: { id: true, name: true, email: true, role: true },
-    });
-    await prisma.devManagedUser.create({
-      data: {
-        adminUserId: session.id,
-        managedUserId: user.id,
-      },
-    });
-    return NextResponse.json({ user }, { status: 201 });
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      return NextResponse.json({ error: "האימייל כבר רשום" }, { status: 409 });
+  const passwordHash = await hashPassword(passResult.value);
+  const maxAttempts = useCustomEmail ? 1 : 10;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const emailResult = useCustomEmail
+      ? validateEmail(rawEmail)
+      : validateEmail(buildManagedDevUserEmailForAdmin(session.email));
+    if (!emailResult.ok) {
+      return NextResponse.json({ error: emailResult.error }, { status: 400 });
     }
-    console.error("dev users POST:", e);
-    return NextResponse.json({ error: "שגיאה ביצירת המשתמש" }, { status: 500 });
+
+    try {
+      const user = await prisma.user.create({
+        data: {
+          name: (body.name ?? "").trim() || null,
+          email: emailResult.value,
+          passwordHash,
+          role: roleUpper,
+          emailVerified: true,
+          phone: null,
+        },
+        select: { id: true, name: true, email: true, role: true },
+      });
+      await prisma.devManagedUser.create({
+        data: {
+          adminUserId: session.id,
+          managedUserId: user.id,
+        },
+      });
+      return NextResponse.json({ user }, { status: 201 });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+        if (useCustomEmail) {
+          return NextResponse.json({ error: "האימייל כבר רשום" }, { status: 409 });
+        }
+        continue;
+      }
+      console.error("dev users POST:", e);
+      return NextResponse.json({ error: "שגיאה ביצירת המשתמש" }, { status: 500 });
+    }
   }
+
+  return NextResponse.json({ error: "שגיאה ביצירת המשתמש" }, { status: 500 });
 }
 
 /**
