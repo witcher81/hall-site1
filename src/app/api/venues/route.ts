@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { resolveParkingFilterFromSearchParams } from "@/lib/venueParkingKind";
 
 /**
  * רשימת אולמות לציבור (מחפשים) – עם סינון אופציונלי
@@ -16,7 +17,8 @@ export async function GET(req: NextRequest) {
   const hallRentalMax = searchParams.get("hallRentalMax");
   const eventType = searchParams.get("eventType")?.trim();
   const kashrut = searchParams.get("kashrut")?.trim();
-  const parking = searchParams.get("parking")?.trim();
+  const parkingKindParam = searchParams.get("parkingKind")?.trim();
+  const parkingLegacy = searchParams.get("parking")?.trim();
   const venueType = searchParams.get("venueType")?.trim();
   const seaView = searchParams.get("seaView");
   const boutique = searchParams.get("boutique");
@@ -68,8 +70,12 @@ export async function GET(req: NextRequest) {
   if (kashrut && kashrut !== "") {
     where.kashrut = { equals: kashrut };
   }
-  if (parking && parking !== "") {
-    where.parking = { equals: parking };
+  const parkingKindFilter = resolveParkingFilterFromSearchParams(
+    parkingKindParam,
+    parkingLegacy
+  );
+  if (parkingKindFilter) {
+    where.parkingKind = { equals: parkingKindFilter };
   }
   if (venueType && venueType !== "") {
     where.venueType = { equals: venueType };
@@ -114,6 +120,7 @@ export async function GET(req: NextRequest) {
       description: true,
       kashrut: true,
       parking: true,
+      parkingKind: true,
       venueType: true,
       seaView: true,
       boutique: true,

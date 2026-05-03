@@ -21,6 +21,11 @@ import {
   type HallVenueLike,
   type SearchFilters,
 } from "@/lib/hallsDecision";
+import {
+  PARKING_KIND_LABELS,
+  PARKING_KINDS,
+  resolveParkingFilterFromSearchParams,
+} from "@/lib/venueParkingKind";
 
 const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
 
@@ -35,7 +40,7 @@ const EMPTY_SEARCH_FORM = {
   hallRentalMax: "",
   eventType: "",
   kashrut: "",
-  parking: "",
+  parkingKind: "",
   venueType: "",
   seaView: false,
   boutique: false,
@@ -74,7 +79,7 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   if (f.hallRentalMax) params.set("hallRentalMax", f.hallRentalMax);
   if (f.eventType) params.set("eventType", f.eventType);
   if (f.kashrut) params.set("kashrut", f.kashrut);
-  if (f.parking) params.set("parking", f.parking);
+  if (f.parkingKind) params.set("parkingKind", f.parkingKind);
   if (f.venueType) params.set("venueType", f.venueType);
   if (f.seaView) params.set("seaView", "true");
   if (f.boutique) params.set("boutique", "true");
@@ -100,7 +105,11 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
     hallRentalMax: sp.get("hallRentalMax") ?? "",
     eventType: sp.get("eventType") ?? "",
     kashrut: sp.get("kashrut") ?? "",
-    parking: sp.get("parking") ?? "",
+    parkingKind:
+      resolveParkingFilterFromSearchParams(
+        sp.get("parkingKind"),
+        sp.get("parking")
+      ) ?? "",
     venueType: sp.get("venueType") ?? "",
     seaView: sp.get("seaView") === "true",
     boutique: sp.get("boutique") === "true",
@@ -131,6 +140,7 @@ type Venue = {
   galleryImageUrls: string[];
   kashrut?: string | null;
   parking?: string | null;
+  parkingKind?: string | null;
   venueType?: string | null;
   seaView?: boolean | null;
   boutique?: boolean | null;
@@ -514,7 +524,8 @@ export default function HallsSearchClient({
     const hallRentalMax = searchParams.get("hallRentalMax");
     const eventType = searchParams.get("eventType");
      const kashrut = searchParams.get("kashrut");
-     const parking = searchParams.get("parking");
+     const parkingKind = searchParams.get("parkingKind");
+     const parkingLegacy = searchParams.get("parking");
      const venueType = searchParams.get("venueType");
      const seaView = searchParams.get("seaView");
      const boutique = searchParams.get("boutique");
@@ -534,7 +545,8 @@ export default function HallsSearchClient({
     if (hallRentalMax) params.set("hallRentalMax", hallRentalMax);
     if (eventType) params.set("eventType", eventType);
     if (kashrut) params.set("kashrut", kashrut);
-    if (parking) params.set("parking", parking);
+    if (parkingKind) params.set("parkingKind", parkingKind);
+    if (parkingLegacy) params.set("parking", parkingLegacy);
     if (venueType) params.set("venueType", venueType);
     if (seaView) params.set("seaView", seaView);
     if (boutique) params.set("boutique", boutique);
@@ -838,16 +850,18 @@ export default function HallsSearchClient({
             <div>
               <label className={labelClass}>חניה</label>
               <select
-                value={form.parking}
+                value={form.parkingKind}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, parking: e.target.value }))
+                  setForm((f) => ({ ...f, parkingKind: e.target.value }))
                 }
                 className={fieldClass}
               >
                 <option value="">לא משנה</option>
-                <option value="אין">ללא חניה</option>
-                <option value="חניה צמודה">חניה צמודה</option>
-                <option value="חניון">חניון</option>
+                {PARKING_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {PARKING_KIND_LABELS[k]}
+                  </option>
+                ))}
               </select>
             </div>
             <div>

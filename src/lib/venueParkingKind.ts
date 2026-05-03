@@ -32,6 +32,23 @@ export function parkingKindHasAnyParking(kind: ParkingKind | ""): boolean {
   return kind !== "" && kind !== "none";
 }
 
+/**
+ * פרמטרי חיפוש: `parkingKind` (מומלץ) או `parking` ישן מהממשק הקודם.
+ * מחזיר ערך לסינון ב־`Venue.parkingKind` או null כשלא לסנן.
+ */
+export function resolveParkingFilterFromSearchParams(
+  parkingKindParam: string | null | undefined,
+  legacyParkingParam: string | null | undefined
+): ParkingKind | null {
+  const pk = typeof parkingKindParam === "string" ? parkingKindParam.trim() : "";
+  if (pk && isValidParkingKind(pk)) return pk;
+  const leg = typeof legacyParkingParam === "string" ? legacyParkingParam.trim() : "";
+  if (leg === "אין") return "none";
+  if (leg === "חניה צמודה") return "adjacent";
+  if (leg === "חניון") return "paid_lot";
+  return null;
+}
+
 export const PARKING_KIND_LABELS: Record<ParkingKind, string> = {
   none: "אין / לא רלוונטי",
   adjacent: "חניה צמודה לאולם (ללא סימון במפה)",
