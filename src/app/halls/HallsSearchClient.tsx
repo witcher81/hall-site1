@@ -604,8 +604,6 @@ export default function HallsSearchClient({
   const fieldClass =
     "mt-2 w-full min-h-[46px] rounded-xl border border-[#E7E0CF] bg-white px-4 py-2.5 text-base text-[#1A1A1A] outline-none transition focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/25";
   const labelClass = "block text-sm font-medium text-[#0F3B2E]";
-  const stepDoneEventType = form.eventType.trim().length > 0;
-  const stepDoneCity = form.city.trim().length > 0;
   const searchExtraCities = useMemo(
     () =>
       venues
@@ -613,25 +611,6 @@ export default function HallsSearchClient({
         .filter((c): c is string => Boolean(c)),
     [venues]
   );
-  const guestsTyped =
-    form.minGuests.trim().length > 0 || form.maxGuests.trim().length > 0;
-  const guestsRequirement =
-    guestsTyped
-      ? Math.max(
-          Number(form.minGuests || 0) || 0,
-          Number(form.maxGuests || 0) || 0
-        )
-      : 0;
-  const sizeBuckets = useMemo(() => {
-    const out = { small: 0, medium: 0, large: 0 };
-    for (const v of venues) {
-      const cap = v.maxGuests ?? 0;
-      if (cap <= 120) out.small += 1;
-      else if (cap <= 300) out.medium += 1;
-      else out.large += 1;
-    }
-    return out;
-  }, [venues]);
 
   return (
     <div className="mt-6 space-y-8">
@@ -643,20 +622,8 @@ export default function HallsSearchClient({
           <div>
             <p className="text-lg font-bold text-[#0F3B2E]">סינון חיפוש</p>
             <p className="mt-1 text-sm text-[#5F5F5F]">
-              מסכים רחבים: כל השדות בשורה אחת. במסכים צרים: 2–3 עמודות.
+              אפשר למלא או לשנות כל שדה בכל סדר — אין שלבים חובה. במסכים צרים השדות מתחלקים לעמודות.
             </p>
-          </div>
-        </div>
-
-        <div className="mb-5 grid grid-cols-1 gap-2 rounded-2xl bg-[#FAF8F4] p-3 text-xs font-medium text-[#5F5F5F] sm:grid-cols-3 sm:text-sm">
-          <div className={stepDoneEventType ? "text-[#0F3B2E]" : ""}>
-            1) סוג אירוע
-          </div>
-          <div className={stepDoneCity ? "text-[#0F3B2E]" : ""}>
-            2) עיר (רק אולמות שמתאימים לסוג האירוע)
-          </div>
-          <div className={guestsTyped ? "text-[#0F3B2E]" : ""}>
-            3) טווח אורחים
           </div>
         </div>
 
@@ -669,14 +636,11 @@ export default function HallsSearchClient({
                 setForm((f) => ({
                   ...f,
                   eventType: e.target.value,
-                  city: "",
-                  minGuests: "",
-                  maxGuests: "",
                 }))
               }
               className={fieldClass}
             >
-              <option value="">בחר סוג אירוע</option>
+              <option value="">הכל (ללא סינון לפי סוג)</option>
               {EVENT_TYPE_OPTIONS.map((type) => (
                 <option key={type} value={type}>
                   {type}
@@ -693,24 +657,12 @@ export default function HallsSearchClient({
                 setForm((f) => ({
                   ...f,
                   city,
-                  minGuests: "",
-                  maxGuests: "",
                 }))
               }
-              disabled={!stepDoneEventType}
-              placeholder={
-                stepDoneEventType
-                  ? "הקלד עיר או בחר מהרשימה"
-                  : "קודם בחר סוג אירוע"
-              }
+              placeholder="הקלד עיר או בחר מהרשימה"
               extraCities={searchExtraCities}
-              className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-[#F3EFE6] disabled:text-[#9A9388]`}
+              className={fieldClass}
             />
-            {!stepDoneEventType && (
-              <p className="mt-2 text-xs text-[#8A837A]">
-                העיר נפתחת אחרי בחירת סוג אירוע.
-              </p>
-            )}
           </div>
         </div>
 
@@ -724,9 +676,8 @@ export default function HallsSearchClient({
               onChange={(e) =>
                 setForm((f) => ({ ...f, minGuests: e.target.value }))
               }
-              disabled={!stepDoneCity}
-              className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-[#F3EFE6] disabled:text-[#9A9388]`}
-              placeholder={stepDoneCity ? "לדוגמה: 40" : "קודם בחר עיר"}
+              className={fieldClass}
+              placeholder="לדוגמה: 40"
             />
           </div>
           <div className="min-w-0">
@@ -738,34 +689,11 @@ export default function HallsSearchClient({
               onChange={(e) =>
                 setForm((f) => ({ ...f, maxGuests: e.target.value }))
               }
-              disabled={!stepDoneCity}
-              className={`${fieldClass} disabled:cursor-not-allowed disabled:bg-[#F3EFE6] disabled:text-[#9A9388]`}
-              placeholder={stepDoneCity ? "לדוגמה: 150" : "קודם בחר עיר"}
+              className={fieldClass}
+              placeholder="לדוגמה: 150"
             />
           </div>
         </div>
-
-        {stepDoneCity && (
-          <p className="mt-3 text-xs text-[#5F5F5F]">
-            מוצגים רק אולמות בעיר שבחרת, שמתאימים לסוג האירוע.
-            {guestsTyped && guestsRequirement > 0
-              ? ` כרגע דרישה מינימלית: ${guestsRequirement} אורחים.`
-              : ""}
-          </p>
-        )}
-
-        {stepDoneCity && (
-          <div className="mt-4 rounded-2xl border border-[#E7E0CF]/80 bg-[#FAF8F4]/80 px-4 py-3 text-xs text-[#5F5F5F]">
-            <p className="font-semibold text-[#0F3B2E]">
-              סוגי אולמות זמינים לפי גודל בתוצאות הנוכחיות
-            </p>
-            <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
-              <p>קטן (עד 120): {sizeBuckets.small}</p>
-              <p>בינוני (121–300): {sizeBuckets.medium}</p>
-              <p>גדול (301+): {sizeBuckets.large}</p>
-            </div>
-          </div>
-        )}
 
         <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div className="min-w-0">
