@@ -484,6 +484,9 @@ export async function POST(req: NextRequest) {
   const hasTableSetup = toBool(formData.get("hasTableSetup"));
   const hasSoundSystem = toBool(formData.get("hasSoundSystem"));
   const hasBridalRoom = toBool(formData.get("hasBridalRoom"));
+  const seaView = toBool(formData.get("seaView"));
+  const boutique = toBool(formData.get("boutique"));
+  const accessible = toBool(formData.get("accessible"));
   const hasChuppaOutdoor = toBool(formData.get("hasChuppaOutdoor"));
   const hasChuppaCovered = toBool(formData.get("hasChuppaCovered"));
   const hasVeganFood = toBool(formData.get("hasVeganFood"));
@@ -716,6 +719,9 @@ export async function POST(req: NextRequest) {
       hasVeganFood,
       kashrut: foodChk.value,
       venueType: venueTypeParsed.value!,
+      seaView,
+      boutique,
+      accessible,
       hasParkingNearby: parkingParsedPost.hasParkingNearby,
       parkingKind: parkingParsedPost.parkingKind,
       parkingLatitude: parkingParsedPost.parkingLatitude,
@@ -889,6 +895,9 @@ export async function PUT(req: NextRequest) {
   const hasTableSetup = toBool(formData.get("hasTableSetup"));
   const hasSoundSystem = toBool(formData.get("hasSoundSystem"));
   const hasBridalRoom = toBool(formData.get("hasBridalRoom"));
+  const seaView = toBool(formData.get("seaView"));
+  const boutique = toBool(formData.get("boutique"));
+  const accessible = toBool(formData.get("accessible"));
   const hasChuppaOutdoor = toBool(formData.get("hasChuppaOutdoor"));
   const hasChuppaCovered = toBool(formData.get("hasChuppaCovered"));
   const hasVeganFood = toBool(formData.get("hasVeganFood"));
@@ -1141,6 +1150,9 @@ export async function PUT(req: NextRequest) {
       hasVeganFood,
       kashrut: foodChk.value,
       venueType: venueTypeParsedPut.value!,
+      seaView,
+      boutique,
+      accessible,
       hasParkingNearby: parkingParsedPut.hasParkingNearby,
       parkingKind: parkingParsedPut.parkingKind,
       parkingLatitude: parkingParsedPut.parkingLatitude,

@@ -25,6 +25,9 @@ import HallGeneralAmenitiesDnd, {
   type HallGeneralCustomRow,
   type HallGeneralPriceMode,
 } from "@/components/HallGeneralAmenitiesDnd";
+import VenueOfferProductsSection, {
+  type VenueOfferProductsSlice,
+} from "@/components/VenueOfferProductsSection";
 
 const VenueLocationPicker = dynamic(
   () => import("@/components/VenueLocationPicker"),
@@ -355,10 +358,14 @@ type Initial = {
   minPrice: string | number;
   maxPrice: string | number;
   description: string;
-  hasChuppa: boolean;
   hasChuppaOutdoor: boolean;
   hasChuppaCovered: boolean;
-  hasFood: boolean;
+  productHasChuppa: boolean;
+  productHasFood: boolean;
+  seaView: boolean;
+  boutique: boolean;
+  accessible: boolean;
+  hasBridalRoom: boolean;
   hasDanceFloor: boolean;
   hasTableSetup: boolean;
   hasSoundSystem: boolean;
@@ -399,10 +406,14 @@ export default function VenueEditForm({
     minPrice: String(initial.minPrice),
     maxPrice: String(initial.maxPrice),
     description: initial.description,
-    hasChuppa: initial.hasChuppa,
     hasChuppaOutdoor: initial.hasChuppaOutdoor,
     hasChuppaCovered: initial.hasChuppaCovered,
-    hasFood: initial.hasFood,
+    productHasChuppa: initial.productHasChuppa,
+    productHasFood: initial.productHasFood,
+    seaView: initial.seaView,
+    boutique: initial.boutique,
+    accessible: initial.accessible,
+    hasBridalRoom: initial.hasBridalRoom,
     hasDanceFloor: initial.hasDanceFloor,
     hasTableSetup: initial.hasTableSetup,
     hasSoundSystem: initial.hasSoundSystem,
@@ -482,6 +493,39 @@ export default function VenueEditForm({
     [eventTypes, eventTypeProfiles]
   );
   const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
+
+  const offerProductsValues: VenueOfferProductsSlice = {
+    seaView: form.seaView,
+    boutique: form.boutique,
+    accessible: form.accessible,
+    hasChuppa: isWeddingSelected
+      ? form.hasChuppaOutdoor || form.hasChuppaCovered
+      : form.hasChuppaOutdoor ||
+        form.hasChuppaCovered ||
+        form.productHasChuppa,
+    hasFood: anyEventOffersFood || form.productHasFood,
+    hasTableSetup: form.hasTableSetup,
+    hasDanceFloor: form.hasDanceFloor,
+    hasSoundSystem: form.hasSoundSystem,
+    hasBridalRoom: form.hasBridalRoom,
+  };
+
+  function handleOfferProductChange<K extends keyof VenueOfferProductsSlice>(
+    key: K,
+    checked: boolean
+  ) {
+    if (key === "hasChuppa" && isWeddingSelected) return;
+    if (key === "hasFood" && anyEventOffersFood) return;
+    if (key === "hasChuppa") {
+      setForm((f) => ({ ...f, productHasChuppa: checked }));
+      return;
+    }
+    if (key === "hasFood") {
+      setForm((f) => ({ ...f, productHasFood: checked }));
+      return;
+    }
+    setForm((f) => ({ ...f, [key]: checked }) as typeof f);
+  }
   const anyEventHasDanceFloor = form.hasDanceFloor;
 
   const coverFileRef = useRef<HTMLInputElement>(null);
@@ -527,7 +571,6 @@ export default function VenueEditForm({
     if (isWeddingSelected) return;
     setForm((f) => ({
       ...f,
-      hasChuppa: false,
       hasChuppaOutdoor: false,
       hasChuppaCovered: false,
     }));
@@ -750,7 +793,12 @@ export default function VenueEditForm({
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
       fd.append("description", form.description);
-      fd.append("hasChuppa", String(form.hasChuppa));
+      const hasChuppaForApi = isWeddingSelected
+        ? form.hasChuppaOutdoor || form.hasChuppaCovered
+        : form.hasChuppaOutdoor ||
+          form.hasChuppaCovered ||
+          form.productHasChuppa;
+      fd.append("hasChuppa", String(hasChuppaForApi));
       fd.append("hasChuppaOutdoor", String(form.hasChuppaOutdoor));
       fd.append("hasChuppaCovered", String(form.hasChuppaCovered));
       const anyEventVeganFood = eventTypes.some(
@@ -763,14 +811,18 @@ export default function VenueEditForm({
         eventTypes.some(
           (et) => et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
         );
+      const hasFoodForApi = anyEventFood || form.productHasFood;
       const anyEventDanceFloor = form.hasDanceFloor;
       const anyEventTableSetup = form.hasTableSetup;
       const anyEventSoundSystem = form.hasSoundSystem;
-      fd.append("hasFood", String(anyEventFood));
+      fd.append("hasFood", String(hasFoodForApi));
       fd.append("hasDanceFloor", String(anyEventDanceFloor));
       fd.append("hasTableSetup", String(anyEventTableSetup));
       fd.append("hasSoundSystem", String(anyEventSoundSystem));
-      fd.append("hasBridalRoom", "false");
+      fd.append("hasBridalRoom", String(form.hasBridalRoom));
+      fd.append("seaView", String(form.seaView));
+      fd.append("boutique", String(form.boutique));
+      fd.append("accessible", String(form.accessible));
       if (eventTypes.length > 0) {
         fd.append("eventTypes", JSON.stringify(eventTypes));
       }
@@ -779,7 +831,7 @@ export default function VenueEditForm({
           label: `__builtin__:${key}`,
           checked:
             key === "hasFood"
-              ? anyEventFood
+              ? hasFoodForApi
               : key === "hasDanceFloor"
                 ? anyEventDanceFloor
                 : key === "hasTableSetup"
@@ -1100,6 +1152,15 @@ export default function VenueEditForm({
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+            <VenueOfferProductsSection
+              values={offerProductsValues}
+              onChange={handleOfferProductChange}
+              chuppaDetailLocked={isWeddingSelected}
+              foodLockedFromEvents={anyEventOffersFood}
+            />
           </div>
 
           <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">

@@ -24,6 +24,9 @@ import HallGeneralAmenitiesDnd, {
   type HallGeneralCustomRow,
   type HallGeneralPriceMode,
 } from "@/components/HallGeneralAmenitiesDnd";
+import VenueOfferProductsSection, {
+  type VenueOfferProductsSlice,
+} from "@/components/VenueOfferProductsSection";
 
 const PRESET_EVENT_TYPES: readonly string[] = [
   "חתונה",
@@ -112,6 +115,12 @@ export default function NewVenuePage() {
     hasSoundSystem: false,
     hasVeganFood: false,
     foodKashrut: "",
+    seaView: false,
+    boutique: false,
+    accessible: false,
+    hasBridalRoom: false,
+    productHasChuppa: false,
+    productHasFood: false,
   });
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryHallImages, setGalleryHallImages] = useState<File[]>([]);
@@ -301,6 +310,12 @@ export default function NewVenuePage() {
           (et) =>
             et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
         );
+      const hasChuppaForApi = weddingSelected
+        ? form.hasChuppaOutdoor || form.hasChuppaCovered
+        : form.hasChuppaOutdoor ||
+          form.hasChuppaCovered ||
+          form.productHasChuppa;
+      const hasFoodForApi = anyEventFood || form.productHasFood;
       const anyEventDanceFloor = form.hasDanceFloor;
       const anyEventTableSetup = form.hasTableSetup;
       const anyEventSoundSystem = form.hasSoundSystem;
@@ -356,15 +371,15 @@ export default function NewVenuePage() {
       }
       fd.append("eventTypeProfilesJson", JSON.stringify(eventTypeProfilesPayload));
       if (form.description) fd.append("description", form.description);
-      fd.append(
-        "hasChuppa",
-        String(form.hasChuppaOutdoor || form.hasChuppaCovered)
-      );
-      fd.append("hasFood", String(anyEventFood));
+      fd.append("hasChuppa", String(hasChuppaForApi));
+      fd.append("hasFood", String(hasFoodForApi));
       fd.append("hasDanceFloor", String(anyEventDanceFloor));
       fd.append("hasTableSetup", String(anyEventTableSetup));
       fd.append("hasSoundSystem", String(anyEventSoundSystem));
-      fd.append("hasBridalRoom", "false");
+      fd.append("hasBridalRoom", String(form.hasBridalRoom));
+      fd.append("seaView", String(form.seaView));
+      fd.append("boutique", String(form.boutique));
+      fd.append("accessible", String(form.accessible));
       fd.append("hasChuppaOutdoor", String(form.hasChuppaOutdoor));
       fd.append("hasChuppaCovered", String(form.hasChuppaCovered));
       fd.append("hasVeganFood", String(anyEventVeganFood));
@@ -375,7 +390,7 @@ export default function NewVenuePage() {
           label: `__builtin__:${key}`,
           checked:
             key === "hasFood"
-              ? anyEventFood
+              ? hasFoodForApi
               : key === "hasDanceFloor"
                 ? anyEventDanceFloor
                 : key === "hasTableSetup"
@@ -481,6 +496,39 @@ export default function NewVenuePage() {
   );
   const anyEventHasDanceFloor = form.hasDanceFloor;
   const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
+
+  const offerProductsValues: VenueOfferProductsSlice = {
+    seaView: form.seaView,
+    boutique: form.boutique,
+    accessible: form.accessible,
+    hasChuppa: isWeddingSelected
+      ? form.hasChuppaOutdoor || form.hasChuppaCovered
+      : form.hasChuppaOutdoor ||
+        form.hasChuppaCovered ||
+        form.productHasChuppa,
+    hasFood: anyEventOffersFood || form.productHasFood,
+    hasTableSetup: form.hasTableSetup,
+    hasDanceFloor: form.hasDanceFloor,
+    hasSoundSystem: form.hasSoundSystem,
+    hasBridalRoom: form.hasBridalRoom,
+  };
+
+  function handleOfferProductChange<K extends keyof VenueOfferProductsSlice>(
+    key: K,
+    checked: boolean
+  ) {
+    if (key === "hasChuppa" && isWeddingSelected) return;
+    if (key === "hasFood" && anyEventOffersFood) return;
+    if (key === "hasChuppa") {
+      setForm((f) => ({ ...f, productHasChuppa: checked }));
+      return;
+    }
+    if (key === "hasFood") {
+      setForm((f) => ({ ...f, productHasFood: checked }));
+      return;
+    }
+    setForm((f) => ({ ...f, [key]: checked }) as typeof f);
+  }
 
   function removeCoverImage() {
     if (coverPreview) URL.revokeObjectURL(coverPreview);
@@ -907,6 +955,15 @@ export default function NewVenuePage() {
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+            <VenueOfferProductsSection
+              values={offerProductsValues}
+              onChange={handleOfferProductChange}
+              chuppaDetailLocked={isWeddingSelected}
+              foodLockedFromEvents={anyEventOffersFood}
+            />
           </div>
 
           <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">

@@ -27,6 +27,7 @@ import {
   resolveParkingFilterFromSearchParams,
 } from "@/lib/venueParkingKind";
 import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
+import VenueOfferProductsSection from "@/components/VenueOfferProductsSection";
 
 const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
 
@@ -884,109 +885,23 @@ export default function HallsSearchClient({
             </div>
           </div>
 
-          <p className="mb-3 mt-6 text-xs font-medium text-[#5F5F5F]">
-            מאפייני אולם
-          </p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.seaView}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, seaView: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              נוף לים
-            </label>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.boutique}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, boutique: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              אירועי בוטיק
-            </label>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.accessible}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, accessible: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              נגישות לנכים
-            </label>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.hasChuppa}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hasChuppa: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              כולל חופה
-            </label>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.hasFood}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hasFood: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              כולל אוכל
-            </label>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.hasTableSetup}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hasTableSetup: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              סידור שולחנות
-            </label>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.hasDanceFloor}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hasDanceFloor: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              רחבת ריקודים
-            </label>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.hasSoundSystem}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hasSoundSystem: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              מערכת הגברה
-            </label>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50">
-              <input
-                type="checkbox"
-                checked={form.hasBridalRoom}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, hasBridalRoom: e.target.checked }))
-                }
-                className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
-              />
-              חדר חתן/כלה
-            </label>
+          <div className="mt-6">
+            <VenueOfferProductsSection
+              values={{
+                seaView: form.seaView,
+                boutique: form.boutique,
+                accessible: form.accessible,
+                hasChuppa: form.hasChuppa,
+                hasFood: form.hasFood,
+                hasTableSetup: form.hasTableSetup,
+                hasDanceFloor: form.hasDanceFloor,
+                hasSoundSystem: form.hasSoundSystem,
+                hasBridalRoom: form.hasBridalRoom,
+              }}
+              onChange={(key, checked) =>
+                setForm((f) => ({ ...f, [key]: checked }))
+              }
+            />
           </div>
         </div>
 

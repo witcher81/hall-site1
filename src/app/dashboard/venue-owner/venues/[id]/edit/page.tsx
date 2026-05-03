@@ -4,6 +4,36 @@ import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import { resolveVenueTypeInitial } from "@/lib/venueTypeOptions";
 import VenueEditForm from "./VenueEditForm";
 
+function parseEventTypesList(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const p = JSON.parse(raw) as unknown;
+    if (!Array.isArray(p)) return [];
+    return p.filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+  } catch {
+    return [];
+  }
+}
+
+function anyEventOffersFoodFromStored(
+  eventTypes: string[],
+  profilesJson: string | null
+): boolean {
+  if (eventTypes.includes("חתונה")) return true;
+  if (!profilesJson) return false;
+  try {
+    const o = JSON.parse(profilesJson) as Record<
+      string,
+      { hasFoodAtEvent?: boolean }
+    >;
+    return eventTypes.some(
+      (et) => et !== "חתונה" && o[et]?.hasFoodAtEvent === true
+    );
+  } catch {
+    return false;
+  }
+}
+
 type PriceMode = "included" | "extra";
 type BuiltinAmenityKey =
   | "hasFood"
@@ -80,6 +110,19 @@ export default async function VenueEditPage({
     ? (JSON.parse(venue.galleryImageUrls) as string[])
     : [];
 
+  const eventTypesArr = parseEventTypesList(venue.eventTypes);
+  const anyEvFood = anyEventOffersFoodFromStored(
+    eventTypesArr,
+    venue.eventTypeProfilesJson
+  );
+  const initialProductHasFood = venue.hasFood && !anyEvFood;
+  const weddingInTypes = eventTypesArr.includes("חתונה");
+  const initialProductHasChuppa =
+    !weddingInTypes &&
+    venue.hasChuppa &&
+    !venue.hasChuppaOutdoor &&
+    !venue.hasChuppaCovered;
+
   const foodGalleryImageCount = await prisma.venueGalleryImage.count({
     where: { venueId: venue.id, category: "FOOD" },
   });
@@ -139,10 +182,14 @@ export default async function VenueEditPage({
         maxPrice: venue.maxPrice ?? "",
         description: venue.description ?? "",
         eventTypes: venue.eventTypes ? (JSON.parse(venue.eventTypes) as string[]) : [],
-        hasChuppa: venue.hasChuppa,
         hasChuppaOutdoor: venue.hasChuppaOutdoor,
         hasChuppaCovered: venue.hasChuppaCovered,
-        hasFood: venue.hasFood,
+        productHasChuppa: initialProductHasChuppa,
+        productHasFood: initialProductHasFood,
+        seaView: venue.seaView === true,
+        boutique: venue.boutique === true,
+        accessible: venue.accessible === true,
+        hasBridalRoom: venue.hasBridalRoom,
         hasDanceFloor: venue.hasDanceFloor,
         hasTableSetup: venue.hasTableSetup,
         hasSoundSystem: venue.hasSoundSystem,
