@@ -244,9 +244,22 @@ export function whyItFitsLines(
     }
   }
 
-  const tgt = guestTargetFromForm(form);
-  if (tgt != null && v.maxGuests != null && v.maxGuests >= tgt) {
-    lines.push(`מתאים ל־${tgt} אורחים ומעלה`);
+  const minG = num(form.minGuests);
+  const maxG = num(form.maxGuests);
+  if (
+    minG != null &&
+    maxG != null &&
+    minG !== maxG &&
+    v.maxGuests != null &&
+    v.maxGuests >= minG &&
+    (v.minGuests == null || v.minGuests <= maxG)
+  ) {
+    lines.push("בטווח מספר האורחים שסימנת");
+  } else {
+    const tgt = guestTargetFromForm(form);
+    if (tgt != null && v.maxGuests != null && v.maxGuests >= tgt) {
+      lines.push(`מתאים ל־${tgt} אורחים ומעלה`);
+    }
   }
 
   const hrMax = num(form.hallRentalMax);

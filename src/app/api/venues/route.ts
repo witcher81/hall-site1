@@ -37,23 +37,74 @@ export async function GET(req: NextRequest) {
   if (city && city.length > 0) {
     where.city = { contains: city };
   }
-  // אורחים: משתמש מזין מינימום ו/או מקסימום – רוצים אולם שמכיל *לפחות* את המספר המבוקש (venue.maxGuests >= הערך)
   const minG = minGuests && minGuests !== "" ? Number(minGuests) : NaN;
   const maxG = maxGuests && maxGuests !== "" ? Number(maxGuests) : NaN;
-  const guestLimit = [minG, maxG].filter((n) => !Number.isNaN(n));
-  if (guestLimit.length > 0 && !(eventType && eventType.length > 0)) {
-    const required = Math.max(...guestLimit);
-    where.maxGuests = { gte: required };
+  const minP = minPrice && minPrice !== "" ? Number(minPrice) : NaN;
+  const maxP = maxPrice && maxPrice !== "" ? Number(maxPrice) : NaN;
+
+  const andParts: Prisma.VenueWhereInput[] = Array.isArray(where.AND)
+    ? [...where.AND]
+    : where.AND
+      ? [where.AND]
+      : [];
+
+  // אורחים: מדויק (min=max), טווח, או שדה בודד — ללא סינון DB כשמסננים לפי פרופיל סוג אירוע
+  if (!(eventType && eventType.length > 0)) {
+    const hasMinG = !Number.isNaN(minG);
+    const hasMaxG = !Number.isNaN(maxG);
+    if (hasMinG || hasMaxG) {
+      if (hasMinG && hasMaxG && minG === maxG) {
+        const n = minG;
+        where.maxGuests = { gte: n };
+        andParts.push({
+          OR: [{ minGuests: null }, { minGuests: { lte: n } }],
+        });
+      } else if (hasMinG && hasMaxG && minG !== maxG) {
+        const lo = Math.min(minG, maxG);
+        const hi = Math.max(minG, maxG);
+        andParts.push({
+          OR: [{ maxGuests: null }, { maxGuests: { gte: lo } }],
+        });
+        andParts.push({
+          OR: [{ minGuests: null }, { minGuests: { lte: hi } }],
+        });
+      } else if (hasMinG) {
+        where.maxGuests = { gte: minG };
+      } else {
+        where.maxGuests = { gte: maxG };
+      }
+    }
+
+    const hasMinP = !Number.isNaN(minP);
+    const hasMaxP = !Number.isNaN(maxP);
+    if (hasMinP || hasMaxP) {
+      if (hasMinP && hasMaxP && minP === maxP) {
+        const n = minP;
+        andParts.push({
+          OR: [{ minPrice: null }, { minPrice: { lte: n } }],
+        });
+        andParts.push({
+          OR: [{ maxPrice: null }, { maxPrice: { gte: n } }],
+        });
+      } else if (hasMinP && hasMaxP && minP !== maxP) {
+        const lo = Math.min(minP, maxP);
+        const hi = Math.max(minP, maxP);
+        andParts.push({
+          OR: [{ maxPrice: null }, { maxPrice: { gte: lo } }],
+        });
+        andParts.push({
+          OR: [{ minPrice: null }, { minPrice: { lte: hi } }],
+        });
+      } else if (hasMinP) {
+        where.minPrice = { gte: minP };
+      } else {
+        where.maxPrice = { lte: maxP };
+      }
+    }
   }
-  // תקציב משתמש: מינימום למנה – האולם מתאים אם המחיר המינימלי שלו למנה >= מה שהוזן
-  if (minPrice && minPrice !== "" && !(eventType && eventType.length > 0)) {
-    const n = Number(minPrice);
-    if (!Number.isNaN(n)) where.minPrice = { gte: n };
-  }
-  // תקציב משתמש: מקסימום למנה – האולם מתאים אם המחיר המקסימלי שלו למנה <= מה שהוזן
-  if (maxPrice && maxPrice !== "" && !(eventType && eventType.length > 0)) {
-    const n = Number(maxPrice);
-    if (!Number.isNaN(n)) where.maxPrice = { lte: n };
+
+  if (andParts.length > 0) {
+    where.AND = andParts;
   }
   if (hallRentalMin && hallRentalMin !== "") {
     const n = Number(hallRentalMin);
@@ -185,10 +236,44 @@ export async function GET(req: NextRequest) {
         profile = fallback;
       }
     }
-    if (!Number.isNaN(minGuestsNum) && profile.maxGuests != null && profile.maxGuests < minGuestsNum) return false;
-    if (!Number.isNaN(maxGuestsNum) && profile.maxGuests != null && profile.maxGuests < maxGuestsNum) return false;
-    if (!Number.isNaN(minPriceNum) && profile.minPrice != null && profile.minPrice < minPriceNum) return false;
-    if (!Number.isNaN(maxPriceNum) && profile.maxPrice != null && profile.maxPrice > maxPriceNum) return false;
+    const pMinG = profile.minGuests ?? 0;
+    const pMaxG = profile.maxGuests ?? Number.POSITIVE_INFINITY;
+    const hasUG =
+      !Number.isNaN(minGuestsNum) || !Number.isNaN(maxGuestsNum);
+    if (hasUG) {
+      const uLo = Number.isNaN(minGuestsNum)
+        ? Number.isNaN(maxGuestsNum)
+          ? 0
+          : maxGuestsNum
+        : minGuestsNum;
+      const uHi = Number.isNaN(maxGuestsNum)
+        ? Number.isNaN(minGuestsNum)
+          ? uLo
+          : minGuestsNum
+        : maxGuestsNum;
+      const lo = Math.min(uLo, uHi);
+      const hi = Math.max(uLo, uHi);
+      if (pMaxG < lo || pMinG > hi) return false;
+    }
+
+    const pMinP = profile.minPrice ?? 0;
+    const pMaxP = profile.maxPrice ?? Number.POSITIVE_INFINITY;
+    const hasUP = !Number.isNaN(minPriceNum) || !Number.isNaN(maxPriceNum);
+    if (hasUP) {
+      const uLo = Number.isNaN(minPriceNum)
+        ? Number.isNaN(maxPriceNum)
+          ? 0
+          : maxPriceNum
+        : minPriceNum;
+      const uHi = Number.isNaN(maxPriceNum)
+        ? Number.isNaN(minPriceNum)
+          ? uLo
+          : minPriceNum
+        : maxPriceNum;
+      const lo = Math.min(uLo, uHi);
+      const hi = Math.max(uLo, uHi);
+      if (pMaxP < lo || pMinP > hi) return false;
+    }
     return true;
   });
 

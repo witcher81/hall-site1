@@ -34,6 +34,10 @@ const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
 /** ברירת מחדל מלאה — מונע input שעובר מ־uncontrolled ל־controlled כשחסר מפתח ב־state */
 const EMPTY_SEARCH_FORM = {
   city: "",
+  /** מצב טווח: מינ'/מקס' אורחים ומחיר; אחרת שדות מדויקים */
+  guestsPriceRange: false,
+  exactGuests: "",
+  exactPrice: "",
   minGuests: "",
   maxGuests: "",
   minPrice: "",
@@ -73,10 +77,24 @@ type SearchFormState = typeof EMPTY_SEARCH_FORM;
 function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   const params = new URLSearchParams();
   if (f.city) params.set("city", f.city);
-  if (f.minGuests) params.set("minGuests", f.minGuests);
-  if (f.maxGuests) params.set("maxGuests", f.maxGuests);
-  if (f.minPrice) params.set("minPrice", f.minPrice);
-  if (f.maxPrice) params.set("maxPrice", f.maxPrice);
+  if (f.guestsPriceRange) {
+    params.set("guestsPriceRange", "true");
+    if (f.minGuests) params.set("minGuests", f.minGuests);
+    if (f.maxGuests) params.set("maxGuests", f.maxGuests);
+    if (f.minPrice) params.set("minPrice", f.minPrice);
+    if (f.maxPrice) params.set("maxPrice", f.maxPrice);
+  } else {
+    const eg = f.exactGuests.trim();
+    const ep = f.exactPrice.trim();
+    if (eg) {
+      params.set("minGuests", eg);
+      params.set("maxGuests", eg);
+    }
+    if (ep) {
+      params.set("minPrice", ep);
+      params.set("maxPrice", ep);
+    }
+  }
   if (f.hallRentalMin) params.set("hallRentalMin", f.hallRentalMin);
   if (f.hallRentalMax) params.set("hallRentalMax", f.hallRentalMax);
   if (f.eventType) params.set("eventType", f.eventType);
@@ -96,13 +114,36 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
 }
 
 function formFromSearchParams(sp: URLSearchParams): SearchFormState {
+  const minG = sp.get("minGuests") ?? "";
+  const maxG = sp.get("maxGuests") ?? "";
+  const minP = sp.get("minPrice") ?? "";
+  const maxP = sp.get("maxPrice") ?? "";
+  const grpFlag = sp.get("guestsPriceRange") === "true";
+  const gDiff = minG !== maxG && (minG !== "" || maxG !== "");
+  const pDiff = minP !== maxP && (minP !== "" || maxP !== "");
+  const guestsPriceRange = grpFlag || gDiff || pDiff;
+
+  let exactGuests = "";
+  let exactPrice = "";
+  if (!guestsPriceRange) {
+    if (minG && maxG && minG === maxG) exactGuests = minG;
+    else if (minG && !maxG) exactGuests = minG;
+    else if (!minG && maxG) exactGuests = maxG;
+    if (minP && maxP && minP === maxP) exactPrice = minP;
+    else if (minP && !maxP) exactPrice = minP;
+    else if (!minP && maxP) exactPrice = maxP;
+  }
+
   return {
     ...EMPTY_SEARCH_FORM,
     city: sp.get("city") ?? "",
-    minGuests: sp.get("minGuests") ?? "",
-    maxGuests: sp.get("maxGuests") ?? "",
-    minPrice: sp.get("minPrice") ?? "",
-    maxPrice: sp.get("maxPrice") ?? "",
+    guestsPriceRange,
+    exactGuests,
+    exactPrice,
+    minGuests: guestsPriceRange ? minG : "",
+    maxGuests: guestsPriceRange ? maxG : "",
+    minPrice: guestsPriceRange ? minP : "",
+    maxPrice: guestsPriceRange ? maxP : "",
     hallRentalMin: sp.get("hallRentalMin") ?? "",
     hallRentalMax: sp.get("hallRentalMax") ?? "",
     eventType: sp.get("eventType") ?? "",
@@ -522,6 +563,7 @@ export default function HallsSearchClient({
     const maxGuests = searchParams.get("maxGuests");
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
+    const guestsPriceRange = searchParams.get("guestsPriceRange");
     const hallRentalMin = searchParams.get("hallRentalMin");
     const hallRentalMax = searchParams.get("hallRentalMax");
     const eventType = searchParams.get("eventType");
@@ -539,6 +581,7 @@ export default function HallsSearchClient({
      const hasSoundSystem = searchParams.get("hasSoundSystem");
      const hasBridalRoom = searchParams.get("hasBridalRoom");
     if (city) params.set("city", city);
+    if (guestsPriceRange === "true") params.set("guestsPriceRange", "true");
     if (minGuests) params.set("minGuests", minGuests);
     if (maxGuests) params.set("maxGuests", maxGuests);
     if (minPrice) params.set("minPrice", minPrice);
@@ -574,7 +617,32 @@ export default function HallsSearchClient({
     router.replace(next ? `/halls?${next}` : "/halls", { scroll: false });
   }
 
-  const searchFiltersForBrain = form as SearchFilters;
+  const searchFiltersForBrain = useMemo((): SearchFilters => {
+    if (form.guestsPriceRange) {
+      return {
+        city: form.city,
+        minGuests: form.minGuests,
+        maxGuests: form.maxGuests,
+        minPrice: form.minPrice,
+        maxPrice: form.maxPrice,
+        hallRentalMin: form.hallRentalMin,
+        hallRentalMax: form.hallRentalMax,
+        eventType: form.eventType,
+      };
+    }
+    const eg = form.exactGuests.trim();
+    const ep = form.exactPrice.trim();
+    return {
+      city: form.city,
+      minGuests: eg,
+      maxGuests: eg,
+      minPrice: ep,
+      maxPrice: ep,
+      hallRentalMin: form.hallRentalMin,
+      hallRentalMax: form.hallRentalMax,
+      eventType: form.eventType,
+    };
+  }, [form]);
 
   const labelWinners = useMemo(
     () => computeLabelWinners(venues as HallVenueLike[], popularVenueOrder),
@@ -666,62 +734,143 @@ export default function HallsSearchClient({
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="min-w-0">
-            <label className={labelClass}>מינימום אורחים</label>
+        <div className="mt-6 rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4 sm:p-5">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[#0F3B2E]">
             <input
-              type="number"
-              min={0}
-              value={form.minGuests}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, minGuests: e.target.value }))
-              }
-              className={fieldClass}
-              placeholder="לדוגמה: 40"
+              type="checkbox"
+              checked={form.guestsPriceRange}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setForm((f) => {
+                  if (checked) {
+                    const g = f.exactGuests.trim();
+                    const p = f.exactPrice.trim();
+                    return {
+                      ...f,
+                      guestsPriceRange: true,
+                      minGuests: g || f.minGuests,
+                      maxGuests: g || f.maxGuests || g,
+                      minPrice: p || f.minPrice,
+                      maxPrice: p || f.maxPrice || p,
+                      exactGuests: "",
+                      exactPrice: "",
+                    };
+                  }
+                  const eg =
+                    f.minGuests && f.minGuests === f.maxGuests ? f.minGuests : "";
+                  const ep =
+                    f.minPrice && f.minPrice === f.maxPrice ? f.minPrice : "";
+                  return {
+                    ...f,
+                    guestsPriceRange: false,
+                    exactGuests: eg,
+                    exactPrice: ep,
+                    minGuests: "",
+                    maxGuests: "",
+                    minPrice: "",
+                    maxPrice: "",
+                  };
+                });
+              }}
+              className="h-4 w-4 shrink-0 rounded border-[#E7E0CF] text-[#C9A227] focus:ring-[#C9A227]/40"
             />
-          </div>
-          <div className="min-w-0">
-            <label className={labelClass}>מקסימום אורחים</label>
-            <input
-              type="number"
-              min={0}
-              value={form.maxGuests}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, maxGuests: e.target.value }))
-              }
-              className={fieldClass}
-              placeholder="לדוגמה: 150"
-            />
-          </div>
-        </div>
+            אין לי מספר אורחים / מחיר מדויק — חיפוש לפי טווח
+          </label>
+          <p className="mt-1.5 text-xs text-[#6B6560]">
+            {form.guestsPriceRange
+              ? "ניתן למלא מינימום ומקסימום (גם שדה אחד בלבד)."
+              : "ברירת מחדל: מספר אורחים ומחיר למנה כערך יחיד."}
+          </p>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="min-w-0">
-            <label className={labelClass}>מחיר מינימום למנה (₪)</label>
-            <input
-              type="number"
-              min={0}
-              value={form.minPrice}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, minPrice: e.target.value }))
-              }
-              className={fieldClass}
-              placeholder="לדוגמה: 150"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className={labelClass}>מחיר מקסימום למנה (₪)</label>
-            <input
-              type="number"
-              min={0}
-              value={form.maxPrice}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, maxPrice: e.target.value }))
-              }
-              className={fieldClass}
-              placeholder="לדוגמה: 400"
-            />
-          </div>
+          {!form.guestsPriceRange ? (
+            <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="min-w-0">
+                <label className={labelClass}>מספר אורחים</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.exactGuests}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, exactGuests: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder="לדוגמה: 120"
+                />
+              </div>
+              <div className="min-w-0">
+                <label className={labelClass}>מחיר למנה (₪)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.exactPrice}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, exactPrice: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder="לדוגמה: 250"
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="min-w-0">
+                  <label className={labelClass}>מינימום אורחים</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.minGuests}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, minGuests: e.target.value }))
+                    }
+                    className={fieldClass}
+                    placeholder="לדוגמה: 40"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className={labelClass}>מקסימום אורחים</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.maxGuests}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, maxGuests: e.target.value }))
+                    }
+                    className={fieldClass}
+                    placeholder="לדוגמה: 150"
+                  />
+                </div>
+              </div>
+              <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="min-w-0">
+                  <label className={labelClass}>מחיר מינימום למנה (₪)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.minPrice}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, minPrice: e.target.value }))
+                    }
+                    className={fieldClass}
+                    placeholder="לדוגמה: 150"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className={labelClass}>מחיר מקסימום למנה (₪)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.maxPrice}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, maxPrice: e.target.value }))
+                    }
+                    className={fieldClass}
+                    placeholder="לדוגמה: 400"
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <p className="mb-2 mt-6 text-xs font-medium text-[#5F5F5F]">

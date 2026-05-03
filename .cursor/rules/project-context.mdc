@@ -15,3 +15,4 @@ alwaysApply: true
 - **Messaging queue (DB):** `BackgroundJob` Prisma model. App code should use `publishMessage` / `consumeQueueBatch` in `src/lib/messagingQueue.ts` (types: `src/lib/messagingQueueTypes.ts`); implementation in `src/lib/jobQueue.ts`. Handlers in `src/lib/jobHandlers.ts`. Cron: `GET /api/cron/process-jobs` + `CRON_SECRET` in prod. `vercel.json` — daily cron on Hobby (change schedule on Pro if needed).
 - **Auth:** Register creates `emailVerified: true` and sets session cookie immediately. No `/auth/verify` flow. `clearPendingVerificationCookie` on logout clears legacy pending cookie only.
 - **After security changes:** commit with `security: …`, push `main` for Vercel (see deploy-after-security rule). Never commit `.env`.
+- **When finishing code changes in this repo:** stage intentional files, commit with a clear message, and `git push origin main` so Vercel deploys — unless the user explicitly asked to skip push or hold the commit.
