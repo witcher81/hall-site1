@@ -2,23 +2,13 @@
 
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
 
-export type VenueHallSoftPresetKey =
-  | "seaView"
-  | "boutique"
-  | "accessible"
-  | "hasBridalRoom"
-  | "hasDanceFloor"
-  | "hasTableSetup"
-  | "hasSoundSystem";
+/** רק מאפיינים שלא מופיעים בבלוק הגרירה עם תמחור */
+export type VenueHallSoftPresetKey = "seaView" | "boutique" | "accessible";
 
 const PRESET_CHECKS: readonly { key: VenueHallSoftPresetKey; label: string }[] = [
   { key: "seaView", label: "נוף לים" },
   { key: "boutique", label: "אירועי בוטיק" },
   { key: "accessible", label: "נגישות לנכים" },
-  { key: "hasBridalRoom", label: "חדר חתן/כלה" },
-  { key: "hasDanceFloor", label: "רחבת ריקודים" },
-  { key: "hasTableSetup", label: "סידור שולחנות" },
-  { key: "hasSoundSystem", label: "מערכת הגברה" },
 ] as const;
 
 const boxClass =
@@ -58,8 +48,8 @@ export default function VenueHallSoftAttributesSection({
         מאפייני האולם (ללא תמחור נפרד)
       </p>
       <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
-        סימון בלבד — ללא «כלול במחיר» / «בתוספת תשלום». מתאים לנוף, נגישות, ריקודים וכו׳. אוכל
-        עם תמחור נמצא בסעיף הבא.
+        סימון בלבד — ללא «כלול במחיר» / «בתוספת תשלום». ריקודים, שולחנות, הגברה, חדר כלה ואוכל
+        עם תמחור נמצאים בסעיף הבא (גרירה).
       </p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">

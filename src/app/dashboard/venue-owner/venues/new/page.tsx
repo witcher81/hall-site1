@@ -66,7 +66,13 @@ type EventTypeProfileState = {
 };
 type BuiltinAmenityKey = BuiltinAmenityKeyFull;
 
-const HALL_GENERAL_PRICE_KEYS = [{ key: "hasFood" as const, label: "כולל אוכל" }] as const;
+const HALL_GENERAL_PRICE_KEYS = [
+  { key: "hasFood" as const, label: "כולל אוכל" },
+  { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
+  { key: "hasTableSetup" as const, label: "סידור שולחנות" },
+  { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
+  { key: "hasBridalRoom" as const, label: "חדר חתן/כלה" },
+] as const;
 function isPositivePrice(value: string) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0;
@@ -226,7 +232,10 @@ export default function NewVenuePage() {
             et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
         );
       for (const { key, label } of HALL_GENERAL_PRICE_KEYS) {
-        const pricingActive = anyFoodForValidate || form.productHasFood;
+        const pricingActive =
+          key === "hasFood"
+            ? anyFoodForValidate || form.productHasFood
+            : Boolean(form[key]);
         if (
           pricingActive &&
           builtinAmenityPriceModes[key] === "extra" &&
@@ -389,16 +398,23 @@ export default function NewVenuePage() {
       fd.append("hasVeganFood", String(anyEventVeganFood));
       fd.append("foodKashrut", form.foodKashrut || "");
       fd.append("eventTypes", JSON.stringify(eventTypes));
+      const builtinChecked: Record<BuiltinAmenityKey, boolean> = {
+        hasFood: hasFoodForApi,
+        hasDanceFloor: anyEventDanceFloor,
+        hasTableSetup: anyEventTableSetup,
+        hasSoundSystem: anyEventSoundSystem,
+        hasBridalRoom: form.hasBridalRoom,
+      };
       const customAmenitiesPayload = [
-        {
-          label: "__builtin__:hasFood",
-          checked: hasFoodForApi,
-          priceMode: builtinAmenityPriceModes.hasFood,
+        ...VENUE_PRODUCT_BUILTIN_KEYS.map((key) => ({
+          label: `__builtin__:${key}`,
+          checked: builtinChecked[key],
+          priceMode: builtinAmenityPriceModes[key],
           extraPrice:
-            builtinAmenityPriceModes.hasFood === "extra"
-              ? Number(builtinAmenityExtraPrices.hasFood)
+            builtinAmenityPriceModes[key] === "extra"
+              ? Number(builtinAmenityExtraPrices[key])
               : null,
-        },
+        })),
         ...customAmenityRows.map((r) => ({
           label: r.label,
           checked: r.checked,
@@ -502,13 +518,20 @@ export default function NewVenuePage() {
 
   const hallProductBools: VenueProductBools = {
     hasFood: anyEventOffersFood || form.productHasFood,
+    hasDanceFloor: form.hasDanceFloor,
+    hasTableSetup: form.hasTableSetup,
+    hasSoundSystem: form.hasSoundSystem,
+    hasBridalRoom: form.hasBridalRoom,
   };
 
   const setHallBuiltin = useCallback(
     (key: HallGeneralBuiltinKey, checked: boolean) => {
-      if (key !== "hasFood") return;
-      if (anyEventOffersFood) return;
-      setForm((f) => ({ ...f, productHasFood: checked }));
+      if (key === "hasFood") {
+        if (anyEventOffersFood) return;
+        setForm((f) => ({ ...f, productHasFood: checked }));
+        return;
+      }
+      setForm((f) => ({ ...f, [key]: checked }));
     },
     [anyEventOffersFood]
   );
@@ -956,10 +979,6 @@ export default function NewVenuePage() {
                 seaView: form.seaView,
                 boutique: form.boutique,
                 accessible: form.accessible,
-                hasBridalRoom: form.hasBridalRoom,
-                hasDanceFloor: form.hasDanceFloor,
-                hasTableSetup: form.hasTableSetup,
-                hasSoundSystem: form.hasSoundSystem,
               }}
               onPresetChange={(key: VenueHallSoftPresetKey, checked) =>
                 setForm((f) => ({ ...f, [key]: checked }))
@@ -976,9 +995,9 @@ export default function NewVenuePage() {
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-              אוכל ושירותים עם תמחור — גרירה ל«כלול במחיר» או «בתוספת תשלום».
+              אוכל, ריקודים, שולחנות, הגברה וחדר כלה — גרירה ל«כלול במחיר» או «בתוספת תשלום».
               {anyEventOffersFood
-                ? " האוכל נקבע לפי סוגי האירוע למטה."
+                ? " האוכל נקבע גם לפי סוגי האירוע למטה."
                 : ""}
             </p>
             <HallGeneralAmenitiesDnd
