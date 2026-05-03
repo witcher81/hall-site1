@@ -1,3 +1,5 @@
+import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
+
 /**
  * רשימת שירותים/תוספים שהאולם מציע — לטופס בקשה (מחפש בוחר מקור לכל פריט).
  */
@@ -38,6 +40,8 @@ export type VenueInquiryAmenitiesInput = {
   hasSoundSystem?: boolean | null;
   hasBridalRoom?: boolean | null;
   customAmenitiesJson?: string | null;
+  /** שורות טקסט חופשי (מאפייני אולם ללא תמחור) — רק עם on */
+  venueSoftAttributesJson?: string | null;
   /** פרופילים לפי סוג אירוע — customHallItems לפי סוג נבחר */
   eventTypeProfilesJson?: string | null;
 };
@@ -132,6 +136,14 @@ export function getVenueServiceOptionsForInquiry(
       out.push({ id: `service:custom:${generalIdx}`, label: row.label });
       generalIdx += 1;
     }
+  }
+
+  const softRows = parseVenueSoftAttributesFromDb(v.venueSoftAttributesJson ?? null);
+  let softIdx = 0;
+  for (const row of softRows) {
+    if (!row.on) continue;
+    out.push({ id: `service:soft:${softIdx}`, label: row.label });
+    softIdx += 1;
   }
 
   const etKey = eventType;

@@ -23,6 +23,7 @@ import {
   parkingKindNeedsMap,
   type ParkingKind,
 } from "@/lib/venueParkingKind";
+import { parseVenueSoftAttributesJson } from "@/lib/venueSoftAttributesJson";
 import { parseVenueTypeFromForm } from "@/lib/venueTypeOptions";
 
 const MAX_INT = 2_147_483_647;
@@ -516,6 +517,19 @@ export async function POST(req: NextRequest) {
   }
   const customAmenitiesJson = amenitiesParsed.json;
 
+  if (formDataJsonStringTooLong(formData.get("venueSoftAttributesJson"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+    return badRequest("נתוני מאפיינים מותאמים ארוכים מדי");
+  }
+  const softAttrRaw =
+    typeof formData.get("venueSoftAttributesJson") === "string"
+      ? (formData.get("venueSoftAttributesJson") as string)
+      : null;
+  const softParsedPost = parseVenueSoftAttributesJson(softAttrRaw);
+  if (softParsedPost.error) {
+    return NextResponse.json({ error: softParsedPost.error }, { status: 400 });
+  }
+  const venueSoftAttributesJson = softParsedPost.json;
+
   const nameCheck = validateRequiredText(
     typeof name === "string" ? name : "",
     USER_INPUT_MAX.VENUE_OR_SERVICE_NAME,
@@ -731,6 +745,7 @@ export async function POST(req: NextRequest) {
         galleryImagePaths.length > 0 ? JSON.stringify(galleryImagePaths) : null,
       autoReplyMessage: autoChk.value,
       customAmenitiesJson,
+      venueSoftAttributesJson,
     },
   });
 
@@ -926,6 +941,19 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: amenitiesParsed.error }, { status: 400 });
   }
   const customAmenitiesJson = amenitiesParsed.json;
+
+  if (formDataJsonStringTooLong(formData.get("venueSoftAttributesJson"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+    return badRequest("נתוני מאפיינים מותאמים ארוכים מדי");
+  }
+  const softAttrRawPut =
+    typeof formData.get("venueSoftAttributesJson") === "string"
+      ? (formData.get("venueSoftAttributesJson") as string)
+      : null;
+  const softParsedPut = parseVenueSoftAttributesJson(softAttrRawPut);
+  if (softParsedPut.error) {
+    return NextResponse.json({ error: softParsedPut.error }, { status: 400 });
+  }
+  const venueSoftAttributesJson = softParsedPut.json;
 
   const nameCheck = validateRequiredText(
     name ?? "",
@@ -1161,6 +1189,7 @@ export async function PUT(req: NextRequest) {
       galleryImageUrls,
       autoReplyMessage: autoReplyOut,
       customAmenitiesJson,
+      venueSoftAttributesJson,
       ...(coordPatch ?? {}),
     },
   });

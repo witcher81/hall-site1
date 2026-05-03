@@ -5,22 +5,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type HallGeneralPriceMode = "included" | "extra";
 
-/** כל פריטי «מוצרים שהאולם מציעה» — סדר תצוגה כמו בחיפוש */
+/** תמחור — כרגע רק אוכל כללי (שאר המאפיינים במסך «מאפייני האולם» ללא תמחור) */
 export const HALL_VENUE_PRODUCT_DND_ITEMS = [
-  { key: "seaView", label: "נוף לים", supportsExtraPrice: false as const },
-  { key: "boutique", label: "אירועי בוטיק", supportsExtraPrice: false as const },
-  { key: "accessible", label: "נגישות לנכים", supportsExtraPrice: false as const },
-  { key: "hasChuppa", label: "כולל חופה", supportsExtraPrice: false as const },
   { key: "hasFood", label: "כולל אוכל", supportsExtraPrice: true as const },
-  { key: "hasTableSetup", label: "סידור שולחנות", supportsExtraPrice: true as const },
-  { key: "hasDanceFloor", label: "רחבת ריקודים", supportsExtraPrice: true as const },
-  { key: "hasSoundSystem", label: "מערכת הגברה", supportsExtraPrice: true as const },
-  { key: "hasBridalRoom", label: "חדר חתן/כלה", supportsExtraPrice: false as const },
 ] as const;
 
 export type HallGeneralBuiltinKey = (typeof HALL_VENUE_PRODUCT_DND_ITEMS)[number]["key"];
 
-/** תואם לטפסי אולם + JSON מובנה */
 export type BuiltinAmenityKeyFull = HallGeneralBuiltinKey;
 
 export const VENUE_PRODUCT_BUILTIN_KEYS: HallGeneralBuiltinKey[] =
@@ -101,7 +92,7 @@ type BuiltinExtraPrices = Record<BuiltinAmenityKeyFull, string>;
 type Props = {
   productBools: VenueProductBools;
   onSetHallBuiltin: (key: HallGeneralBuiltinKey, checked: boolean) => void;
-  /** פריטים שמנוהלים במקום אחר (חתונה / אוכל מאירועים) — לא מוצגים ב-DND */
+  /** אוכל מאירועים — לא לערוך כאן */
   excludedBuiltinKeys?: readonly HallGeneralBuiltinKey[];
   builtinAmenityPriceModes: BuiltinPriceModes;
   setBuiltinAmenityPriceModes: Dispatch<SetStateAction<BuiltinPriceModes>>;
@@ -463,7 +454,7 @@ export default function HallGeneralAmenitiesDnd({
       </div>
 
       <div className="mt-3 border-t border-[#E0D4C3]/70 pt-3">
-        <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">פרטים נוספים באולם (כללי)</p>
+        <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">פרטים נוספים עם תמחור (כללי)</p>
         <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
           <input
             type="text"

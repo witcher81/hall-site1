@@ -4,6 +4,7 @@ import {
   type BuiltinAmenityKeyFull,
   VENUE_PRODUCT_BUILTIN_KEYS,
 } from "@/components/HallGeneralAmenitiesDnd";
+import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
 import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import { resolveVenueTypeInitial } from "@/lib/venueTypeOptions";
 import VenueEditForm from "./VenueEditForm";
@@ -123,6 +124,10 @@ export default async function VenueEditPage({
     !venue.hasChuppaOutdoor &&
     !venue.hasChuppaCovered;
 
+  const initialSoftAttributes = parseVenueSoftAttributesFromDb(
+    venue.venueSoftAttributesJson
+  );
+
   const foodGalleryImageCount = await prisma.venueGalleryImage.count({
     where: { venueId: venue.id, category: "FOOD" },
   });
@@ -207,6 +212,7 @@ export default async function VenueEditPage({
         parkingLatitude: venue.parkingLatitude ?? null,
         parkingLongitude: venue.parkingLongitude ?? null,
         venueType: resolveVenueTypeInitial(venue.venueType),
+        softAttributeRows: initialSoftAttributes,
       }}
     />
   );

@@ -97,6 +97,8 @@ model Venue {
   hasBridalRoom  Boolean @default(false)
   /// JSON: מערך { label, checked } — שירותים/ציוד נוספים שהבעלים הוסיף
   customAmenitiesJson String?
+  /// JSON: מערך { id, label, on } — מאפיינים מילוליים ללא תמחור (מותאמים אישית)
+  venueSoftAttributesJson String?
   hasChuppaOutdoor Boolean @default(false)
   hasChuppaCovered Boolean @default(false)
   hasVeganFood     Boolean @default(false)

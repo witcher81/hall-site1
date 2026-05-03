@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       hasSoundSystem: true,
       hasBridalRoom: true,
       customAmenitiesJson: true,
+      venueSoftAttributesJson: true,
     },
   });
   if (!venue) {

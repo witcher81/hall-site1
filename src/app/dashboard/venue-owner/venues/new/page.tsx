@@ -20,7 +20,9 @@ import {
   type ParkingKind,
 } from "@/lib/venueParkingKind";
 import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
-import { VENUE_OFFER_PRODUCTS_HEADING } from "@/components/VenueOfferProductsSection";
+import VenueHallSoftAttributesSection, {
+  type VenueHallSoftPresetKey,
+} from "@/components/VenueHallSoftAttributesSection";
 import HallGeneralAmenitiesDnd, {
   type BuiltinAmenityKeyFull,
   type HallGeneralBuiltinKey,
@@ -29,6 +31,7 @@ import HallGeneralAmenitiesDnd, {
   type VenueProductBools,
   VENUE_PRODUCT_BUILTIN_KEYS,
 } from "@/components/HallGeneralAmenitiesDnd";
+import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
 
 const PRESET_EVENT_TYPES: readonly string[] = [
   "חתונה",
@@ -62,14 +65,8 @@ type EventTypeProfileState = {
   }[];
 };
 type BuiltinAmenityKey = BuiltinAmenityKeyFull;
-const BUILTIN_AMENITY_KEYS: BuiltinAmenityKey[] = [...VENUE_PRODUCT_BUILTIN_KEYS];
 
-const HALL_GENERAL_PRICE_KEYS = [
-  { key: "hasFood" as const, label: "כולל אוכל" },
-  { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
-  { key: "hasTableSetup" as const, label: "סידור שולחנות" },
-  { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
-] as const;
+const HALL_GENERAL_PRICE_KEYS = [{ key: "hasFood" as const, label: "כולל אוכל" }] as const;
 function isPositivePrice(value: string) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0;
@@ -136,6 +133,8 @@ export default function NewVenuePage() {
     Record<string, string>
   >({});
   const [customAmenityRows, setCustomAmenityRows] = useState<HallGeneralCustomRow[]>([]);
+  const [softAttributeRows, setSoftAttributeRows] = useState<VenueSoftAttributeRow[]>([]);
+  const [softAttrCustomInput, setSoftAttrCustomInput] = useState("");
   const [builtinAmenityPriceModes, setBuiltinAmenityPriceModes] = useState<
     Record<BuiltinAmenityKey, HallGeneralPriceMode>
   >(() =>
@@ -227,10 +226,7 @@ export default function NewVenuePage() {
             et !== "חתונה" && eventTypeProfiles[et]?.hasFoodAtEvent === true
         );
       for (const { key, label } of HALL_GENERAL_PRICE_KEYS) {
-        const pricingActive =
-          key === "hasFood"
-            ? anyFoodForValidate || form.productHasFood
-            : form[key];
+        const pricingActive = anyFoodForValidate || form.productHasFood;
         if (
           pricingActive &&
           builtinAmenityPriceModes[key] === "extra" &&
@@ -394,29 +390,15 @@ export default function NewVenuePage() {
       fd.append("foodKashrut", form.foodKashrut || "");
       fd.append("eventTypes", JSON.stringify(eventTypes));
       const customAmenitiesPayload = [
-        ...BUILTIN_AMENITY_KEYS.map((key) => {
-          const checked =
-            key === "hasFood"
-              ? hasFoodForApi
-              : key === "hasChuppa"
-                ? hasChuppaForApi
-                : key === "hasDanceFloor"
-                  ? anyEventDanceFloor
-                  : key === "hasTableSetup"
-                    ? anyEventTableSetup
-                    : key === "hasSoundSystem"
-                      ? anyEventSoundSystem
-                      : Boolean(form[key as keyof typeof form]);
-          return {
-            label: `__builtin__:${key}`,
-            checked,
-            priceMode: builtinAmenityPriceModes[key],
-            extraPrice:
-              builtinAmenityPriceModes[key] === "extra"
-                ? Number(builtinAmenityExtraPrices[key])
-                : null,
-          };
-        }),
+        {
+          label: "__builtin__:hasFood",
+          checked: hasFoodForApi,
+          priceMode: builtinAmenityPriceModes.hasFood,
+          extraPrice:
+            builtinAmenityPriceModes.hasFood === "extra"
+              ? Number(builtinAmenityExtraPrices.hasFood)
+              : null,
+        },
         ...customAmenityRows.map((r) => ({
           label: r.label,
           checked: r.checked,
@@ -425,6 +407,7 @@ export default function NewVenuePage() {
         })),
       ];
       fd.append("customAmenitiesJson", JSON.stringify(customAmenitiesPayload));
+      fd.append("venueSoftAttributesJson", JSON.stringify(softAttributeRows));
 
       fd.append("parkingKind", parkingKind);
       if (
@@ -513,44 +496,26 @@ export default function NewVenuePage() {
   const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
 
   const excludedDndBuiltinKeys = useMemo((): HallGeneralBuiltinKey[] => {
-    const out: HallGeneralBuiltinKey[] = [];
-    if (isWeddingSelected) out.push("hasChuppa");
-    if (anyEventOffersFood) out.push("hasFood");
-    return out;
-  }, [isWeddingSelected, anyEventOffersFood]);
+    if (anyEventOffersFood) return ["hasFood"];
+    return [];
+  }, [anyEventOffersFood]);
 
   const hallProductBools: VenueProductBools = {
-    seaView: form.seaView,
-    boutique: form.boutique,
-    accessible: form.accessible,
-    hasChuppa: isWeddingSelected
-      ? form.hasChuppaOutdoor || form.hasChuppaCovered
-      : form.hasChuppaOutdoor ||
-        form.hasChuppaCovered ||
-        form.productHasChuppa,
     hasFood: anyEventOffersFood || form.productHasFood,
-    hasTableSetup: form.hasTableSetup,
-    hasDanceFloor: form.hasDanceFloor,
-    hasSoundSystem: form.hasSoundSystem,
-    hasBridalRoom: form.hasBridalRoom,
   };
 
   const setHallBuiltin = useCallback(
     (key: HallGeneralBuiltinKey, checked: boolean) => {
-      if (key === "hasChuppa") {
-        if (isWeddingSelected) return;
-        setForm((f) => ({ ...f, productHasChuppa: checked }));
-        return;
-      }
-      if (key === "hasFood") {
-        if (anyEventOffersFood) return;
-        setForm((f) => ({ ...f, productHasFood: checked }));
-        return;
-      }
-      setForm((f) => ({ ...f, [key]: checked }) as typeof f);
+      if (key !== "hasFood") return;
+      if (anyEventOffersFood) return;
+      setForm((f) => ({ ...f, productHasFood: checked }));
     },
-    [isWeddingSelected, anyEventOffersFood]
+    [anyEventOffersFood]
   );
+
+  const chuppaSoftChecked = isWeddingSelected
+    ? form.hasChuppaOutdoor || form.hasChuppaCovered
+    : form.hasChuppaOutdoor || form.hasChuppaCovered || form.productHasChuppa;
 
   function removeCoverImage() {
     if (coverPreview) URL.revokeObjectURL(coverPreview);
@@ -980,14 +945,41 @@ export default function NewVenuePage() {
           </div>
 
           <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+            <VenueHallSoftAttributesSection
+              weddingSelected={isWeddingSelected}
+              chuppaChecked={chuppaSoftChecked}
+              onChuppaChange={(checked) => {
+                if (isWeddingSelected) return;
+                setForm((f) => ({ ...f, productHasChuppa: checked }));
+              }}
+              presetValues={{
+                seaView: form.seaView,
+                boutique: form.boutique,
+                accessible: form.accessible,
+                hasBridalRoom: form.hasBridalRoom,
+                hasDanceFloor: form.hasDanceFloor,
+                hasTableSetup: form.hasTableSetup,
+                hasSoundSystem: form.hasSoundSystem,
+              }}
+              onPresetChange={(key: VenueHallSoftPresetKey, checked) =>
+                setForm((f) => ({ ...f, [key]: checked }))
+              }
+              customRows={softAttributeRows}
+              onCustomRowsChange={setSoftAttributeRows}
+              customInput={softAttrCustomInput}
+              onCustomInputChange={setSoftAttrCustomInput}
+            />
+          </div>
+
+          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
             <p className="mb-1 text-xs font-semibold text-[#5F5F5F]">
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-              {VENUE_OFFER_PRODUCTS_HEADING}
-              {isWeddingSelected || anyEventOffersFood
-                ? " — חופה ואוכל לפי חתונה/סוגי אירוע מוגדרים למטה (לא כפול כאן)."
-                : " — גרירה לעמודות «כלול במחיר» או «בתוספת תשלום» (כשמחיר נפרד רלוונטי)."}
+              אוכל ושירותים עם תמחור — גרירה ל«כלול במחיר» או «בתוספת תשלום».
+              {anyEventOffersFood
+                ? " האוכל נקבע לפי סוגי האירוע למטה."
+                : ""}
             </p>
             <HallGeneralAmenitiesDnd
               productBools={hallProductBools}

@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { canShowDevUserSwitcher } from "@/lib/admin";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
+import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
 import VenuePublicView from "./VenuePublicView";
 
 type PriceMode = "included" | "extra";
@@ -153,6 +154,7 @@ export default async function HallPublicPage({
       hasSoundSystem: true,
       hasBridalRoom: true,
       customAmenitiesJson: true,
+      venueSoftAttributesJson: true,
       coverImageUrl: true,
       galleryImageUrls: true,
       galleryImages: {
@@ -253,6 +255,12 @@ export default async function HallPublicPage({
     return false;
   });
 
+  const softCustomAttributeLabels = parseVenueSoftAttributesFromDb(
+    venue.venueSoftAttributesJson ?? null
+  )
+    .filter((r) => r.on)
+    .map((r) => r.label);
+
   let isFavorite = false;
   if (user) {
     try {
@@ -307,6 +315,8 @@ export default async function HallPublicPage({
           hasBridalRoom: venue.hasBridalRoom,
           amenityPriceModes,
           amenityExtraPrices,
+          softCustomAttributeLabels:
+            softCustomAttributeLabels.length > 0 ? softCustomAttributeLabels : undefined,
           customAmenities:
             customAmenities.length > 0 ? customAmenities : undefined,
           coverImageUrl: venue.coverImageUrl,

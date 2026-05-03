@@ -53,6 +53,8 @@ type Venue = {
   }[];
   amenityPriceModes?: Partial<Record<BuiltinAmenityKey, PriceMode>>;
   amenityExtraPrices?: Partial<Record<BuiltinAmenityKey, number>>;
+  /** תוויות מ־venueSoftAttributesJson (מאפיינים משל בעל האולם, ללא תמחור) */
+  softCustomAttributeLabels?: string[];
   /** פרופיל לפי סוג אירוע — מ־eventTypeProfilesJson בשרת */
   eventTypeProfiles?: Record<string, PublicEventTypeProfile>;
 };
@@ -404,7 +406,8 @@ export default function VenuePublicView({
         venue.hasDanceFloor ||
         venue.hasSoundSystem ||
         venue.hasBridalRoom ||
-        hasCheckedCustomAmenities
+        hasCheckedCustomAmenities ||
+        (venue.softCustomAttributeLabels?.length ?? 0) > 0
     );
 
   const generalAmenityOffers = [
@@ -679,6 +682,14 @@ export default function VenuePublicView({
                           נגיש לנכים
                         </span>
                       )}
+                      {(venue.softCustomAttributeLabels ?? []).map((label, idx) => (
+                        <span
+                          key={`soft-custom-${idx}-${label}`}
+                          className={`${metaOfferPillClass} border-[#D4C9BC] bg-[#F5F1EA] text-[#1A1A1A]`}
+                        >
+                          {label}
+                        </span>
+                      ))}
                       {generalAmenityOffers.map((a) => (
                         <AmenityOfferPill
                           key={a.key}
