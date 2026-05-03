@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { queryRaw } from "@/lib/parameterizedRawSql";
 import {
   MAX_POPULAR_BADGES,
   MIN_WEEKLY_ENGAGED_VIEWS_FOR_BADGE,
@@ -24,7 +25,8 @@ export async function GET() {
   const since = new Date(Date.now() - WEEK_MS);
 
   try {
-    const venueRows = await prisma.$queryRaw<{ venueId: number; cnt: unknown }[]>(
+    const venueRows = await queryRaw<{ venueId: number; cnt: unknown }[]>(
+      prisma,
       Prisma.sql`
         SELECT "venueId" as venueId, COUNT(*) as cnt
         FROM "VenuePageView"
@@ -35,7 +37,8 @@ export async function GET() {
       `
     );
 
-    const providerRows = await prisma.$queryRaw<{ providerUserId: number; cnt: unknown }[]>(
+    const providerRows = await queryRaw<{ providerUserId: number; cnt: unknown }[]>(
+      prisma,
       Prisma.sql`
         SELECT "providerUserId" as providerUserId, COUNT(*) as cnt
         FROM "FreelancerProfileView"
