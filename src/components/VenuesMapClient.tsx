@@ -18,9 +18,22 @@ export type MapVenue = {
   approximate?: boolean;
 };
 
-export default function VenuesMapClient({ venues }: { venues: MapVenue[] }) {
+export type MapFocusTarget = { lat: number; lng: number; zoom?: number };
+
+export default function VenuesMapClient({
+  venues,
+  mapFocus,
+}: {
+  venues: MapVenue[];
+  /** כשאין סיכות מתאימות — מרכזים על עיר (מרכז משוער) */
+  mapFocus?: MapFocusTarget | null;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+
+  const focusLat = mapFocus?.lat ?? null;
+  const focusLng = mapFocus?.lng ?? null;
+  const focusZoom = mapFocus?.zoom ?? null;
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -72,6 +85,15 @@ export default function VenuesMapClient({ venues }: { venues: MapVenue[] }) {
     if (group.length > 0) {
       const fg = L.featureGroup(group);
       map.fitBounds(fg.getBounds().pad(0.15));
+    } else if (
+      focusLat != null &&
+      focusLng != null &&
+      Number.isFinite(focusLat) &&
+      Number.isFinite(focusLng)
+    ) {
+      map.setView([focusLat, focusLng], focusZoom != null && focusZoom > 0 ? focusZoom : 12);
+    } else {
+      map.setView([31.5, 34.85], 7);
     }
     map.panInsideBounds(israelBounds, { animate: false });
 
@@ -79,7 +101,7 @@ export default function VenuesMapClient({ venues }: { venues: MapVenue[] }) {
       map.remove();
       mapRef.current = null;
     };
-  }, [venues]);
+  }, [venues, focusLat, focusLng, focusZoom]);
 
   return (
     <div className="space-y-2">

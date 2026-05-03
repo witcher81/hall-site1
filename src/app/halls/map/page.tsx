@@ -17,8 +17,8 @@ export default async function HallsMapPage() {
         <header className="border-b border-[#E7E0CF] pb-4 text-right">
           <h1 className="text-2xl font-bold text-[#0F3B2E]">מפת אולמות</h1>
           <p className="mt-1 text-sm text-[#5F5F5F]">
-            מפת ישראל עם סיכות לאולמות (מיקום לפי עיר או לפי קואורדינטות אם הוגדרו).
-            לחיצה על סיכה מובילה לעמוד האולם.
+            מפת ישראל עם סיכות לאולמות (מיקום לפי עיר או לפי קואורדינטות אם הוגדרו). אפשר לבחור עיר
+            למטה כדי לקפוץ לאזור ולהציג רק אולמות רלוונטיים. לחיצה על סיכה מובילה לעמוד האולם.
           </p>
           <a
             href="/halls"
