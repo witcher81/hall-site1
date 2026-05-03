@@ -907,6 +907,16 @@ export default function VenuePublicView({
           בדף נפרד תמלאו תאריך, כמות אורחים, סוג אירוע (אופציונלי) ובחירה לכל שירות שהאולם מציע — דרך האולם או ספק
           חיצוני. כאן אפשר רק לבדוק זמינות בלוח.
         </p>
+        <p className="mt-3 text-sm leading-relaxed text-[#5C564C]">
+          <a
+            href={`/halls/${venue.id}/after-venue`}
+            className="font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+          >
+            השוואת ספקים והשלמת האירוע
+          </a>
+          {" — "}
+          אחרי שבחרתם באולם: השוואת תוספות בתשלום מול המאגר, והצעות לפי סוג אירוע (בלי התחייבות).
+        </p>
         {!user ? (
           <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <a

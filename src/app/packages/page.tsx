@@ -27,6 +27,15 @@ export default async function PackagesPage() {
           </p>
         </header>
 
+        <div className="mt-4 rounded-2xl border border-[#C9A227]/40 bg-[#FFFBF0] px-4 py-3 text-right text-sm text-[#2A261F]">
+          <strong className="text-[#0F3B2E]">מסלול חדש (מומלץ):</strong> מתחילים מ־
+          <a href="/halls" className="font-semibold text-[#0F3B2E] underline">
+            חיפוש אולם
+          </a>
+          , ובוחרים אולם — אז נפתח דף &quot;אחרי שבחרתם אולם&quot; עם השוואת תוספות מול שירותי
+          ספקים והצעות השלמה לפי סוג אירוע. החבילות למטה נשארות זמינית לעיון.
+        </div>
+
         <Suspense
           fallback={
             <div
