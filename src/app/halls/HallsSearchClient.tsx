@@ -34,8 +34,10 @@ const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
 /** ברירת מחדל מלאה — מונע input שעובר מ־uncontrolled ל־controlled כשחסר מפתח ב־state */
 const EMPTY_SEARCH_FORM = {
   city: "",
-  /** מצב טווח: מינ'/מקס' אורחים ומחיר; אחרת שדות מדויקים */
-  guestsPriceRange: false,
+  /** טווח אורחים — צ'קבוקס מתחת לשדה מספר אורחים */
+  guestsUseRange: false,
+  /** טווח מחיר למנה — צ'קבוקס מתחת לשדה מחיר */
+  priceUseRange: false,
   exactGuests: "",
   exactPrice: "",
   minGuests: "",
@@ -77,19 +79,23 @@ type SearchFormState = typeof EMPTY_SEARCH_FORM;
 function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   const params = new URLSearchParams();
   if (f.city) params.set("city", f.city);
-  if (f.guestsPriceRange) {
-    params.set("guestsPriceRange", "true");
+  if (f.guestsUseRange) {
+    params.set("guestsRange", "true");
     if (f.minGuests) params.set("minGuests", f.minGuests);
     if (f.maxGuests) params.set("maxGuests", f.maxGuests);
-    if (f.minPrice) params.set("minPrice", f.minPrice);
-    if (f.maxPrice) params.set("maxPrice", f.maxPrice);
   } else {
     const eg = f.exactGuests.trim();
-    const ep = f.exactPrice.trim();
     if (eg) {
       params.set("minGuests", eg);
       params.set("maxGuests", eg);
     }
+  }
+  if (f.priceUseRange) {
+    params.set("priceRange", "true");
+    if (f.minPrice) params.set("minPrice", f.minPrice);
+    if (f.maxPrice) params.set("maxPrice", f.maxPrice);
+  } else {
+    const ep = f.exactPrice.trim();
     if (ep) {
       params.set("minPrice", ep);
       params.set("maxPrice", ep);
@@ -118,17 +124,23 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
   const maxG = sp.get("maxGuests") ?? "";
   const minP = sp.get("minPrice") ?? "";
   const maxP = sp.get("maxPrice") ?? "";
-  const grpFlag = sp.get("guestsPriceRange") === "true";
+  const legacyBothRange = sp.get("guestsPriceRange") === "true";
+  const guestsRangeParam = sp.get("guestsRange") === "true";
+  const priceRangeParam = sp.get("priceRange") === "true";
   const gDiff = minG !== maxG && (minG !== "" || maxG !== "");
   const pDiff = minP !== maxP && (minP !== "" || maxP !== "");
-  const guestsPriceRange = grpFlag || gDiff || pDiff;
+
+  let guestsUseRange = legacyBothRange || guestsRangeParam || gDiff;
+  let priceUseRange = legacyBothRange || priceRangeParam || pDiff;
 
   let exactGuests = "";
   let exactPrice = "";
-  if (!guestsPriceRange) {
+  if (!guestsUseRange) {
     if (minG && maxG && minG === maxG) exactGuests = minG;
     else if (minG && !maxG) exactGuests = minG;
     else if (!minG && maxG) exactGuests = maxG;
+  }
+  if (!priceUseRange) {
     if (minP && maxP && minP === maxP) exactPrice = minP;
     else if (minP && !maxP) exactPrice = minP;
     else if (!minP && maxP) exactPrice = maxP;
@@ -137,13 +149,14 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
   return {
     ...EMPTY_SEARCH_FORM,
     city: sp.get("city") ?? "",
-    guestsPriceRange,
+    guestsUseRange,
+    priceUseRange,
     exactGuests,
     exactPrice,
-    minGuests: guestsPriceRange ? minG : "",
-    maxGuests: guestsPriceRange ? maxG : "",
-    minPrice: guestsPriceRange ? minP : "",
-    maxPrice: guestsPriceRange ? maxP : "",
+    minGuests: guestsUseRange ? minG : "",
+    maxGuests: guestsUseRange ? maxG : "",
+    minPrice: priceUseRange ? minP : "",
+    maxPrice: priceUseRange ? maxP : "",
     hallRentalMin: sp.get("hallRentalMin") ?? "",
     hallRentalMax: sp.get("hallRentalMax") ?? "",
     eventType: sp.get("eventType") ?? "",
@@ -563,6 +576,8 @@ export default function HallsSearchClient({
     const maxGuests = searchParams.get("maxGuests");
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
+    const guestsRange = searchParams.get("guestsRange");
+    const priceRange = searchParams.get("priceRange");
     const guestsPriceRange = searchParams.get("guestsPriceRange");
     const hallRentalMin = searchParams.get("hallRentalMin");
     const hallRentalMax = searchParams.get("hallRentalMax");
@@ -581,6 +596,8 @@ export default function HallsSearchClient({
      const hasSoundSystem = searchParams.get("hasSoundSystem");
      const hasBridalRoom = searchParams.get("hasBridalRoom");
     if (city) params.set("city", city);
+    if (guestsRange === "true") params.set("guestsRange", "true");
+    if (priceRange === "true") params.set("priceRange", "true");
     if (guestsPriceRange === "true") params.set("guestsPriceRange", "true");
     if (minGuests) params.set("minGuests", minGuests);
     if (maxGuests) params.set("maxGuests", maxGuests);
@@ -618,26 +635,14 @@ export default function HallsSearchClient({
   }
 
   const searchFiltersForBrain = useMemo((): SearchFilters => {
-    if (form.guestsPriceRange) {
-      return {
-        city: form.city,
-        minGuests: form.minGuests,
-        maxGuests: form.maxGuests,
-        minPrice: form.minPrice,
-        maxPrice: form.maxPrice,
-        hallRentalMin: form.hallRentalMin,
-        hallRentalMax: form.hallRentalMax,
-        eventType: form.eventType,
-      };
-    }
     const eg = form.exactGuests.trim();
     const ep = form.exactPrice.trim();
     return {
       city: form.city,
-      minGuests: eg,
-      maxGuests: eg,
-      minPrice: ep,
-      maxPrice: ep,
+      minGuests: form.guestsUseRange ? form.minGuests : eg,
+      maxGuests: form.guestsUseRange ? form.maxGuests : eg,
+      minPrice: form.priceUseRange ? form.minPrice : ep,
+      maxPrice: form.priceUseRange ? form.maxPrice : ep,
       hallRentalMin: form.hallRentalMin,
       hallRentalMax: form.hallRentalMax,
       eventType: form.eventType,
@@ -734,56 +739,9 @@ export default function HallsSearchClient({
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4 sm:p-5">
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[#0F3B2E]">
-            <input
-              type="checkbox"
-              checked={form.guestsPriceRange}
-              onChange={(e) => {
-                const checked = e.target.checked;
-                setForm((f) => {
-                  if (checked) {
-                    const g = f.exactGuests.trim();
-                    const p = f.exactPrice.trim();
-                    return {
-                      ...f,
-                      guestsPriceRange: true,
-                      minGuests: g || f.minGuests,
-                      maxGuests: g || f.maxGuests || g,
-                      minPrice: p || f.minPrice,
-                      maxPrice: p || f.maxPrice || p,
-                      exactGuests: "",
-                      exactPrice: "",
-                    };
-                  }
-                  const eg =
-                    f.minGuests && f.minGuests === f.maxGuests ? f.minGuests : "";
-                  const ep =
-                    f.minPrice && f.minPrice === f.maxPrice ? f.minPrice : "";
-                  return {
-                    ...f,
-                    guestsPriceRange: false,
-                    exactGuests: eg,
-                    exactPrice: ep,
-                    minGuests: "",
-                    maxGuests: "",
-                    minPrice: "",
-                    maxPrice: "",
-                  };
-                });
-              }}
-              className="h-4 w-4 shrink-0 rounded border-[#E7E0CF] text-[#C9A227] focus:ring-[#C9A227]/40"
-            />
-            אין לי מספר אורחים / מחיר מדויק — חיפוש לפי טווח
-          </label>
-          <p className="mt-1.5 text-xs text-[#6B6560]">
-            {form.guestsPriceRange
-              ? "ניתן למלא מינימום ומקסימום (גם שדה אחד בלבד)."
-              : "ברירת מחדל: מספר אורחים ומחיר למנה כערך יחיד."}
-          </p>
-
-          {!form.guestsPriceRange ? (
-            <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="mt-6 space-y-6">
+          <div className="rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4 sm:p-5">
+            {!form.guestsUseRange ? (
               <div className="min-w-0">
                 <label className={labelClass}>מספר אורחים</label>
                 <input
@@ -797,23 +755,8 @@ export default function HallsSearchClient({
                   placeholder="לדוגמה: 120"
                 />
               </div>
-              <div className="min-w-0">
-                <label className={labelClass}>מחיר למנה (₪)</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={form.exactPrice}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, exactPrice: e.target.value }))
-                  }
-                  className={fieldClass}
-                  placeholder="לדוגמה: 250"
-                />
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            ) : (
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="min-w-0">
                   <label className={labelClass}>מינימום אורחים</label>
                   <input
@@ -841,7 +784,60 @@ export default function HallsSearchClient({
                   />
                 </div>
               </div>
-              <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            )}
+            <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-[#0F3B2E]">
+              <input
+                type="checkbox"
+                checked={form.guestsUseRange}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setForm((f) => {
+                    if (checked) {
+                      const g = f.exactGuests.trim();
+                      return {
+                        ...f,
+                        guestsUseRange: true,
+                        minGuests: g || f.minGuests,
+                        maxGuests: g || f.maxGuests || g,
+                        exactGuests: "",
+                      };
+                    }
+                    const eg =
+                      f.minGuests && f.minGuests === f.maxGuests
+                        ? f.minGuests
+                        : "";
+                    return {
+                      ...f,
+                      guestsUseRange: false,
+                      exactGuests: eg,
+                      minGuests: "",
+                      maxGuests: "",
+                    };
+                  });
+                }}
+                className="h-4 w-4 shrink-0 rounded border-[#E7E0CF] text-[#C9A227] focus:ring-[#C9A227]/40"
+              />
+              אין לי מספר אורחים מדויק — חיפוש לפי טווח (בערך)
+            </label>
+          </div>
+
+          <div className="rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4 sm:p-5">
+            {!form.priceUseRange ? (
+              <div className="min-w-0">
+                <label className={labelClass}>מחיר למנה שאני מחפש (₪)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.exactPrice}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, exactPrice: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder="לדוגמה: 250"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="min-w-0">
                   <label className={labelClass}>מחיר מינימום למנה (₪)</label>
                   <input
@@ -869,8 +865,42 @@ export default function HallsSearchClient({
                   />
                 </div>
               </div>
-            </>
-          )}
+            )}
+            <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-[#0F3B2E]">
+              <input
+                type="checkbox"
+                checked={form.priceUseRange}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setForm((f) => {
+                    if (checked) {
+                      const p = f.exactPrice.trim();
+                      return {
+                        ...f,
+                        priceUseRange: true,
+                        minPrice: p || f.minPrice,
+                        maxPrice: p || f.maxPrice || p,
+                        exactPrice: "",
+                      };
+                    }
+                    const ep =
+                      f.minPrice && f.minPrice === f.maxPrice
+                        ? f.minPrice
+                        : "";
+                    return {
+                      ...f,
+                      priceUseRange: false,
+                      exactPrice: ep,
+                      minPrice: "",
+                      maxPrice: "",
+                    };
+                  });
+                }}
+                className="h-4 w-4 shrink-0 rounded border-[#E7E0CF] text-[#C9A227] focus:ring-[#C9A227]/40"
+              />
+              יש לי טווח מחירים ולא מחיר מדויק למנה
+            </label>
+          </div>
         </div>
 
         <p className="mb-2 mt-6 text-xs font-medium text-[#5F5F5F]">
