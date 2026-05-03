@@ -40,9 +40,19 @@ export default function VenueOfferProductsSection({
 }: Props) {
   return (
     <div>
-      <p className="mb-3 text-xs font-medium text-[#5F5F5F]">
-        {VENUE_OFFER_PRODUCTS_HEADING}
-      </p>
+      <div className="mb-1">
+        <p className="text-xs font-medium text-[#5F5F5F]">
+          <span className="font-semibold text-[#0F3B2E]">
+            {VENUE_OFFER_PRODUCTS_HEADING}
+          </span>
+          <span className="mr-0.5 text-[#C9A227]" aria-hidden>
+            *
+          </span>
+        </p>
+        <p className="text-[11px] leading-relaxed text-[#6B6560]">
+          * אופציונלי — אין חובה לסמן אף מאפיין; הסימון משמש לסינון ולתצוגה בלבד.
+        </p>
+      </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         <label className={offerCheckboxClass}>
           <input

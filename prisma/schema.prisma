@@ -108,7 +108,7 @@ model Venue {
   longitude         Float?
   /// יש חניה באזור — כשמסומן, אפשר לשמור מיקום נפרד במפה (סיכת חניה)
   hasParkingNearby  Boolean @default(false)
-  /// none | adjacent | nearby | paid_lot (ערך ישן public_street ממופה ל-nearby)
+  /// none | adjacent | nearby (ערכים ישנים paid_lot / public_street ממופים ל-nearby)
   parkingKind       String?
   parkingLatitude   Float?
   parkingLongitude  Float?
