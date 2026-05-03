@@ -202,7 +202,7 @@ export default function HomeHeader({
                   : navLinkDesktopIdle
               }`}
             >
-              פרילנסרים
+              שירותי ספקים
             </Link>
             <Link
               href="/packages"
@@ -379,7 +379,7 @@ export default function HomeHeader({
                       }`}
                       onClick={() => setMenuOpen(false)}
                     >
-                      פרילנסרים
+                      שירותי ספקים
                     </Link>
                     <Link
                       href="/packages"

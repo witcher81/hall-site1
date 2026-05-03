@@ -17,12 +17,9 @@ export default async function ProvidersPage() {
           <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
             HALLS HUB
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-[#0F3B2E]">
-            חיפוש פרילנסרים
-          </h1>
+          <h1 className="mt-1 text-2xl font-bold text-[#0F3B2E]">שירותי ספקים</h1>
           <p className="mt-1 text-sm text-[#6B6560]">
-            צלמים, DJ, קייטרינג, עיצוב ועוד – אנשי מקצוע עצמאיים ליום האירוע. סננו לפי קטגוריה
-            ומחיר ושלחו בקשה למי שבחרתם.
+            צלמים, DJ, קייטרינג, עיצוב ועוד – סננו לפי קטגוריה ומחיר ושלחו בקשה לספק שבחרתם.
           </p>
         </header>
         <ProvidersSearchClient />

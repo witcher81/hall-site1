@@ -153,7 +153,7 @@ export default function ProvidersSearchClient() {
               type="submit"
               className="w-full rounded-full bg-[#C9A227] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#E5C96B]"
             >
-              חפש פרילנסרים
+              חפש
             </button>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function ProvidersSearchClient() {
       <RecentlyViewedBar variant="providers" />
 
       {loading ? (
-        <p className="py-8 text-center text-sm text-[#6B6560]">טוען פרילנסרים…</p>
+        <p className="py-8 text-center text-sm text-[#6B6560]">טוען תוצאות…</p>
       ) : services.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#E0D4C3] bg-[#FAF8F4] p-8 text-center text-sm text-[#6B6560]">
           לא נמצאו שירותים לפי הסינון. נסה לשנות פרמטרים.
