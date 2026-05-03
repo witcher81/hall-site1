@@ -30,12 +30,19 @@ export default function DevUserSwitcher() {
     password: "",
     role: "VENUE_OWNER" as string,
   });
+  const [canCreateManagedUsers, setCanCreateManagedUsers] = useState(false);
 
   const fetchUsers = useCallback(() => {
     fetch("/api/dev/users")
       .then((r) => r.json())
-      .then((data) => setUsers(data?.users ?? []))
-      .catch(() => setUsers([]));
+      .then((data) => {
+        setUsers(data?.users ?? []);
+        setCanCreateManagedUsers(Boolean(data?.canCreateManagedUsers));
+      })
+      .catch(() => {
+        setUsers([]);
+        setCanCreateManagedUsers(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -103,7 +110,7 @@ export default function DevUserSwitcher() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="rounded-full border border-amber-600/60 px-3 py-1.5 text-xs font-medium text-amber-300 transition hover:bg-amber-500/20"
-        title="החלף משתמש (אדמין בלבד)"
+        title="החלף משתמש (מצב דיבאג)"
       >
         החלף משתמש
       </button>
@@ -120,7 +127,7 @@ export default function DevUserSwitcher() {
           />
           <div className="dev-switcher-menu absolute left-0 top-full z-20 mt-1 min-w-[260px] rounded-xl border border-[#E0D4C3] bg-[#FDFBF7] py-2 shadow-xl">
             <p className="px-3 py-1 text-xs text-[#6B6560]">
-              התחבר כ (רק משתמשים שיצרת):
+              התחבר כ (אדמין + משתמשי דיבאג שיצרת):
             </p>
             {users.map((u) => (
               <button
@@ -136,13 +143,15 @@ export default function DevUserSwitcher() {
             ))}
 
             {!addFormOpen ? (
-              <button
-                type="button"
-                onClick={() => setAddFormOpen(true)}
-                className="mt-2 w-full border-t border-[#E0D4C3] py-2 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
-              >
-                + הוסף משתמש
-              </button>
+              canCreateManagedUsers ? (
+                <button
+                  type="button"
+                  onClick={() => setAddFormOpen(true)}
+                  className="mt-2 w-full border-t border-[#E0D4C3] py-2 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+                >
+                  + הוסף משתמש
+                </button>
+              ) : null
             ) : (
               <form
                 onSubmit={handleAddUser}

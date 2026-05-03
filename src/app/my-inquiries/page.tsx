@@ -2,7 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import HomeHeader from "@/components/HomeHeader";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import MyInquiriesClient from "./MyInquiriesClient";
 
 export default async function MyInquiriesPage() {
@@ -48,7 +48,7 @@ export default async function MyInquiriesPage() {
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <header className="border-b border-[#E0D4C3] pb-6 text-right">

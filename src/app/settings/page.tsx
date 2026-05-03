@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import { prisma } from "@/lib/prisma";
 import HomeHeader from "@/components/HomeHeader";
 import SettingsClient from "./settingsClient";
@@ -32,7 +32,7 @@ export default async function SettingsPage() {
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
         <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">

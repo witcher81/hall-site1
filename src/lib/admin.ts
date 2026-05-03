@@ -20,10 +20,3 @@ export function allowDevUserSwitchDeployment(): boolean {
   return process.env.ALLOW_DEV_USER_SWITCH === "true";
 }
 
-export function canShowDevUserSwitcher(user: {
-  email: string;
-} | null): boolean {
-  if (!user) return false;
-  if (!isAdminEmail(user.email)) return false;
-  return allowDevUserSwitchDeployment();
-}

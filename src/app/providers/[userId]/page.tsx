@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import HomeHeader from "@/components/HomeHeader";
 import { parseCustomIncludesJson } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
@@ -18,7 +18,7 @@ export default async function ProviderPage({
       <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
         <HomeHeader
           user={user}
-          canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
           <p className="text-sm text-[#2A261F]">ספק לא נמצא.</p>
@@ -47,7 +47,7 @@ export default async function ProviderPage({
       <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
         <HomeHeader
           user={user}
-          canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
           <p className="text-sm text-[#2A261F]">ספק לא נמצא.</p>
@@ -68,7 +68,7 @@ export default async function ProviderPage({
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
           user={user}
-          canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
       <ProviderViewClient
         provider={{

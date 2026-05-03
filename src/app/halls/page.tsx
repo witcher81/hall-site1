@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import { prisma } from "@/lib/prisma";
 import HomeHeader from "@/components/HomeHeader";
 import HallsSearchClient from "./HallsSearchClient";
@@ -26,7 +26,7 @@ export default async function HallsPage() {
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <main className="mx-auto max-w-[92rem] px-4 py-8 sm:px-6 lg:px-10">
         <header className="border-b border-[#E7E0CF] pb-6 text-right">

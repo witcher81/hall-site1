@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import HomeHeader from "@/components/HomeHeader";
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import {
   HALL_BUILTIN_LABELS,
   type HallMoneyBuiltinKey,
@@ -195,7 +195,7 @@ export default async function AfterVenuePage({
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
         <AfterVenueGuideClient

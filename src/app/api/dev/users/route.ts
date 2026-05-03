@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, hashPassword } from "@/lib/auth";
-import {
-  allowDevUserSwitchDeployment,
-  isAdminEmail,
-} from "@/lib/admin";
+import { allowDevUserSwitchDeployment, isAdminEmail } from "@/lib/admin";
+import { getDevUserSwitchContext } from "@/lib/canShowDevUserSwitcher";
 import { buildManagedDevUserEmailForAdmin } from "@/lib/devManagedUserEmail";
 import {
   validateEmail,
@@ -46,16 +44,17 @@ async function allowedManagedUserIds(adminUserId: number): Promise<number[]> {
 }
 
 /**
- * רשימת משתמשים – רק לאדמין (ADMIN_EMAILS).
+ * רשימת משתמשים – אדמין או משתמש מנוהל (אותה קבוצה כמו אצל האדמין).
  */
 export async function GET() {
-  const denied = await requireAdminDevSwitch();
-  if (denied) return denied;
   const session = await getCurrentUser();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const managedIds = await allowedManagedUserIds(session.id);
-  const allowedIds = [session.id, ...managedIds];
+  const ctx = await getDevUserSwitchContext(session);
+  if (!ctx) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const managedIds = await allowedManagedUserIds(ctx.adminUserId);
+  const allowedIds = [ctx.adminUserId, ...managedIds];
 
   const users = await prisma.user.findMany({
     where: { id: { in: allowedIds } },
@@ -68,7 +67,10 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({ users });
+  return NextResponse.json({
+    users,
+    canCreateManagedUsers: ctx.canCreateManagedUsers,
+  });
 }
 
 /**

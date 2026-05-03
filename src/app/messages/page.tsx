@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import { redirect } from "next/navigation";
 import HomeHeader from "@/components/HomeHeader";
 import MessagesClient from "./MessagesClient";
@@ -19,7 +19,7 @@ export default async function MessagesPage() {
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <header className="border-b border-[#E7E0CF] pb-4 text-right">

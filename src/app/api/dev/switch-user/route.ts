@@ -5,23 +5,23 @@ import {
   getCurrentUser,
   setSessionCookie,
 } from "@/lib/auth";
-import { allowDevUserSwitchDeployment, isAdminEmail } from "@/lib/admin";
+import { isAdminEmail } from "@/lib/admin";
+import { getDevUserSwitchContext } from "@/lib/canShowDevUserSwitcher";
 
 export const runtime = "nodejs";
 
 /**
- * החלפת משתמש (התחברות כ-) – רק לאדמין (ADMIN_EMAILS).
+ * החלפת משתמש (התחברות כ-) – אדמין או משתמש מנוהל (חזרה לאדמין / למשתמשי אותה קבוצה).
  */
 export async function POST(req: NextRequest) {
   const session = await getCurrentUser();
-  if (!session || !isAdminEmail(session.email)) {
+  if (!session) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  if (!allowDevUserSwitchDeployment()) {
-    return NextResponse.json(
-      { error: "Dev user switch disabled in production" },
-      { status: 403 }
-    );
+
+  const switchCtx = await getDevUserSwitchContext(session);
+  if (!switchCtx) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -41,16 +41,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  const allowedForAdmin = await prisma.devManagedUser.findFirst({
-    where: {
-      adminUserId: session.id,
-      managedUserId: userId,
-    },
-    select: { id: true },
-  });
-  const isDevManagedUser = user.phone == null;
-  const canSwitch =
-    userId === session.id || (Boolean(allowedForAdmin) && isDevManagedUser);
+  const adminId = switchCtx.adminUserId;
+  let canSwitch = false;
+
+  if (isAdminEmail(session.email)) {
+    const allowedForAdmin = await prisma.devManagedUser.findFirst({
+      where: {
+        adminUserId: session.id,
+        managedUserId: userId,
+      },
+      select: { id: true },
+    });
+    const isDevManagedUser = user.phone == null;
+    canSwitch =
+      userId === session.id || (Boolean(allowedForAdmin) && isDevManagedUser);
+  } else if (userId === session.id) {
+    canSwitch = true;
+  } else if (userId === adminId) {
+    canSwitch = true;
+  } else {
+    const allowedSibling = await prisma.devManagedUser.findFirst({
+      where: { adminUserId: adminId, managedUserId: userId },
+      select: { id: true },
+    });
+    const isTargetDevManaged = user.phone == null;
+    canSwitch = Boolean(allowedSibling) && isTargetDevManaged;
+  }
+
   if (!canSwitch) {
     return NextResponse.json(
       { error: "ניתן לעבור רק למשתמשים שיצרת" },

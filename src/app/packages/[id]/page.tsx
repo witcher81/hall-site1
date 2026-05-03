@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import HomeHeader from "@/components/HomeHeader";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import { prisma } from "@/lib/prisma";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
 
@@ -77,7 +77,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <nav className="mb-4 text-right text-xs text-[#6B6560]">

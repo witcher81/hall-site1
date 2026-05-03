@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import HomeHeader from "@/components/HomeHeader";
 
 export default async function Home() {
@@ -9,7 +9,7 @@ export default async function Home() {
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
 
       {/* HERO מלא רוחב */}

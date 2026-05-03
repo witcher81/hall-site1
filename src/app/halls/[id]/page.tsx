@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import HomeHeader from "@/components/HomeHeader";
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/admin";
+import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
 import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
@@ -110,7 +110,7 @@ export default async function HallPublicPage({
       <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
         <HomeHeader
           user={user}
-          canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
           <p className="text-sm text-[#2A261F]">מזהה אולם לא תקין.</p>
@@ -171,7 +171,7 @@ export default async function HallPublicPage({
       <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
         <HomeHeader
           user={user}
-          canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
           <p className="text-sm text-[#2A261F]">האולם לא נמצא.</p>
@@ -282,7 +282,7 @@ export default async function HallPublicPage({
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <VenuePublicView
         user={user}
