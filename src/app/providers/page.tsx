@@ -18,8 +18,13 @@ export default async function ProvidersPage() {
             HALLS HUB
           </p>
           <h1 className="mt-1 text-2xl font-bold text-[#0F3B2E]">שירותי ספקים</h1>
-          <p className="mt-1 text-sm text-[#6B6560]">
-            צלמים, DJ, קייטרינג, עיצוב ועוד – סננו לפי קטגוריה ומחיר ושלחו בקשה לספק שבחרתם.
+          <p className="mt-2 text-sm font-semibold text-[#2A261F]">
+            כאן תוכלו להפוך את האירוע שלכם לבלתי נשכח!
+          </p>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-[#6B6560]">
+            מאגר ספקים מקצועיים לאירועים — צילום, DJ, קייטרינג, עיצוב, איפור ועוד. בוחרים
+            קטגוריה וטווח מחיר, רואים מי מציע את השירות, נכנסים לפרטים ושולחים בקשה ישירות
+            לספקים שנראים לכם מתאימים — הכול במקום אחד, בלי ריצות מיותרות.
           </p>
         </header>
         <ProvidersSearchClient />
