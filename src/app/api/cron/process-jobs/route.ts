@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { processPendingJobs } from "@/lib/jobQueue";
+import { consumeQueueBatch } from "@/lib/messagingQueue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +29,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await processPendingJobs();
+  const result = await consumeQueueBatch();
   return NextResponse.json({ ok: true, ...result });
 }

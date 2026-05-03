@@ -8,7 +8,8 @@ import {
   setSessionCookie,
   type AuthUser,
 } from "@/lib/auth";
-import { enqueueJob, processPendingJobs } from "@/lib/jobQueue";
+import { consumeQueueBatch, publishMessage } from "@/lib/messagingQueue";
+import { MessageTypes } from "@/lib/messagingQueueTypes";
 import {
   USER_INPUT_MAX,
   validateEmail,
@@ -124,7 +125,7 @@ export async function POST(req: NextRequest) {
     const token = createSessionToken(authUser);
     await setSessionCookie(token);
 
-    await enqueueJob("user.register.postCreate", {
+    await publishMessage(MessageTypes.USER_REGISTER_POST_CREATE, {
       userId: user.id,
       role: user.role,
       email: user.email,
@@ -132,7 +133,7 @@ export async function POST(req: NextRequest) {
     });
     // ניסיון עיבוד מיידי ברקע; אם לא יושלם (למשל serverless freeze),
     // ה־Cron ימשיך לעבד את התור.
-    void processPendingJobs().catch((err) => {
+    void consumeQueueBatch().catch((err) => {
       console.error("Background job kick failed after register:", err);
     });
 
