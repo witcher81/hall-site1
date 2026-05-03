@@ -17,10 +17,6 @@ const cbClass =
   "h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]";
 
 type Props = {
-  /** כשיש חתונה — חופה מוגדרת בסעיף החתונה */
-  weddingSelected: boolean;
-  chuppaChecked: boolean;
-  onChuppaChange: (checked: boolean) => void;
   presetValues: Record<VenueHallSoftPresetKey, boolean>;
   onPresetChange: (key: VenueHallSoftPresetKey, checked: boolean) => void;
   customRows: VenueSoftAttributeRow[];
@@ -30,9 +26,6 @@ type Props = {
 };
 
 export default function VenueHallSoftAttributesSection({
-  weddingSelected,
-  chuppaChecked,
-  onChuppaChange,
   presetValues,
   onPresetChange,
   customRows,
@@ -64,29 +57,7 @@ export default function VenueHallSoftAttributesSection({
             {label}
           </label>
         ))}
-        <label
-          className={`${boxClass}${weddingSelected ? " cursor-not-allowed opacity-75" : ""}`}
-          title={
-            weddingSelected
-              ? "לחתונה: סמנו למטה חופה בחוץ או חופה מקורה"
-              : undefined
-          }
-        >
-          <input
-            type="checkbox"
-            checked={chuppaChecked}
-            disabled={weddingSelected}
-            onChange={(e) => onChuppaChange(e.target.checked)}
-            className={cbClass}
-          />
-          כולל חופה
-        </label>
       </div>
-      {weddingSelected ? (
-        <p className="mt-2 text-[11px] text-[#6B6560]">
-          לחתונה: סמנו בסעיף החתונה &quot;חופה בחוץ&quot; ו/או &quot;חופה מקורה&quot;.
-        </p>
-      ) : null}
 
       <div className="mt-4 border-t border-[#E0D4C3]/70 pt-3">
         <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">מאפיינים משלכם</p>

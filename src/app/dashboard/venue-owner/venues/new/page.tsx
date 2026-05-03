@@ -536,10 +536,6 @@ export default function NewVenuePage() {
     [anyEventOffersFood]
   );
 
-  const chuppaSoftChecked = isWeddingSelected
-    ? form.hasChuppaOutdoor || form.hasChuppaCovered
-    : form.hasChuppaOutdoor || form.hasChuppaCovered || form.productHasChuppa;
-
   function removeCoverImage() {
     if (coverPreview) URL.revokeObjectURL(coverPreview);
     setCoverImage(null);
@@ -969,12 +965,6 @@ export default function NewVenuePage() {
 
           <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
             <VenueHallSoftAttributesSection
-              weddingSelected={isWeddingSelected}
-              chuppaChecked={chuppaSoftChecked}
-              onChuppaChange={(checked) => {
-                if (isWeddingSelected) return;
-                setForm((f) => ({ ...f, productHasChuppa: checked }));
-              }}
               presetValues={{
                 seaView: form.seaView,
                 boutique: form.boutique,

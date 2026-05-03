@@ -525,9 +525,6 @@ export default function VenueEditForm({
     [anyEventOffersFood]
   );
 
-  const chuppaSoftChecked = isWeddingSelected
-    ? form.hasChuppaOutdoor || form.hasChuppaCovered
-    : form.hasChuppaOutdoor || form.hasChuppaCovered || form.productHasChuppa;
   const anyEventHasDanceFloor = form.hasDanceFloor;
 
   const coverFileRef = useRef<HTMLInputElement>(null);
@@ -1168,12 +1165,6 @@ export default function VenueEditForm({
 
           <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
             <VenueHallSoftAttributesSection
-              weddingSelected={isWeddingSelected}
-              chuppaChecked={chuppaSoftChecked}
-              onChuppaChange={(checked) => {
-                if (isWeddingSelected) return;
-                setForm((f) => ({ ...f, productHasChuppa: checked }));
-              }}
               presetValues={{
                 seaView: form.seaView,
                 boutique: form.boutique,

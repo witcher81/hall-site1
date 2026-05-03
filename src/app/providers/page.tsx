@@ -18,10 +18,11 @@ export default async function ProvidersPage() {
             HALLS HUB
           </p>
           <h1 className="mt-1 text-2xl font-bold text-[#0F3B2E]">
-            חיפוש ספקי שירותים
+            חיפוש פרילנסרים
           </h1>
           <p className="mt-1 text-sm text-[#6B6560]">
-            צילום, DJ, קייטרינג, עיצוב ועוד – סנן לפי קטגוריה ומחיר, ולחץ על שירות לשליחת בקשה.
+            צלמים, DJ, קייטרינג, עיצוב ועוד – אנשי מקצוע עצמאיים ליום האירוע. סננו לפי קטגוריה
+            ומחיר ושלחו בקשה למי שבחרתם.
           </p>
         </header>
         <ProvidersSearchClient />
