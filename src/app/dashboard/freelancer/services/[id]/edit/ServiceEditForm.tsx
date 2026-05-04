@@ -253,7 +253,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         <ServiceLanguagesTagsField
           value={form.languages}
           onChange={(languages) => setForm((f) => ({ ...f, languages }))}
-          inputClassName="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+          className="mt-1"
         />
       </div>
 

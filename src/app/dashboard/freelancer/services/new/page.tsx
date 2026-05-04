@@ -247,7 +247,7 @@ export default function NewServicePage() {
           <ServiceLanguagesTagsField
             value={form.languages}
             onChange={(languages) => setForm((f) => ({ ...f, languages }))}
-            inputClassName={input}
+            className="mt-1"
           />
         </div>
 
