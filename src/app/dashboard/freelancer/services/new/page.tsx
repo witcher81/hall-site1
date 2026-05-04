@@ -2,7 +2,10 @@
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
-import type { ServiceCustomInclude } from "@/lib/serviceIncludes";
+import type {
+  ServiceCustomInclude,
+  ServicePaidExtraItem,
+} from "@/lib/serviceIncludes";
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -39,6 +42,7 @@ export default function NewServicePage() {
   const [customIncludes, setCustomIncludes] = useState<ServiceCustomInclude[]>(
     []
   );
+  const [paidExtras, setPaidExtras] = useState<ServicePaidExtraItem[]>([]);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
@@ -87,7 +91,16 @@ export default function NewServicePage() {
       );
       fd.append("includesEquipment", String(form.includesEquipment));
       fd.append("includesNote", form.includesNote.trim());
-      fd.append("customIncludesJson", JSON.stringify(customIncludes));
+      fd.append(
+        "customIncludesJson",
+        JSON.stringify({
+          included: customIncludes.map((c) => ({
+            ...c,
+            checked: c.label.trim().length > 0 ? true : c.checked,
+          })),
+          paidExtras,
+        })
+      );
       if (form.minPrice.trim()) fd.append("minPrice", form.minPrice.trim());
       if (form.maxPrice.trim()) fd.append("maxPrice", form.maxPrice.trim());
       if (coverImage) fd.append("coverImage", coverImage);
@@ -263,6 +276,8 @@ export default function NewServicePage() {
           }
           customIncludes={customIncludes}
           onCustomIncludesChange={setCustomIncludes}
+          paidExtras={paidExtras}
+          onPaidExtrasChange={setPaidExtras}
         />
 
         <div className="grid gap-3 sm:grid-cols-2">

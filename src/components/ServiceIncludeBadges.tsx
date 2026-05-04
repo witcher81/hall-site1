@@ -1,8 +1,12 @@
-import type { ServiceCustomInclude } from "@/lib/serviceIncludes";
+import type {
+  ServiceCustomInclude,
+  ServicePaidExtraItem,
+} from "@/lib/serviceIncludes";
 
 type Props = {
   includesEquipment: boolean;
   customIncludes: ServiceCustomInclude[];
+  paidExtras?: ServicePaidExtraItem[];
   /** הסבר חופשי קצר — מוצג מתחת לתגיות כשקיים */
   includesNote?: string | null;
   className?: string;
@@ -13,18 +17,22 @@ type Props = {
 export default function ServiceIncludeBadges({
   includesEquipment,
   customIncludes,
+  paidExtras = [],
   includesNote,
   className = "",
   size = "md",
 }: Props) {
-  const checkedCustom = customIncludes.filter((x) => x.checked && x.label.trim());
+  const checkedCustom = customIncludes.filter(
+    (x) => x.checked && x.label.trim()
+  );
+  const paidList = paidExtras.filter((p) => p.label.trim());
   const noteTrim = includesNote?.trim() ?? "";
-  const hasBadges =
-    includesEquipment ||
-    checkedCustom.length > 0;
+  const hasEquipment = includesEquipment;
+  const hasFreeList = checkedCustom.length > 0;
+  const hasPaid = paidList.length > 0;
   const hasNote = noteTrim.length > 0;
 
-  if (!hasBadges && !hasNote) return null;
+  if (!hasEquipment && !hasFreeList && !hasPaid && !hasNote) return null;
 
   const badge =
     size === "sm"
@@ -36,24 +44,60 @@ export default function ServiceIncludeBadges({
       ? "text-[11px] leading-relaxed text-[#5F5F5F]"
       : "text-xs leading-relaxed text-[#5F5F5F]";
 
+  const itemTitle =
+    size === "sm" ? "text-[11px] font-semibold text-[#0F3B2E]" : "text-xs font-semibold text-[#0F3B2E]";
+  const itemDesc =
+    size === "sm"
+      ? "mt-0.5 text-[10px] leading-relaxed text-[#5F5F5F]"
+      : "mt-0.5 text-[11px] leading-relaxed text-[#5F5F5F]";
+
   return (
     <div className={className}>
-      {hasBadges && (
-        <div className="flex flex-wrap gap-1">
-          {includesEquipment && (
-            <span className={badge}>כולל ציוד</span>
-          )}
-          {checkedCustom.map((c, i) => (
-            <span key={`${c.label}-${i}`} className={badge}>
-              {c.label.trim()}
-            </span>
-          ))}
+      {hasEquipment && (
+        <div className="mb-1.5 flex flex-wrap gap-1">
+          <span className={badge}>כולל ציוד</span>
         </div>
       )}
+
+      {hasFreeList && (
+        <ul className="space-y-1.5">
+          {checkedCustom.map((c, i) => (
+            <li key={`${c.label}-${i}`} className="text-right">
+              <p className={itemTitle}>{c.label.trim()}</p>
+              {c.description?.trim() ? (
+                <p className={itemDesc}>{c.description.trim()}</p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+
       {hasNote && (
-        <p className={`${hasBadges ? "mt-1.5 " : ""}${noteText}`}>
+        <p
+          className={`${noteText}${hasEquipment || hasFreeList || hasPaid ? " mt-1.5" : ""}`}
+        >
           {noteTrim}
         </p>
+      )}
+
+      {hasPaid && (
+        <div
+          className={`${hasEquipment || hasFreeList || hasNote ? "mt-2.5 border-t border-[#E7E0CF]/80 pt-2" : ""}`}
+        >
+          <p className={`${size === "sm" ? "text-[10px]" : "text-[11px]"} font-semibold text-amber-900/90`}>
+            ניתן בתוספת תשלום
+          </p>
+          <ul className="mt-1 space-y-1.5">
+            {paidList.map((p, i) => (
+              <li key={`paid-${p.label}-${i}`} className="text-right">
+                <p className={itemTitle}>{p.label.trim()}</p>
+                {p.description?.trim() ? (
+                  <p className={itemDesc}>{p.description.trim()}</p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

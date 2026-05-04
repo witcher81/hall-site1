@@ -3,8 +3,9 @@
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
-  parseCustomIncludesJson,
+  parseServiceIncludesBundle,
   type ServiceCustomInclude,
+  type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import { useRouter } from "next/navigation";
@@ -64,8 +65,14 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   const [existingGallery, setExistingGallery] = useState<string[]>(initial.galleryImageUrls);
   const [newGalleryImages, setNewGalleryImages] = useState<File[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>(initial.socialLinks);
+  const initialIncludes = parseServiceIncludesBundle(
+    initial.customIncludesJson
+  );
   const [customIncludes, setCustomIncludes] = useState<ServiceCustomInclude[]>(
-    () => parseCustomIncludesJson(initial.customIncludesJson)
+    () => initialIncludes.included
+  );
+  const [paidExtras, setPaidExtras] = useState<ServicePaidExtraItem[]>(
+    () => initialIncludes.paidExtras
   );
   const hasInvalidSocialLinks = socialLinks.some(
     (l) => l.url.trim().length > 0 && normalizeSocialUrl(l.url) === null
@@ -113,7 +120,16 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       );
       fd.append("includesEquipment", String(form.includesEquipment));
       fd.append("includesNote", form.includesNote.trim());
-      fd.append("customIncludesJson", JSON.stringify(customIncludes));
+      fd.append(
+        "customIncludesJson",
+        JSON.stringify({
+          included: customIncludes.map((c) => ({
+            ...c,
+            checked: c.label.trim().length > 0 ? true : c.checked,
+          })),
+          paidExtras,
+        })
+      );
       fd.append("minPrice", form.minPrice.trim());
       fd.append("maxPrice", form.maxPrice.trim());
       fd.append("existingGallery", JSON.stringify(existingGallery));
@@ -255,6 +271,8 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         }
         customIncludes={customIncludes}
         onCustomIncludesChange={setCustomIncludes}
+        paidExtras={paidExtras}
+        onPaidExtrasChange={setPaidExtras}
       />
 
       <div className="grid gap-3 sm:grid-cols-2">

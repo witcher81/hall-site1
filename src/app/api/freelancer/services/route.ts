@@ -6,9 +6,9 @@ import {
   serializeSocialLinks,
 } from "@/lib/socialLinks";
 import {
-  sanitizeCustomIncludesFromClient,
   sanitizeIncludesNote,
-  serializeCustomIncludesJson,
+  sanitizeServiceIncludesBundleFromClient,
+  serializeServiceIncludesBundle,
 } from "@/lib/serviceIncludes";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -89,7 +89,8 @@ function parseCustomIncludesFormField(
   try {
     const raw = typeof entry === "string" ? entry : "";
     const data = JSON.parse(raw) as unknown;
-    return serializeCustomIncludesJson(sanitizeCustomIncludesFromClient(data));
+    const bundle = sanitizeServiceIncludesBundleFromClient(data);
+    return serializeServiceIncludesBundle(bundle);
   } catch {
     return null;
   }

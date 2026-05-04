@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import HomeHeader from "@/components/HomeHeader";
-import { parseCustomIncludesJson } from "@/lib/serviceIncludes";
+import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import ProviderViewClient from "./ProviderViewClient";
 
@@ -79,10 +79,14 @@ export default async function ProviderPage({
           businessAddress: provider.businessAddress,
           socialLinks: parseSocialLinksJson(provider.socialLinksJson),
         }}
-        services={services.map((s) => ({
-          ...s,
-          customIncludes: parseCustomIncludesJson(s.customIncludesJson),
-        }))}
+        services={services.map((s) => {
+          const b = parseServiceIncludesBundle(s.customIncludesJson);
+          return {
+            ...s,
+            customIncludes: b.included,
+            paidExtras: b.paidExtras,
+          };
+        })}
         seekerLoggedIn={user?.role === "SEEKER"}
       />
     </div>

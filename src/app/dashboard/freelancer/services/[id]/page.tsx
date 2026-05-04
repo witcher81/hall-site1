@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { parseCustomIncludesJson } from "@/lib/serviceIncludes";
+import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
 import ServiceDetailsClient from "./ServiceDetailsClient";
@@ -37,6 +37,10 @@ export default async function ServiceDetailsPage({
     );
   }
 
+  const includesBundle = parseServiceIncludesBundle(
+    service.customIncludesJson
+  );
+
   return (
     <ServiceDetailsClient
       service={{
@@ -51,7 +55,8 @@ export default async function ServiceDetailsPage({
         responseTimeHint: service.responseTimeHint,
         socialLinks: parseSocialLinksJson(service.socialLinksJson),
         includesEquipment: service.includesEquipment,
-        customIncludes: parseCustomIncludesJson(service.customIncludesJson),
+        customIncludes: includesBundle.included,
+        paidExtras: includesBundle.paidExtras,
         includesNote: service.includesNote,
         coverImageUrl: service.coverImageUrl,
         galleryImageUrls: service.galleryImageUrls ? (JSON.parse(service.galleryImageUrls) as string[]) : [],

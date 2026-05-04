@@ -1,47 +1,140 @@
-export type ServiceCustomInclude = { label: string; checked: boolean };
+export type ServiceCustomInclude = {
+  label: string;
+  checked: boolean;
+  /** הסבר קצר על מה שנותנים במסגרת המחיר — אופציונלי */
+  description?: string;
+};
+
+export type ServicePaidExtraItem = {
+  label: string;
+  description?: string;
+};
+
+export type ServiceIncludesBundle = {
+  included: ServiceCustomInclude[];
+  paidExtras: ServicePaidExtraItem[];
+};
 
 const MAX_ITEMS = 20;
 const MAX_LABEL_LEN = 80;
+const MAX_ITEM_DESC_LEN = 280;
 
-export function parseCustomIncludesJson(
-  json: string | null | undefined
-): ServiceCustomInclude[] {
-  if (!json) return [];
-  try {
-    const data = JSON.parse(json) as unknown;
-    return sanitizeCustomIncludesFromClient(data);
-  } catch {
-    return [];
-  }
+const EMPTY_BUNDLE: ServiceIncludesBundle = {
+  included: [],
+  paidExtras: [],
+};
+
+function sliceStr(s: unknown, max: number): string {
+  if (typeof s !== "string") return "";
+  return s.trim().slice(0, max);
 }
 
-export function sanitizeCustomIncludesFromClient(
-  data: unknown
-): ServiceCustomInclude[] {
+function sanitizeIncludedArray(data: unknown): ServiceCustomInclude[] {
   if (!Array.isArray(data)) return [];
   const out: ServiceCustomInclude[] = [];
   for (const item of data) {
     if (out.length >= MAX_ITEMS) break;
     if (!item || typeof item !== "object") continue;
     const o = item as Record<string, unknown>;
-    const label =
-      typeof o.label === "string"
-        ? o.label.trim().slice(0, MAX_LABEL_LEN)
-        : "";
+    const label = sliceStr(o.label, MAX_LABEL_LEN);
     if (!label) continue;
     const checked = typeof o.checked === "boolean" ? o.checked : true;
-    out.push({ label, checked });
+    const description = sliceStr(o.description, MAX_ITEM_DESC_LEN);
+    out.push({
+      label,
+      checked,
+      ...(description ? { description } : {}),
+    });
   }
   return out;
 }
 
-/** מחזיר JSON לשמירה ב-DB או null אם ריק */
+function sanitizePaidExtrasArray(data: unknown): ServicePaidExtraItem[] {
+  if (!Array.isArray(data)) return [];
+  const out: ServicePaidExtraItem[] = [];
+  for (const item of data) {
+    if (out.length >= MAX_ITEMS) break;
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const label = sliceStr(o.label, MAX_LABEL_LEN);
+    if (!label) continue;
+    const description = sliceStr(o.description, MAX_ITEM_DESC_LEN);
+    out.push({
+      label,
+      ...(description ? { description } : {}),
+    });
+  }
+  return out;
+}
+
+/** נרמול payload מהלקוח (מערך ישן או אובייקט { included, paidExtras }) */
+export function sanitizeServiceIncludesBundleFromClient(
+  data: unknown
+): ServiceIncludesBundle {
+  if (Array.isArray(data)) {
+    return { included: sanitizeIncludedArray(data), paidExtras: [] };
+  }
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const o = data as Record<string, unknown>;
+    const inc = o.included ?? o.customIncludes;
+    const paid = o.paidExtras ?? o.paid ?? o.extras;
+    return {
+      included: sanitizeIncludedArray(inc),
+      paidExtras: sanitizePaidExtrasArray(paid),
+    };
+  }
+  return { ...EMPTY_BUNDLE };
+}
+
+export function parseServiceIncludesBundle(
+  json: string | null | undefined
+): ServiceIncludesBundle {
+  if (!json) return { ...EMPTY_BUNDLE };
+  try {
+    const data = JSON.parse(json) as unknown;
+    return sanitizeServiceIncludesBundleFromClient(data);
+  } catch {
+    return { ...EMPTY_BUNDLE };
+  }
+}
+
+/** תאימות: רק פריטים «כלולים במחיר» (מערך ישן ב־DB) */
+export function parseCustomIncludesJson(
+  json: string | null | undefined
+): ServiceCustomInclude[] {
+  return parseServiceIncludesBundle(json).included;
+}
+
+export function parsePaidExtrasJson(
+  json: string | null | undefined
+): ServicePaidExtraItem[] {
+  return parseServiceIncludesBundle(json).paidExtras;
+}
+
+export function serializeServiceIncludesBundle(
+  bundle: ServiceIncludesBundle
+): string | null {
+  const inc = sanitizeIncludedArray(bundle.included);
+  const paid = sanitizePaidExtrasArray(bundle.paidExtras);
+  if (inc.length === 0 && paid.length === 0) return null;
+  return JSON.stringify({ included: inc, paidExtras: paid });
+}
+
+/** @deprecated השתמש ב־serializeServiceIncludesBundle */
 export function serializeCustomIncludesJson(
   items: ServiceCustomInclude[]
 ): string | null {
-  const sanitized = sanitizeCustomIncludesFromClient(items);
-  if (sanitized.length === 0) return null;
-  return JSON.stringify(sanitized);
+  return serializeServiceIncludesBundle({
+    included: sanitizeIncludedArray(items),
+    paidExtras: [],
+  });
+}
+
+/** @deprecated השתמש ב־sanitizeServiceIncludesBundleFromClient */
+export function sanitizeCustomIncludesFromClient(
+  data: unknown
+): ServiceCustomInclude[] {
+  return sanitizeIncludedArray(data);
 }
 
 const MAX_INCLUDES_NOTE_LEN = 500;
@@ -57,12 +150,15 @@ export function sanitizeIncludesNote(
 
 export function hasAnyServiceIncludes(
   includesEquipment: boolean,
-  customIncludes: ServiceCustomInclude[],
-  includesNote?: string | null
+  included: ServiceCustomInclude[],
+  includesNote?: string | null,
+  paidExtras?: ServicePaidExtraItem[]
 ): boolean {
+  const paid = paidExtras ?? [];
   return (
     includesEquipment ||
-    customIncludes.some((c) => c.checked && c.label.trim().length > 0) ||
+    included.some((c) => c.checked && c.label.trim().length > 0) ||
+    paid.some((p) => p.label.trim().length > 0) ||
     sanitizeIncludesNote(includesNote) != null
   );
 }

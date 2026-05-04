@@ -1,18 +1,27 @@
 "use client";
 
-import type { ServiceCustomInclude } from "@/lib/serviceIncludes";
+import type {
+  ServiceCustomInclude,
+  ServicePaidExtraItem,
+} from "@/lib/serviceIncludes";
 
 type Props = {
   includesEquipment: boolean;
   onIncludesEquipment: (v: boolean) => void;
   includesNote: string;
   onIncludesNoteChange: (v: string) => void;
+  /** פריטים הכלולים במחיר המוצג — לכל פריט שם + הסבר (אופציונלי) */
   customIncludes: ServiceCustomInclude[];
   onCustomIncludesChange: (v: ServiceCustomInclude[]) => void;
+  /** שדרוגים / תוספות בתשלום נפרד */
+  paidExtras: ServicePaidExtraItem[];
+  onPaidExtrasChange: (v: ServicePaidExtraItem[]) => void;
 };
 
-const MAX_CUSTOM = 20;
+const MAX_FREE = 20;
+const MAX_PAID = 20;
 const MAX_LABEL = 80;
+const MAX_ITEM_DESC = 280;
 const MAX_NOTE = 500;
 
 export default function ServiceIncludesEditor({
@@ -22,13 +31,18 @@ export default function ServiceIncludesEditor({
   onIncludesNoteChange,
   customIncludes,
   onCustomIncludesChange,
+  paidExtras,
+  onPaidExtrasChange,
 }: Props) {
-  function addRow() {
-    if (customIncludes.length >= MAX_CUSTOM) return;
-    onCustomIncludesChange([...customIncludes, { label: "", checked: true }]);
+  function addFreeItem() {
+    if (customIncludes.length >= MAX_FREE) return;
+    onCustomIncludesChange([
+      ...customIncludes,
+      { label: "", checked: true, description: "" },
+    ]);
   }
 
-  function updateRow(
+  function updateFreeItem(
     index: number,
     patch: Partial<ServiceCustomInclude>
   ) {
@@ -39,14 +53,34 @@ export default function ServiceIncludesEditor({
     );
   }
 
-  function removeRow(index: number) {
+  function removeFreeItem(index: number) {
     onCustomIncludesChange(customIncludes.filter((_, i) => i !== index));
+  }
+
+  function addPaidExtra() {
+    if (paidExtras.length >= MAX_PAID) return;
+    onPaidExtrasChange([...paidExtras, { label: "", description: "" }]);
+  }
+
+  function updatePaidExtra(
+    index: number,
+    patch: Partial<ServicePaidExtraItem>
+  ) {
+    onPaidExtrasChange(
+      paidExtras.map((row, i) => (i === index ? { ...row, ...patch } : row))
+    );
+  }
+
+  function removePaidExtra(index: number) {
+    onPaidExtrasChange(paidExtras.filter((_, i) => i !== index));
   }
 
   const checkbox =
     "rounded border-[#E0D4C3] text-[#0F3B2E] focus:ring-[#C9A227]/40";
   const input =
-    "flex-1 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40";
+    "w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40";
+  const textarea =
+    "mt-1.5 w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1.5 text-[11px] leading-relaxed text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40";
 
   return (
     <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/60 p-4 text-right">
@@ -54,8 +88,7 @@ export default function ServiceIncludesEditor({
         מה כלול בשירות
       </h3>
       <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
-        סמן/י מה כלול במחיר שמוצג ללקוחות. אפשר להוסיף שורות משלך (למשל: עריכה,
-        גיבוי, שעות נוספות).
+        פירטו מה הלקוח מקבל במחיר שמוצג — אפשר להוסיף פריטים עם הסבר קצר לכל אחד.
       </p>
 
       <div className="mt-3 space-y-2 text-xs text-[#2A261F]">
@@ -97,53 +130,123 @@ export default function ServiceIncludesEditor({
 
       <div className="mt-4 border-t border-[#E0D4C3]/60 pt-3">
         <p className="text-[11px] font-medium text-[#5F5F5F]">
-          שורות נוספות (אופציונלי)
+          מה ניתן במחיר המוצג (ללא תוספת תשלום)
         </p>
-        <ul className="mt-2 space-y-2">
+        <p className="mt-0.5 text-[10px] text-[#9A948C]">
+          לכל שורה: שם הפריט, ומתחת הסבר קצר למה הלקוח מקבל (אופציונלי).
+        </p>
+        <ul className="mt-2 space-y-3">
           {customIncludes.map((row, index) => (
             <li
               key={index}
-              className="flex flex-wrap items-center gap-2 rounded-lg bg-white/80 px-2 py-1.5"
+              className="rounded-lg border border-[#E0D4C3]/50 bg-white/90 p-2.5"
             >
-              <label className="flex shrink-0 items-center gap-1.5">
+              <div className="flex flex-wrap items-start gap-2">
                 <input
-                  type="checkbox"
-                  className={checkbox}
-                  checked={row.checked}
+                  type="text"
+                  dir="rtl"
+                  maxLength={MAX_LABEL}
+                  value={row.label}
                   onChange={(e) =>
-                    updateRow(index, { checked: e.target.checked })
+                    updateFreeItem(index, {
+                      label: e.target.value.slice(0, MAX_LABEL),
+                    })
                   }
+                  className={input}
+                  placeholder="למשל: עריכת וידאו בסיסית"
                 />
-                <span className="sr-only">כלול</span>
-              </label>
-              <input
-                type="text"
+                <button
+                  type="button"
+                  onClick={() => removeFreeItem(index)}
+                  className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
+                >
+                  הסרה
+                </button>
+              </div>
+              <textarea
                 dir="rtl"
-                maxLength={MAX_LABEL}
-                value={row.label}
+                rows={2}
+                maxLength={MAX_ITEM_DESC}
+                value={row.description ?? ""}
                 onChange={(e) =>
-                  updateRow(index, { label: e.target.value.slice(0, MAX_LABEL) })
+                  updateFreeItem(index, {
+                    description: e.target.value.slice(0, MAX_ITEM_DESC),
+                  })
                 }
-                className={input}
-                placeholder="למשל: כולל עריכת וידאו בסיסית"
+                placeholder="הסבר על מה כלול בפריט הזה (אופציונלי)"
+                className={textarea}
               />
-              <button
-                type="button"
-                onClick={() => removeRow(index)}
-                className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
-              >
-                הסרה
-              </button>
             </li>
           ))}
         </ul>
         <button
           type="button"
-          onClick={addRow}
-          disabled={customIncludes.length >= MAX_CUSTOM}
+          onClick={addFreeItem}
+          disabled={customIncludes.length >= MAX_FREE}
           className="mt-2 rounded-full border border-dashed border-[#0F3B2E]/35 bg-white px-3 py-1.5 text-[11px] font-medium text-[#0F3B2E] hover:bg-[#EFE6D5] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          + הוסף שורה ({customIncludes.length}/{MAX_CUSTOM})
+          + הוסף פריט ללא תוספת תשלום ({customIncludes.length}/{MAX_FREE})
+        </button>
+      </div>
+
+      <div className="mt-5 border-t border-[#E0D4C3]/60 pt-3">
+        <p className="text-[11px] font-medium text-[#5F5F5F]">
+          ניתן בתוספת תשלום
+        </p>
+        <p className="mt-0.5 text-[10px] text-[#9A948C]">
+          שירותים או תוספות שהלקוח יכול לקבל מעבר למחיר הבסיס — עם הסבר לכל שורה.
+        </p>
+        <ul className="mt-2 space-y-3">
+          {paidExtras.map((row, index) => (
+            <li
+              key={index}
+              className="rounded-lg border border-amber-200/80 bg-amber-50/40 p-2.5"
+            >
+              <div className="flex flex-wrap items-start gap-2">
+                <input
+                  type="text"
+                  dir="rtl"
+                  maxLength={MAX_LABEL}
+                  value={row.label}
+                  onChange={(e) =>
+                    updatePaidExtra(index, {
+                      label: e.target.value.slice(0, MAX_LABEL),
+                    })
+                  }
+                  className={input}
+                  placeholder="למשל: צילום מגנטים לאירוע"
+                />
+                <button
+                  type="button"
+                  onClick={() => removePaidExtra(index)}
+                  className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
+                >
+                  הסרה
+                </button>
+              </div>
+              <textarea
+                dir="rtl"
+                rows={2}
+                maxLength={MAX_ITEM_DESC}
+                value={row.description ?? ""}
+                onChange={(e) =>
+                  updatePaidExtra(index, {
+                    description: e.target.value.slice(0, MAX_ITEM_DESC),
+                  })
+                }
+                placeholder="מה כולל התוספת ואיך נקבע המחיר (אופציונלי)"
+                className={textarea}
+              />
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          onClick={addPaidExtra}
+          disabled={paidExtras.length >= MAX_PAID}
+          className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          + הוסף תוספת בתשלום ({paidExtras.length}/{MAX_PAID})
         </button>
       </div>
     </div>

@@ -4,7 +4,10 @@ import ServiceIncludeBadges from "@/components/ServiceIncludeBadges";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
 import { useEngagedFreelancerProfileView } from "@/lib/useEngagedViewAnalytics";
-import type { ServiceCustomInclude } from "@/lib/serviceIncludes";
+import type {
+  ServiceCustomInclude,
+  ServicePaidExtraItem,
+} from "@/lib/serviceIncludes";
 import { parseSocialLinksJson, type SocialLink } from "@/lib/socialLinks";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -30,6 +33,7 @@ type Service = {
   socialLinksJson: string | null;
   includesEquipment: boolean;
   customIncludes: ServiceCustomInclude[];
+  paidExtras: ServicePaidExtraItem[];
   includesNote: string | null;
   coverImageUrl: string | null;
   galleryImageUrls: string | null;
@@ -208,6 +212,7 @@ export default function ProviderViewClient({
                       size="sm"
                       includesEquipment={s.includesEquipment}
                       customIncludes={s.customIncludes}
+                      paidExtras={s.paidExtras}
                       includesNote={s.includesNote}
                     />
                     {s.description && (

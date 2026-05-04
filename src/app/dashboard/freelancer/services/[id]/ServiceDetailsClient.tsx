@@ -5,6 +5,7 @@ import SocialLinksRow from "@/components/SocialLinksRow";
 import {
   hasAnyServiceIncludes,
   type ServiceCustomInclude,
+  type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import type { SocialLink } from "@/lib/socialLinks";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,7 @@ type Service = {
   socialLinks: SocialLink[];
   includesEquipment: boolean;
   customIncludes: ServiceCustomInclude[];
+  paidExtras: ServicePaidExtraItem[];
   includesNote: string | null;
   coverImageUrl: string | null;
   galleryImageUrls: string[];
@@ -154,7 +156,8 @@ export default function ServiceDetailsClient({
         {hasAnyServiceIncludes(
           service.includesEquipment,
           service.customIncludes,
-          service.includesNote
+          service.includesNote,
+          service.paidExtras
         ) && (
           <div>
             <p className="text-xs font-semibold text-[#0F3B2E]">
@@ -164,6 +167,7 @@ export default function ServiceDetailsClient({
               className="mt-2"
               includesEquipment={service.includesEquipment}
               customIncludes={service.customIncludes}
+              paidExtras={service.paidExtras}
               includesNote={service.includesNote}
             />
           </div>
