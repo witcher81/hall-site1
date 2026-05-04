@@ -83,171 +83,182 @@ export default function ServiceIncludesEditor({
     "mt-1.5 w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1.5 text-[11px] leading-relaxed text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40";
 
   return (
-    <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/60 p-4 text-right">
-      <h3 className="text-sm font-semibold text-[#0F3B2E]">
-        מה כלול בשירות
-      </h3>
-      <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
-        פירטו מה הלקוח מקבל במחיר שמוצג — אפשר להוסיף פריטים עם הסבר קצר לכל אחד.
-      </p>
+    <div className="space-y-4 text-right">
+      <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/60 p-4">
+        <h3 className="text-sm font-semibold text-[#0F3B2E]">
+          מה כלול בשירות
+        </h3>
+        <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
+          פירטו מה הלקוח מקבל במחיר שמוצג — אפשר להוסיף פריטים עם הסבר קצר לכל אחד.
+        </p>
 
-      <div className="mt-3 space-y-2 text-xs text-[#2A261F]">
-        <label className="flex flex-wrap items-start gap-2">
-          <input
-            type="checkbox"
-            className={checkbox}
-            checked={includesEquipment}
-            onChange={(e) => onIncludesEquipment(e.target.checked)}
-          />
-          <span>
-            <span className="font-medium">כולל ציוד</span>
-            <span className="mr-1 text-[#6B6560]">
-              — ציוד בסיסי שאתה מספק במסגרת ההצעה (ללא עלות נוספת).
+        <div className="mt-3 space-y-2 text-xs text-[#2A261F]">
+          <label className="flex flex-wrap items-start gap-2">
+            <input
+              type="checkbox"
+              className={checkbox}
+              checked={includesEquipment}
+              onChange={(e) => onIncludesEquipment(e.target.checked)}
+            />
+            <span>
+              <span className="font-medium">כולל ציוד</span>
+              <span className="mr-1 text-[#6B6560]">
+                — ציוד בסיסי שאתה מספק במסגרת ההצעה (ללא עלות נוספת).
+              </span>
             </span>
-          </span>
-        </label>
-      </div>
+          </label>
+        </div>
 
-      <div className="mt-3">
-        <label className="block text-[11px] font-medium text-[#5F5F5F]">
-          הסבר קצר על מה שכלול (אופציונלי)
-        </label>
-        <textarea
-          dir="rtl"
-          rows={3}
-          maxLength={MAX_NOTE}
-          value={includesNote}
-          onChange={(e) =>
-            onIncludesNoteChange(e.target.value.slice(0, MAX_NOTE))
-          }
-          placeholder="למשל: החבילה כוללת צילום עד 6 שעות, גלריה מעובדת ועותק דיגיטלי."
-          className="mt-1 w-full rounded-lg border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none placeholder:text-[#9A948C] focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40"
-        />
-        <p className="mt-0.5 text-[10px] text-[#9A948C]">
-          {includesNote.length}/{MAX_NOTE} תווים — יוצג למחפשים מתחת לרשימת &quot;מה כלול&quot;.
-        </p>
-      </div>
+        <div className="mt-3">
+          <label className="block text-[11px] font-medium text-[#5F5F5F]">
+            הסבר קצר על מה שכלול (אופציונלי)
+          </label>
+          <textarea
+            dir="rtl"
+            rows={3}
+            maxLength={MAX_NOTE}
+            value={includesNote}
+            onChange={(e) =>
+              onIncludesNoteChange(e.target.value.slice(0, MAX_NOTE))
+            }
+            placeholder="למשל: החבילה כוללת צילום עד 6 שעות, גלריה מעובדת ועותק דיגיטלי."
+            className="mt-1 w-full rounded-lg border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none placeholder:text-[#9A948C] focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40"
+          />
+          <p className="mt-0.5 text-[10px] text-[#9A948C]">
+            {includesNote.length}/{MAX_NOTE} תווים — יוצג למחפשים מתחת לרשימת &quot;מה כלול&quot;.
+          </p>
+        </div>
 
-      <div className="mt-4 border-t border-[#E0D4C3]/60 pt-3">
-        <p className="text-[11px] font-medium text-[#5F5F5F]">
-          מה ניתן במחיר המוצג (ללא תוספת תשלום)
-        </p>
-        <p className="mt-0.5 text-[10px] text-[#9A948C]">
-          לכל שורה: שם הפריט, ומתחת הסבר קצר למה הלקוח מקבל (אופציונלי).
-        </p>
-        <ul className="mt-2 space-y-3">
-          {customIncludes.map((row, index) => (
-            <li
-              key={index}
-              className="rounded-lg border border-[#E0D4C3]/50 bg-white/90 p-2.5"
-            >
-              <div className="flex flex-wrap items-start gap-2">
-                <input
-                  type="text"
+        <div className="mt-4 border-t border-[#E0D4C3]/60 pt-3">
+          <p className="text-[11px] font-medium text-[#5F5F5F]">
+            מה ניתן במחיר המוצג (ללא תוספת תשלום)
+          </p>
+          <p className="mt-0.5 text-[10px] text-[#9A948C]">
+            לכל שורה: שם הפריט, ומתחת הסבר קצר למה הלקוח מקבל (אופציונלי).
+          </p>
+          <ul className="mt-2 space-y-3">
+            {customIncludes.map((row, index) => (
+              <li
+                key={index}
+                className="rounded-lg border border-[#E0D4C3]/50 bg-white/90 p-2.5"
+              >
+                <div className="flex flex-wrap items-start gap-2">
+                  <input
+                    type="text"
+                    dir="rtl"
+                    maxLength={MAX_LABEL}
+                    value={row.label}
+                    onChange={(e) =>
+                      updateFreeItem(index, {
+                        label: e.target.value.slice(0, MAX_LABEL),
+                      })
+                    }
+                    className={input}
+                    placeholder="למשל: עריכת וידאו בסיסית"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFreeItem(index)}
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
+                  >
+                    הסרה
+                  </button>
+                </div>
+                <textarea
                   dir="rtl"
-                  maxLength={MAX_LABEL}
-                  value={row.label}
+                  rows={2}
+                  maxLength={MAX_ITEM_DESC}
+                  value={row.description ?? ""}
                   onChange={(e) =>
                     updateFreeItem(index, {
-                      label: e.target.value.slice(0, MAX_LABEL),
+                      description: e.target.value.slice(0, MAX_ITEM_DESC),
                     })
                   }
-                  className={input}
-                  placeholder="למשל: עריכת וידאו בסיסית"
+                  placeholder="הסבר על מה כלול בפריט הזה (אופציונלי)"
+                  className={textarea}
                 />
-                <button
-                  type="button"
-                  onClick={() => removeFreeItem(index)}
-                  className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
-                >
-                  הסרה
-                </button>
-              </div>
-              <textarea
-                dir="rtl"
-                rows={2}
-                maxLength={MAX_ITEM_DESC}
-                value={row.description ?? ""}
-                onChange={(e) =>
-                  updateFreeItem(index, {
-                    description: e.target.value.slice(0, MAX_ITEM_DESC),
-                  })
-                }
-                placeholder="הסבר על מה כלול בפריט הזה (אופציונלי)"
-                className={textarea}
-              />
-            </li>
-          ))}
-        </ul>
-        <button
-          type="button"
-          onClick={addFreeItem}
-          disabled={customIncludes.length >= MAX_FREE}
-          className="mt-2 rounded-full border border-dashed border-[#0F3B2E]/35 bg-white px-3 py-1.5 text-[11px] font-medium text-[#0F3B2E] hover:bg-[#EFE6D5] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          + הוסף פריט ללא תוספת תשלום ({customIncludes.length}/{MAX_FREE})
-        </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={addFreeItem}
+            disabled={customIncludes.length >= MAX_FREE}
+            className="mt-2 rounded-full border border-dashed border-[#0F3B2E]/35 bg-white px-3 py-1.5 text-[11px] font-medium text-[#0F3B2E] hover:bg-[#EFE6D5] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            + הוסף פריט ללא תוספת תשלום ({customIncludes.length}/{MAX_FREE})
+          </button>
+        </div>
       </div>
 
-      <div className="mt-5 border-t border-[#E0D4C3]/60 pt-3">
-        <p className="text-[11px] font-medium text-[#5F5F5F]">
-          ניתן בתוספת תשלום
+      <div className="rounded-xl border border-amber-200/90 bg-amber-50/45 p-4">
+        <h3 className="text-sm font-semibold text-amber-900">
+          תוספות בתשלום נפרד
+        </h3>
+        <p className="mt-1 text-[11px] leading-relaxed text-amber-900/80">
+          כאן מוסיפים רק שירותים שאינם כלולים במחיר הבסיס.
         </p>
-        <p className="mt-0.5 text-[10px] text-[#9A948C]">
-          שירותים או תוספות שהלקוח יכול לקבל מעבר למחיר הבסיס — עם הסבר לכל שורה.
-        </p>
-        <ul className="mt-2 space-y-3">
-          {paidExtras.map((row, index) => (
-            <li
-              key={index}
-              className="rounded-lg border border-amber-200/80 bg-amber-50/40 p-2.5"
-            >
-              <div className="flex flex-wrap items-start gap-2">
-                <input
-                  type="text"
+
+        <div className="mt-3 border-t border-amber-200/80 pt-3">
+          <p className="text-[11px] font-medium text-amber-900">
+            ניתן בתוספת תשלום
+          </p>
+          <p className="mt-0.5 text-[10px] text-amber-900/75">
+            שירותים או תוספות שהלקוח יכול לקבל מעבר למחיר הבסיס — עם הסבר לכל שורה.
+          </p>
+          <ul className="mt-2 space-y-3">
+            {paidExtras.map((row, index) => (
+              <li
+                key={index}
+                className="rounded-lg border border-amber-200/80 bg-white/85 p-2.5"
+              >
+                <div className="flex flex-wrap items-start gap-2">
+                  <input
+                    type="text"
+                    dir="rtl"
+                    maxLength={MAX_LABEL}
+                    value={row.label}
+                    onChange={(e) =>
+                      updatePaidExtra(index, {
+                        label: e.target.value.slice(0, MAX_LABEL),
+                      })
+                    }
+                    className={input}
+                    placeholder="למשל: צילום מגנטים לאירוע"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePaidExtra(index)}
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
+                  >
+                    הסרה
+                  </button>
+                </div>
+                <textarea
                   dir="rtl"
-                  maxLength={MAX_LABEL}
-                  value={row.label}
+                  rows={2}
+                  maxLength={MAX_ITEM_DESC}
+                  value={row.description ?? ""}
                   onChange={(e) =>
                     updatePaidExtra(index, {
-                      label: e.target.value.slice(0, MAX_LABEL),
+                      description: e.target.value.slice(0, MAX_ITEM_DESC),
                     })
                   }
-                  className={input}
-                  placeholder="למשל: צילום מגנטים לאירוע"
+                  placeholder="מה כולל התוספת ואיך נקבע המחיר (אופציונלי)"
+                  className={textarea}
                 />
-                <button
-                  type="button"
-                  onClick={() => removePaidExtra(index)}
-                  className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
-                >
-                  הסרה
-                </button>
-              </div>
-              <textarea
-                dir="rtl"
-                rows={2}
-                maxLength={MAX_ITEM_DESC}
-                value={row.description ?? ""}
-                onChange={(e) =>
-                  updatePaidExtra(index, {
-                    description: e.target.value.slice(0, MAX_ITEM_DESC),
-                  })
-                }
-                placeholder="מה כולל התוספת ואיך נקבע המחיר (אופציונלי)"
-                className={textarea}
-              />
-            </li>
-          ))}
-        </ul>
-        <button
-          type="button"
-          onClick={addPaidExtra}
-          disabled={paidExtras.length >= MAX_PAID}
-          className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          + הוסף תוספת בתשלום ({paidExtras.length}/{MAX_PAID})
-        </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={addPaidExtra}
+            disabled={paidExtras.length >= MAX_PAID}
+            className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            + הוסף תוספת בתשלום ({paidExtras.length}/{MAX_PAID})
+          </button>
+        </div>
       </div>
     </div>
   );
