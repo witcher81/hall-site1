@@ -82,7 +82,7 @@ export default function VenuesMapClient({
       );
       group.push(m);
     }
-    if (group.length > 0) {
+    if (group.length > 0 && focusLat != null && focusLng != null) {
       const fg = L.featureGroup(group);
       map.fitBounds(fg.getBounds().pad(0.08), {
         maxZoom: focusZoom != null && focusZoom > 0 ? focusZoom : undefined,
@@ -90,6 +90,9 @@ export default function VenuesMapClient({
       if (focusZoom != null && focusZoom > 0 && map.getZoom() < focusZoom) {
         map.setZoom(focusZoom);
       }
+    } else if (group.length > 0) {
+      // ברירת מחדל: תצוגת ישראל מלאה, בלי להתמקד בסיכה/אולם ספציפי.
+      map.setView([31.5, 34.85], 7);
     } else if (
       focusLat != null &&
       focusLng != null &&
