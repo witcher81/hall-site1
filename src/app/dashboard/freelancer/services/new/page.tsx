@@ -2,6 +2,7 @@
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
+import { buildMinMaxStringsForSubmit } from "@/lib/freelancerServicePriceForm";
 import type {
   ServiceCustomInclude,
   ServicePaidExtraItem,
@@ -36,6 +37,8 @@ export default function NewServicePage() {
     languages: "",
     includesEquipment: false,
     includesNote: "",
+    exactPrice: "",
+    priceUseRange: false,
     minPrice: "",
     maxPrice: "",
   });
@@ -101,8 +104,14 @@ export default function NewServicePage() {
           paidExtras,
         })
       );
-      if (form.minPrice.trim()) fd.append("minPrice", form.minPrice.trim());
-      if (form.maxPrice.trim()) fd.append("maxPrice", form.maxPrice.trim());
+      const { minPrice: minP, maxPrice: maxP } = buildMinMaxStringsForSubmit({
+        priceUseRange: form.priceUseRange,
+        exactPrice: form.exactPrice,
+        minPrice: form.minPrice,
+        maxPrice: form.maxPrice,
+      });
+      if (minP) fd.append("minPrice", minP);
+      if (maxP) fd.append("maxPrice", maxP);
       if (coverImage) fd.append("coverImage", coverImage);
       galleryImages.forEach((file) => fd.append("galleryImages", file));
 
@@ -280,37 +289,89 @@ export default function NewServicePage() {
           onPaidExtrasChange={setPaidExtras}
         />
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
-              מחיר מינימלי (₪)
-            </label>
+        <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/50 p-4">
+          {!form.priceUseRange ? (
+            <div>
+              <label className="block text-xs font-medium text-[#5F5F5F]">
+                מחיר לשירות (₪)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.exactPrice}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, exactPrice: e.target.value }))
+                }
+                className={input}
+                placeholder="למשל 2500"
+              />
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-[#5F5F5F]">
+                  מחיר מינימלי (₪)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.minPrice}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, minPrice: e.target.value }))
+                  }
+                  className={input}
+                  placeholder="1500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#5F5F5F]">
+                  מחיר מקסימלי (₪)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.maxPrice}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, maxPrice: e.target.value }))
+                  }
+                  className={input}
+                  placeholder="5000"
+                />
+              </div>
+            </div>
+          )}
+          <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-[#0F3B2E]">
             <input
-              type="number"
-              min={0}
-              value={form.minPrice}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, minPrice: e.target.value }))
-              }
-              className={input}
-              placeholder="1500"
+              type="checkbox"
+              checked={form.priceUseRange}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setForm((f) => {
+                  if (checked) {
+                    const ex = f.exactPrice.trim();
+                    return {
+                      ...f,
+                      priceUseRange: true,
+                      minPrice: ex || f.minPrice,
+                      maxPrice: ex || f.maxPrice,
+                      exactPrice: "",
+                    };
+                  }
+                  const ep =
+                    f.minPrice && f.minPrice === f.maxPrice ? f.minPrice : "";
+                  return {
+                    ...f,
+                    priceUseRange: false,
+                    exactPrice: ep,
+                    minPrice: "",
+                    maxPrice: "",
+                  };
+                });
+              }}
+              className="h-4 w-4 shrink-0 rounded border-[#E0D4C3] text-[#0F3B2E] focus:ring-[#C9A227]/40"
             />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
-              מחיר מקסימלי (₪)
-            </label>
-            <input
-              type="number"
-              min={0}
-              value={form.maxPrice}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, maxPrice: e.target.value }))
-              }
-              className={input}
-              placeholder="5000"
-            />
-          </div>
+            אין לי מחיר מדויק — אציג טווח מחירים
+          </label>
         </div>
 
         <div>

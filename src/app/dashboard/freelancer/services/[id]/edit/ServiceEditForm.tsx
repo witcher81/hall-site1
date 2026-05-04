@@ -3,6 +3,10 @@
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
+  buildMinMaxStringsForSubmit,
+  parseMinMaxToFreelancerPriceForm,
+} from "@/lib/freelancerServicePriceForm";
+import {
   parseServiceIncludesBundle,
   type ServiceCustomInclude,
   type ServicePaidExtraItem,
@@ -48,6 +52,10 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const initialPrice = parseMinMaxToFreelancerPriceForm(
+    initial.minPrice,
+    initial.maxPrice
+  );
   const [form, setForm] = useState({
     name: initial.name,
     category: initial.category,
@@ -58,8 +66,10 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     languages: initial.languages ?? "",
     includesEquipment: initial.includesEquipment,
     includesNote: initial.includesNote ?? "",
-    minPrice: String(initial.minPrice),
-    maxPrice: String(initial.maxPrice),
+    exactPrice: initialPrice.exactPrice,
+    priceUseRange: initialPrice.priceUseRange,
+    minPrice: initialPrice.minPrice,
+    maxPrice: initialPrice.maxPrice,
   });
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [existingGallery, setExistingGallery] = useState<string[]>(initial.galleryImageUrls);
@@ -130,8 +140,14 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           paidExtras,
         })
       );
-      fd.append("minPrice", form.minPrice.trim());
-      fd.append("maxPrice", form.maxPrice.trim());
+      const { minPrice: minP, maxPrice: maxP } = buildMinMaxStringsForSubmit({
+        priceUseRange: form.priceUseRange,
+        exactPrice: form.exactPrice,
+        minPrice: form.minPrice,
+        maxPrice: form.maxPrice,
+      });
+      fd.append("minPrice", minP);
+      fd.append("maxPrice", maxP);
       fd.append("existingGallery", JSON.stringify(existingGallery));
       if (coverImage) fd.append("coverImage", coverImage);
       newGalleryImages.forEach((file) => fd.append("galleryImages", file));
@@ -275,35 +291,89 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         onPaidExtrasChange={setPaidExtras}
       />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
-            מחיר מינימלי (₪)
-          </label>
+      <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/50 p-4">
+        {!form.priceUseRange ? (
+          <div>
+            <label className="block text-xs font-medium text-[#5F5F5F]">
+              מחיר לשירות (₪)
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={form.exactPrice}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, exactPrice: e.target.value }))
+              }
+              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              placeholder="למשל 2500"
+            />
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-medium text-[#5F5F5F]">
+                מחיר מינימלי (₪)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.minPrice}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, minPrice: e.target.value }))
+                }
+                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                placeholder="1500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[#5F5F5F]">
+                מחיר מקסימלי (₪)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.maxPrice}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, maxPrice: e.target.value }))
+                }
+                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                placeholder="5000"
+              />
+            </div>
+          </div>
+        )}
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-[#0F3B2E]">
           <input
-            type="number"
-            min={0}
-            value={form.minPrice}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, minPrice: e.target.value }))
-            }
-            className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+            type="checkbox"
+            checked={form.priceUseRange}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setForm((f) => {
+                if (checked) {
+                  const ex = f.exactPrice.trim();
+                  return {
+                    ...f,
+                    priceUseRange: true,
+                    minPrice: ex || f.minPrice,
+                    maxPrice: ex || f.maxPrice,
+                    exactPrice: "",
+                  };
+                }
+                const ep =
+                  f.minPrice && f.minPrice === f.maxPrice ? f.minPrice : "";
+                return {
+                  ...f,
+                  priceUseRange: false,
+                  exactPrice: ep,
+                  minPrice: "",
+                  maxPrice: "",
+                };
+              });
+            }}
+            className="h-4 w-4 shrink-0 rounded border-[#E0D4C3] text-[#0F3B2E] focus:ring-[#C9A227]/40"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
-            מחיר מקסימלי (₪)
-          </label>
-          <input
-            type="number"
-            min={0}
-            value={form.maxPrice}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, maxPrice: e.target.value }))
-            }
-            className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-          />
-        </div>
+          אין לי מחיר מדויק — אציג טווח מחירים
+        </label>
       </div>
 
       <div>

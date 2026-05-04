@@ -86,7 +86,15 @@ export default function FreelancerDashboardClient({ initial }: Props) {
                     )}
                     {(s.minPrice != null || s.maxPrice != null) && (
                       <p className="mt-0.5 text-xs text-[#6B6560]">
-                        טווח מחירים: {s.minPrice ?? "?"}–{s.maxPrice ?? "?"} ₪
+                        {s.minPrice != null &&
+                        s.maxPrice != null &&
+                        s.minPrice === s.maxPrice ? (
+                          <>מחיר: {s.minPrice} ₪</>
+                        ) : (
+                          <>
+                            טווח מחירים: {s.minPrice ?? "?"}–{s.maxPrice ?? "?"} ₪
+                          </>
+                        )}
                       </p>
                     )}
                   </div>

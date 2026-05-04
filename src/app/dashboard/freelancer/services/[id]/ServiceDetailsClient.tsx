@@ -104,8 +104,19 @@ export default function ServiceDetailsClient({
         )}
         {(service.minPrice != null || service.maxPrice != null) && (
           <p className="text-[#1A1A1A]">
-            <span className="font-semibold text-[#0F3B2E]">טווח מחירים: </span>
-            {service.minPrice ?? "?"}–{service.maxPrice ?? "?"} ₪
+            {service.minPrice != null &&
+            service.maxPrice != null &&
+            service.minPrice === service.maxPrice ? (
+              <>
+                <span className="font-semibold text-[#0F3B2E]">מחיר: </span>
+                {service.minPrice} ₪
+              </>
+            ) : (
+              <>
+                <span className="font-semibold text-[#0F3B2E]">טווח מחירים: </span>
+                {service.minPrice ?? "?"}–{service.maxPrice ?? "?"} ₪
+              </>
+            )}
           </p>
         )}
         {service.description ? (
