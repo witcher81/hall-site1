@@ -84,7 +84,12 @@ export default function VenuesMapClient({
     }
     if (group.length > 0) {
       const fg = L.featureGroup(group);
-      map.fitBounds(fg.getBounds().pad(0.15));
+      map.fitBounds(fg.getBounds().pad(0.08), {
+        maxZoom: focusZoom != null && focusZoom > 0 ? focusZoom : undefined,
+      });
+      if (focusZoom != null && focusZoom > 0 && map.getZoom() < focusZoom) {
+        map.setZoom(focusZoom);
+      }
     } else if (
       focusLat != null &&
       focusLng != null &&
