@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { prisma } from "@/lib/prisma";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
@@ -48,8 +49,10 @@ export default async function ServiceEditPage({
         initial={{
           name: service.name,
           category: service.category ?? "",
-          shortDescription: service.shortDescription ?? "",
-          description: service.description ?? "",
+          description: mergeFreelancerServiceDescriptionForForm(
+            service.shortDescription,
+            service.description
+          ),
           serviceArea: service.serviceArea ?? "",
           experienceYears: service.experienceYears ?? "",
           languages: service.languages ?? "",

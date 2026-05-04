@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import HomeHeader from "@/components/HomeHeader";
 import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
+import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { prisma } from "@/lib/prisma";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
 
@@ -55,6 +56,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
               name: true,
               category: true,
               shortDescription: true,
+              description: true,
               coverImageUrl: true,
               minPrice: true,
               maxPrice: true,
@@ -130,6 +132,10 @@ export default async function PackageDetailPage({ params }: PageProps) {
                 </li>
                 {pkg.services.map((row) => {
                   const s = row.service;
+                  const serviceBlurb = mergeFreelancerServiceDescriptionForForm(
+                    s.shortDescription,
+                    s.description
+                  );
                   const label = s.provider.businessName || s.provider.name || "ספק";
                   return (
                     <li
@@ -141,9 +147,11 @@ export default async function PackageDetailPage({ params }: PageProps) {
                         {s.category && (
                           <span className="mr-2 text-xs text-[#6B6560]">({s.category})</span>
                         )}
-                        {s.shortDescription && (
-                          <p className="mt-1 text-xs text-[#5F5F5F]">{s.shortDescription}</p>
-                        )}
+                        {serviceBlurb ? (
+                          <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-[#5F5F5F]">
+                            {serviceBlurb}
+                          </p>
+                        ) : null}
                       </div>
                       <Link
                         href={`/providers/${s.providerId}`}

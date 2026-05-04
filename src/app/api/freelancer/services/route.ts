@@ -141,8 +141,6 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const name = (formData.get("name") as string | null)?.trim();
   const category = (formData.get("category") as string | null)?.trim() || null;
-  const shortDescription =
-    (formData.get("shortDescription") as string | null)?.trim() || null;
   const description = (formData.get("description") as string | null)?.trim() || null;
   const serviceArea = (formData.get("serviceArea") as string | null)?.trim() || null;
   const experienceYears = toIntOrNull(
@@ -184,16 +182,10 @@ export async function POST(req: NextRequest) {
     "קטגוריה"
   );
   if (!catCheck.ok) return badRequest(catCheck.error);
-  const shortCheck = validateOptionalLongText(
-    shortDescription,
-    USER_INPUT_MAX.SERVICE_SHORT_DESC,
-    "תיאור קצר"
-  );
-  if (!shortCheck.ok) return badRequest(shortCheck.error);
   const descCheck = validateOptionalLongText(
     description,
     USER_INPUT_MAX.DESCRIPTION_LONG,
-    "תיאור"
+    "תיאור השירות"
   );
   if (!descCheck.ok) return badRequest(descCheck.error);
   const areaCheck = validateOptionalShortText(
@@ -253,7 +245,7 @@ export async function POST(req: NextRequest) {
       providerId: user.id,
       name: nameCheck.value,
       category: catCheck.value,
-      shortDescription: shortCheck.value,
+      shortDescription: null,
       description: descCheck.value,
       serviceArea: areaCheck.value,
       experienceYears,
@@ -309,8 +301,6 @@ export async function PUT(req: NextRequest) {
   const name = ((formData.get("name") as string | null)?.trim() ?? existing.name) || existing.name;
   const category =
     (formData.get("category") as string | null)?.trim() ?? existing.category;
-  const shortDescription =
-    (formData.get("shortDescription") as string | null)?.trim() ?? existing.shortDescription;
   const description =
     (formData.get("description") as string | null)?.trim() ?? existing.description;
   const serviceArea =
@@ -375,16 +365,10 @@ export async function PUT(req: NextRequest) {
     "קטגוריה"
   );
   if (!catCheckPut.ok) return badRequest(catCheckPut.error);
-  const shortCheckPut = validateOptionalLongText(
-    shortDescription,
-    USER_INPUT_MAX.SERVICE_SHORT_DESC,
-    "תיאור קצר"
-  );
-  if (!shortCheckPut.ok) return badRequest(shortCheckPut.error);
   const descCheckPut = validateOptionalLongText(
     description,
     USER_INPUT_MAX.DESCRIPTION_LONG,
-    "תיאור"
+    "תיאור השירות"
   );
   if (!descCheckPut.ok) return badRequest(descCheckPut.error);
   const areaCheckPut = validateOptionalShortText(
@@ -463,7 +447,7 @@ export async function PUT(req: NextRequest) {
     data: {
       name: nameCheckPut.value,
       category: catCheckPut.value,
-      shortDescription: shortCheckPut.value,
+      shortDescription: null,
       description: descCheckPut.value,
       serviceArea: areaCheckPut.value,
       experienceYears,

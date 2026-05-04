@@ -1,6 +1,7 @@
 "use client";
 
 import PopularBadge from "@/components/PopularBadge";
+import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
@@ -171,6 +172,10 @@ export default function ProvidersSearchClient() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => {
             const socialLinks = parseSocialLinksJson(s.provider.socialLinksJson);
+            const blurb = mergeFreelancerServiceDescriptionForForm(
+              s.shortDescription,
+              s.description
+            );
             return (
               <div
                 key={s.id}
@@ -202,9 +207,11 @@ export default function ProvidersSearchClient() {
                   {s.category && (
                     <p className="mt-0.5 text-xs text-[#6B6560]">{s.category}</p>
                   )}
-                  {s.shortDescription && (
-                    <p className="mt-1 text-xs text-[#5F5F5F]">{s.shortDescription}</p>
-                  )}
+                  {blurb ? (
+                    <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs text-[#5F5F5F]">
+                      {blurb}
+                    </p>
+                  ) : null}
                   {s.serviceArea && (
                     <p className="mt-1 text-xs text-[#6B6560]">אזור שירות: {s.serviceArea}</p>
                   )}

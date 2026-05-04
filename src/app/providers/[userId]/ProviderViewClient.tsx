@@ -2,6 +2,7 @@
 
 import ServiceIncludeBadges from "@/components/ServiceIncludeBadges";
 import SocialLinksRow from "@/components/SocialLinksRow";
+import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
 import { useEngagedFreelancerProfileView } from "@/lib/useEngagedViewAnalytics";
 import type {
@@ -168,6 +169,10 @@ export default function ProviderViewClient({
           <ul className="mt-3 space-y-2">
             {services.map((s) => {
               const serviceSocialLinks = parseSocialLinksJson(s.socialLinksJson);
+              const blurb = mergeFreelancerServiceDescriptionForForm(
+                s.shortDescription,
+                s.description
+              );
               return (
               <li key={s.id} className="rounded-lg border border-[#E0D4C3] bg-[#FAF8F4] p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -179,9 +184,9 @@ export default function ProviderViewClient({
                     {s.category && (
                       <p className="text-xs text-[#0F3B2E]">{s.category}</p>
                     )}
-                    {s.shortDescription && (
-                      <p className="mt-1 text-xs text-[#5F5F5F]">{s.shortDescription}</p>
-                    )}
+                    {blurb ? (
+                      <p className="mt-1 line-clamp-5 whitespace-pre-wrap text-xs text-[#5F5F5F]">{blurb}</p>
+                    ) : null}
                     {(s.minPrice != null || s.maxPrice != null) && (
                       <p className="text-xs text-[#6B6560]">
                         ₪ {s.minPrice ?? "?"}–{s.maxPrice ?? "?"}
@@ -215,9 +220,6 @@ export default function ProviderViewClient({
                       paidExtras={s.paidExtras}
                       includesNote={s.includesNote}
                     />
-                    {s.description && (
-                      <p className="mt-1 text-xs text-[#5F5F5F]">{s.description}</p>
-                    )}
                   </div>
                   {seekerLoggedIn && (
                     <a

@@ -32,7 +32,6 @@ type Props = {
   initial: {
     name: string;
     category: string;
-    shortDescription: string;
     description: string;
     serviceArea: string;
     experienceYears: string | number;
@@ -59,7 +58,6 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   const [form, setForm] = useState({
     name: initial.name,
     category: initial.category,
-    shortDescription: initial.shortDescription,
     description: initial.description,
     serviceArea: initial.serviceArea,
     experienceYears: String(initial.experienceYears ?? ""),
@@ -119,7 +117,6 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       const fd = new FormData();
       fd.append("name", form.name.trim());
       fd.append("category", form.category.trim());
-      fd.append("shortDescription", form.shortDescription.trim());
       fd.append("description", form.description.trim());
       fd.append("serviceArea", form.serviceArea.trim());
       fd.append("experienceYears", form.experienceYears.trim());
@@ -210,26 +207,16 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
 
       <div>
         <label className="block text-xs font-medium text-[#5F5F5F]">
-          תיאור קצר להצגה בכרטיס
-        </label>
-        <input
-          value={form.shortDescription}
-          onChange={(e) => setForm((f) => ({ ...f, shortDescription: e.target.value }))}
-          className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
-          תיאור
+          תיאור השירות שלך-פה תוכל לפרט על השירות שאתה נותן
         </label>
         <textarea
-          rows={3}
+          rows={5}
           value={form.description}
           onChange={(e) =>
             setForm((f) => ({ ...f, description: e.target.value }))
           }
           className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+          placeholder="למשל: סוג האירועים שאתה מלווה, חבילות, ניסיון, מה מיוחד בשירות..."
         />
       </div>
 

@@ -7,6 +7,7 @@ import {
   type ServiceCustomInclude,
   type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
+import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import type { SocialLink } from "@/lib/socialLinks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,6 +38,10 @@ export default function ServiceDetailsClient({
 }: { service: Service }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const descriptionDisplay = mergeFreelancerServiceDescriptionForForm(
+    service.shortDescription,
+    service.description
+  );
 
   async function handleDelete() {
     if (!confirm("למחוק את השירות?")) return;
@@ -99,9 +104,6 @@ export default function ServiceDetailsClient({
             className="h-44 w-full rounded-xl object-cover"
           />
         )}
-        {service.shortDescription && (
-          <p className="text-[#2A261F]">{service.shortDescription}</p>
-        )}
         {(service.minPrice != null || service.maxPrice != null) && (
           <p className="text-[#1A1A1A]">
             {service.minPrice != null &&
@@ -119,10 +121,10 @@ export default function ServiceDetailsClient({
             )}
           </p>
         )}
-        {service.description ? (
+        {descriptionDisplay ? (
           <p className="text-[#1A1A1A]">
-            <span className="font-semibold text-[#0F3B2E]">תיאור: </span>
-            <span className="text-[#2A261F]">{service.description}</span>
+            <span className="font-semibold text-[#0F3B2E]">תיאור השירות: </span>
+            <span className="whitespace-pre-wrap text-[#2A261F]">{descriptionDisplay}</span>
           </p>
         ) : (
           <p className="text-xs text-[#6B6560]">אין תיאור.</p>

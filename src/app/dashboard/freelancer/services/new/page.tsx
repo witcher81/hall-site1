@@ -30,7 +30,6 @@ export default function NewServicePage() {
   const [form, setForm] = useState({
     name: "",
     category: "",
-    shortDescription: "",
     description: "",
     serviceArea: "",
     experienceYears: "",
@@ -83,7 +82,6 @@ export default function NewServicePage() {
       const fd = new FormData();
       fd.append("name", form.name.trim());
       if (form.category.trim()) fd.append("category", form.category.trim());
-      if (form.shortDescription.trim()) fd.append("shortDescription", form.shortDescription.trim());
       if (form.description.trim()) fd.append("description", form.description.trim());
       if (form.serviceArea.trim()) fd.append("serviceArea", form.serviceArea.trim());
       if (form.experienceYears.trim()) fd.append("experienceYears", form.experienceYears.trim());
@@ -200,29 +198,16 @@ export default function NewServicePage() {
 
         <div>
           <label className="block text-xs font-medium text-[#5F5F5F]">
-            תיאור קצר להצגה בכרטיס
-          </label>
-          <input
-            type="text"
-            value={form.shortDescription}
-            onChange={(e) => setForm((f) => ({ ...f, shortDescription: e.target.value }))}
-            className={input}
-            placeholder="למשל: צילום חתונות בסגנון דוקומנטרי"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
-            תיאור
+            תיאור השירות שלך-פה תוכל לפרט על השירות שאתה נותן
           </label>
           <textarea
-            rows={3}
+            rows={5}
             value={form.description}
             onChange={(e) =>
               setForm((f) => ({ ...f, description: e.target.value }))
             }
             className={input}
-            placeholder="תאר בקצרה את השירות, חבילות, ניסיון..."
+            placeholder="למשל: סוג האירועים שאתה מלווה, חבילות, ניסיון, מה מיוחד בשירות..."
           />
         </div>
 
