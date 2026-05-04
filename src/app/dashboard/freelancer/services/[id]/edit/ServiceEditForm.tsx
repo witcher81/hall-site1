@@ -1,6 +1,7 @@
 "use client";
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
+import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   buildMinMaxStringsForSubmit,
@@ -249,10 +250,10 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         <label className="block text-xs font-medium text-[#5F5F5F]">
           שפות עבודה
         </label>
-        <input
+        <ServiceLanguagesTagsField
           value={form.languages}
-          onChange={(e) => setForm((f) => ({ ...f, languages: e.target.value }))}
-          className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+          onChange={(languages) => setForm((f) => ({ ...f, languages }))}
+          inputClassName="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
         />
       </div>
 

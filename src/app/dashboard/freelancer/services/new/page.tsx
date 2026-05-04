@@ -1,6 +1,7 @@
 "use client";
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
+import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import { buildMinMaxStringsForSubmit } from "@/lib/freelancerServicePriceForm";
 import type {
@@ -243,12 +244,10 @@ export default function NewServicePage() {
           <label className="block text-xs font-medium text-[#5F5F5F]">
             שפות עבודה
           </label>
-          <input
-            type="text"
+          <ServiceLanguagesTagsField
             value={form.languages}
-            onChange={(e) => setForm((f) => ({ ...f, languages: e.target.value }))}
-            className={input}
-            placeholder="למשל: עברית, אנגלית"
+            onChange={(languages) => setForm((f) => ({ ...f, languages }))}
+            inputClassName={input}
           />
         </div>
 
