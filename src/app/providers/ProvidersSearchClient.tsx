@@ -1,6 +1,7 @@
 "use client";
 
 import PopularBadge from "@/components/PopularBadge";
+import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import SocialLinksRow from "@/components/SocialLinksRow";
@@ -29,18 +30,6 @@ type Service = {
     socialLinksJson: string | null;
   };
 };
-
-const CATEGORIES = [
-  "צילום",
-  "וידאו",
-  "DJ",
-  "קייטרינג",
-  "עיצוב אירועים",
-  "פרחים",
-  "הנחיה",
-  "מוזיקה",
-  "אחר",
-];
 
 export default function ProvidersSearchClient() {
   const router = useRouter();
@@ -122,7 +111,7 @@ export default function ProvidersSearchClient() {
               className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
             >
               <option value="">הכל</option>
-              {CATEGORIES.map((c) => (
+              {FREELANCER_SERVICE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>

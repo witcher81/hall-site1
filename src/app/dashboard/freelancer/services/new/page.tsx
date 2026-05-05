@@ -3,6 +3,7 @@
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
+import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
 import { buildMinMaxStringsForSubmit } from "@/lib/freelancerServicePriceForm";
 import type {
   ServiceCustomInclude,
@@ -11,18 +12,6 @@ import type {
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-
-const CATEGORIES = [
-  "צילום",
-  "וידאו",
-  "DJ",
-  "קייטרינג",
-  "עיצוב אירועים",
-  "פרחים",
-  "הנחיה",
-  "מוזיקה",
-  "אחר",
-];
 
 export default function NewServicePage() {
   const router = useRouter();
@@ -189,7 +178,7 @@ export default function NewServicePage() {
             className={input}
           >
             <option value="">בחר קטגוריה</option>
-            {CATEGORIES.map((c) => (
+            {FREELANCER_SERVICE_CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>

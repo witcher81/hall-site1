@@ -3,6 +3,7 @@
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
+import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
 import {
   buildMinMaxStringsForSubmit,
   parseMinMaxToFreelancerPriceForm,
@@ -15,18 +16,6 @@ import {
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-
-const CATEGORIES = [
-  "צילום",
-  "וידאו",
-  "DJ",
-  "קייטרינג",
-  "עיצוב אירועים",
-  "פרחים",
-  "הנחיה",
-  "מוזיקה",
-  "אחר",
-];
 
 type Props = {
   serviceId: number;
@@ -198,7 +187,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
         >
           <option value="">בחר קטגוריה</option>
-          {CATEGORIES.map((c) => (
+          {FREELANCER_SERVICE_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>
