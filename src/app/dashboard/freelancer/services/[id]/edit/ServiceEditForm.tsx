@@ -260,8 +260,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       <SocialLinksEditor
         value={socialLinks}
         onChange={setSocialLinks}
-        title="קישורים לאתר, פורטפוליו ורשתות חברתיות"
-        description="ניתן להוסיף מספר שורות. לכל שורה בוחרים סוג רשת ומדביקים קישור מלא — יוצגו למחפשים עם אייקון."
+        description="לחצו על הכפתור «+ הוסף רשת / קישור» כדי להוסיף שורה חדשה. בכל שורה בוחרים רשת ומדביקים קישור מלא — יוצג למחפשים."
       />
 
       <ServiceIncludesEditor

@@ -254,8 +254,7 @@ export default function NewServicePage() {
         <SocialLinksEditor
           value={socialLinks}
           onChange={setSocialLinks}
-          title="קישורים לאתר, פורטפוליו ורשתות חברתיות"
-          description="ניתן להוסיף מספר שורות — בוחרים סוג רשת ומדביקים קישור מלא."
+          description="לחצו על הכפתור «+ הוסף רשת / קישור» כדי להוסיף שורה חדשה. בכל שורה בוחרים רשת ומדביקים קישור מלא."
         />
 
         <ServiceIncludesEditor

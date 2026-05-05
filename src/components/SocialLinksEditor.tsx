@@ -22,7 +22,7 @@ const emptyLink = (): SocialLink => ({
 export default function SocialLinksEditor({
   value,
   onChange,
-  title = "קישורים לאתר, פורטפוליו ורשתות חברתיות",
+  title = "",
   description = "הוסיפו קישור מלא לכל רשת: בחרו רשת, הדביקו כתובת מלאה (כולל https://) ולחצו על כפתור ההוספה כדי להוסיף שורה נוספת.",
   addButtonText = "+ הוסף רשת / קישור",
 }: Props) {
@@ -46,7 +46,9 @@ export default function SocialLinksEditor({
 
   return (
     <div>
-      <label className="block text-xs font-medium text-[#5F5F5F]">{title}</label>
+      {title ? (
+        <label className="block text-xs font-medium text-[#5F5F5F]">{title}</label>
+      ) : null}
       <div className="mt-3 space-y-3">
         {value.map((row, index) => {
           const hasValue = row.url.trim().length > 0;

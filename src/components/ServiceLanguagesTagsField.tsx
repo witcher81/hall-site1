@@ -81,8 +81,6 @@ export default function ServiceLanguagesTagsField({
     inputRef.current?.focus();
   }
 
-  const remainingChars = SERVICE_LANGUAGES_MAX_CHARS - value.trim().length;
-
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Escape") {
       e.preventDefault();
@@ -223,10 +221,6 @@ export default function ServiceLanguagesTagsField({
           </ul>
         ) : null}
       </div>
-      <p className="text-[11px] text-[#6B6560]">
-        הרשימה נפתחת בשדה. נשארו {Math.max(0, remainingChars)} תווים מתוך{" "}
-        {SERVICE_LANGUAGES_MAX_CHARS}.
-      </p>
     </div>
   );
 }
