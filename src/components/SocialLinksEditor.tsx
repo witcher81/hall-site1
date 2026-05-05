@@ -23,7 +23,7 @@ export default function SocialLinksEditor({
   value,
   onChange,
   title = "קישורים לאתר, פורטפוליו ורשתות חברתיות",
-  description = "הוסיפו כמה שורות — בחרו סוג רשת והדביקו קישור מלא. יוצגו למחפשים עם אייקון המותג.",
+  description = "הוסיפו קישור מלא לכל רשת: בחרו רשת, הדביקו כתובת מלאה (כולל https://) ולחצו על כפתור ההוספה כדי להוסיף שורה נוספת.",
   addButtonText = "+ הוסף רשת / קישור",
 }: Props) {
   const input =
@@ -47,9 +47,6 @@ export default function SocialLinksEditor({
   return (
     <div>
       <label className="block text-xs font-medium text-[#5F5F5F]">{title}</label>
-      {description && (
-        <p className="mt-1 text-xs text-[#6B6560]">{description}</p>
-      )}
       <div className="mt-3 space-y-3">
         {value.map((row, index) => {
           const hasValue = row.url.trim().length > 0;
@@ -109,10 +106,13 @@ export default function SocialLinksEditor({
       <button
         type="button"
         onClick={addRow}
-        className="mt-3 rounded-full border border-[#0F3B2E]/30 bg-white px-4 py-2 text-xs font-semibold text-[#0F3B2E] hover:bg-[#EFE6D5]"
+        className="mt-3 rounded-xl border border-[#0F3B2E]/35 bg-white px-5 py-2.5 text-sm font-semibold text-[#0F3B2E] shadow-sm hover:bg-[#EFE6D5]"
       >
         {addButtonText}
       </button>
+      {description && (
+        <p className="mt-2 text-sm leading-relaxed text-[#4E4A45]">{description}</p>
+      )}
     </div>
   );
 }

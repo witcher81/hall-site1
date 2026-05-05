@@ -156,13 +156,6 @@ export default function ServiceIncludesEditor({
                     className={input}
                     placeholder="למשל: עריכת וידאו בסיסית"
                   />
-                  <button
-                    type="button"
-                    onClick={() => removeFreeItem(index)}
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
-                  >
-                    הסרה
-                  </button>
                 </div>
                 <textarea
                   dir="rtl"
@@ -177,6 +170,15 @@ export default function ServiceIncludesEditor({
                   placeholder="הסבר על מה כלול בפריט הזה (אופציונלי)"
                   className={textarea}
                 />
+                <div className="mt-1 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => removeFreeItem(index)}
+                    className="rounded-full border border-red-200 bg-white px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
+                  >
+                    הסרה
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -196,7 +198,7 @@ export default function ServiceIncludesEditor({
           תוספות בתשלום נפרד
         </h3>
         <p className="mt-1 text-[11px] leading-relaxed text-amber-900/80">
-          כאן מוסיפים רק שירותים שאינם כלולים במחיר הבסיס.
+          כאן מוסיפים רק פריטים שאינם כלולים במחיר הבסיס.
         </p>
 
         <div className="mt-3 border-t border-amber-200/80 pt-3">
@@ -204,7 +206,7 @@ export default function ServiceIncludesEditor({
             ניתן בתוספת תשלום
           </p>
           <p className="mt-0.5 text-[10px] text-amber-900/75">
-            שירותים או תוספות שהלקוח יכול לקבל מעבר למחיר הבסיס — עם הסבר לכל שורה.
+            פריטים או תוספות שהלקוח יכול לקבל מעבר למחיר הבסיס — עם הסבר לכל שורה.
           </p>
           <ul className="mt-2 space-y-3">
             {paidExtras.map((row, index) => (
@@ -226,13 +228,6 @@ export default function ServiceIncludesEditor({
                     className={input}
                     placeholder="למשל: צילום מגנטים לאירוע"
                   />
-                  <button
-                    type="button"
-                    onClick={() => removePaidExtra(index)}
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[11px] text-red-700 hover:bg-red-50"
-                  >
-                    הסרה
-                  </button>
                 </div>
                 <textarea
                   dir="rtl"
@@ -247,6 +242,15 @@ export default function ServiceIncludesEditor({
                   placeholder="מה כולל התוספת ואיך נקבע המחיר (אופציונלי)"
                   className={textarea}
                 />
+                <div className="mt-1 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => removePaidExtra(index)}
+                    className="rounded-full border border-red-200 bg-white px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
+                  >
+                    הסרה
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
