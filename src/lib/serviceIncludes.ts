@@ -8,6 +8,7 @@ export type ServiceCustomInclude = {
 export type ServicePaidExtraItem = {
   label: string;
   description?: string;
+  usePriceRange?: boolean;
   exactPrice?: number | null;
   minPrice?: number | null;
   maxPrice?: number | null;
@@ -72,18 +73,24 @@ function sanitizePaidExtrasArray(data: unknown): ServicePaidExtraItem[] {
     const label = sliceStr(o.label, MAX_LABEL_LEN);
     if (!label) continue;
     const description = sliceStr(o.description, MAX_ITEM_DESC_LEN);
+    let usePriceRange = o.usePriceRange === true;
     let exactPrice = toPriceIntOrNull(o.exactPrice);
     let minPrice = toPriceIntOrNull(o.minPrice);
     let maxPrice = toPriceIntOrNull(o.maxPrice);
     if (exactPrice != null) {
+      usePriceRange = false;
       minPrice = null;
       maxPrice = null;
-    } else if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+    } else {
+      if (minPrice != null || maxPrice != null) usePriceRange = true;
+    }
+    if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
       [minPrice, maxPrice] = [maxPrice, minPrice];
     }
     out.push({
       label,
       ...(description ? { description } : {}),
+      ...(usePriceRange ? { usePriceRange: true } : {}),
       ...(exactPrice != null ? { exactPrice } : {}),
       ...(minPrice != null ? { minPrice } : {}),
       ...(maxPrice != null ? { maxPrice } : {}),

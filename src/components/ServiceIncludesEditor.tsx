@@ -61,7 +61,14 @@ export default function ServiceIncludesEditor({
     if (paidExtras.length >= MAX_PAID) return;
     onPaidExtrasChange([
       ...paidExtras,
-      { label: "", description: "", exactPrice: null, minPrice: null, maxPrice: null },
+      {
+        label: "",
+        description: "",
+        usePriceRange: false,
+        exactPrice: null,
+        minPrice: null,
+        maxPrice: null,
+      },
     ]);
   }
 
@@ -226,9 +233,7 @@ export default function ServiceIncludesEditor({
                 className="rounded-lg border border-amber-200/80 bg-white/85 p-2.5"
               >
                 {(() => {
-                  const isRange =
-                    row.exactPrice == null &&
-                    (row.minPrice != null || row.maxPrice != null);
+                  const isRange = row.usePriceRange === true;
                   return (
                     <>
                 <div className="flex flex-wrap items-start gap-2">
@@ -246,6 +251,19 @@ export default function ServiceIncludesEditor({
                     placeholder="למשל: צילום מגנטים לאירוע"
                   />
                 </div>
+                <textarea
+                  dir="rtl"
+                  rows={2}
+                  maxLength={MAX_ITEM_DESC}
+                  value={row.description ?? ""}
+                  onChange={(e) =>
+                    updatePaidExtra(index, {
+                      description: e.target.value.slice(0, MAX_ITEM_DESC),
+                    })
+                  }
+                  placeholder="מה כולל התוספת ואיך נקבע המחיר"
+                  className={textarea}
+                />
                 <div className="mt-2 rounded-lg border border-amber-200/60 bg-amber-50/40 p-2">
                   {!isRange ? (
                     <div>
@@ -313,6 +331,7 @@ export default function ServiceIncludesEditor({
                         if (checked) {
                           const ex = row.exactPrice;
                           updatePaidExtra(index, {
+                            usePriceRange: true,
                             exactPrice: null,
                             minPrice: ex ?? row.minPrice ?? null,
                             maxPrice: ex ?? row.maxPrice ?? null,
@@ -326,6 +345,7 @@ export default function ServiceIncludesEditor({
                             ? row.minPrice
                             : null;
                         updatePaidExtra(index, {
+                          usePriceRange: false,
                           exactPrice: exact,
                           minPrice: null,
                           maxPrice: null,
@@ -335,19 +355,6 @@ export default function ServiceIncludesEditor({
                     אין לי מחיר מדויק — אציג טווח מחירים
                   </label>
                 </div>
-                <textarea
-                  dir="rtl"
-                  rows={2}
-                  maxLength={MAX_ITEM_DESC}
-                  value={row.description ?? ""}
-                  onChange={(e) =>
-                    updatePaidExtra(index, {
-                      description: e.target.value.slice(0, MAX_ITEM_DESC),
-                    })
-                  }
-                  placeholder="מה כולל התוספת ואיך נקבע המחיר"
-                  className={textarea}
-                />
                 <div className="mt-1 flex justify-end">
                   <button
                     type="button"
