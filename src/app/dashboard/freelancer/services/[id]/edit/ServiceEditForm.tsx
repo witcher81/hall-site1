@@ -367,6 +367,9 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         <label className="block text-xs font-medium text-[#5F5F5F]">
           תמונה ראשית
         </label>
+        <p className="mt-0.5 text-[11px] text-[#6B6560]">
+          זו תמונת השער של השירות — היא תוצג ראשונה בכרטיס ובדף השירות.
+        </p>
         <input
           type="file"
           accept="image/*"
@@ -380,6 +383,9 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
 
       <div>
         <label className="block text-xs font-medium text-[#5F5F5F]">גלריה קיימת</label>
+        <p className="mt-0.5 text-[11px] text-[#6B6560]">
+          הגלריה מיועדת לדוגמאות של עבודות, תוצרים או דברים שאתה נותן במסגרת השירות.
+        </p>
         {existingGallery.length === 0 ? (
           <p className="mt-1 text-xs text-[#6B6560]">אין תמונות גלריה.</p>
         ) : (
@@ -402,6 +408,9 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
 
       <div>
         <label className="block text-xs font-medium text-[#5F5F5F]">הוספת תמונות גלריה חדשות</label>
+        <p className="mt-0.5 text-[11px] text-[#6B6560]">
+          ניתן להוסיף תמונות נוספות כדוגמאות לשירותים ולעבודות שלך.
+        </p>
         <input
           type="file"
           accept="image/*"

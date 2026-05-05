@@ -361,6 +361,9 @@ export default function NewServicePage() {
           <label className="block text-xs font-medium text-[#5F5F5F]">
             תמונת שירות ראשית
           </label>
+          <p className="mt-0.5 text-[11px] text-[#6B6560]">
+            זו תמונת השער של השירות — היא תוצג ראשונה בכרטיס ובדף השירות.
+          </p>
           <input
             type="file"
             accept="image/*"
@@ -376,6 +379,9 @@ export default function NewServicePage() {
           <label className="block text-xs font-medium text-[#5F5F5F]">
             גלריית תמונות (ניתן לבחור כמה)
           </label>
+          <p className="mt-0.5 text-[11px] text-[#6B6560]">
+            כאן מעלים דוגמאות של עבודות, תוצרים או דברים שאתה נותן במסגרת השירות.
+          </p>
           <input
             type="file"
             accept="image/*"
