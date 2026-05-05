@@ -1,14 +1,12 @@
 "use client";
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
-import FreelancerCategoryPicker from "@/components/FreelancerCategoryPicker";
+import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
-  FREELANCER_PRIMARY_CATEGORIES,
-  getSecondaryServicesForPrimary,
   parseServiceCategoryValue,
 } from "@/lib/freelancerServiceCategories";
 import {
@@ -80,10 +78,6 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   );
   const [paidExtras, setPaidExtras] = useState<ServicePaidExtraItem[]>(
     () => initialIncludes.paidExtras
-  );
-  const secondaryCategories = useMemo(
-    () => getSecondaryServicesForPrimary(form.primaryCategory),
-    [form.primaryCategory]
   );
   const hasInvalidSocialLinks = socialLinks.some(
     (l) => l.url.trim().length > 0 && normalizeSocialUrl(l.url) === null
@@ -179,29 +173,17 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
     >
       <div>
-        <FreelancerCategoryPicker
-          value={form.primaryCategory}
-          onChange={(category) =>
+        <FreelancerCategoryTreePicker
+          primaryValue={form.primaryCategory}
+          secondaryValue={form.secondaryCategory}
+          onChange={({ primary, secondary }) =>
             setForm((f) => ({
               ...f,
-              primaryCategory: category,
-              secondaryCategory:
-                category !== f.primaryCategory ? "" : f.secondaryCategory,
+              primaryCategory: primary,
+              secondaryCategory: secondary,
             }))
           }
-          categories={FREELANCER_PRIMARY_CATEGORIES}
-          label="קטגוריה ראשית"
-        />
-      </div>
-
-      <div>
-        <FreelancerCategoryPicker
-          value={form.secondaryCategory}
-          onChange={(category) =>
-            setForm((f) => ({ ...f, secondaryCategory: category }))
-          }
-          categories={secondaryCategories}
-          label="שירות / קטגוריה משנית"
+          label="קטגוריה ראשית + תת־קטגוריה"
         />
       </div>
 
