@@ -111,7 +111,7 @@ export default function ServiceIncludesEditor({
 
         <div className="mt-3">
           <label className="block text-[11px] font-medium text-[#5F5F5F]">
-            הסבר קצר על מה שכלול (אופציונלי)
+            הסבר קצר על מה שכלול
           </label>
           <textarea
             dir="rtl"
@@ -134,7 +134,7 @@ export default function ServiceIncludesEditor({
             מה ניתן במחיר המוצג (ללא תוספת תשלום)
           </p>
           <p className="mt-0.5 text-[10px] text-[#9A948C]">
-            לכל שורה: שם הפריט, ומתחת הסבר קצר למה הלקוח מקבל (אופציונלי).
+            לכל שורה: שם הפריט, ומתחת הסבר קצר למה הלקוח מקבל.
           </p>
           <ul className="mt-2 space-y-3">
             {customIncludes.map((row, index) => (
@@ -167,7 +167,7 @@ export default function ServiceIncludesEditor({
                       description: e.target.value.slice(0, MAX_ITEM_DESC),
                     })
                   }
-                  placeholder="הסבר על מה כלול בפריט הזה (אופציונלי)"
+                  placeholder="הסבר על מה כלול בפריט הזה"
                   className={textarea}
                 />
                 <div className="mt-1 flex justify-end">
@@ -239,7 +239,7 @@ export default function ServiceIncludesEditor({
                       description: e.target.value.slice(0, MAX_ITEM_DESC),
                     })
                   }
-                  placeholder="מה כולל התוספת ואיך נקבע המחיר (אופציונלי)"
+                  placeholder="מה כולל התוספת ואיך נקבע המחיר"
                   className={textarea}
                 />
                 <div className="mt-1 flex justify-end">
