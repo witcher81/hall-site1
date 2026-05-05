@@ -153,6 +153,18 @@ export default function ServiceLanguagesTagsField({
                 </button>
               </span>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setDraft("");
+                setListOpen(false);
+                setActiveIndex(-1);
+              }}
+              className="mr-auto rounded-full border border-[#E0D4C3] bg-white px-2.5 py-0.5 text-[11px] text-[#5F5F5F] hover:bg-[#FAF8F4]"
+            >
+              נקה הכל
+            </button>
           </div>
         ) : null}
 

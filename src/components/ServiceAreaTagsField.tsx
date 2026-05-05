@@ -19,12 +19,14 @@ export default function ServiceAreaTagsField({
   onChange,
   className = "",
 }: Props) {
+  const ALL_COUNTRY_LABEL = "כל הארץ";
   const tags = useMemo(() => parseServiceAreasToTags(value), [value]);
   const [draft, setDraft] = useState("");
   const [listOpen, setListOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasAllCountry = tags.some((t) => t.toLowerCase() === ALL_COUNTRY_LABEL.toLowerCase());
 
   const availablePresets = useMemo(
     () =>
@@ -63,7 +65,9 @@ export default function ServiceAreaTagsField({
     if (!t) return;
     const lower = t.toLowerCase();
     if (tags.some((x) => x.toLowerCase() === lower)) return;
-    const nextTags = [...tags, t];
+    if (hasAllCountry && lower !== ALL_COUNTRY_LABEL.toLowerCase()) return;
+    const nextTags =
+      lower === ALL_COUNTRY_LABEL.toLowerCase() ? [ALL_COUNTRY_LABEL] : [...tags, t];
     const serialized = serializeServiceAreaTags(nextTags);
     if (serialized.length > SERVICE_AREA_MAX_CHARS) return;
     onChange(serialized);
@@ -143,6 +147,18 @@ export default function ServiceAreaTagsField({
                 </button>
               </span>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setDraft("");
+                setListOpen(false);
+                setActiveIndex(-1);
+              }}
+              className="mr-auto rounded-full border border-[#E0D4C3] bg-white px-2.5 py-0.5 text-[11px] text-[#5F5F5F] hover:bg-[#FAF8F4]"
+            >
+              נקה הכל
+            </button>
           </div>
         ) : null}
 
@@ -160,7 +176,11 @@ export default function ServiceAreaTagsField({
             onFocus={() => setListOpen(true)}
             onKeyDown={handleKeyDown}
             className="min-w-0 flex-1 border-0 bg-transparent py-2.5 text-sm text-[#1A1A1A] outline-none placeholder:text-[#9A9490]"
-            placeholder="הקלידו אזור שירות או בחרו מהרשימה למטה…"
+            placeholder={
+              hasAllCountry
+                ? "נבחר 'כל הארץ' — להסרתו לחצו × או 'נקה הכל'"
+                : "הקלידו אזור שירות או בחרו מהרשימה למטה…"
+            }
             maxLength={120}
             aria-expanded={listOpen}
             aria-controls="service-area-suggestions"
