@@ -104,7 +104,7 @@ export default function ProvidersSearchClient() {
         <p className="mb-3 text-xs font-semibold text-[#0F3B2E]">סינון חיפוש</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">קטגוריה</label>
+            <label className="block text-xs font-medium text-[#5F5F5F]">קטגוריה ראשית</label>
             <select
               value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}

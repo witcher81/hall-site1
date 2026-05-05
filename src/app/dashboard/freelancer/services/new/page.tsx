@@ -5,7 +5,11 @@ import FreelancerCategoryPicker from "@/components/FreelancerCategoryPicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
-import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
+import {
+  composeServiceCategoryValue,
+  FREELANCER_PRIMARY_CATEGORIES,
+  getSecondaryServicesForPrimary,
+} from "@/lib/freelancerServiceCategories";
 import { buildMinMaxStringsForSubmit } from "@/lib/freelancerServicePriceForm";
 import type {
   ServiceCustomInclude,
@@ -21,7 +25,8 @@ export default function NewServicePage() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
-    category: "",
+    primaryCategory: "",
+    secondaryCategory: "",
     description: "",
     serviceArea: "",
     experienceYears: "",
@@ -73,7 +78,11 @@ export default function NewServicePage() {
     try {
       const fd = new FormData();
       fd.append("name", form.name.trim());
-      if (form.category.trim()) fd.append("category", form.category.trim());
+      const categoryValue = composeServiceCategoryValue(
+        form.primaryCategory,
+        form.secondaryCategory
+      );
+      if (categoryValue) fd.append("category", categoryValue);
       if (form.description.trim()) fd.append("description", form.description.trim());
       if (form.serviceArea.trim()) fd.append("serviceArea", form.serviceArea.trim());
       if (form.experienceYears.trim()) fd.append("experienceYears", form.experienceYears.trim());
@@ -127,6 +136,10 @@ export default function NewServicePage() {
 
   const input =
     "mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40";
+  const secondaryCategories = useMemo(
+    () => getSecondaryServicesForPrimary(form.primaryCategory),
+    [form.primaryCategory]
+  );
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
@@ -156,9 +169,28 @@ export default function NewServicePage() {
       >
         <div>
           <FreelancerCategoryPicker
-            value={form.category}
-            onChange={(category) => setForm((f) => ({ ...f, category }))}
-            categories={FREELANCER_SERVICE_CATEGORIES}
+            value={form.primaryCategory}
+            onChange={(category) =>
+              setForm((f) => ({
+                ...f,
+                primaryCategory: category,
+                secondaryCategory:
+                  category !== f.primaryCategory ? "" : f.secondaryCategory,
+              }))
+            }
+            categories={FREELANCER_PRIMARY_CATEGORIES}
+            label="קטגוריה ראשית"
+          />
+        </div>
+
+        <div>
+          <FreelancerCategoryPicker
+            value={form.secondaryCategory}
+            onChange={(category) =>
+              setForm((f) => ({ ...f, secondaryCategory: category }))
+            }
+            categories={secondaryCategories}
+            label="שירות / קטגוריה משנית"
           />
         </div>
 

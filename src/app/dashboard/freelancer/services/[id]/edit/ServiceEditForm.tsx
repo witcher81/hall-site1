@@ -5,7 +5,12 @@ import FreelancerCategoryPicker from "@/components/FreelancerCategoryPicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
-import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
+import {
+  composeServiceCategoryValue,
+  FREELANCER_PRIMARY_CATEGORIES,
+  getSecondaryServicesForPrimary,
+  parseServiceCategoryValue,
+} from "@/lib/freelancerServiceCategories";
 import {
   buildMinMaxStringsForSubmit,
   parseMinMaxToFreelancerPriceForm,
@@ -47,9 +52,11 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     initial.minPrice,
     initial.maxPrice
   );
+  const initialCategory = parseServiceCategoryValue(initial.category);
   const [form, setForm] = useState({
     name: initial.name,
-    category: initial.category,
+    primaryCategory: initialCategory.primary,
+    secondaryCategory: initialCategory.secondary,
     description: initial.description,
     serviceArea: initial.serviceArea,
     experienceYears: String(initial.experienceYears ?? ""),
@@ -73,6 +80,10 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   );
   const [paidExtras, setPaidExtras] = useState<ServicePaidExtraItem[]>(
     () => initialIncludes.paidExtras
+  );
+  const secondaryCategories = useMemo(
+    () => getSecondaryServicesForPrimary(form.primaryCategory),
+    [form.primaryCategory]
   );
   const hasInvalidSocialLinks = socialLinks.some(
     (l) => l.url.trim().length > 0 && normalizeSocialUrl(l.url) === null
@@ -108,7 +119,10 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     try {
       const fd = new FormData();
       fd.append("name", form.name.trim());
-      fd.append("category", form.category.trim());
+      fd.append(
+        "category",
+        composeServiceCategoryValue(form.primaryCategory, form.secondaryCategory)
+      );
       fd.append("description", form.description.trim());
       fd.append("serviceArea", form.serviceArea.trim());
       fd.append("experienceYears", form.experienceYears.trim());
@@ -166,9 +180,28 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     >
       <div>
         <FreelancerCategoryPicker
-          value={form.category}
-          onChange={(category) => setForm((f) => ({ ...f, category }))}
-          categories={FREELANCER_SERVICE_CATEGORIES}
+          value={form.primaryCategory}
+          onChange={(category) =>
+            setForm((f) => ({
+              ...f,
+              primaryCategory: category,
+              secondaryCategory:
+                category !== f.primaryCategory ? "" : f.secondaryCategory,
+            }))
+          }
+          categories={FREELANCER_PRIMARY_CATEGORIES}
+          label="קטגוריה ראשית"
+        />
+      </div>
+
+      <div>
+        <FreelancerCategoryPicker
+          value={form.secondaryCategory}
+          onChange={(category) =>
+            setForm((f) => ({ ...f, secondaryCategory: category }))
+          }
+          categories={secondaryCategories}
+          label="שירות / קטגוריה משנית"
         />
       </div>
 

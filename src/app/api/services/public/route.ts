@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CATEGORY_VALUE_SEPARATOR } from "@/lib/freelancerServiceCategories";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -10,9 +11,16 @@ export async function GET(req: NextRequest) {
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
 
-  const where: { category?: string; minPrice?: { gte: number }; maxPrice?: { lte: number } } = {};
+  const where: {
+    OR?: Array<{ category: string } | { category: { startsWith: string } }>;
+    minPrice?: { gte: number };
+    maxPrice?: { lte: number };
+  } = {};
   if (category && category.length > 0) {
-    where.category = category;
+    where.OR = [
+      { category },
+      { category: { startsWith: `${category}${CATEGORY_VALUE_SEPARATOR}` } },
+    ];
   }
   if (minPrice && minPrice !== "") {
     const n = Number(minPrice);
