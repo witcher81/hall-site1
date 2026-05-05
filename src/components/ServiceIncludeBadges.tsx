@@ -22,6 +22,14 @@ export default function ServiceIncludeBadges({
   className = "",
   size = "md",
 }: Props) {
+  function paidPriceText(p: ServicePaidExtraItem): string {
+    if (p.exactPrice != null) return `₪${p.exactPrice}`;
+    if (p.minPrice != null && p.maxPrice != null) return `₪${p.minPrice}–₪${p.maxPrice}`;
+    if (p.minPrice != null) return `החל מ־₪${p.minPrice}`;
+    if (p.maxPrice != null) return `עד ₪${p.maxPrice}`;
+    return "";
+  }
+
   const checkedCustom = customIncludes.filter(
     (x) => x.checked && x.label.trim()
   );
@@ -90,7 +98,14 @@ export default function ServiceIncludeBadges({
           <ul className="mt-1 space-y-1.5">
             {paidList.map((p, i) => (
               <li key={`paid-${p.label}-${i}`} className="text-right">
-                <p className={itemTitle}>{p.label.trim()}</p>
+                <p className={itemTitle}>
+                  {p.label.trim()}
+                  {paidPriceText(p) ? (
+                    <span className="mr-1 font-medium text-amber-900/90">
+                      ({paidPriceText(p)})
+                    </span>
+                  ) : null}
+                </p>
                 {p.description?.trim() ? (
                   <p className={itemDesc}>{p.description.trim()}</p>
                 ) : null}

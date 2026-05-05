@@ -8,6 +8,9 @@ export type ServiceCustomInclude = {
 export type ServicePaidExtraItem = {
   label: string;
   description?: string;
+  exactPrice?: number | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
 };
 
 export type ServiceIncludesBundle = {
@@ -18,6 +21,7 @@ export type ServiceIncludesBundle = {
 const MAX_ITEMS = 20;
 const MAX_LABEL_LEN = 80;
 const MAX_ITEM_DESC_LEN = 280;
+const MAX_PRICE = 2_147_483_647;
 
 const EMPTY_BUNDLE: ServiceIncludesBundle = {
   included: [],
@@ -27,6 +31,15 @@ const EMPTY_BUNDLE: ServiceIncludesBundle = {
 function sliceStr(s: unknown, max: number): string {
   if (typeof s !== "string") return "";
   return s.trim().slice(0, max);
+}
+
+function toPriceIntOrNull(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "number" ? v : Number(v);
+  if (!Number.isFinite(n)) return null;
+  const t = Math.trunc(n);
+  if (t < 0 || t > MAX_PRICE) return null;
+  return t;
 }
 
 function sanitizeIncludedArray(data: unknown): ServiceCustomInclude[] {
@@ -59,9 +72,21 @@ function sanitizePaidExtrasArray(data: unknown): ServicePaidExtraItem[] {
     const label = sliceStr(o.label, MAX_LABEL_LEN);
     if (!label) continue;
     const description = sliceStr(o.description, MAX_ITEM_DESC_LEN);
+    let exactPrice = toPriceIntOrNull(o.exactPrice);
+    let minPrice = toPriceIntOrNull(o.minPrice);
+    let maxPrice = toPriceIntOrNull(o.maxPrice);
+    if (exactPrice != null) {
+      minPrice = null;
+      maxPrice = null;
+    } else if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+      [minPrice, maxPrice] = [maxPrice, minPrice];
+    }
     out.push({
       label,
       ...(description ? { description } : {}),
+      ...(exactPrice != null ? { exactPrice } : {}),
+      ...(minPrice != null ? { minPrice } : {}),
+      ...(maxPrice != null ? { maxPrice } : {}),
     });
   }
   return out;
