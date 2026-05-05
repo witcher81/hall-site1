@@ -19,9 +19,24 @@ export default function FreelancerCategoryTreePicker({
   onChange,
   label = "קטגוריה ראשית ומשנית",
 }: Props) {
+  const OTHER_PRIMARY = "אחר";
   const [open, setOpen] = useState(false);
-  const [expandedPrimary, setExpandedPrimary] = useState(primaryValue);
+  const [expandedPrimary, setExpandedPrimary] = useState(
+    FREELANCER_CATEGORY_GROUPS.some((g) => g.primary === primaryValue)
+      ? primaryValue
+      : OTHER_PRIMARY
+  );
   const [query, setQuery] = useState("");
+  const [customSecondaryDraftByPrimary, setCustomSecondaryDraftByPrimary] =
+    useState<Record<string, string>>({});
+  const [customOtherPrimary, setCustomOtherPrimary] = useState(
+    primaryValue && !FREELANCER_CATEGORY_GROUPS.some((g) => g.primary === primaryValue)
+      ? primaryValue
+      : ""
+  );
+  const [customOtherSecondary, setCustomOtherSecondary] = useState(
+    primaryValue === OTHER_PRIMARY || customOtherPrimary ? secondaryValue : ""
+  );
 
   const displayValue = useMemo(() => {
     if (!primaryValue) return "בחר קטגוריה";
@@ -164,6 +179,83 @@ export default function FreelancerCategoryTreePicker({
                               );
                             })}
                           </div>
+                          <div className="mt-3 rounded-lg border border-[#E8E0D4] bg-[#FAF8F4] p-2">
+                            <p className="mb-1 text-[11px] text-[#6B6560]">
+                              תת־קטגוריה מותאמת אישית
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <input
+                                type="text"
+                                dir="rtl"
+                                value={customSecondaryDraftByPrimary[group.primary] ?? ""}
+                                onChange={(e) =>
+                                  setCustomSecondaryDraftByPrimary((prev) => ({
+                                    ...prev,
+                                    [group.primary]: e.target.value,
+                                  }))
+                                }
+                                className="min-w-0 flex-1 rounded-lg border border-[#E0D4C3] bg-white px-3 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40"
+                                placeholder={`כתוב תת־קטגוריה מותאמת עבור ${group.primary}`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const custom = (
+                                    customSecondaryDraftByPrimary[group.primary] ?? ""
+                                  ).trim();
+                                  if (!custom) return;
+                                  onChange({
+                                    primary: group.primary,
+                                    secondary: custom,
+                                  });
+                                  setOpen(false);
+                                  setQuery("");
+                                }}
+                                className="rounded-full border border-[#0F3B2E]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0F3B2E] hover:bg-[#EFE6D5]"
+                              >
+                                שמור תת־קטגוריה
+                              </button>
+                            </div>
+                          </div>
+                          {group.primary === OTHER_PRIMARY ? (
+                            <div className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/40 p-2">
+                              <p className="mb-1 text-[11px] text-amber-900/90">
+                                אחר בהתאמה אישית (קטגוריה ראשית + תת־קטגוריה)
+                              </p>
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                <input
+                                  type="text"
+                                  dir="rtl"
+                                  value={customOtherPrimary}
+                                  onChange={(e) => setCustomOtherPrimary(e.target.value)}
+                                  className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-300/40"
+                                  placeholder="קטגוריה ראשית משלך"
+                                />
+                                <input
+                                  type="text"
+                                  dir="rtl"
+                                  value={customOtherSecondary}
+                                  onChange={(e) => setCustomOtherSecondary(e.target.value)}
+                                  className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-300/40"
+                                  placeholder="תת־קטגוריה משלך"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const p = customOtherPrimary.trim();
+                                  const s = customOtherSecondary.trim();
+                                  if (!p || !s) return;
+                                  onChange({ primary: p, secondary: s });
+                                  setOpen(false);
+                                  setQuery("");
+                                }}
+                                className="mt-2 rounded-full border border-amber-700/35 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-50"
+                              >
+                                שמור קטגוריה ותת־קטגוריה אישיות
+                              </button>
+                            </div>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>
