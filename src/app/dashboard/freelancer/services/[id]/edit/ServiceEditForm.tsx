@@ -164,6 +164,14 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
     >
       <div>
+        <FreelancerCategoryPicker
+          value={form.category}
+          onChange={(category) => setForm((f) => ({ ...f, category }))}
+          categories={FREELANCER_SERVICE_CATEGORIES}
+        />
+      </div>
+
+      <div>
         <label className="block text-xs font-medium text-[#5F5F5F]">
           שם השירות *
         </label>
@@ -177,16 +185,8 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       </div>
 
       <div>
-        <FreelancerCategoryPicker
-          value={form.category}
-          onChange={(category) => setForm((f) => ({ ...f, category }))}
-          categories={FREELANCER_SERVICE_CATEGORIES}
-        />
-      </div>
-
-      <div>
         <label className="block text-xs font-medium text-[#5F5F5F]">
-          תיאור השירות שלך-פה תוכל לפרט על השירות שאתה נותן
+          ספרו קצת עליכם ומה אתם עושים
         </label>
         <textarea
           rows={5}
@@ -195,7 +195,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
             setForm((f) => ({ ...f, description: e.target.value }))
           }
           className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-          placeholder="למשל: סוג האירועים שאתה מלווה, חבילות, ניסיון, מה מיוחד בשירות..."
+          placeholder="למשל: מי אתם, מה הניסיון שלכם, באילו סוגי אירועים אתם מתמחים והסבר קצר על השירות שאתם נותנים..."
         />
       </div>
 
