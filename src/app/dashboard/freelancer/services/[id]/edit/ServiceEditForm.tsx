@@ -1,6 +1,7 @@
 "use client";
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
+import FreelancerCategoryPicker from "@/components/FreelancerCategoryPicker";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
@@ -176,23 +177,11 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
-          קטגוריה
-        </label>
-        <select
+        <FreelancerCategoryPicker
           value={form.category}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, category: e.target.value }))
-          }
-          className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-        >
-          <option value="">בחר קטגוריה</option>
-          {FREELANCER_SERVICE_CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
+          onChange={(category) => setForm((f) => ({ ...f, category }))}
+          categories={FREELANCER_SERVICE_CATEGORIES}
+        />
       </div>
 
       <div>
