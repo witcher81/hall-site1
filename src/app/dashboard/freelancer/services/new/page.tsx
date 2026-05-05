@@ -2,6 +2,7 @@
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import FreelancerCategoryPicker from "@/components/FreelancerCategoryPicker";
+import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
@@ -195,12 +196,12 @@ export default function NewServicePage() {
             <label className="block text-xs font-medium text-[#5F5F5F]">
               אזור שירות
             </label>
-            <input
-              type="text"
+            <ServiceAreaTagsField
               value={form.serviceArea}
-              onChange={(e) => setForm((f) => ({ ...f, serviceArea: e.target.value }))}
-              className={input}
-              placeholder="למשל: כל הארץ / מרכז"
+              onChange={(serviceArea) =>
+                setForm((f) => ({ ...f, serviceArea }))
+              }
+              className="mt-1"
             />
           </div>
           <div>
