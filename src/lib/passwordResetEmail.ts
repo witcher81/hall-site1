@@ -50,13 +50,15 @@ export async function sendPasswordResetEmail(
                 <h1 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0F3B2E;">איפוס סיסמה</h1>
                 <p style="margin:0 0 12px 0;font-size:14px;line-height:1.6;">${greeting}</p>
                 <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;">קיבלנו בקשה לאיפוס הסיסמה לחשבון שלכם ב-Halls Hub. לחצו על הכפתור כדי לבחור סיסמה חדשה.</p>
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:8px auto 24px auto;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:8px auto 18px auto;">
                   <tr>
                     <td align="center" bgcolor="#C9A227" style="border-radius:9999px;mso-padding-alt:14px 36px;">
                       <a href="${hrefUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 36px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;line-height:1;color:#ffffff;text-decoration:none;border-radius:9999px;background:#C9A227;">בחירת סיסמה חדשה</a>
                     </td>
                   </tr>
                 </table>
+                <p style="margin:0 0 6px 0;font-size:11px;line-height:1.6;color:#9A948C;">אם הכפתור לא נפתח, אפשר ללחוץ על הקישור הבא:</p>
+                <p style="margin:0 0 16px 0;font-size:11px;line-height:1.4;word-break:break-all;"><a href="${hrefUrl}" target="_blank" rel="noopener" style="color:#0F3B2E;text-decoration:underline;">${hrefUrl}</a></p>
                 <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:#5F5F5F;">הקישור תקף עד <strong>${validUntil}</strong> וניתן לשימוש פעם אחת בלבד.</p>
                 <p style="margin:0;font-size:12px;line-height:1.6;color:#9A948C;">אם לא ביקשתם איפוס סיסמה, אפשר להתעלם מהמייל. הסיסמה הקיימת תישאר ללא שינוי.</p>
               </td>

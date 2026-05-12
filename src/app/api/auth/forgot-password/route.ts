@@ -32,6 +32,9 @@ export async function POST(req: NextRequest) {
       const rawToken = await createPasswordResetToken(user.id);
       const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
       const resetUrl = `${getSiteUrl()}/auth/reset-password?token=${rawToken}`;
+      // לוג זמני לדיבאג: מדפיס את ה-URL המלא ל-Vercel logs כדי לאמת
+      // שלא חסר בו `?token=` בעת שליחת המייל.
+      console.log(`[forgot-password] generated resetUrl=${resetUrl}`);
 
       // שליחה סינכרונית כדי שב-Vercel הפונקציה לא "תקפא" לפני שהמייל נשלח.
       // לעולם לא חושפים אם המייל קיים — לכן גם שגיאה כאן מוחזרת כ-200 גנרי.
