@@ -11,7 +11,7 @@ function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const tokenLooksValid = /^[a-f0-9]{64}$/i.test(token);
+  const hasToken = token.length > 0;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -74,12 +74,11 @@ function ResetPasswordForm() {
           <span>חזרה להתחברות</span>
         </a>
 
-        {!tokenLooksValid ? (
+        {!hasToken ? (
           <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-6 text-right text-sm text-red-700 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-            <p className="font-semibold">קישור לא תקין.</p>
+            <p className="font-semibold">לא נמצא קוד לאיפוס סיסמה.</p>
             <p className="mt-2">
-              ייתכן שהעתקת את הקישור חלקית, או שהקישור פג תוקף. נסו לבקש קישור
-              חדש מהעמוד&nbsp;
+              נראה שפתחת את הדף בלי הקישור מהמייל. נסו לבקש קישור חדש מהעמוד&nbsp;
               <a
                 href="/auth/forgot-password"
                 className="font-semibold underline"
