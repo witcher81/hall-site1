@@ -50,15 +50,17 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       );
     } else {
       console.warn(
-        "[email] RESEND_API_KEY לא מוגדר בפרודקשן — מייל לא יישלח (to=" + input.to + ", subject=" + input.subject + ")"
+        "[email] RESEND_API_KEY missing in production — email NOT sent " +
+          `(to=${input.to}, subject=${input.subject})`
       );
     }
     return { ok: false, error: "RESEND_API_KEY missing", skipped: true };
   }
 
+  const fromValue = getEmailFrom();
   try {
     const { data, error } = await client.emails.send({
-      from: getEmailFrom(),
+      from: fromValue,
       to: [input.to],
       subject: input.subject,
       html: input.html,
@@ -66,15 +68,28 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       ...(input.replyTo ? { replyTo: input.replyTo } : {}),
     });
     if (error) {
-      console.error("[email] Resend send error:", error);
-      return { ok: false, error: error.message || "Resend send failed" };
+      const code =
+        (error as { statusCode?: number }).statusCode ?? "?";
+      console.error(
+        `[email] Resend rejected send (status=${code}) from=${fromValue} to=${input.to} subject="${input.subject}" error=${JSON.stringify(error)}`
+      );
+      return {
+        ok: false,
+        error: error.message || `Resend send failed (status ${code})`,
+      };
     }
+    console.log(
+      `[email] Resend accepted send id=${data?.id ?? "(none)"} from=${fromValue} to=${input.to}`
+    );
     return { ok: true, id: data?.id ?? null };
   } catch (err) {
-    console.error("[email] Unexpected Resend error:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(
+      `[email] Unexpected Resend error from=${fromValue} to=${input.to}: ${msg}`
+    );
     return {
       ok: false,
-      error: err instanceof Error ? err.message : "Unknown email error",
+      error: msg || "Unknown email error",
     };
   }
 }
