@@ -25,8 +25,7 @@ function formatHebrewDateTime(d: Date): string {
 export async function sendPasswordResetEmail(
   input: SendPasswordResetEmailInput
 ): Promise<SendEmailResult> {
-  const safeUrl = encodeURI(input.resetUrl);
-  const safeUrlText = escapeHtml(input.resetUrl);
+  const hrefUrl = escapeHtml(input.resetUrl);
   const greetingName = (input.name ?? "").trim();
   const greeting = greetingName ? `שלום ${escapeHtml(greetingName)},` : "שלום,";
   const validUntil = escapeHtml(formatHebrewDateTime(input.expiresAt));
@@ -50,14 +49,16 @@ export async function sendPasswordResetEmail(
                 <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;letter-spacing:0.25em;color:#C9A227;">HALLS HUB</p>
                 <h1 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0F3B2E;">איפוס סיסמה</h1>
                 <p style="margin:0 0 12px 0;font-size:14px;line-height:1.6;">${greeting}</p>
-                <p style="margin:0 0 12px 0;font-size:14px;line-height:1.6;">קיבלנו בקשה לאיפוס הסיסמה לחשבון שלכם ב-Halls Hub. לחצו על הכפתור כדי לבחור סיסמה חדשה.</p>
-                <p style="margin:24px 0;text-align:center;">
-                  <a href="${safeUrl}" style="display:inline-block;background:#C9A227;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:9999px;font-weight:600;font-size:14px;">בחירת סיסמה חדשה</a>
-                </p>
-                <p style="margin:0 0 12px 0;font-size:13px;line-height:1.6;color:#5F5F5F;">או העתיקו את הקישור הבא לדפדפן:</p>
-                <p style="margin:0 0 16px 0;font-size:12px;line-height:1.5;word-break:break-all;color:#0F3B2E;background:#FAF8F4;border:1px solid #E0D4C3;border-radius:8px;padding:10px;">${safeUrlText}</p>
+                <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;">קיבלנו בקשה לאיפוס הסיסמה לחשבון שלכם ב-Halls Hub. לחצו על הכפתור כדי לבחור סיסמה חדשה.</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:8px auto 24px auto;">
+                  <tr>
+                    <td align="center" bgcolor="#C9A227" style="border-radius:9999px;mso-padding-alt:14px 36px;">
+                      <a href="${hrefUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 36px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;line-height:1;color:#ffffff;text-decoration:none;border-radius:9999px;background:#C9A227;">בחירת סיסמה חדשה</a>
+                    </td>
+                  </tr>
+                </table>
                 <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:#5F5F5F;">הקישור תקף עד <strong>${validUntil}</strong> וניתן לשימוש פעם אחת בלבד.</p>
-                <p style="margin:0 0 0 0;font-size:12px;line-height:1.6;color:#9A948C;">אם לא ביקשתם איפוס סיסמה, אפשר להתעלם מהמייל. הסיסמה הקיימת תישאר ללא שינוי.</p>
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#9A948C;">אם לא ביקשתם איפוס סיסמה, אפשר להתעלם מהמייל. הסיסמה הקיימת תישאר ללא שינוי.</p>
               </td>
             </tr>
           </table>
