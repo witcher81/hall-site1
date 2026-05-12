@@ -1,22 +1,12 @@
 "use client";
 
-import { FormEvent, Suspense, useEffect, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = (searchParams.get("token") || "").trim();
-
-  // לוג זמני לדיבאג: ננשום ל-console של הדפדפן את ה-URL ואת הטוקן
-  // כדי לוודא אם Gmail/הדפדפן חתך משהו במעבר.
-  useEffect(() => {
-    try {
-      console.log(
-        `[reset-password] href=${window.location.href} tokenLength=${token.length}`
-      );
-    } catch {}
-  }, [token]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
