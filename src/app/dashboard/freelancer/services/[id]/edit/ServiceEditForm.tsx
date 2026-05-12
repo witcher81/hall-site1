@@ -4,6 +4,9 @@ import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
+import ServiceUploadProgress, {
+  type UploadPhase,
+} from "@/components/ServiceUploadProgress";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
@@ -19,6 +22,7 @@ import {
   type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
+import { xhrUpload } from "@/lib/xhrUpload";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
@@ -46,6 +50,8 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
+  const [uploadPercent, setUploadPercent] = useState(0);
   const initialPrice = parseMinMaxToFreelancerPriceForm(
     initial.minPrice,
     initial.maxPrice
@@ -110,6 +116,8 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setUploadPhase("uploading");
+    setUploadPercent(0);
     try {
       const fd = new FormData();
       fd.append("name", form.name.trim());
@@ -149,29 +157,53 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       if (coverImage) fd.append("coverImage", coverImage);
       newGalleryImages.forEach((file) => fd.append("galleryImages", file));
 
-      const res = await fetch(`/api/freelancer/services?id=${serviceId}`, {
+      const result = await xhrUpload<{ error?: string }>({
+        url: `/api/freelancer/services?id=${serviceId}`,
         method: "PUT",
         body: fd,
+        onUploadProgress: (pct) => setUploadPercent(pct),
+        onUploadComplete: () => {
+          setUploadPercent(100);
+          setUploadPhase("processing");
+        },
       });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError(data?.error || "שמירה נכשלה");
+
+      if (!result.ok) {
+        const msg = result.data?.error || result.error || "שמירה נכשלה";
+        setError(msg);
+        setUploadPhase("error");
         setLoading(false);
         return;
       }
-      router.push(`/dashboard/freelancer/services/${serviceId}`);
-      router.refresh();
+
+      setUploadPhase("success");
+      setTimeout(() => {
+        router.push(`/dashboard/freelancer/services/${serviceId}`);
+        router.refresh();
+      }, 500);
     } catch {
       setError("שגיאה בלתי צפויה");
+      setUploadPhase("error");
       setLoading(false);
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
-    >
+    <>
+      <ServiceUploadProgress
+        phase={uploadPhase}
+        uploadPercent={uploadPercent}
+        errorMessage={error}
+        title="שומרים את השינויים"
+        onDismissError={() => {
+          setUploadPhase("idle");
+          setUploadPercent(0);
+        }}
+      />
+      <form
+        onSubmit={handleSubmit}
+        className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+      >
       <div>
         <FreelancerCategoryTreePicker
           primaryValue={form.primaryCategory}
@@ -474,5 +506,6 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         </button>
       </div>
     </form>
+    </>
   );
 }
