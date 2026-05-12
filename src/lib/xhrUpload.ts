@@ -30,6 +30,13 @@ export function xhrUpload<T = unknown>(
     const xhr = new XMLHttpRequest();
     xhr.open(opts.method ?? "POST", opts.url, true);
 
+    let uploadCompleteFired = false;
+    const fireUploadComplete = () => {
+      if (uploadCompleteFired) return;
+      uploadCompleteFired = true;
+      opts.onUploadComplete?.();
+    };
+
     if (xhr.upload && opts.onUploadProgress) {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable && e.total > 0) {
@@ -39,20 +46,25 @@ export function xhrUpload<T = unknown>(
       };
     }
     if (xhr.upload && opts.onUploadComplete) {
-      xhr.upload.onload = () => opts.onUploadComplete!();
+      xhr.upload.onload = () => fireUploadComplete();
+      xhr.upload.onerror = () => fireUploadComplete();
     }
 
     xhr.onerror = () => {
+      fireUploadComplete();
       resolve({ ok: false, status: 0, data: null, error: "שגיאת רשת" });
     };
     xhr.onabort = () => {
+      fireUploadComplete();
       resolve({ ok: false, status: 0, data: null, error: "השליחה בוטלה" });
     };
     xhr.ontimeout = () => {
+      fireUploadComplete();
       resolve({ ok: false, status: 0, data: null, error: "פסק זמן בשליחה" });
     };
 
     xhr.onload = () => {
+      fireUploadComplete();
       let parsed: unknown = null;
       try {
         parsed = xhr.responseText ? JSON.parse(xhr.responseText) : null;
@@ -72,6 +84,7 @@ export function xhrUpload<T = unknown>(
       });
     };
 
+    opts.onUploadProgress?.(0);
     xhr.send(opts.body);
   });
 }

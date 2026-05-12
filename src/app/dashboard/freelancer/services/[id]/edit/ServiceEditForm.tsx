@@ -24,6 +24,7 @@ import {
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import { xhrUpload } from "@/lib/xhrUpload";
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Props = {
@@ -114,10 +115,12 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setUploadPhase("uploading");
-    setUploadPercent(0);
+    flushSync(() => {
+      setLoading(true);
+      setError(null);
+      setUploadPhase("uploading");
+      setUploadPercent(0);
+    });
     try {
       const fd = new FormData();
       fd.append("name", form.name.trim());
@@ -198,6 +201,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         onDismissError={() => {
           setUploadPhase("idle");
           setUploadPercent(0);
+          setLoading(false);
         }}
       />
       <form

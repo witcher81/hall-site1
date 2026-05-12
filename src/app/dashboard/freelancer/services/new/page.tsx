@@ -19,6 +19,7 @@ import type {
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import { xhrUpload } from "@/lib/xhrUpload";
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 export default function NewServicePage() {
@@ -76,10 +77,12 @@ export default function NewServicePage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setCreating(true);
-    setError(null);
-    setUploadPhase("uploading");
-    setUploadPercent(0);
+    flushSync(() => {
+      setCreating(true);
+      setError(null);
+      setUploadPhase("uploading");
+      setUploadPercent(0);
+    });
 
     try {
       const fd = new FormData();
@@ -164,6 +167,7 @@ export default function NewServicePage() {
         onDismissError={() => {
           setUploadPhase("idle");
           setUploadPercent(0);
+          setCreating(false);
         }}
       />
       <header className="flex items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">

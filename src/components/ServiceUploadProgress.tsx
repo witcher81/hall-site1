@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type UploadPhase =
   | "idle"
@@ -55,6 +56,8 @@ export default function ServiceUploadProgress({
 
   if (phase === "idle") return null;
 
+  if (typeof document === "undefined") return null;
+
   const clamped = Math.max(0, Math.min(100, Math.round(uploadPercent)));
 
   const isError = phase === "error";
@@ -86,12 +89,12 @@ export default function ServiceUploadProgress({
       ? "bg-emerald-500"
       : "bg-[#C9A227]";
 
-  return (
+  const overlay = (
     <div
       role="dialog"
       aria-modal="true"
       aria-live="polite"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F3B2E]/45 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0F3B2E]/45 px-4 backdrop-blur-sm"
     >
       <div className="w-full max-w-md rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_24px_60px_rgba(15,59,46,0.25)]">
         <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
@@ -154,4 +157,6 @@ export default function ServiceUploadProgress({
       </div>
     </div>
   );
+
+  return createPortal(overlay, document.body);
 }
