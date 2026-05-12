@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createNotification } from "@/lib/notifications";
+import { sendPasswordResetEmail } from "@/lib/passwordResetEmail";
 
 type RegisterPostCreatePayload = {
   userId: number;
@@ -82,6 +83,18 @@ export async function executeJob(jobType: string, payload: unknown): Promise<voi
         throw new Error("Invalid email/resetUrl in password.reset.requested");
       }
 
+      const expiresDate = p.expiresAt ? new Date(p.expiresAt) : new Date();
+      const emailResult = await sendPasswordResetEmail({
+        to: p.email,
+        name: p.name ?? null,
+        resetUrl: p.resetUrl,
+        expiresAt: expiresDate,
+      });
+      const emailSkipped = !emailResult.ok && emailResult.skipped === true;
+      if (!emailResult.ok && !emailSkipped) {
+        throw new Error(`Reset email failed: ${emailResult.error}`);
+      }
+
       const webhook = process.env.PASSWORD_RESET_WEBHOOK_URL?.trim();
       if (webhook) {
         const res = await fetch(webhook, {
@@ -102,13 +115,11 @@ export async function executeJob(jobType: string, payload: unknown): Promise<voi
             `Password reset webhook failed with status ${res.status}`
           );
         }
-      } else if (process.env.NODE_ENV !== "production") {
+      }
+
+      if (emailSkipped && !webhook && process.env.NODE_ENV !== "production") {
         console.log(
-          `[password.reset.requested] שלח את הקישור הבא למשתמש ${p.email}: ${p.resetUrl} (תוקף עד ${p.expiresAt})`
-        );
-      } else {
-        console.warn(
-          "[password.reset.requested] PASSWORD_RESET_WEBHOOK_URL לא מוגדר — קישור איפוס לא נשלח"
+          `[password.reset.requested] לפיתוח: ${p.email} -> ${p.resetUrl} (תוקף עד ${p.expiresAt})`
         );
       }
       return;
