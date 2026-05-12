@@ -10,9 +10,7 @@ import {
   sanitizeServiceIncludesBundleFromClient,
   serializeServiceIncludesBundle,
 } from "@/lib/serviceIncludes";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
+import { saveServiceImageFile } from "@/lib/serviceImageUpload";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -38,27 +36,6 @@ function toIntOrNull(value: string | null): number | null {
 function toBool(value: FormDataEntryValue | null): boolean {
   if (typeof value !== "string") return false;
   return value === "true" || value === "on" || value === "1";
-}
-
-async function saveUploadedFile(
-  file: File | null,
-  uploadsDir: string,
-  prefix: string
-): Promise<string | null> {
-  if (!file || file.size === 0) return null;
-  const ext =
-    (file.type && file.type.includes("jpeg")) || file.name.endsWith(".jpg")
-      ? ".jpg"
-      : file.name.endsWith(".png")
-        ? ".png"
-        : file.name.endsWith(".webp")
-          ? ".webp"
-          : "";
-  const randomName = `${prefix}-${crypto.randomUUID()}${ext}`;
-  const filePath = path.join(uploadsDir, randomName);
-  const arrayBuffer = await file.arrayBuffer();
-  await writeFile(filePath, Buffer.from(arrayBuffer));
-  return `/uploads/${randomName}`;
 }
 
 function parseSocialLinksFormField(
@@ -231,12 +208,10 @@ export async function POST(req: NextRequest) {
     return badRequest("יותר מדי תמונות בגלריה");
   }
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-  const coverImageUrl = await saveUploadedFile(coverImage, uploadsDir, "service-cover");
+  const coverImageUrl = await saveServiceImageFile(coverImage, "service-cover");
   const galleryImageUrls: string[] = [];
   for (const [index, file] of galleryFiles.entries()) {
-    const saved = await saveUploadedFile(file, uploadsDir, `service-gallery-${index}`);
+    const saved = await saveServiceImageFile(file, `service-gallery-${index}`);
     if (saved) galleryImageUrls.push(saved);
   }
 
@@ -410,12 +385,9 @@ export async function PUT(req: NextRequest) {
     }
   }
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-
   let coverImageUrl = existing.coverImageUrl;
   if (coverImageFile && coverImageFile.size > 0) {
-    const saved = await saveUploadedFile(coverImageFile, uploadsDir, "service-cover");
+    const saved = await saveServiceImageFile(coverImageFile, "service-cover");
     if (saved) coverImageUrl = saved;
   }
 
@@ -436,7 +408,7 @@ export async function PUT(req: NextRequest) {
   if (galleryFiles.length > 0) {
     const current = parseGalleryJson(galleryImageUrls);
     for (const [index, file] of galleryFiles.entries()) {
-      const saved = await saveUploadedFile(file, uploadsDir, `service-gallery-${index}`);
+      const saved = await saveServiceImageFile(file, `service-gallery-${index}`);
       if (saved) current.push(saved);
     }
     galleryImageUrls = current.length > 0 ? JSON.stringify(current) : null;
