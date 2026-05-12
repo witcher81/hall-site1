@@ -105,6 +105,15 @@ function LoginForm() {
             {loading ? "מתחבר..." : "התחברות"}
           </button>
           <p className="text-xs text-[#6B6560]">
+            שכחת סיסמה?{" "}
+            <a
+              href="/auth/forgot-password"
+              className="font-semibold text-[#0F3B2E] hover:underline"
+            >
+              איפוס סיסמה
+            </a>
+          </p>
+          <p className="text-xs text-[#6B6560]">
             אין לך משתמש?{" "}
             <a
               href={
