@@ -4,9 +4,6 @@ import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
-import ServiceUploadProgress, {
-  type UploadPhase,
-} from "@/components/ServiceUploadProgress";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
@@ -17,17 +14,13 @@ import type {
   ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
-import { xhrUpload } from "@/lib/xhrUpload";
 import { useRouter } from "next/navigation";
-import { flushSync } from "react-dom";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 export default function NewServicePage() {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
-  const [uploadPercent, setUploadPercent] = useState(0);
   const [form, setForm] = useState({
     name: "",
     primaryCategory: "",
@@ -77,12 +70,8 @@ export default function NewServicePage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    flushSync(() => {
-      setCreating(true);
-      setError(null);
-      setUploadPhase("uploading");
-      setUploadPercent(0);
-    });
+    setCreating(true);
+    setError(null);
 
     try {
       const fd = new FormData();
@@ -123,33 +112,22 @@ export default function NewServicePage() {
       if (coverImage) fd.append("coverImage", coverImage);
       galleryImages.forEach((file) => fd.append("galleryImages", file));
 
-      const result = await xhrUpload<{ error?: string }>({
-        url: "/api/freelancer/services",
+      const res = await fetch("/api/freelancer/services", {
         method: "POST",
         body: fd,
-        onUploadProgress: (pct) => setUploadPercent(pct),
-        onUploadComplete: () => {
-          setUploadPercent(100);
-          setUploadPhase("processing");
-        },
       });
+      const data = await res.json().catch(() => null);
 
-      if (!result.ok) {
-        const msg = result.data?.error || result.error || "הוספת השירות נכשלה";
-        setError(msg);
-        setUploadPhase("error");
+      if (!res.ok) {
+        setError(data?.error || "הוספת השירות נכשלה");
         setCreating(false);
         return;
       }
 
-      setUploadPhase("success");
-      setTimeout(() => {
-        router.push("/dashboard/freelancer");
-        router.refresh();
-      }, 500);
+      router.push("/dashboard/freelancer");
+      router.refresh();
     } catch {
       setError("שגיאה בלתי צפויה");
-      setUploadPhase("error");
       setCreating(false);
     }
   }
@@ -159,17 +137,6 @@ export default function NewServicePage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <ServiceUploadProgress
-        phase={uploadPhase}
-        uploadPercent={uploadPercent}
-        errorMessage={error}
-        title="יוצרים את השירות"
-        onDismissError={() => {
-          setUploadPhase("idle");
-          setUploadPercent(0);
-          setCreating(false);
-        }}
-      />
       <header className="flex items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">
         <div className="text-right">
           <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
