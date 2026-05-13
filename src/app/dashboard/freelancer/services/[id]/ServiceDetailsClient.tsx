@@ -38,6 +38,7 @@ export default function ServiceDetailsClient({
 }: { service: Service }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const descriptionDisplay = mergeFreelancerServiceDescriptionForForm(
     service.shortDescription,
     service.description
@@ -46,6 +47,7 @@ export default function ServiceDetailsClient({
   async function handleDelete() {
     if (!confirm("למחוק את השירות?")) return;
     setDeleting(true);
+    setDeleteError(null);
     try {
       const res = await fetch(
         `/api/freelancer/services?id=${service.id}`,
@@ -54,7 +56,12 @@ export default function ServiceDetailsClient({
       if (res.ok) {
         router.push("/dashboard/freelancer");
         router.refresh();
+        return;
       }
+      const data = await res.json().catch(() => null);
+      setDeleteError(data?.error || "מחיקת השירות נכשלה");
+    } catch {
+      setDeleteError("שגיאת רשת במחיקת השירות");
     } finally {
       setDeleting(false);
     }
@@ -95,6 +102,12 @@ export default function ServiceDetailsClient({
           </a>
         </div>
       </header>
+
+      {deleteError && (
+        <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-right text-xs text-red-800">
+          {deleteError}
+        </p>
+      )}
 
       <section className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
         {service.coverImageUrl && (

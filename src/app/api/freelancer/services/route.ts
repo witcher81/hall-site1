@@ -469,6 +469,23 @@ export async function DELETE(req: NextRequest) {
     );
   }
 
-  await prisma.service.delete({ where: { id } });
+  // ניתוק רשומות קשורות לפני המחיקה כדי שלא תיכשל מ־FK constraint:
+  // שיחות נשמרות בלי שיוך לשירות, פניות (ServiceRequest) נמחקות.
+  try {
+    await prisma.$transaction([
+      prisma.conversation.updateMany({
+        where: { serviceId: id },
+        data: { serviceId: null },
+      }),
+      prisma.serviceRequest.deleteMany({ where: { serviceId: id } }),
+      prisma.service.delete({ where: { id } }),
+    ]);
+  } catch (err) {
+    console.error("[freelancer.services.DELETE] failed", err);
+    return NextResponse.json(
+      { error: "מחיקת השירות נכשלה. ייתכן שיש פריטים מקושרים." },
+      { status: 500 }
+    );
+  }
   return NextResponse.json({ ok: true });
 }
