@@ -11,6 +11,7 @@ import type {
   ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson, type SocialLink } from "@/lib/socialLinks";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Provider = {
@@ -54,16 +55,38 @@ export default function ProviderViewClient({
   services: Service[];
   seekerLoggedIn: boolean;
 }) {
+  const searchParams = useSearchParams();
+  const serviceIdParam = searchParams.get("serviceId");
+  const focusedServiceId = useMemo(() => {
+    if (!serviceIdParam) return null;
+    const n = Number(serviceIdParam);
+    return Number.isInteger(n) && services.some((s) => s.id === n) ? n : null;
+  }, [serviceIdParam, services]);
+
+  const visibleServices = useMemo(
+    () =>
+      focusedServiceId == null
+        ? services
+        : services.filter((s) => s.id === focusedServiceId),
+    [services, focusedServiceId]
+  );
+
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [requestSent, setRequestSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
-    serviceId: services[0]?.id ?? 0,
+    serviceId: focusedServiceId ?? services[0]?.id ?? 0,
     preferredDate: "",
     eventType: "",
     message: "",
   });
+
+  useEffect(() => {
+    if (focusedServiceId != null) {
+      setForm((f) => ({ ...f, serviceId: focusedServiceId }));
+    }
+  }, [focusedServiceId]);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
@@ -163,12 +186,24 @@ export default function ProviderViewClient({
       )}
 
       <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-sm">
-        <h2 className="text-base font-semibold text-[#0F3B2E]">השירותים</h2>
-        {services.length === 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-semibold text-[#0F3B2E]">
+            {focusedServiceId != null ? "השירות" : "השירותים"}
+          </h2>
+          {focusedServiceId != null && services.length > 1 && (
+            <a
+              href={`/providers/${provider.id}`}
+              className="text-xs font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+            >
+              לכל השירותים של הספק ({services.length})
+            </a>
+          )}
+        </div>
+        {visibleServices.length === 0 ? (
           <p className="mt-2 text-[#6B6560]">אין שירותים מוגדרים.</p>
         ) : (
           <ul className="mt-3 space-y-2">
-            {services.map((s) => {
+            {visibleServices.map((s) => {
               const serviceSocialLinks = parseSocialLinksJson(s.socialLinksJson);
               const blurb = mergeFreelancerServiceDescriptionForForm(
                 s.shortDescription,
@@ -260,15 +295,21 @@ export default function ProviderViewClient({
           <form onSubmit={handleSubmit} className="mt-4 space-y-3 text-sm">
             <div>
               <label className="block text-xs text-[#5F5F5F]">שירות מבוקש *</label>
-              <select
-                value={form.serviceId}
-                onChange={(e) => setForm((f) => ({ ...f, serviceId: Number(e.target.value) }))}
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#0F3B2E]"
-              >
-                {services.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+              {focusedServiceId != null ? (
+                <p className="mt-1 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2 text-[#1A1A1A]">
+                  {services.find((s) => s.id === focusedServiceId)?.name ?? ""}
+                </p>
+              ) : (
+                <select
+                  value={form.serviceId}
+                  onChange={(e) => setForm((f) => ({ ...f, serviceId: Number(e.target.value) }))}
+                  className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#0F3B2E]"
+                >
+                  {services.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <div>
               <label className="block text-xs font-medium text-[#5F5F5F]">תאריך האירוע *</label>
