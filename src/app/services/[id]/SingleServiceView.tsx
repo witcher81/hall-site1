@@ -3,6 +3,10 @@
 import ServiceIncludeBadges from "@/components/ServiceIncludeBadges";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
+import {
+  getPrimaryCategoryDescription,
+  parseServiceCategoryValue,
+} from "@/lib/freelancerServiceCategories";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
 import { useEngagedFreelancerProfileView } from "@/lib/useEngagedViewAnalytics";
@@ -144,13 +148,24 @@ export default function SingleServiceView({
   }
 
   const metaItems = [
-    service.serviceArea ? { label: "אזור", value: service.serviceArea } : null,
-    service.experienceYears != null
-      ? { label: "ניסיון", value: `${service.experienceYears} שנים` }
+    service.serviceArea
+      ? { label: "אזור שירות", value: service.serviceArea, icon: "📍" }
       : null,
-    service.languages ? { label: "שפות", value: service.languages } : null,
-    service.responseTimeHint ? { label: "זמן תגובה", value: service.responseTimeHint } : null,
-  ].filter(Boolean) as { label: string; value: string }[];
+    service.experienceYears != null
+      ? { label: "ניסיון בתחום", value: `${service.experienceYears} שנים`, icon: "🎯" }
+      : null,
+    service.languages
+      ? { label: "שפות עבודה", value: service.languages, icon: "💬" }
+      : null,
+    service.responseTimeHint
+      ? { label: "זמן תגובה", value: service.responseTimeHint, icon: "⏱" }
+      : null,
+  ].filter(Boolean) as { label: string; value: string; icon: string }[];
+
+  const categoryParsed = parseServiceCategoryValue(service.category ?? "");
+  const primaryCategoryDescription = categoryParsed.primary
+    ? getPrimaryCategoryDescription(categoryParsed.primary)
+    : null;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
@@ -163,7 +178,8 @@ export default function SingleServiceView({
           >
             חזרה לחיפוש ספקים
           </a>
-          <span className="text-[10px] font-semibold tracking-[0.28em] text-[#C9A227]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0F3B2E] px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
+            <span aria-hidden>✦</span>
             עמוד שירות
           </span>
         </div>
@@ -200,10 +216,24 @@ export default function SingleServiceView({
             {service.name}
           </h1>
 
-          {service.category ? (
-            <p className="mt-3 inline-block max-w-full rounded-xl border border-[#E0D4C3] bg-[#FFFCF6] px-3 py-2 text-xs leading-snug text-[#2A261F]">
-              {service.category}
-            </p>
+          {categoryParsed.primary ? (
+            <div className="mt-4 rounded-2xl border border-[#E0D4C3] bg-gradient-to-br from-[#FFFCF6] to-[#FAF8F4] p-4 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-[#0F3B2E] px-3 py-1 text-sm font-semibold text-white">
+                  {categoryParsed.primary}
+                </span>
+                {categoryParsed.secondary ? (
+                  <span className="rounded-full border border-[#C9A227]/50 bg-white px-3 py-1 text-sm font-semibold text-[#0F3B2E]">
+                    {categoryParsed.secondary}
+                  </span>
+                ) : null}
+              </div>
+              {primaryCategoryDescription ? (
+                <p className="mt-2 text-xs leading-relaxed text-[#5F5F5F]">
+                  {primaryCategoryDescription}
+                </p>
+              ) : null}
+            </div>
           ) : null}
 
           {priceLine != null && (
@@ -214,18 +244,26 @@ export default function SingleServiceView({
           )}
 
           {metaItems.length > 0 && (
-            <ul className="mt-4 flex flex-wrap justify-end gap-2">
+            <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {metaItems.map((item) => (
                 <li
                   key={`${item.label}-${item.value}`}
-                  className="rounded-lg border border-[#E0D4C3]/90 bg-white px-2.5 py-1.5 text-right shadow-sm"
+                  className="flex items-start gap-3 rounded-xl border border-[#E0D4C3] bg-white p-3 text-right shadow-sm"
                 >
-                  <span className="block text-[10px] font-medium tracking-wide text-[#9A9288]">
-                    {item.label}
+                  <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FAF8F4] text-lg"
+                    aria-hidden
+                  >
+                    {item.icon}
                   </span>
-                  <span className="mt-0.5 block text-xs font-semibold text-[#1A1A1A]">
-                    {item.value}
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-xs font-medium text-[#6B6560]">
+                      {item.label}
+                    </span>
+                    <span className="mt-0.5 block break-words text-sm font-semibold text-[#1A1A1A]">
+                      {item.value}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
