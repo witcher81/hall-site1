@@ -295,16 +295,30 @@ export default function SingleServiceView({
           <SectionHeading title="מה כלול במחיר" tone="green" />
 
           {service.includesEquipment && (
-            <div className="mt-5">
-              <SubHeading label="מובנה בשירות" />
-              <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-[#0F3B2E]/20 bg-[#0F3B2E]/5 px-3 py-2 text-sm font-semibold text-[#0F3B2E]">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0F3B2E] text-white">
-                  <CheckIcon className="h-3.5 w-3.5" />
-                </span>
-                כולל ציוד מקצועי לאירוע
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-[#0F3B2E]/20 bg-[#0F3B2E]/5 p-3">
+              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
+                <CheckIcon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#0F3B2E]">
+                  כולל ציוד מקצועי לאירוע
+                </p>
+                {service.includesNote && service.includesNote.trim().length > 0 ? (
+                  <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-[#5F5F5F]">
+                    {service.includesNote.trim()}
+                  </p>
+                ) : null}
               </div>
             </div>
           )}
+
+          {!service.includesEquipment &&
+            service.includesNote &&
+            service.includesNote.trim().length > 0 && (
+              <p className="mt-4 whitespace-pre-wrap rounded-xl border border-[#E7E0CF] bg-[#FFFCF6] p-3 text-sm leading-relaxed text-[#2A261F]">
+                {service.includesNote.trim()}
+              </p>
+            )}
 
           {freeIncludes.length > 0 && (
             <div className="mt-5">
@@ -331,33 +345,6 @@ export default function SingleServiceView({
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
-
-          {service.includesNote && service.includesNote.trim().length > 0 && (
-            <div className="mt-5">
-              <SubHeading label="הערה מהספק" />
-              <div className="mt-2 flex items-start gap-3 rounded-xl border border-[#E7E0CF] bg-[#FFFCF6] p-3">
-                <span
-                  className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#C9A227]/15 text-[#8A6A12]"
-                  aria-hidden
-                >
-                  <svg
-                    className="h-3.5 w-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M12 8v4m0 4h.01M12 22a10 10 0 100-20 10 10 0 000 20z" />
-                  </svg>
-                </span>
-                <p className="min-w-0 flex-1 whitespace-pre-wrap text-sm leading-relaxed text-[#2A261F]">
-                  {service.includesNote.trim()}
-                </p>
-              </div>
             </div>
           )}
         </section>
