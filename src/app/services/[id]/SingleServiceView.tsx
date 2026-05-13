@@ -280,7 +280,7 @@ export default function SingleServiceView({
       {/* תיאור השירות */}
       {blurb ? (
         <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
-          <SectionHeading title="על השירות" />
+          <SectionHeading title="קצת על עצמי" />
           <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-[#1A1A1A]">
             {blurb}
           </p>
@@ -294,23 +294,50 @@ export default function SingleServiceView({
         <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
           <SectionHeading title="מה כלול במחיר" tone="green" />
 
-          {service.includesEquipment && (
-            <div className="mt-4 flex items-start gap-3 rounded-xl border border-[#0F3B2E]/20 bg-[#0F3B2E]/5 p-3">
-              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
-                <CheckIcon className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[#0F3B2E]">
-                  כולל ציוד מקצועי לאירוע
-                </p>
-                {service.includesNote && service.includesNote.trim().length > 0 ? (
-                  <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-[#5F5F5F]">
-                    {service.includesNote.trim()}
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          )}
+          <div className="mt-4">
+            <SubHeading label="פריטים שהספק כלל בשירות" />
+
+            <ul className="mt-2 space-y-2.5">
+              {service.includesEquipment && (
+                <li className="flex items-start gap-3 rounded-xl border border-[#0F3B2E]/20 bg-[#0F3B2E]/5 p-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
+                    <CheckIcon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#0F3B2E]">
+                      כולל ציוד מקצועי לאירוע
+                    </p>
+                    {service.includesNote && service.includesNote.trim().length > 0 ? (
+                      <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-[#5F5F5F]">
+                        {service.includesNote.trim()}
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              )}
+
+              {freeIncludes.map((c, i) => (
+                <li
+                  key={`free-${c.label}-${i}`}
+                  className="flex items-start gap-3 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3"
+                >
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
+                    <CheckIcon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#0F3B2E]">
+                      {c.label.trim()}
+                    </p>
+                    {c.description?.trim() ? (
+                      <p className="mt-1 text-xs leading-relaxed text-[#5F5F5F]">
+                        {c.description.trim()}
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           {!service.includesEquipment &&
             service.includesNote &&
@@ -319,34 +346,6 @@ export default function SingleServiceView({
                 {service.includesNote.trim()}
               </p>
             )}
-
-          {freeIncludes.length > 0 && (
-            <div className="mt-5">
-              <SubHeading label="פריטים שהספק כלל בשירות" />
-              <ul className="mt-2 space-y-2.5">
-                {freeIncludes.map((c, i) => (
-                  <li
-                    key={`free-${c.label}-${i}`}
-                    className="flex items-start gap-3 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3"
-                  >
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
-                      <CheckIcon className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#0F3B2E]">
-                        {c.label.trim()}
-                      </p>
-                      {c.description?.trim() ? (
-                        <p className="mt-1 text-xs leading-relaxed text-[#5F5F5F]">
-                          {c.description.trim()}
-                        </p>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </section>
       )}
 
