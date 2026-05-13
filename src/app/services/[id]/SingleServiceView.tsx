@@ -1,6 +1,5 @@
 "use client";
 
-import ServiceIncludeBadges from "@/components/ServiceIncludeBadges";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import {
@@ -147,6 +146,13 @@ export default function SingleServiceView({
     setLoading(false);
   }
 
+  const freeIncludes = service.customIncludes.filter(
+    (c) => c.checked && c.label.trim().length > 0
+  );
+  const paidExtras = service.paidExtras.filter(
+    (p) => p.label.trim().length > 0
+  );
+
   const metaItems = [
     service.serviceArea
       ? { label: "אזור שירות", value: service.serviceArea, icon: "📍" }
@@ -271,76 +277,174 @@ export default function SingleServiceView({
         </div>
       </header>
 
-      <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
-        {blurb ? (
-          <div>
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-[#C9A227]">
-              על השירות
-            </h2>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#1A1A1A]">
-              {blurb}
-            </p>
-          </div>
-        ) : null}
+      {/* תיאור השירות */}
+      {blurb ? (
+        <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+          <SectionHeading title="על השירות" />
+          <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-[#1A1A1A]">
+            {blurb}
+          </p>
+        </section>
+      ) : null}
 
-        {serviceSocialLinks.length > 0 && (
-          <div
-            className={`rounded-xl bg-[#141414] px-4 py-3${blurb ? " mt-6 border-t border-[#E7E0CF] pt-6" : ""}`}
-          >
-            <p className="mb-2 text-right text-[11px] font-medium text-white/70">
-              קישורים לשירות
+      {/* כלול במחיר */}
+      {(service.includesEquipment ||
+        freeIncludes.length > 0 ||
+        (service.includesNote && service.includesNote.trim().length > 0)) && (
+        <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+          <SectionHeading title="מה כלול במחיר" tone="green" />
+
+          {service.includesEquipment && (
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#0F3B2E]/10 px-3 py-1.5 text-sm font-semibold text-[#0F3B2E]">
+              <CheckIcon className="h-4 w-4" />
+              כולל ציוד
+            </div>
+          )}
+
+          {freeIncludes.length > 0 && (
+            <ul className="mt-4 space-y-3">
+              {freeIncludes.map((c, i) => (
+                <li
+                  key={`free-${c.label}-${i}`}
+                  className="flex items-start gap-3 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3"
+                >
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
+                    <CheckIcon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#0F3B2E]">
+                      {c.label.trim()}
+                    </p>
+                    {c.description?.trim() ? (
+                      <p className="mt-1 text-xs leading-relaxed text-[#5F5F5F]">
+                        {c.description.trim()}
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {service.includesNote && service.includesNote.trim().length > 0 && (
+            <p className="mt-4 rounded-xl bg-[#FFFCF6] px-3 py-2 text-sm leading-relaxed text-[#5F5F5F]">
+              {service.includesNote.trim()}
             </p>
+          )}
+        </section>
+      )}
+
+      {/* תוספות בתשלום */}
+      {paidExtras.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-[#C9A227]/35 bg-gradient-to-br from-[#FFFCF6] to-white p-6 text-right shadow-[0_12px_40px_rgba(201,162,39,0.08)]">
+          <div className="flex items-center justify-between gap-2">
+            <SectionHeading title="בתוספת תשלום" tone="gold" />
+            <span className="rounded-full bg-[#C9A227]/15 px-2.5 py-1 text-[11px] font-semibold text-[#8A6A12]">
+              {paidExtras.length} פריטים
+            </span>
+          </div>
+
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {paidExtras.map((p, i) => {
+              const price = paidPriceText(p);
+              return (
+                <li
+                  key={`paid-${p.label}-${i}`}
+                  className="rounded-xl border border-[#E0D4C3] bg-white p-4 shadow-sm"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="min-w-0 flex-1 text-sm font-semibold text-[#0F3B2E]">
+                      {p.label.trim()}
+                    </p>
+                    {price ? (
+                      <span className="shrink-0 rounded-full bg-[#0F3B2E] px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+                        {price}
+                      </span>
+                    ) : null}
+                  </div>
+                  {p.description?.trim() ? (
+                    <p className="mt-2 text-xs leading-relaxed text-[#5F5F5F]">
+                      {p.description.trim()}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {/* קישורים לשירות */}
+      {serviceSocialLinks.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-[#1F1F1F] bg-[#141414] p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.18)]">
+          <h2 className="text-sm font-semibold text-white">
+            קישורים לשירות
+          </h2>
+          <p className="mt-1 text-xs text-white/60">
+            פורטפוליו, אתר ורשתות חברתיות של השירות
+          </p>
+          <div className="mt-4">
             <SocialLinksRow links={serviceSocialLinks} dark />
           </div>
-        )}
+        </section>
+      )}
 
-        <ServiceIncludeBadges
-          className="mt-4"
-          size="md"
-          includesEquipment={service.includesEquipment}
-          customIncludes={service.customIncludes}
-          paidExtras={service.paidExtras}
-          includesNote={service.includesNote}
-        />
-
-        {gallery.length > 0 && (
-          <div className="mt-4">
-            <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">גלריה</p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {gallery.map((url) => (
+      {/* גלריה */}
+      {gallery.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+          <div className="flex items-center justify-between gap-2">
+            <SectionHeading title="גלריה" />
+            <span className="rounded-full bg-[#FAF8F4] px-2.5 py-1 text-[11px] font-medium text-[#6B6560]">
+              {gallery.length} {gallery.length === 1 ? "תמונה" : "תמונות"}
+            </span>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {gallery.map((url) => (
+              <a
+                key={url}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block overflow-hidden rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] shadow-sm transition hover:border-[#C9A227]/60 hover:shadow-md"
+              >
                 <img
-                  key={url}
                   src={url}
                   alt=""
-                  className="h-28 w-full rounded-lg object-cover"
+                  className="h-36 w-full object-cover transition group-hover:scale-[1.03]"
                 />
-              ))}
-            </div>
+              </a>
+            ))}
           </div>
-        )}
+        </section>
+      )}
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
+      {/* פס פעולות */}
+      {(seekerLoggedIn || siblingServicesCount > 1) && (
+        <section className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E0D4C3] bg-white p-4 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)] sm:p-5">
+          {siblingServicesCount > 1 ? (
+            <a
+              href={`/providers/${provider.id}`}
+              className="text-xs font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+            >
+              עוד {siblingServicesCount - 1}{" "}
+              {siblingServicesCount - 1 === 1 ? "שירות" : "שירותים"} של הספק →
+            </a>
+          ) : (
+            <span />
+          )}
           {seekerLoggedIn && (
             <a
               href={`/messages?serviceId=${service.id}`}
-              className="inline-flex items-center gap-1 rounded-full border border-[#0F3B2E]/35 bg-white px-3 py-2 text-xs font-semibold text-[#0F3B2E] shadow-sm transition hover:bg-[#EFE6D5]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#0F3B2E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#174D3B]"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               הודעה לספק
             </a>
           )}
-          {siblingServicesCount > 1 && (
-            <a
-              href={`/providers/${provider.id}`}
-              className="text-xs font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
-            >
-              עוד {siblingServicesCount - 1} שירותים של הספק
-            </a>
-          )}
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="mt-8 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
         <div className="border-b border-[#E7E0CF] pb-3">
@@ -419,5 +523,62 @@ export default function SingleServiceView({
         )}
       </section>
     </main>
+  );
+}
+
+function paidPriceText(p: ServicePaidExtraItem): string {
+  if (p.exactPrice != null) return `₪${p.exactPrice}`;
+  if (p.minPrice != null && p.maxPrice != null) {
+    if (p.minPrice === p.maxPrice) return `₪${p.minPrice}`;
+    return `₪${p.minPrice}–₪${p.maxPrice}`;
+  }
+  if (p.minPrice != null) return `החל מ־₪${p.minPrice}`;
+  if (p.maxPrice != null) return `עד ₪${p.maxPrice}`;
+  return "";
+}
+
+function SectionHeading({
+  title,
+  tone = "default",
+}: {
+  title: string;
+  tone?: "default" | "green" | "gold";
+}) {
+  const barClass =
+    tone === "green"
+      ? "bg-[#0F3B2E]"
+      : tone === "gold"
+      ? "bg-[#C9A227]"
+      : "bg-[#C9A227]";
+  const textClass =
+    tone === "green"
+      ? "text-[#0F3B2E]"
+      : tone === "gold"
+      ? "text-[#8A6A12]"
+      : "text-[#0F3B2E]";
+  return (
+    <div className="flex items-center justify-end gap-3">
+      <h2 className={`text-base font-semibold tracking-tight ${textClass}`}>
+        {title}
+      </h2>
+      <span className={`h-5 w-1 rounded-full ${barClass}`} aria-hidden />
+    </div>
+  );
+}
+
+function CheckIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={3}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
   );
 }
