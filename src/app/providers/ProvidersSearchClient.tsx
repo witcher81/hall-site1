@@ -176,7 +176,7 @@ export default function ProvidersSearchClient() {
                 className="overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)] transition hover:border-[#C9A227]/50 hover:shadow-md"
               >
                 <a
-                  href={`/providers/${s.providerId}?serviceId=${s.id}`}
+                  href={`/services/${s.id}`}
                   className="block p-4 pb-3"
                 >
                   {s.coverImageUrl ? (

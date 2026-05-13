@@ -50,18 +50,26 @@ export default function ProviderViewClient({
   provider,
   services,
   seekerLoggedIn,
+  initialFocusedServiceId,
 }: {
   provider: Provider;
   services: Service[];
   seekerLoggedIn: boolean;
+  /** מאפשר למעטפת השרת לקבע שירות יחיד (למשל מ-`/services/[id]`). אם לא מועבר, ניקח מה-URL. */
+  initialFocusedServiceId?: number | null;
 }) {
   const searchParams = useSearchParams();
   const serviceIdParam = searchParams.get("serviceId");
   const focusedServiceId = useMemo(() => {
+    if (initialFocusedServiceId != null) {
+      return services.some((s) => s.id === initialFocusedServiceId)
+        ? initialFocusedServiceId
+        : null;
+    }
     if (!serviceIdParam) return null;
     const n = Number(serviceIdParam);
     return Number.isInteger(n) && services.some((s) => s.id === n) ? n : null;
-  }, [serviceIdParam, services]);
+  }, [initialFocusedServiceId, serviceIdParam, services]);
 
   const visibleServices = useMemo(
     () =>
