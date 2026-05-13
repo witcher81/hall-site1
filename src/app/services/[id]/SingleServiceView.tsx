@@ -143,68 +143,112 @@ export default function SingleServiceView({
     setLoading(false);
   }
 
+  const metaItems = [
+    service.serviceArea ? { label: "אזור", value: service.serviceArea } : null,
+    service.experienceYears != null
+      ? { label: "ניסיון", value: `${service.experienceYears} שנים` }
+      : null,
+    service.languages ? { label: "שפות", value: service.languages } : null,
+    service.responseTimeHint ? { label: "זמן תגובה", value: service.responseTimeHint } : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">
-        <div className="text-right">
+      {/* כרטיס עליון אחד: ניווט + תמונת שער + כותרת — לא "צף" על רקע האתר */}
+      <header className="overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white text-right shadow-[0_12px_40px_rgba(15,59,46,0.1)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E7E0CF] bg-[#FAF8F4] px-4 py-3 sm:px-6">
           <a
-            href={`/providers/${provider.id}`}
-            className="text-xs font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+            href="/providers"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#E0D4C3] bg-white px-3 py-1.5 text-xs font-semibold text-[#0F3B2E] shadow-sm transition hover:border-[#C9A227]/60 hover:bg-[#FFFCF6]"
           >
-            {providerName}
+            חזרה לחיפוש ספקים
           </a>
-          <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">{service.name}</h1>
-          {service.category && (
-            <p className="mt-1 text-xs text-[#0F3B2E]">{service.category}</p>
-          )}
+          <span className="text-[10px] font-semibold tracking-[0.28em] text-[#C9A227]">
+            עמוד שירות
+          </span>
         </div>
-        <a
-          href="/providers"
-          className="text-sm text-[#0F3B2E] underline-offset-4 hover:text-[#174D3B] hover:underline"
-        >
-          חזרה לחיפוש ספקים
-        </a>
-      </header>
 
-      <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-sm">
-        {service.coverImageUrl && (
-          <img
-            src={service.coverImageUrl}
-            alt={service.name}
-            className="mb-4 h-64 w-full rounded-xl object-cover"
+        {service.coverImageUrl ? (
+          <div className="relative border-b border-[#E0D4C3]">
+            <img
+              src={service.coverImageUrl}
+              alt={service.name}
+              className="h-48 w-full object-cover sm:h-56"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F3B2E]/35 via-transparent to-transparent"
+              aria-hidden
+            />
+          </div>
+        ) : (
+          <div
+            className="h-1.5 bg-gradient-to-l from-[#C9A227] via-[#E5C96B] to-[#FAF8F4]"
+            aria-hidden
           />
         )}
 
-        {blurb && (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#1A1A1A]">
-            {blurb}
-          </p>
-        )}
+        <div className="px-4 py-5 sm:px-6 sm:py-6">
+          <a
+            href={`/providers/${provider.id}`}
+            className="inline-flex max-w-full items-center gap-1 rounded-full border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-1 text-xs font-medium text-[#2A261F] transition hover:border-[#C9A227]/50 hover:text-[#0F3B2E]"
+          >
+            <span className="text-[#6B6560]">ספק:</span>
+            <span className="truncate font-semibold text-[#0F3B2E]">{providerName}</span>
+          </a>
 
-        {priceLine != null && (
-          <p className="mt-3 text-sm font-semibold text-[#0F3B2E]">{priceLine}</p>
-        )}
+          <h1 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-[#0F3B2E] sm:text-3xl">
+            {service.name}
+          </h1>
 
-        {(service.serviceArea ||
-          service.experienceYears != null ||
-          service.languages ||
-          service.responseTimeHint) && (
-          <p className="mt-2 text-xs text-[#6B6560]">
-            {[
-              service.serviceArea ? `אזור: ${service.serviceArea}` : null,
-              service.experienceYears != null
-                ? `ניסיון: ${service.experienceYears} שנים`
-                : null,
-              service.languages ? `שפות: ${service.languages}` : null,
-              service.responseTimeHint ? `תגובה: ${service.responseTimeHint}` : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        )}
+          {service.category ? (
+            <p className="mt-3 inline-block max-w-full rounded-xl border border-[#E0D4C3] bg-[#FFFCF6] px-3 py-2 text-xs leading-snug text-[#2A261F]">
+              {service.category}
+            </p>
+          ) : null}
+
+          {priceLine != null && (
+            <div className="mt-4 inline-flex items-center rounded-xl border border-[#C9A227]/35 bg-gradient-to-br from-[#FFFCF6] to-[#FAF8F4] px-4 py-2.5">
+              <span className="text-[11px] font-medium text-[#6B6560]">מחיר</span>
+              <span className="mr-3 text-base font-bold text-[#0F3B2E]">{priceLine}</span>
+            </div>
+          )}
+
+          {metaItems.length > 0 && (
+            <ul className="mt-4 flex flex-wrap justify-end gap-2">
+              {metaItems.map((item) => (
+                <li
+                  key={`${item.label}-${item.value}`}
+                  className="rounded-lg border border-[#E0D4C3]/90 bg-white px-2.5 py-1.5 text-right shadow-sm"
+                >
+                  <span className="block text-[10px] font-medium tracking-wide text-[#9A9288]">
+                    {item.label}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-semibold text-[#1A1A1A]">
+                    {item.value}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </header>
+
+      <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        {blurb ? (
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-[#C9A227]">
+              על השירות
+            </h2>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#1A1A1A]">
+              {blurb}
+            </p>
+          </div>
+        ) : null}
 
         {serviceSocialLinks.length > 0 && (
-          <div className="mt-4 rounded-xl bg-[#141414] px-4 py-3">
+          <div
+            className={`rounded-xl bg-[#141414] px-4 py-3${blurb ? " mt-6 border-t border-[#E7E0CF] pt-6" : ""}`}
+          >
             <p className="mb-2 text-right text-[11px] font-medium text-white/70">
               קישורים לשירות
             </p>
@@ -260,9 +304,11 @@ export default function SingleServiceView({
         </div>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-sm">
-        <h2 className="text-base font-semibold text-[#0F3B2E]">שליחת בקשה לשירות</h2>
-        <p className="mt-1 text-xs text-[#6B6560]">{service.name}</p>
+      <section className="mt-8 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        <div className="border-b border-[#E7E0CF] pb-3">
+          <h2 className="text-base font-semibold text-[#0F3B2E]">שליחת בקשה לשירות</h2>
+          <p className="mt-1 text-xs text-[#6B6560]">{service.name}</p>
+        </div>
         {!seekerLoggedIn ? (
           <p className="mt-2 text-sm text-[#6B6560]">
             <a href="/auth/login" className="text-[#0F3B2E] underline hover:text-[#174D3B]">התחבר</a>
