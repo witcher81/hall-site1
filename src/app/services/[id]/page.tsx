@@ -4,11 +4,9 @@ import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import HomeHeader from "@/components/HomeHeader";
 import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
-import ProviderViewClient from "@/app/providers/[userId]/ProviderViewClient";
+import SingleServiceView from "./SingleServiceView";
 
-/** דף ציבורי לשירות בודד — נכנסים אליו מכרטיס בחיפוש ספקים.
- *  בעצם מציגים את אותו ProviderViewClient של הספק, אבל עם שירות יחיד מקובע
- *  (ועם לינק "לכל השירותים של הספק"). */
+/** דף ציבורי לשירות בודד — מציג שירות אחד בלבד + טופס שליחת בקשה אליו. */
 export default async function PublicSingleServicePage({
   params,
 }: {
@@ -75,10 +73,8 @@ export default async function PublicSingleServicePage({
     );
   }
 
-  // נטען את שאר השירותים של הספק רק כדי לאפשר את הלינק "לכל השירותים"
-  const siblings = await prisma.service.findMany({
+  const siblingServicesCount = await prisma.service.count({
     where: { providerId: service.provider.id },
-    orderBy: { createdAt: "desc" },
   });
 
   const bundle = parseServiceIncludesBundle(service.customIncludesJson);
@@ -89,7 +85,7 @@ export default async function PublicSingleServicePage({
         user={user}
         canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
-      <ProviderViewClient
+      <SingleServiceView
         provider={{
           id: service.provider.id,
           name: service.provider.name,
@@ -98,19 +94,28 @@ export default async function PublicSingleServicePage({
           businessAddress: service.provider.businessAddress,
           socialLinks: parseSocialLinksJson(service.provider.socialLinksJson),
         }}
-        services={siblings.map((s) => {
-          const b =
-            s.id === service.id
-              ? bundle
-              : parseServiceIncludesBundle(s.customIncludesJson);
-          return {
-            ...s,
-            customIncludes: b.included,
-            paidExtras: b.paidExtras,
-          };
-        })}
+        service={{
+          id: service.id,
+          name: service.name,
+          category: service.category,
+          shortDescription: service.shortDescription,
+          description: service.description,
+          serviceArea: service.serviceArea,
+          experienceYears: service.experienceYears,
+          languages: service.languages,
+          responseTimeHint: service.responseTimeHint,
+          socialLinksJson: service.socialLinksJson,
+          includesEquipment: service.includesEquipment,
+          customIncludes: bundle.included,
+          paidExtras: bundle.paidExtras,
+          includesNote: service.includesNote,
+          coverImageUrl: service.coverImageUrl,
+          galleryImageUrls: service.galleryImageUrls,
+          minPrice: service.minPrice,
+          maxPrice: service.maxPrice,
+        }}
+        siblingServicesCount={siblingServicesCount}
         seekerLoggedIn={user?.role === "SEEKER"}
-        initialFocusedServiceId={service.id}
       />
     </div>
   );
