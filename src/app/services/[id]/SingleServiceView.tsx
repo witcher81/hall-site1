@@ -295,9 +295,7 @@ export default function SingleServiceView({
           <SectionHeading title="מה כלול במחיר" tone="green" />
 
           <div className="mt-4">
-            <SubHeading label="פריטים שהספק כלל בשירות" />
-
-            <ul className="mt-2 space-y-2.5">
+            <ul className="space-y-2.5">
               {service.includesEquipment && (
                 <li className="flex items-start gap-3 rounded-xl border border-[#0F3B2E]/20 bg-[#0F3B2E]/5 p-3">
                   <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
@@ -355,33 +353,38 @@ export default function SingleServiceView({
           <div className="flex items-center justify-between gap-2">
             <SectionHeading title="בתוספת תשלום" tone="gold" />
             <span className="rounded-full bg-[#C9A227]/15 px-2.5 py-1 text-[11px] font-semibold text-[#8A6A12]">
-              {paidExtras.length} פריטים
+              {paidExtras.length} {paidExtras.length === 1 ? "פריט" : "פריטים"}
             </span>
           </div>
 
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          <ul className="mt-4 space-y-2.5">
             {paidExtras.map((p, i) => {
               const price = paidPriceText(p);
               return (
                 <li
                   key={`paid-${p.label}-${i}`}
-                  className="rounded-xl border border-[#E0D4C3] bg-white p-4 shadow-sm"
+                  className="flex items-start gap-3 rounded-xl border border-[#E0D4C3] bg-white p-3 shadow-sm"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <p className="min-w-0 flex-1 text-sm font-semibold text-[#0F3B2E]">
-                      {p.label.trim()}
-                    </p>
-                    {price ? (
-                      <span className="shrink-0 rounded-full bg-[#0F3B2E] px-2.5 py-1 text-xs font-bold text-white shadow-sm">
-                        {price}
-                      </span>
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#C9A227]/15 text-[#8A6A12]">
+                    <PlusIcon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="min-w-0 flex-1 text-sm font-semibold text-[#0F3B2E]">
+                        {p.label.trim()}
+                      </p>
+                      {price ? (
+                        <span className="shrink-0 rounded-full bg-[#0F3B2E] px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+                          {price}
+                        </span>
+                      ) : null}
+                    </div>
+                    {p.description?.trim() ? (
+                      <p className="mt-1 text-xs leading-relaxed text-[#5F5F5F]">
+                        {p.description.trim()}
+                      </p>
                     ) : null}
                   </div>
-                  {p.description?.trim() ? (
-                    <p className="mt-2 text-xs leading-relaxed text-[#5F5F5F]">
-                      {p.description.trim()}
-                    </p>
-                  ) : null}
                 </li>
               );
             })}
@@ -572,20 +575,11 @@ function SectionHeading({
       ? "text-[#8A6A12]"
       : "text-[#0F3B2E]";
   return (
-    <div className="flex items-center justify-end gap-3">
+    <div className="flex items-center justify-start gap-3">
+      <span className={`h-5 w-1 rounded-full ${barClass}`} aria-hidden />
       <h2 className={`text-base font-semibold tracking-tight ${textClass}`}>
         {title}
       </h2>
-      <span className={`h-5 w-1 rounded-full ${barClass}`} aria-hidden />
-    </div>
-  );
-}
-
-function SubHeading({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-end gap-2 text-[#6B6560]">
-      <span className="text-[11px] font-semibold tracking-wide">{label}</span>
-      <span className="h-px flex-1 bg-[#E7E0CF]" aria-hidden />
     </div>
   );
 }
@@ -603,6 +597,23 @@ function CheckIcon({ className = "" }: { className?: string }) {
       aria-hidden
     >
       <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
+function PlusIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={3}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 5v14M5 12h14" />
     </svg>
   );
 }
