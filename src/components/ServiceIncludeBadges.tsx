@@ -24,7 +24,10 @@ export default function ServiceIncludeBadges({
 }: Props) {
   function paidPriceText(p: ServicePaidExtraItem): string {
     if (p.exactPrice != null) return `₪${p.exactPrice}`;
-    if (p.minPrice != null && p.maxPrice != null) return `₪${p.minPrice}–₪${p.maxPrice}`;
+    if (p.minPrice != null && p.maxPrice != null) {
+      if (p.minPrice === p.maxPrice) return `₪${p.minPrice}`;
+      return `₪${p.minPrice}–₪${p.maxPrice}`;
+    }
     if (p.minPrice != null) return `החל מ־₪${p.minPrice}`;
     if (p.maxPrice != null) return `עד ₪${p.maxPrice}`;
     return "";

@@ -48,3 +48,17 @@ export function buildMinMaxStringsForSubmit(
   }
   return { minPrice: f.minPrice.trim(), maxPrice: f.maxPrice.trim() };
 }
+
+/**
+ * מחיר לכרטיסים ציבוריים: כשמינ' ומקס' זהים (מחיר "מדויק" שנשמר כשני שדות) לא מציגים טווח כפול.
+ */
+export function formatFreelancerServicePriceShekelCompact(
+  minPrice: number | null,
+  maxPrice: number | null
+): string | null {
+  if (minPrice == null && maxPrice == null) return null;
+  if (minPrice != null && maxPrice != null && minPrice === maxPrice) {
+    return `₪ ${minPrice}`;
+  }
+  return `₪ ${minPrice ?? "?"}–${maxPrice ?? "?"}`;
+}

@@ -3,6 +3,7 @@
 import ServiceIncludeBadges from "@/components/ServiceIncludeBadges";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
+import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
 import { useEngagedFreelancerProfileView } from "@/lib/useEngagedViewAnalytics";
 import type {
@@ -173,6 +174,10 @@ export default function ProviderViewClient({
                 s.shortDescription,
                 s.description
               );
+              const priceLine = formatFreelancerServicePriceShekelCompact(
+                s.minPrice,
+                s.maxPrice
+              );
               return (
               <li key={s.id} className="rounded-lg border border-[#E0D4C3] bg-[#FAF8F4] p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -187,10 +192,8 @@ export default function ProviderViewClient({
                     {blurb ? (
                       <p className="mt-1 line-clamp-5 whitespace-pre-wrap text-xs text-[#5F5F5F]">{blurb}</p>
                     ) : null}
-                    {(s.minPrice != null || s.maxPrice != null) && (
-                      <p className="text-xs text-[#6B6560]">
-                        ₪ {s.minPrice ?? "?"}–{s.maxPrice ?? "?"}
-                      </p>
+                    {priceLine != null && (
+                      <p className="text-xs text-[#6B6560]">{priceLine}</p>
                     )}
                     {(s.serviceArea ||
                       s.experienceYears != null ||

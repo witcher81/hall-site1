@@ -3,6 +3,7 @@
 import PopularBadge from "@/components/PopularBadge";
 import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
+import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
@@ -165,6 +166,10 @@ export default function ProvidersSearchClient() {
               s.shortDescription,
               s.description
             );
+            const priceLine = formatFreelancerServicePriceShekelCompact(
+              s.minPrice,
+              s.maxPrice
+            );
             return (
               <div
                 key={s.id}
@@ -217,10 +222,8 @@ export default function ProvidersSearchClient() {
                   <p className="mt-1 text-xs text-[#6B6560]">
                     {s.provider.businessName || s.provider.name || "ספק"}
                   </p>
-                  {(s.minPrice != null || s.maxPrice != null) && (
-                    <p className="mt-1 text-xs text-[#2A261F]">
-                      ₪ {s.minPrice ?? "?"}–{s.maxPrice ?? "?"}
-                    </p>
+                  {priceLine != null && (
+                    <p className="mt-1 text-xs text-[#2A261F]">{priceLine}</p>
                   )}
                 </a>
                 {socialLinks.length > 0 && (
