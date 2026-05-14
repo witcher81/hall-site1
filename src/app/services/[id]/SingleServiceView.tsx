@@ -68,6 +68,9 @@ export default function SingleServiceView({
     eventType: "",
     message: "",
   });
+  const [galleryLightboxIndex, setGalleryLightboxIndex] = useState<number | null>(
+    null
+  );
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const providerName = provider.businessName || provider.name || "ספק";
@@ -95,6 +98,32 @@ export default function SingleServiceView({
   useEffect(() => {
     recordProviderRecentlyViewed(provider.id);
   }, [provider.id]);
+
+  useEffect(() => {
+    if (galleryLightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setGalleryLightboxIndex(null);
+      if (e.key === "ArrowRight") {
+        setGalleryLightboxIndex((i) => {
+          if (i === null || gallery.length === 0) return i;
+          return i === 0 ? gallery.length - 1 : i - 1;
+        });
+      }
+      if (e.key === "ArrowLeft") {
+        setGalleryLightboxIndex((i) => {
+          if (i === null || gallery.length === 0) return i;
+          return i === gallery.length - 1 ? 0 : i + 1;
+        });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [galleryLightboxIndex, gallery]);
 
   function isDateValid(dateStr: string): boolean {
     if (!dateStr || dateStr.length !== 10) return false;
@@ -152,6 +181,23 @@ export default function SingleServiceView({
   const paidExtras = service.paidExtras.filter(
     (p) => p.label.trim().length > 0
   );
+
+  const includedItemsCount = useMemo(() => {
+    let n = 0;
+    if (service.includesEquipment) n += 1;
+    n += freeIncludes.length;
+    if (
+      !service.includesEquipment &&
+      (service.includesNote?.trim()?.length ?? 0) > 0
+    ) {
+      n += 1;
+    }
+    return n;
+  }, [
+    service.includesEquipment,
+    service.includesNote,
+    freeIncludes.length,
+  ]);
 
   const metaItems = [
     service.serviceArea
@@ -292,7 +338,13 @@ export default function SingleServiceView({
         freeIncludes.length > 0 ||
         (service.includesNote && service.includesNote.trim().length > 0)) && (
         <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
-          <SectionHeading title="מה כלול במחיר" tone="green" />
+          <div className="flex items-center justify-between gap-2">
+            <SectionHeading title="מה כלול במחיר" tone="green" />
+            <span className="rounded-full bg-[#FAF8F4] px-2.5 py-1 text-[11px] font-medium text-[#6B6560]">
+              {includedItemsCount}{" "}
+              {includedItemsCount === 1 ? "פריט" : "פריטים"}
+            </span>
+          </div>
 
           <div className="mt-4">
             <ul className="space-y-2.5">
@@ -417,20 +469,22 @@ export default function SingleServiceView({
             </span>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {gallery.map((url) => (
-              <a
+            {gallery.map((url, idx) => (
+              <button
                 key={url}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block overflow-hidden rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] shadow-sm transition hover:border-[#C9A227]/60 hover:shadow-md"
+                type="button"
+                onClick={() => setGalleryLightboxIndex(idx)}
+                className="group relative block w-full overflow-hidden rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] text-right shadow-sm transition hover:border-[#C9A227]/60 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]"
               >
                 <img
                   src={url}
-                  alt=""
+                  alt={`${service.name} — תמונה ${idx + 1}`}
                   className="h-36 w-full object-cover transition group-hover:scale-[1.03]"
                 />
-              </a>
+                <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+                  לחץ להגדלה
+                </span>
+              </button>
             ))}
           </div>
         </section>
@@ -540,6 +594,75 @@ export default function SingleServiceView({
           </form>
         )}
       </section>
+
+      {galleryLightboxIndex !== null && gallery.length > 0 && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
+          role="dialog"
+          aria-modal="true"
+          aria-label="גלריית תמונות"
+        >
+          <button
+            type="button"
+            onClick={() => setGalleryLightboxIndex(null)}
+            className="absolute left-4 top-4 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/70"
+            aria-label="סגור"
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {gallery.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  setGalleryLightboxIndex((i) =>
+                    i === null ? i : i === 0 ? gallery.length - 1 : i - 1
+                  )
+                }
+                className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/70"
+                aria-label="תמונה קודמת"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setGalleryLightboxIndex((i) =>
+                    i === null ? i : i === gallery.length - 1 ? 0 : i + 1
+                  )
+                }
+                className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/70"
+                aria-label="תמונה הבאה"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+
+          <div
+            className="flex max-h-[85vh] max-w-[90vw] items-center justify-center px-14"
+            onClick={() => setGalleryLightboxIndex(null)}
+          >
+            <img
+              src={gallery[galleryLightboxIndex] ?? ""}
+              alt={`${service.name} — תמונה ${galleryLightboxIndex + 1}`}
+              className="max-h-[85vh] max-w-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-4 py-2 text-sm text-white">
+            {galleryLightboxIndex + 1} / {gallery.length}
+          </p>
+        </div>
+      )}
     </main>
   );
 }
