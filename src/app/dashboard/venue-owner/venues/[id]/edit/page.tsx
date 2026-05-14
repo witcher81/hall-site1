@@ -20,6 +20,17 @@ function parseEventTypesList(raw: string | null): string[] {
   }
 }
 
+function parseGalleryImageUrlsList(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const p = JSON.parse(raw) as unknown;
+    if (!Array.isArray(p)) return [];
+    return p.filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+  } catch {
+    return [];
+  }
+}
+
 function anyEventOffersFoodFromStored(
   eventTypes: string[],
   profilesJson: string | null
@@ -107,9 +118,7 @@ export default async function VenueEditPage({
     );
   }
 
-  const galleryUrls = venue.galleryImageUrls
-    ? (JSON.parse(venue.galleryImageUrls) as string[])
-    : [];
+  const galleryUrls = parseGalleryImageUrlsList(venue.galleryImageUrls);
 
   const eventTypesArr = parseEventTypesList(venue.eventTypes);
   const anyEvFood = anyEventOffersFoodFromStored(
@@ -180,7 +189,7 @@ export default async function VenueEditPage({
         minPrice: venue.minPrice ?? "",
         maxPrice: venue.maxPrice ?? "",
         description: venue.description ?? "",
-        eventTypes: venue.eventTypes ? (JSON.parse(venue.eventTypes) as string[]) : [],
+        eventTypes: eventTypesArr,
         hasChuppaOutdoor: venue.hasChuppaOutdoor,
         hasChuppaCovered: venue.hasChuppaCovered,
         productHasChuppa: initialProductHasChuppa,
