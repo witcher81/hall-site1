@@ -181,9 +181,9 @@ export default async function VenueEditPage({
     <VenueEditForm
       venueId={venue.id}
       initial={{
-        name: venue.name,
-        city: venue.city,
-        address: venue.address,
+        name: String(venue.name ?? ""),
+        city: String(venue.city ?? ""),
+        address: String(venue.address ?? ""),
         minGuests: venue.minGuests ?? "",
         maxGuests: venue.maxGuests ?? "",
         minPrice: venue.minPrice ?? "",

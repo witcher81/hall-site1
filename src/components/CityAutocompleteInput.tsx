@@ -33,6 +33,7 @@ export default function CityAutocompleteInput({
   "aria-invalid": ariaInvalid,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const safeValue = typeof value === "string" ? value : String(value ?? "");
 
   const cityOptions = useMemo(() => {
     const set = new Set<string>();
@@ -44,18 +45,18 @@ export default function CityAutocompleteInput({
       if (t) set.add(t);
     }
     const sorted = [...set].sort((a, b) => a.localeCompare(b, "he"));
-    const v = value.trim();
+    const v = safeValue.trim();
     if (v && !set.has(v)) {
       return [v, ...sorted];
     }
     return sorted;
-  }, [extraCities, value]);
+  }, [extraCities, safeValue]);
 
   const filteredCityOptions = useMemo(() => {
-    const q = value.trim().toLowerCase();
+    const q = safeValue.trim().toLowerCase();
     if (!q) return cityOptions;
     return cityOptions.filter((city) => city.toLowerCase().startsWith(q));
-  }, [cityOptions, value]);
+  }, [cityOptions, safeValue]);
 
   function handleBlur() {
     window.setTimeout(() => {
@@ -76,7 +77,7 @@ export default function CityAutocompleteInput({
         id={id}
         name={name}
         type="text"
-        value={value}
+        value={safeValue}
         required={required}
         autoComplete="off"
         onChange={(e) => onChange(e.target.value)}

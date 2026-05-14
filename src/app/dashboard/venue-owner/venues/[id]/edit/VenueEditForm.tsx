@@ -212,6 +212,8 @@ function mergeLegacyWeddingIntoWeddingProfile(
 ) {
   const p = profiles["חתונה"];
   if (!p || weddingLegacy.length === 0) return;
+  const rows = Array.isArray(p.customHallRows) ? p.customHallRows : [];
+  p.customHallRows = [...rows];
   const seen = new Set(p.customHallRows.map((r) => r.label.toLowerCase()));
   for (const w of weddingLegacy) {
     const k = w.label.toLowerCase();
@@ -400,9 +402,9 @@ export default function VenueEditForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
-    name: initial.name,
-    city: initial.city,
-    address: initial.address,
+        name: String(initial.name ?? ""),
+        city: String(initial.city ?? ""),
+        address: String(initial.address ?? ""),
     minGuests: String(initial.minGuests),
     maxGuests: String(initial.maxGuests),
     minPrice: String(initial.minPrice),
@@ -552,8 +554,19 @@ export default function VenueEditForm({
           };
         next[et] =
           et === "חתונה"
-            ? { ...base, hasFoodAtEvent: true, customHallRows: base.customHallRows ?? [] }
-            : { ...base, customHallRows: base.customHallRows ?? [] };
+            ? {
+                ...base,
+                hasFoodAtEvent: true,
+                customHallRows: Array.isArray(base.customHallRows)
+                  ? base.customHallRows
+                  : [],
+              }
+            : {
+                ...base,
+                customHallRows: Array.isArray(base.customHallRows)
+                  ? base.customHallRows
+                  : [],
+              };
       }
       return next;
     });
@@ -1211,7 +1224,7 @@ export default function VenueEditForm({
               <div className="space-y-3">
                 {eventTypes.map((et) => {
                   const isWeddingEt = et === "חתונה";
-                  const profile = eventTypeProfiles[et] ?? {
+                  const profileRaw = eventTypeProfiles[et] ?? {
                     minGuests: "",
                     maxGuests: "",
                     hasFoodAtEvent: isWeddingEt,
@@ -1222,6 +1235,12 @@ export default function VenueEditForm({
                     veganMinPrice: "",
                     veganMaxPrice: "",
                     customHallRows: [],
+                  };
+                  const profile = {
+                    ...profileRaw,
+                    customHallRows: Array.isArray(profileRaw.customHallRows)
+                      ? profileRaw.customHallRows
+                      : [],
                   };
                   const showMealPrices =
                     isWeddingEt || profile.hasFoodAtEvent === true;
