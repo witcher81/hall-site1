@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
-import { normalizeInquiryServiceChoices } from "@/lib/venueInquiryAmenities";
+import {
+  getInquiryGuestBounds,
+  normalizeInquiryServiceChoices,
+  validateInquiryEventType,
+} from "@/lib/venueInquiryAmenities";
 import {
   USER_INPUT_MAX,
   validateGuestCount,
@@ -68,6 +72,7 @@ export async function POST(req: NextRequest) {
       ownerId: true,
       name: true,
       autoReplyMessage: true,
+      eventTypes: true,
       hasChuppa: true,
       hasChuppaOutdoor: true,
       hasChuppaCovered: true,
@@ -78,22 +83,53 @@ export async function POST(req: NextRequest) {
       hasBridalRoom: true,
       customAmenitiesJson: true,
       venueSoftAttributesJson: true,
+      eventTypeProfilesJson: true,
     },
   });
   if (!venue) {
     return NextResponse.json({ error: "אולם לא נמצא" }, { status: 404 });
   }
 
+  const eventTypeError = validateInquiryEventType(venue.eventTypes, eventType);
+  if (eventTypeError) {
+    return badRequest(eventTypeError);
+  }
+
+  const booked = await prisma.venueAvailability.findUnique({
+    where: {
+      venueId_date: {
+        venueId,
+        date: preferredDateParsed,
+      },
+    },
+    select: { status: true },
+  });
+  if (booked?.status === "BOOKED") {
+    return NextResponse.json(
+      { error: "התאריך שבחרת מסומן כתפוס אצל האולם. בחרו תאריך אחר בלוח השנה." },
+      { status: 400 }
+    );
+  }
+
+  const guestBounds = getInquiryGuestBounds(venue, eventType);
   if (guestCount != null && Number.isFinite(guestCount)) {
-    if (venue.minGuests != null && guestCount < venue.minGuests) {
+    if (guestBounds.min != null && guestCount < guestBounds.min) {
       return NextResponse.json(
-        { error: `כמות אורחים לא יכולה להיות פחות מ־${venue.minGuests} (מינימום האולם)` },
+        {
+          error: `כמות אורחים לא יכולה להיות פחות מ־${guestBounds.min}${
+            eventType ? ` (מינימום ל«${eventType}»)` : " (מינימום האולם)"
+          }`,
+        },
         { status: 400 }
       );
     }
-    if (venue.maxGuests != null && guestCount > venue.maxGuests) {
+    if (guestBounds.max != null && guestCount > guestBounds.max) {
       return NextResponse.json(
-        { error: `כמות אורחים לא יכולה להיות יותר מ־${venue.maxGuests} (מקסימום האולם)` },
+        {
+          error: `כמות אורחים לא יכולה להיות יותר מ־${guestBounds.max}${
+            eventType ? ` (מקסימום ל«${eventType}»)` : " (מקסימום האולם)"
+          }`,
+        },
         { status: 400 }
       );
     }

@@ -2,11 +2,16 @@
 
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import {
-  getVenueServiceOptionsForInquiry,
+  formatInquiryPriceHint,
+  getInquiryGuestBounds,
+  getVenueInquiryOptions,
   isWeddingInquiryEventType,
+  type InquiryInfoTrait,
+  type InquiryServiceOption,
   type ServiceChoiceSource,
   type VenueInquiryAmenitiesInput,
 } from "@/lib/venueInquiryAmenities";
+import { PARKING_KIND_LABELS, type ParkingKind } from "@/lib/venueParkingKind";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -17,6 +22,8 @@ export default function VenueInquiryClient({
   maxGuests,
   eventTypes,
   venueAmenities,
+  parkingKind,
+  presetLabels,
 }: {
   venueId: number;
   venueName: string;
@@ -24,6 +31,9 @@ export default function VenueInquiryClient({
   maxGuests: number | null;
   eventTypes: string[];
   venueAmenities: VenueInquiryAmenitiesInput;
+  parkingKind: ParkingKind | null;
+  /** נוף לים, בוטיק, נגישות — מתצוגה ציבורית */
+  presetLabels?: string[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,21 +54,35 @@ export default function VenueInquiryClient({
     "outdoor"
   );
 
-  const serviceOptions = useMemo(
+  const eventTypeTrimmed = form.eventType.trim() || null;
+
+  const { services: serviceOptions, infoTraits } = useMemo(
     () =>
-      getVenueServiceOptionsForInquiry(venueAmenities, {
-        eventType: form.eventType.trim() || null,
+      getVenueInquiryOptions(venueAmenities, {
+        eventType: eventTypeTrimmed,
       }),
-    [venueAmenities, form.eventType]
+    [venueAmenities, eventTypeTrimmed]
   );
 
-  const eventTypeTrimmed = form.eventType.trim() || null;
+  const guestBounds = useMemo(
+    () =>
+      getInquiryGuestBounds(
+        {
+          minGuests,
+          maxGuests,
+          eventTypeProfilesJson: venueAmenities.eventTypeProfilesJson,
+        },
+        eventTypeTrimmed
+      ),
+    [minGuests, maxGuests, venueAmenities.eventTypeProfilesJson, eventTypeTrimmed]
+  );
+
   const weddingForm = isWeddingInquiryEventType(eventTypeTrimmed);
 
   const splitChuppa = useMemo(() => {
-    const rest: { id: string; label: string }[] = [];
-    let outdoor: { id: string; label: string } | null = null;
-    let covered: { id: string; label: string } | null = null;
+    const rest: InquiryServiceOption[] = [];
+    let outdoor: InquiryServiceOption | null = null;
+    let covered: InquiryServiceOption | null = null;
     for (const o of serviceOptions) {
       if (o.id === "service:chuppaOutdoor") outdoor = o;
       else if (o.id === "service:chuppaCovered") covered = o;
@@ -81,11 +105,19 @@ export default function VenueInquiryClient({
     const next: Record<string, ServiceChoiceSource> = {};
     for (const o of splitChuppa.rest) next[o.id] = "venue";
     setSourceById(next);
-  }, [optionIdsKey]); // eslint-disable-line react-hooks/exhaustive-deps -- סנכרון לפי מזהי אפשרויות מהשרת
+  }, [optionIdsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const inputMinGuests = minGuests ?? 1;
-  const inputMaxGuests = maxGuests ?? undefined;
+  const inputMinGuests = guestBounds.min ?? 1;
+  const inputMaxGuests = guestBounds.max ?? undefined;
+
+  const allInfoTraits = useMemo(() => {
+    const traits: InquiryInfoTrait[] = [...infoTraits];
+    for (const label of presetLabels ?? []) {
+      if (label.trim()) traits.push({ id: `info:preset:${label}`, label: label.trim() });
+    }
+    return traits;
+  }, [infoTraits, presetLabels]);
 
   const applyDateFromQuery = useCallback((raw: string | null) => {
     if (!raw || raw.length !== 10) return;
@@ -137,6 +169,22 @@ export default function VenueInquiryClient({
     return d >= todayDate;
   }
 
+  function ServicePriceBadge({ opt }: { opt: InquiryServiceOption }) {
+    const hint = formatInquiryPriceHint(opt.priceMode, opt.extraPrice);
+    const isExtra = opt.priceMode === "extra" && opt.extraPrice != null && opt.extraPrice > 0;
+    return (
+      <span
+        className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+          isExtra
+            ? "border border-[#C9A227]/40 bg-[#FFFBF0] text-[#8B6914]"
+            : "border border-[#0F3B2E]/15 bg-[#0F3B2E]/[0.06] text-[#0F3B2E]"
+        }`}
+      >
+        {hint}
+      </span>
+    );
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -155,32 +203,50 @@ export default function VenueInquiryClient({
       setError("נא לציין כמות אורחים צפויה");
       return;
     }
-    if (minGuests != null && num < minGuests) {
-      setError(`לפחות ${minGuests} אורחים (מינימום האולם)`);
+    if (guestBounds.min != null && num < guestBounds.min) {
+      setError(`לפחות ${guestBounds.min} אורחים (מינימום לסוג האירוע)`);
       return;
     }
-    if (maxGuests != null && num > maxGuests) {
-      setError(`עד ${maxGuests} אורחים (מקסימום האולם)`);
+    if (guestBounds.max != null && num > guestBounds.max) {
+      setError(`עד ${guestBounds.max} אורחים (מקסימום לסוג האירוע)`);
       return;
     }
 
     const restChoices = splitChuppa.rest.map((o) => ({
       id: o.id,
       source: sourceById[o.id] ?? "venue",
+      priceMode: o.priceMode,
+      extraPrice: o.extraPrice,
     }));
-    const chuppaChoices: { id: string; source: ServiceChoiceSource }[] = [];
-    if (chuppahBoth) {
+    const chuppaChoices: {
+      id: string;
+      source: ServiceChoiceSource;
+      priceMode: "included" | "extra";
+      extraPrice: number | null;
+    }[] = [];
+    if (chuppahBoth && splitChuppa.outdoor && splitChuppa.covered) {
+      const picked =
+        weddingChuppahPick === "outdoor" ? splitChuppa.outdoor : splitChuppa.covered;
       chuppaChoices.push({
-        id:
-          weddingChuppahPick === "outdoor"
-            ? "service:chuppaOutdoor"
-            : "service:chuppaCovered",
+        id: picked.id,
         source: "venue",
+        priceMode: picked.priceMode,
+        extraPrice: picked.extraPrice,
       });
-    } else if (chuppahSingleOutdoor) {
-      chuppaChoices.push({ id: "service:chuppaOutdoor", source: "venue" });
-    } else if (chuppahSingleCovered) {
-      chuppaChoices.push({ id: "service:chuppaCovered", source: "venue" });
+    } else if (chuppahSingleOutdoor && splitChuppa.outdoor) {
+      chuppaChoices.push({
+        id: "service:chuppaOutdoor",
+        source: "venue",
+        priceMode: splitChuppa.outdoor.priceMode,
+        extraPrice: splitChuppa.outdoor.extraPrice,
+      });
+    } else if (chuppahSingleCovered && splitChuppa.covered) {
+      chuppaChoices.push({
+        id: "service:chuppaCovered",
+        source: "venue",
+        priceMode: splitChuppa.covered.priceMode,
+        extraPrice: splitChuppa.covered.extraPrice,
+      });
     }
     const serviceChoices = [...restChoices, ...chuppaChoices];
 
@@ -219,14 +285,37 @@ export default function VenueInquiryClient({
       <VenueAvailabilitySection
         venueId={venueId}
         onDaySelect={handleDayFromCalendar}
-        calendarSelectNote="ממלאים את תאריך האירוע בטופס למטה."
+        disallowBookedPick
+        calendarSelectNote="ממלאים את תאריך האירוע בטופס למטה. תאריכים אדומים — תפוסים ולא ניתן לבחור אותם."
         sectionClassName="rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-sm"
       />
+
+      {(allInfoTraits.length > 0 || (parkingKind && parkingKind !== "none")) && (
+        <section className="rounded-2xl border border-[#E0D4C3] bg-[#FAF8F4] p-4 text-right text-sm">
+          <p className="text-xs font-semibold text-[#0F3B2E]">מידע על האולם (ללא בחירת מקור)</p>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {parkingKind && parkingKind !== "none" && (
+              <li className="rounded-full border border-[#E0D4C3] bg-white px-3 py-1 text-xs text-[#2A261F]">
+                {PARKING_KIND_LABELS[parkingKind]}
+              </li>
+            )}
+            {allInfoTraits.map((t) => (
+              <li
+                key={t.id}
+                className="rounded-full border border-[#E0D4C3] bg-white px-3 py-1 text-xs text-[#2A261F]"
+              >
+                {t.label}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
         <h2 className="text-base font-semibold text-[#0F3B2E]">פרטי הבקשה</h2>
         <p className="mt-1 text-xs text-[#6B6560]">
-          {venueName} — אפשר לשלב הערות חופשיות; אם תשאירו ריק, נוסח קצר ייווצר אוטומטית.
+          {venueName} — בחרו סוג אירוע כדי לראות שירותים וטווחי אורחים מדויקים. אפשר לשלוח כמה פניות
+          לאותו אולם.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-5">
@@ -256,11 +345,12 @@ export default function VenueInquiryClient({
             <div>
               <label className="block text-xs font-semibold text-[#0F3B2E]">
                 כמות אורחים *
-                {(minGuests != null || maxGuests != null) && (
+                {(guestBounds.min != null || guestBounds.max != null) && (
                   <span className="mr-1 font-normal text-[#6B6560]">
-                    ({minGuests != null ? `מינ׳ ${minGuests}` : ""}
-                    {minGuests != null && maxGuests != null ? " · " : ""}
-                    {maxGuests != null ? `מקס׳ ${maxGuests}` : ""})
+                    ({guestBounds.min != null ? `מינ׳ ${guestBounds.min}` : ""}
+                    {guestBounds.min != null && guestBounds.max != null ? " · " : ""}
+                    {guestBounds.max != null ? `מקס׳ ${guestBounds.max}` : ""}
+                    {eventTypeTrimmed ? ` · לפי «${eventTypeTrimmed}»` : ""})
                   </span>
                 )}
               </label>
@@ -279,7 +369,12 @@ export default function VenueInquiryClient({
 
           {eventTypes.length > 0 && (
             <div>
-              <label className="block text-xs font-semibold text-[#0F3B2E]">סוג אירוע (אופציונלי)</label>
+              <label className="block text-xs font-semibold text-[#0F3B2E]">
+                סוג אירוע {eventTypes.length > 0 ? "(מומלץ)" : "(אופציונלי)"}
+              </label>
+              <p className="mt-0.5 text-[11px] text-[#6B6560]">
+                בחירת סוג אירוע מעדכנת את רשימת השירותים ואת טווח האורחים לפי מה שהאולם הגדיר.
+              </p>
               <div className="relative mt-1" ref={eventTypeMenuRef}>
                 <button
                   type="button"
@@ -293,7 +388,7 @@ export default function VenueInquiryClient({
                   aria-expanded={eventTypeMenuOpen}
                 >
                   <span className="block truncate text-[#1A1A1A]">
-                    {form.eventType || "בחרו מהרשימה או השאירו ריק"}
+                    {form.eventType || "בחרו מהרשימה"}
                   </span>
                   <span
                     className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#0F3B2E]/75 transition ${
@@ -324,7 +419,7 @@ export default function VenueInquiryClient({
                           : "text-[#2A261F] hover:bg-[#FAF8F4]"
                       }`}
                     >
-                      בחרו מהרשימה או השאירו ריק
+                      בלי סוג ספציפי
                     </button>
                     <div className="max-h-56 overflow-y-auto py-1">
                       {eventTypes.map((t) => {
@@ -360,20 +455,28 @@ export default function VenueInquiryClient({
               <p className="text-xs font-semibold text-[#0F3B2E]">שירותים שהאולם מציע — איך תרצו לסגור?</p>
               <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
                 {weddingForm
-                  ? "לכל פריט (מלבד חופה): דרך האולם, או מקור חיצוני (פרילנסר / ספק משלכם). חופה — רק דרך האולם."
-                  : "לכל פריט: דרך האולם, או מקור חיצוני (פרילנסר / ספק משלכם)."}
+                  ? "לכל פריט (מלבד חופה): דרך האולם או מקור חיצוני. חופה — רק דרך האולם. תגית מחיר לפי הגדרת האולם."
+                  : "לכל פריט: דרך האולם או מקור חיצוני. תגית מחיר לפי הגדרת האולם (כלול / בתוספת תשלום)."}
               </p>
-              {isWeddingInquiryEventType(form.eventType) && (
+              {!eventTypeTrimmed && eventTypes.length > 0 && (
+                <p className="mt-2 rounded-lg border border-[#C9A227]/25 bg-[#FFFBF0] px-2.5 py-1.5 text-[11px] text-[#5C564C]">
+                  טיפ: בחרו סוג אירוע למעלה כדי לראות רק את השירותים הרלוונטיים (למשל אוכל לפי סוג האירוע).
+                </p>
+              )}
+              {weddingForm && (
                 <p className="mt-2 rounded-lg border border-[#C9A227]/30 bg-[#FFFBF0] px-2.5 py-1.5 text-[11px] text-[#5C564C]">
-                  לחתונה לא מוצגת כאן אופציית האוכל. לחופה בוחרים חוץ או מקורה (לפי מה שהאולם מציע) — דרך האולם בלבד.
-                  יופיעו גם פרטים נוספים שהאולם הוסיף לחתונה.
+                  לחתונה לא מוצגת אופציית אוכל נפרדת — האוכל כלול בהגדרת החתונה. יופיעו גם פרטים שהאולם
+                  הוסיף לחתונה.
                 </p>
               )}
               {hasChuppahSection && (
                 <div className="mt-4 space-y-4">
                   {chuppahBoth && splitChuppa.outdoor && splitChuppa.covered && (
                     <div className="rounded-lg border border-[#E0D4C3] bg-white px-3 py-3">
-                      <p className="text-sm font-medium text-[#1A1A1A]">חופה</p>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-[#1A1A1A]">חופה</p>
+                        <ServicePriceBadge opt={splitChuppa.outdoor} />
+                      </div>
                       <p className="mt-1 text-[11px] text-[#6B6560]">דרך האולם בלבד — בוחרים סוג חופה אחד:</p>
                       <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
                         <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
@@ -401,13 +504,19 @@ export default function VenueInquiryClient({
                   )}
                   {chuppahSingleOutdoor && splitChuppa.outdoor && (
                     <div className="rounded-lg border border-[#E0D4C3] bg-white px-3 py-3">
-                      <p className="text-sm font-medium text-[#1A1A1A]">{splitChuppa.outdoor.label}</p>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-[#1A1A1A]">{splitChuppa.outdoor.label}</p>
+                        <ServicePriceBadge opt={splitChuppa.outdoor} />
+                      </div>
                       <p className="mt-1 text-[11px] text-[#6B6560]">דרך האולם בלבד.</p>
                     </div>
                   )}
                   {chuppahSingleCovered && splitChuppa.covered && (
                     <div className="rounded-lg border border-[#E0D4C3] bg-white px-3 py-3">
-                      <p className="text-sm font-medium text-[#1A1A1A]">{splitChuppa.covered.label}</p>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-[#1A1A1A]">{splitChuppa.covered.label}</p>
+                        <ServicePriceBadge opt={splitChuppa.covered} />
+                      </div>
                       <p className="mt-1 text-[11px] text-[#6B6560]">דרך האולם בלבד.</p>
                     </div>
                   )}
@@ -420,7 +529,10 @@ export default function VenueInquiryClient({
                       key={opt.id}
                       className="rounded-lg border border-[#E0D4C3] bg-white px-3 py-3"
                     >
-                      <p className="text-sm font-medium text-[#1A1A1A]">{opt.label}</p>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-[#1A1A1A]">{opt.label}</p>
+                        <ServicePriceBadge opt={opt} />
+                      </div>
                       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
                         <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
                           <input

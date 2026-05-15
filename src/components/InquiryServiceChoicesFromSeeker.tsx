@@ -3,6 +3,7 @@ import {
   shouldShowInquiryFreeText,
   stripEmbeddedServiceChoicesFromInquiryMessage,
 } from "@/lib/inquiryMessageDisplay";
+import { formatInquiryPriceHint } from "@/lib/venueInquiryAmenities";
 
 /** תצוגת JSON בחירות שירותים שנשמר בפנייה */
 export default function InquiryServiceChoicesFromSeeker({
@@ -12,7 +13,13 @@ export default function InquiryServiceChoicesFromSeeker({
 }) {
   if (!json?.trim()) return null;
   try {
-    const arr = JSON.parse(json) as { id?: string; label?: string; source?: string }[];
+    const arr = JSON.parse(json) as {
+      id?: string;
+      label?: string;
+      source?: string;
+      priceMode?: string;
+      extraPrice?: number | null;
+    }[];
     if (!Array.isArray(arr) || arr.length === 0) return null;
     return (
       <div className="mt-4 overflow-hidden rounded-2xl border border-[#E0D4C3] bg-gradient-to-b from-[#FFFCF7] to-[#F5EFE3] shadow-[0_4px_24px_rgba(15,59,46,0.07)]">
@@ -25,6 +32,12 @@ export default function InquiryServiceChoicesFromSeeker({
         <ul className="divide-y divide-[#E8E0D4]/90 bg-white/90">
           {arr.map((row, i) => {
             const label = typeof row.label === "string" && row.label.trim() ? row.label : "—";
+            const priceMode = row.priceMode === "extra" ? "extra" : "included";
+            const extraPrice =
+              typeof row.extraPrice === "number" && Number.isFinite(row.extraPrice)
+                ? Math.trunc(row.extraPrice)
+                : null;
+            const priceHint = formatInquiryPriceHint(priceMode, extraPrice);
             const via =
               row.source === "venue" ? (
                 <span className="inline-flex shrink-0 rounded-full border border-[#0F3B2E]/20 bg-[#0F3B2E]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#0F3B2E]">
@@ -40,7 +53,12 @@ export default function InquiryServiceChoicesFromSeeker({
                 key={typeof row.id === "string" ? row.id : `row-${i}`}
                 className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 text-right sm:px-5"
               >
-                <span className="min-w-0 flex-1 text-sm font-medium text-[#1A1612]">{label}</span>
+                <span className="min-w-0 flex-1 text-sm font-medium text-[#1A1612]">
+                  {label}
+                  <span className="mt-0.5 block text-[11px] font-normal text-[#6B6560]">
+                    {priceHint}
+                  </span>
+                </span>
                 {via}
               </li>
             );

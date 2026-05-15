@@ -1,26 +1,15 @@
 import { getCurrentUser } from "@/lib/auth";
 import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import { prisma } from "@/lib/prisma";
-import HomeHeader from "@/components/HomeHeader";
+import { parseEventTypesList } from "@/lib/venueEditFormParse";
+import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import type { VenueInquiryAmenitiesInput } from "@/lib/venueInquiryAmenities";
+import HomeHeader from "@/components/HomeHeader";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import VenueInquiryClient from "../VenueInquiryClient";
 
 export const runtime = "nodejs";
-
-function parseEventTypes(raw: string | null): string[] {
-  if (!raw) return [];
-  try {
-    const v = JSON.parse(raw) as unknown;
-    if (!Array.isArray(v)) return [];
-    return v
-      .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
-      .map((x) => x.trim());
-  } catch {
-    return [];
-  }
-}
 
 export default async function VenueInquiryPage({
   params,
@@ -60,6 +49,13 @@ export default async function VenueInquiryPage({
       customAmenitiesJson: true,
       venueSoftAttributesJson: true,
       eventTypeProfilesJson: true,
+      parkingKind: true,
+      hasParkingNearby: true,
+      parkingLatitude: true,
+      parkingLongitude: true,
+      seaView: true,
+      boutique: true,
+      accessible: true,
     },
   });
 
@@ -67,7 +63,7 @@ export default async function VenueInquiryPage({
     redirect("/halls");
   }
 
-  const eventTypes = parseEventTypes(venue.eventTypes);
+  const eventTypes = parseEventTypesList(venue.eventTypes);
   const venueAmenities: VenueInquiryAmenitiesInput = {
     hasChuppa: venue.hasChuppa,
     hasChuppaOutdoor: venue.hasChuppaOutdoor,
@@ -80,7 +76,20 @@ export default async function VenueInquiryPage({
     customAmenitiesJson: venue.customAmenitiesJson,
     venueSoftAttributesJson: venue.venueSoftAttributesJson,
     eventTypeProfilesJson: venue.eventTypeProfilesJson,
+    eventTypes: venue.eventTypes,
   };
+
+  const parkingKind = inferParkingKindFromDb({
+    parkingKind: venue.parkingKind,
+    hasParkingNearby: venue.hasParkingNearby,
+    parkingLatitude: venue.parkingLatitude ?? null,
+    parkingLongitude: venue.parkingLongitude ?? null,
+  });
+
+  const presetLabels: string[] = [];
+  if (venue.seaView === true) presetLabels.push("נוף לים");
+  if (venue.boutique === true) presetLabels.push("אירועי בוטיק");
+  if (venue.accessible === true) presetLabels.push("נגישות לנכים");
 
   return (
     <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
@@ -98,8 +107,8 @@ export default async function VenueInquiryPage({
           בקשה להצעת מחיר — {venue.name}
         </h1>
         <p className="mt-1 text-right text-sm text-[#5F5F5F]">
-          בוחרים תאריך בלוח או בשדה, מציינים אורחים, ולכל שירות שהאולם מציע בוחרים אם לסגור דרך האולם או עם ספק
-          חיצוני. אפשר לשלוח כמה פניות לאותו אולם (למשל תאריכים שונים או עדכון פרטים).
+          בוחרים תאריך, סוג אירוע ואורחים — ולכל שירות שהאולם מציע בוחרים אם לסגור דרך האולם או עם ספק
+          חיצוני. התמחור (כלול / בתוספת) מוצג לפי מה שהאולם הגדיר.
         </p>
         <Suspense
           fallback={
@@ -113,6 +122,8 @@ export default async function VenueInquiryPage({
             maxGuests={venue.maxGuests}
             eventTypes={eventTypes}
             venueAmenities={venueAmenities}
+            parkingKind={parkingKind}
+            presetLabels={presetLabels}
           />
         </Suspense>
       </main>

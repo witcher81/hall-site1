@@ -1,18 +1,16 @@
 import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
+import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
+import { parseEventTypesList } from "@/lib/venueEditFormParse";
+import type { BuiltinAmenityKeyFull } from "@/lib/venueBuiltinAmenities";
 
 /**
  * רשימת שירותים/תוספים שהאולם מציע — לטופס בקשה (מחפש בוחר מקור לכל פריט).
+ * מיושר עם מודל יצירה/עריכת אולם: תמחור __builtin__, פרופילים לפי סוג אירוע, מאפיינים רכים ללא בחירה.
  */
 
-/** תחילית בשדה label ב-customAmenitiesJson — שירות/פרט חתונה מותאם (טפסי בעל אולם) */
 export const WEDDING_AMENITY_STORAGE_PREFIX = "חתונה:";
 
-export type BuiltinServiceKey =
-  | "hasFood"
-  | "hasDanceFloor"
-  | "hasTableSetup"
-  | "hasSoundSystem"
-  | "hasBridalRoom";
+export type BuiltinServiceKey = BuiltinAmenityKeyFull;
 
 const BUILTIN_SERVICE_KEYS: BuiltinServiceKey[] = [
   "hasFood",
@@ -40,25 +38,45 @@ export type VenueInquiryAmenitiesInput = {
   hasSoundSystem?: boolean | null;
   hasBridalRoom?: boolean | null;
   customAmenitiesJson?: string | null;
-  /** שורות טקסט חופשי (מאפייני אולם ללא תמחור) — רק עם on */
   venueSoftAttributesJson?: string | null;
-  /** פרופילים לפי סוג אירוע — customHallItems לפי סוג נבחר */
   eventTypeProfilesJson?: string | null;
+  /** JSON מחרוזת eventTypes — לאימות סוג אירוע ב-API */
+  eventTypes?: string | null;
 };
 
 export type InquiryServiceContext = {
-  /** סוג אירוע מהטופס — משפיע על רשימת השירותים (למשל חתונה ללא אוכל) */
   eventType: string | null;
 };
 
-/** האם סוג האירוע נחשב חתונה (לפי ערך בשדה הטופס / באולם) */
+export type InquiryServiceOption = {
+  id: string;
+  label: string;
+  priceMode: "included" | "extra";
+  extraPrice: number | null;
+};
+
+/** מאפיינים רכים (נוף לים, בוטיק…) — מידע בלבד, לא בחירת מקור */
+export type InquiryInfoTrait = {
+  id: string;
+  label: string;
+};
+
+export type InquiryOptionsBundle = {
+  services: InquiryServiceOption[];
+  infoTraits: InquiryInfoTrait[];
+};
+
 export function isWeddingInquiryEventType(eventType: string | null | undefined): boolean {
   if (eventType == null || typeof eventType !== "string") return false;
-  const t = eventType.trim().toLowerCase();
-  return t === "חתונה";
+  return eventType.trim().toLowerCase() === "חתונה";
 }
 
-type ParsedCustomRow = { label: string; checked: boolean };
+type ParsedCustomRow = {
+  label: string;
+  checked: boolean;
+  priceMode: "included" | "extra";
+  extraPrice: number | null;
+};
 
 function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustomRow[] {
   if (!json) return [];
@@ -71,7 +89,21 @@ function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustom
       const o = item as Record<string, unknown>;
       const label = typeof o.label === "string" ? o.label.trim() : "";
       if (!label) continue;
-      out.push({ label, checked: o.checked === true });
+      const priceMode = o.priceMode === "extra" ? "extra" : "included";
+      let extraPrice: number | null = null;
+      if (
+        priceMode === "extra" &&
+        typeof o.extraPrice === "number" &&
+        Number.isFinite(o.extraPrice)
+      ) {
+        extraPrice = Math.trunc(o.extraPrice);
+      }
+      out.push({
+        label,
+        checked: o.checked === true,
+        priceMode,
+        extraPrice,
+      });
     }
     return out;
   } catch {
@@ -79,42 +111,123 @@ function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustom
   }
 }
 
+type BuiltinState = {
+  checked: boolean;
+  priceMode: "included" | "extra";
+  extraPrice: number | null;
+};
+
+function parseBuiltinStates(
+  json: string | null | undefined
+): Partial<Record<BuiltinServiceKey, BuiltinState>> {
+  const out: Partial<Record<BuiltinServiceKey, BuiltinState>> = {};
+  for (const row of parseCustomAmenitiesJson(json)) {
+    if (!row.label.startsWith("__builtin__:")) continue;
+    const key = row.label.slice("__builtin__:".length) as BuiltinServiceKey;
+    if (!BUILTIN_SERVICE_KEYS.includes(key)) continue;
+    out[key] = {
+      checked: row.checked,
+      priceMode: row.priceMode,
+      extraPrice: row.extraPrice,
+    };
+  }
+  return out;
+}
+
+function isBuiltinOffered(
+  v: VenueInquiryAmenitiesInput,
+  key: BuiltinServiceKey,
+  builtinStates: Partial<Record<BuiltinServiceKey, BuiltinState>>
+): boolean {
+  const fromJson = builtinStates[key];
+  if (fromJson) return fromJson.checked;
+  return Boolean(v[key]);
+}
+
+function eventTypeHasFood(
+  v: VenueInquiryAmenitiesInput,
+  eventType: string | null
+): boolean {
+  if (isWeddingInquiryEventType(eventType)) return true;
+  const et = eventType?.trim();
+  if (!et || !v.eventTypeProfilesJson) return Boolean(v.hasFood);
+  const types = et ? [et] : [];
+  const profiles = parseVenueEventTypeProfilesForPublic(v.eventTypeProfilesJson, types);
+  const profile = profiles[et];
+  if (profile) return profile.hasFoodAtEvent;
+  return Boolean(v.hasFood);
+}
+
 function appendChuppaOptionsForInquiry(
   v: VenueInquiryAmenitiesInput,
   wedding: boolean,
-  out: { id: string; label: string }[]
+  out: InquiryServiceOption[]
 ) {
   const outdoor = Boolean(v.hasChuppaOutdoor);
   const covered = Boolean(v.hasChuppaCovered);
 
   if (wedding) {
     if (outdoor) {
-      out.push({ id: "service:chuppaOutdoor", label: "חופה בחוץ" });
+      out.push({
+        id: "service:chuppaOutdoor",
+        label: "חופה בחוץ",
+        priceMode: "included",
+        extraPrice: null,
+      });
     }
     if (covered) {
-      out.push({ id: "service:chuppaCovered", label: "חופה מקורה" });
+      out.push({
+        id: "service:chuppaCovered",
+        label: "חופה מקורה",
+        priceMode: "included",
+        extraPrice: null,
+      });
     }
   } else if (v.hasChuppa) {
-    out.push({ id: "service:chuppa", label: "חופה" });
+    out.push({
+      id: "service:chuppa",
+      label: "חופה",
+      priceMode: "included",
+      extraPrice: null,
+    });
   }
 }
 
-/** מזהים יציבים לפי סדר אותו כמו בפרסור — לשימוש ב־API לאימות */
-export function getVenueServiceOptionsForInquiry(
+function pushBuiltinOption(
+  out: InquiryServiceOption[],
+  key: BuiltinServiceKey,
+  state: BuiltinState | undefined
+) {
+  out.push({
+    id: `service:${key}`,
+    label: BUILTIN_LABELS[key],
+    priceMode: state?.priceMode ?? "included",
+    extraPrice: state?.extraPrice ?? null,
+  });
+}
+
+/** מזהים יציבים + תמחור — לטופס ול-API */
+export function getVenueInquiryOptions(
   v: VenueInquiryAmenitiesInput,
   ctx?: InquiryServiceContext
-): { id: string; label: string }[] {
+): InquiryOptionsBundle {
   const eventType = ctx?.eventType?.trim() || null;
   const wedding = isWeddingInquiryEventType(eventType);
+  const builtinStates = parseBuiltinStates(v.customAmenitiesJson);
+  const services: InquiryServiceOption[] = [];
+  const infoTraits: InquiryInfoTrait[] = [];
 
-  const out: { id: string; label: string }[] = [];
-  appendChuppaOptionsForInquiry(v, wedding, out);
+  appendChuppaOptionsForInquiry(v, wedding, services);
 
+  const showFood = eventTypeHasFood(v, eventType);
   for (const key of BUILTIN_SERVICE_KEYS) {
-    if (wedding && key === "hasFood") continue;
-    if (v[key]) {
-      out.push({ id: `service:${key}`, label: BUILTIN_LABELS[key] });
+    if (key === "hasFood") {
+      if (!showFood) continue;
+      if (!isBuiltinOffered(v, key, builtinStates) && !Boolean(v.hasFood)) continue;
+    } else if (!isBuiltinOffered(v, key, builtinStates)) {
+      continue;
     }
+    pushBuiltinOption(services, key, builtinStates[key]);
   }
 
   const rawCustoms = parseCustomAmenitiesJson(v.customAmenitiesJson).filter(
@@ -127,13 +240,20 @@ export function getVenueServiceOptionsForInquiry(
       if (!wedding) continue;
       const label = row.label.slice(WEDDING_AMENITY_STORAGE_PREFIX.length).trim();
       if (!label) continue;
-      out.push({
+      services.push({
         id: `service:weddingCustom:${weddingCustomIdx}`,
         label,
+        priceMode: row.priceMode,
+        extraPrice: row.extraPrice,
       });
       weddingCustomIdx += 1;
     } else {
-      out.push({ id: `service:custom:${generalIdx}`, label: row.label });
+      services.push({
+        id: `service:custom:${generalIdx}`,
+        label: row.label,
+        priceMode: row.priceMode,
+        extraPrice: row.extraPrice,
+      });
       generalIdx += 1;
     }
   }
@@ -142,41 +262,40 @@ export function getVenueServiceOptionsForInquiry(
   let softIdx = 0;
   for (const row of softRows) {
     if (!row.on) continue;
-    out.push({ id: `service:soft:${softIdx}`, label: row.label });
+    infoTraits.push({ id: `info:soft:${softIdx}`, label: row.label });
     softIdx += 1;
   }
 
-  const etKey = eventType;
-  if (etKey && v.eventTypeProfilesJson) {
-    try {
-      const profiles = JSON.parse(v.eventTypeProfilesJson) as unknown;
-      if (typeof profiles === "object" && profiles !== null && !Array.isArray(profiles)) {
-        const rawProfile = (profiles as Record<string, unknown>)[etKey];
-        if (typeof rawProfile === "object" && rawProfile !== null && !Array.isArray(rawProfile)) {
-          const po = rawProfile as Record<string, unknown>;
-          const items = po.customHallItems;
-          if (Array.isArray(items)) {
-            let hallIdx = 0;
-            for (const item of items) {
-              if (typeof item !== "object" || item === null) continue;
-              const o = item as Record<string, unknown>;
-              const label = typeof o.label === "string" ? o.label.trim() : "";
-              if (!label || o.checked !== true) continue;
-              out.push({
-                id: `service:eventHallCustom:${hallIdx}`,
-                label,
-              });
-              hallIdx += 1;
-            }
-          }
-        }
+  if (eventType && v.eventTypeProfilesJson) {
+    const profiles = parseVenueEventTypeProfilesForPublic(v.eventTypeProfilesJson, [eventType]);
+    const profile = profiles[eventType];
+    if (profile) {
+      let hallIdx = 0;
+      for (const item of profile.customHallItems) {
+        if (!item.checked) continue;
+        services.push({
+          id: `service:eventHallCustom:${hallIdx}`,
+          label: item.label,
+          priceMode: item.priceMode,
+          extraPrice: item.extraPrice,
+        });
+        hallIdx += 1;
       }
-    } catch {
-      /* ignore */
     }
   }
 
-  return out;
+  return { services, infoTraits };
+}
+
+/** תאימות לאחור */
+export function getVenueServiceOptionsForInquiry(
+  v: VenueInquiryAmenitiesInput,
+  ctx?: InquiryServiceContext
+): { id: string; label: string }[] {
+  return getVenueInquiryOptions(v, ctx).services.map((s) => ({
+    id: s.id,
+    label: s.label,
+  }));
 }
 
 export type ServiceChoiceSource = "venue" | "external";
@@ -185,16 +304,15 @@ export type StoredServiceChoice = {
   id: string;
   label: string;
   source: ServiceChoiceSource;
+  priceMode?: "included" | "extra";
+  extraPrice?: number | null;
 };
 
-/**
- * לחתונה עם שני סוגי חופה באולם: נשמרת בחירה אחת בלבד, תמיד דרך האולם.
- */
 function filterWeddingChuppahExclusiveOptions(
-  options: { id: string; label: string }[],
+  options: InquiryServiceOption[],
   inquiryEventType: string | null,
   byId: Map<string, ServiceChoiceSource>
-): { id: string; label: string }[] {
+): InquiryServiceOption[] {
   if (!isWeddingInquiryEventType(inquiryEventType)) return options;
   const outdoor = options.some((o) => o.id === "service:chuppaOutdoor");
   const covered = options.some((o) => o.id === "service:chuppaCovered");
@@ -217,13 +335,12 @@ function filterWeddingChuppahExclusiveOptions(
   return options.filter((o) => o.id !== "service:chuppaCovered");
 }
 
-/** אימות מול רשימת השירותים של האולם — תוויות מהשרת בלבד */
 export function normalizeInquiryServiceChoices(
   venue: VenueInquiryAmenitiesInput,
   raw: unknown,
   inquiryEventType: string | null
 ): StoredServiceChoice[] {
-  const options = getVenueServiceOptionsForInquiry(venue, {
+  const { services: options } = getVenueInquiryOptions(venue, {
     eventType: inquiryEventType,
   });
   if (options.length === 0) return [];
@@ -252,5 +369,54 @@ export function normalizeInquiryServiceChoices(
       o.id === "service:chuppaOutdoor" || o.id === "service:chuppaCovered"
         ? "venue"
         : (byId.get(o.id) ?? "venue"),
+    priceMode: o.priceMode,
+    extraPrice: o.extraPrice,
   }));
+}
+
+export function formatInquiryPriceHint(
+  priceMode: "included" | "extra",
+  extraPrice: number | null
+): string {
+  if (priceMode === "extra" && extraPrice != null && extraPrice > 0) {
+    return `בתוספת תשלום · ₪${extraPrice.toLocaleString("he-IL")}`;
+  }
+  return "כלול במחיר";
+}
+
+/** טווח אורחים לפי סוג אירוע (פרופיל) עם נפילה לערכי האולם הכלליים */
+export function getInquiryGuestBounds(
+  venue: {
+    minGuests: number | null;
+    maxGuests: number | null;
+    eventTypeProfilesJson?: string | null;
+  },
+  eventType: string | null
+): { min: number | null; max: number | null } {
+  const et = eventType?.trim();
+  if (et && venue.eventTypeProfilesJson) {
+    const profiles = parseVenueEventTypeProfilesForPublic(venue.eventTypeProfilesJson, [et]);
+    const p = profiles[et];
+    if (p) {
+      return {
+        min: p.minGuests ?? venue.minGuests,
+        max: p.maxGuests ?? venue.maxGuests,
+      };
+    }
+  }
+  return { min: venue.minGuests, max: venue.maxGuests };
+}
+
+export function validateInquiryEventType(
+  venueEventTypesJson: string | null | undefined,
+  eventType: string | null
+): string | null {
+  const allowed = parseEventTypesList(venueEventTypesJson ?? null);
+  if (allowed.length === 0) return null;
+  const et = eventType?.trim();
+  if (!et) return null;
+  if (!allowed.includes(et)) {
+    return "סוג האירוע שנבחר אינו מתאים לאולם זה.";
+  }
+  return null;
 }

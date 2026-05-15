@@ -7,12 +7,15 @@ export default function VenueAvailabilitySection({
   onDaySelect,
   calendarSelectNote,
   sectionClassName,
+  disallowBookedPick = false,
 }: {
   venueId: number;
   onDaySelect?: (ymd: string) => void;
   /** טקסט אחרי "לחיצה על יום עתידי" כש־onDaySelect מוגדר */
   calendarSelectNote?: string;
   sectionClassName?: string;
+  /** בטופס פנייה — לא למלא תאריך שסומן BOOKED */
+  disallowBookedPick?: boolean;
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -222,10 +225,16 @@ export default function VenueAvailabilitySection({
                       key={cell.date}
                       type="button"
                       onClick={() => {
+                        if (disallowBookedPick && status === "BOOKED") return;
                         setSelectedYmd(cell.date);
                         onDaySelect?.(cell.date);
                       }}
-                      className={`${cellClass} w-full cursor-pointer text-right transition hover:ring-2 hover:ring-[#C9A227]/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]`}
+                      disabled={disallowBookedPick && status === "BOOKED"}
+                      className={`${cellClass} w-full text-right transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] ${
+                        disallowBookedPick && status === "BOOKED"
+                          ? "cursor-not-allowed opacity-80"
+                          : "cursor-pointer hover:ring-2 hover:ring-[#C9A227]/50"
+                      }`}
                       aria-label={`בחירת ${label} לבקשה`}
                       aria-pressed={isSelected}
                     >
@@ -268,10 +277,16 @@ export default function VenueAvailabilitySection({
                   <button
                     type="button"
                     onClick={() => {
+                      if (disallowBookedPick && row.status === "BOOKED") return;
                       setSelectedYmd(row.date);
                       onDaySelect(row.date);
                     }}
-                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-1.5 text-right transition hover:bg-[#EDE4D4] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] ${
+                    disabled={disallowBookedPick && row.status === "BOOKED"}
+                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-1.5 text-right transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] ${
+                      disallowBookedPick && row.status === "BOOKED"
+                        ? "cursor-not-allowed opacity-70"
+                        : "hover:bg-[#EDE4D4]"
+                    } ${
                       selectedYmd === row.date
                         ? "border-[#C9A227] bg-[#FFF9E6] ring-2 ring-[#C9A227]/60"
                         : "border-[#E0D4C3] bg-[#F5EFE3]"
