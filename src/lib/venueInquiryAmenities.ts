@@ -53,7 +53,32 @@ export type InquiryServiceOption = {
   label: string;
   priceMode: "included" | "extra";
   extraPrice: number | null;
+  /**
+   * false = חלק מהאולם / לא ניתן להביא ספק חיצוני (רחבה, חופה, פריטי «מה יש באולם»).
+   * true = אפשר לבחור דרך האולם או ספק חיצוני (למשל אוכל, הגברה, תוספת כללית).
+   */
+  allowsExternalSource: boolean;
 };
+
+/** מפתחות מובנים שלא מוצגים עם «ספק חיצוני» */
+const VENUE_ONLY_BUILTIN_KEYS = new Set<BuiltinServiceKey>([
+  "hasDanceFloor",
+  "hasTableSetup",
+  "hasBridalRoom",
+]);
+
+export function inquiryServiceAllowsExternalSource(opt: {
+  id: string;
+  allowsExternalSource?: boolean;
+}): boolean {
+  if (typeof opt.allowsExternalSource === "boolean") return opt.allowsExternalSource;
+  if (opt.id.startsWith("service:chuppa")) return false;
+  if (opt.id.startsWith("service:eventHallCustom:")) return false;
+  if (opt.id.startsWith("service:weddingCustom:")) return false;
+  const builtin = opt.id.replace(/^service:/, "") as BuiltinServiceKey;
+  if (VENUE_ONLY_BUILTIN_KEYS.has(builtin)) return false;
+  return true;
+}
 
 /** מאפיינים רכים (נוף לים, בוטיק…) — מידע בלבד, לא בחירת מקור */
 export type InquiryInfoTrait = {
@@ -173,6 +198,7 @@ function appendChuppaOptionsForInquiry(
         label: "חופה בחוץ",
         priceMode: "included",
         extraPrice: null,
+        allowsExternalSource: false,
       });
     }
     if (covered) {
@@ -181,6 +207,7 @@ function appendChuppaOptionsForInquiry(
         label: "חופה מקורה",
         priceMode: "included",
         extraPrice: null,
+        allowsExternalSource: false,
       });
     }
   } else if (v.hasChuppa) {
@@ -189,6 +216,7 @@ function appendChuppaOptionsForInquiry(
       label: "חופה",
       priceMode: "included",
       extraPrice: null,
+      allowsExternalSource: false,
     });
   }
 }
@@ -203,6 +231,7 @@ function pushBuiltinOption(
     label: BUILTIN_LABELS[key],
     priceMode: state?.priceMode ?? "included",
     extraPrice: state?.extraPrice ?? null,
+    allowsExternalSource: !VENUE_ONLY_BUILTIN_KEYS.has(key),
   });
 }
 
@@ -245,6 +274,7 @@ export function getVenueInquiryOptions(
         label,
         priceMode: row.priceMode,
         extraPrice: row.extraPrice,
+        allowsExternalSource: false,
       });
       weddingCustomIdx += 1;
     } else {
@@ -253,6 +283,7 @@ export function getVenueInquiryOptions(
         label: row.label,
         priceMode: row.priceMode,
         extraPrice: row.extraPrice,
+        allowsExternalSource: true,
       });
       generalIdx += 1;
     }
@@ -278,6 +309,7 @@ export function getVenueInquiryOptions(
           label: item.label,
           priceMode: item.priceMode,
           extraPrice: item.extraPrice,
+          allowsExternalSource: false,
         });
         hallIdx += 1;
       }
@@ -366,7 +398,9 @@ export function normalizeInquiryServiceChoices(
     id: o.id,
     label: o.label,
     source:
-      o.id === "service:chuppaOutdoor" || o.id === "service:chuppaCovered"
+      !inquiryServiceAllowsExternalSource(o) ||
+      o.id === "service:chuppaOutdoor" ||
+      o.id === "service:chuppaCovered"
         ? "venue"
         : (byId.get(o.id) ?? "venue"),
     priceMode: o.priceMode,

@@ -5,6 +5,7 @@ import {
   formatInquiryPriceHint,
   getInquiryGuestBounds,
   getVenueInquiryOptions,
+  inquiryServiceAllowsExternalSource,
   isWeddingInquiryEventType,
   type InquiryInfoTrait,
   type InquiryServiceOption,
@@ -214,7 +215,9 @@ export default function VenueInquiryClient({
 
     const restChoices = splitChuppa.rest.map((o) => ({
       id: o.id,
-      source: sourceById[o.id] ?? "venue",
+      source: inquiryServiceAllowsExternalSource(o)
+        ? (sourceById[o.id] ?? "venue")
+        : "venue",
       priceMode: o.priceMode,
       extraPrice: o.extraPrice,
     }));
@@ -454,9 +457,8 @@ export default function VenueInquiryClient({
             <div className="rounded-xl border border-[#E8E0D4] bg-[#FAF8F4]/80 p-4">
               <p className="text-xs font-semibold text-[#0F3B2E]">שירותים שהאולם מציע — איך תרצו לסגור?</p>
               <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
-                {weddingForm
-                  ? "לכל פריט (מלבד חופה): דרך האולם או מקור חיצוני. חופה — רק דרך האולם. תגית מחיר לפי הגדרת האולם."
-                  : "לכל פריט: דרך האולם או מקור חיצוני. תגית מחיר לפי הגדרת האולם (כלול / בתוספת תשלום)."}
+                פריטים שחלק מהאולם (רחבה, חופה וכו׳) — דרך האולם בלבד. בשירותים שניתן להביא מבחוץ
+                (למשל אוכל, הגברה) אפשר לבחור דרך האולם או ספק חיצוני. תגית מחיר לפי הגדרת האולם.
               </p>
               {!eventTypeTrimmed && eventTypes.length > 0 && (
                 <p className="mt-2 rounded-lg border border-[#C9A227]/25 bg-[#FFFBF0] px-2.5 py-1.5 text-[11px] text-[#5C564C]">
@@ -533,32 +535,36 @@ export default function VenueInquiryClient({
                         <p className="text-sm font-medium text-[#1A1A1A]">{opt.label}</p>
                         <ServicePriceBadge opt={opt} />
                       </div>
-                      <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-                        <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-                          <input
-                            type="radio"
-                            name={`svc-${opt.id}`}
-                            checked={(sourceById[opt.id] ?? "venue") === "venue"}
-                            onChange={() =>
-                              setSourceById((m) => ({ ...m, [opt.id]: "venue" }))
-                            }
-                            className="h-4 w-4 accent-[#0F3B2E]"
-                          />
-                          דרך האולם
-                        </label>
-                        <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-                          <input
-                            type="radio"
-                            name={`svc-${opt.id}`}
-                            checked={(sourceById[opt.id] ?? "venue") === "external"}
-                            onChange={() =>
-                              setSourceById((m) => ({ ...m, [opt.id]: "external" }))
-                            }
-                            className="h-4 w-4 accent-[#0F3B2E]"
-                          />
-                          אצלי / ספק חיצוני
-                        </label>
-                      </div>
+                      {inquiryServiceAllowsExternalSource(opt) ? (
+                        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+                          <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                            <input
+                              type="radio"
+                              name={`svc-${opt.id}`}
+                              checked={(sourceById[opt.id] ?? "venue") === "venue"}
+                              onChange={() =>
+                                setSourceById((m) => ({ ...m, [opt.id]: "venue" }))
+                              }
+                              className="h-4 w-4 accent-[#0F3B2E]"
+                            />
+                            דרך האולם
+                          </label>
+                          <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                            <input
+                              type="radio"
+                              name={`svc-${opt.id}`}
+                              checked={(sourceById[opt.id] ?? "venue") === "external"}
+                              onChange={() =>
+                                setSourceById((m) => ({ ...m, [opt.id]: "external" }))
+                              }
+                              className="h-4 w-4 accent-[#0F3B2E]"
+                            />
+                            אצלי / ספק חיצוני
+                          </label>
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-[11px] text-[#6B6560]">חלק מהאולם — דרך האולם.</p>
+                      )}
                     </li>
                   ))}
                 </ul>

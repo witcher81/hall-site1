@@ -3,7 +3,10 @@ import {
   shouldShowInquiryFreeText,
   stripEmbeddedServiceChoicesFromInquiryMessage,
 } from "@/lib/inquiryMessageDisplay";
-import { formatInquiryPriceHint } from "@/lib/venueInquiryAmenities";
+import {
+  formatInquiryPriceHint,
+  inquiryServiceAllowsExternalSource,
+} from "@/lib/venueInquiryAmenities";
 
 /** תצוגת JSON בחירות שירותים שנשמר בפנייה */
 export default function InquiryServiceChoicesFromSeeker({
@@ -38,16 +41,21 @@ export default function InquiryServiceChoicesFromSeeker({
                 ? Math.trunc(row.extraPrice)
                 : null;
             const priceHint = formatInquiryPriceHint(priceMode, extraPrice);
-            const via =
-              row.source === "venue" ? (
-                <span className="inline-flex shrink-0 rounded-full border border-[#0F3B2E]/20 bg-[#0F3B2E]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#0F3B2E]">
-                  דרך האולם
-                </span>
-              ) : (
-                <span className="inline-flex shrink-0 rounded-full border border-[#D4C4B0] bg-[#FAF6EF] px-2.5 py-1 text-[11px] font-semibold text-[#4A453C]">
-                  ספק חיצוני
-                </span>
-              );
+            const venueOnly =
+              typeof row.id === "string" && !inquiryServiceAllowsExternalSource({ id: row.id });
+            const via = venueOnly ? (
+              <span className="inline-flex shrink-0 rounded-full border border-[#0F3B2E]/20 bg-[#0F3B2E]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#0F3B2E]">
+                חלק מהאולם
+              </span>
+            ) : row.source === "venue" ? (
+              <span className="inline-flex shrink-0 rounded-full border border-[#0F3B2E]/20 bg-[#0F3B2E]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#0F3B2E]">
+                דרך האולם
+              </span>
+            ) : (
+              <span className="inline-flex shrink-0 rounded-full border border-[#D4C4B0] bg-[#FAF6EF] px-2.5 py-1 text-[11px] font-semibold text-[#4A453C]">
+                ספק חיצוני
+              </span>
+            );
             return (
               <li
                 key={typeof row.id === "string" ? row.id : `row-${i}`}
