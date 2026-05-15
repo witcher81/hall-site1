@@ -12,6 +12,7 @@ import {
   type ServiceChoiceSource,
   type VenueInquiryAmenitiesInput,
 } from "@/lib/venueInquiryAmenities";
+import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import { PARKING_KIND_LABELS, type ParkingKind } from "@/lib/venueParkingKind";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -457,8 +458,7 @@ export default function VenueInquiryClient({
             <div className="rounded-xl border border-[#E8E0D4] bg-[#FAF8F4]/80 p-4">
               <p className="text-xs font-semibold text-[#0F3B2E]">שירותים שהאולם מציע — איך תרצו לסגור?</p>
               <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
-                פריטים שחלק מהאולם (רחבה, חופה וכו׳) — דרך האולם בלבד. בשירותים שניתן להביא מבחוץ
-                (למשל אוכל, הגברה) אפשר לבחור דרך האולם או ספק חיצוני. תגית מחיר לפי הגדרת האולם.
+                {INQUIRY_EXTERNAL_SOURCE_COPY.servicesSectionHelp} תגית מחיר לפי הגדרת האולם.
               </p>
               {!eventTypeTrimmed && eventTypes.length > 0 && (
                 <p className="mt-2 rounded-lg border border-[#C9A227]/25 bg-[#FFFBF0] px-2.5 py-1.5 text-[11px] text-[#5C564C]">
@@ -547,7 +547,7 @@ export default function VenueInquiryClient({
                               }
                               className="h-4 w-4 accent-[#0F3B2E]"
                             />
-                            דרך האולם
+                            {INQUIRY_EXTERNAL_SOURCE_COPY.venueRadio}
                           </label>
                           <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
                             <input
@@ -559,11 +559,13 @@ export default function VenueInquiryClient({
                               }
                               className="h-4 w-4 accent-[#0F3B2E]"
                             />
-                            אצלי / ספק חיצוני
+                            {INQUIRY_EXTERNAL_SOURCE_COPY.externalRadio}
                           </label>
                         </div>
                       ) : (
-                        <p className="mt-1 text-[11px] text-[#6B6560]">חלק מהאולם — דרך האולם.</p>
+                        <p className="mt-1 text-[11px] text-[#6B6560]">
+                          {INQUIRY_EXTERNAL_SOURCE_COPY.venueOnlyLine}
+                        </p>
                       )}
                     </li>
                   ))}

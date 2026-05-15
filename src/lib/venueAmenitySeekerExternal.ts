@@ -52,6 +52,19 @@ export function resolveSeekerExternalForCustomRow(
   return defaultWhenMissing;
 }
 
+/** טקסטים משותפים — טופס פנייה / בחירת אולם (צד מחפש) */
+export const INQUIRY_EXTERNAL_SOURCE_COPY = {
+  venueRadio: "דרך האולם",
+  externalRadio: "להביא ספק חיצוני",
+  venueOnlyLine: "חלק מהאולם — דרך האולם בלבד.",
+  servicesSectionHelp:
+    "פריטים שחלק מהאולם (רחבה, חופה וכו׳) — דרך האולם בלבד. איפה שהאולם מאפשר, אפשר לבחור דרך האולם או להביא ספק חיצוני.",
+  inquiryPageIntro:
+    "בוחרים תאריך, סוג אירוע ואורחים — ולכל שירות שהאולם מציע בוחרים דרך האולם או להביא ספק חיצוני (כשהאולם מאפשר).",
+  publicHallIntro:
+    "בדף נפרד תמלאו תאריך, כמות אורחים, סוג אירוע (אופציונלי) ובחירה לכל שירות — דרך האולם או להביא ספק חיצוני כשהאולם מאפשר.",
+} as const;
+
 export function initialBuiltinSeekerExternalMap(): Record<
   BuiltinAmenityKeyFull,
   boolean

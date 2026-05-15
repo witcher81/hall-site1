@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { normalizeHalfStarRating } from "@/lib/reviewRating";
 import { recordVenueRecentlyViewed } from "@/lib/recentlyViewedVenues";
 import { useEngagedVenueView } from "@/lib/useEngagedViewAnalytics";
+import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import { WEDDING_AMENITY_STORAGE_PREFIX } from "@/lib/venueInquiryAmenities";
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
@@ -904,8 +905,7 @@ export default function VenuePublicView({
         <p className="text-[11px] font-semibold tracking-wide text-[#C9A227]">השלב הבא</p>
         <h2 className="mt-1 text-lg font-bold text-[#0F3B2E]">שליחת בקשה לאולם</h2>
         <p className="mt-2 text-sm leading-relaxed text-[#5C564C]">
-          בדף נפרד תמלאו תאריך, כמות אורחים, סוג אירוע (אופציונלי) ובחירה לכל שירות שהאולם מציע — דרך האולם או ספק
-          חיצוני. כאן אפשר רק לבדוק זמינות בלוח.
+          {INQUIRY_EXTERNAL_SOURCE_COPY.publicHallIntro} כאן אפשר רק לבדוק זמינות בלוח.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-[#5C564C]">
           <a

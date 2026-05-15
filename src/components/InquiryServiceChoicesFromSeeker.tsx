@@ -3,6 +3,7 @@ import {
   shouldShowInquiryFreeText,
   stripEmbeddedServiceChoicesFromInquiryMessage,
 } from "@/lib/inquiryMessageDisplay";
+import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import {
   formatInquiryPriceHint,
   inquiryServiceAllowsExternalSource,
@@ -49,11 +50,11 @@ export default function InquiryServiceChoicesFromSeeker({
               </span>
             ) : row.source === "venue" ? (
               <span className="inline-flex shrink-0 rounded-full border border-[#0F3B2E]/20 bg-[#0F3B2E]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#0F3B2E]">
-                דרך האולם
+                {INQUIRY_EXTERNAL_SOURCE_COPY.venueRadio}
               </span>
             ) : (
               <span className="inline-flex shrink-0 rounded-full border border-[#D4C4B0] bg-[#FAF6EF] px-2.5 py-1 text-[11px] font-semibold text-[#4A453C]">
-                ספק חיצוני
+                {INQUIRY_EXTERNAL_SOURCE_COPY.externalRadio}
               </span>
             );
             return (

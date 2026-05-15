@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { parseEventTypesList } from "@/lib/venueEditFormParse";
 import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import type { VenueInquiryAmenitiesInput } from "@/lib/venueInquiryAmenities";
+import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import HomeHeader from "@/components/HomeHeader";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -107,8 +108,8 @@ export default async function VenueInquiryPage({
           בקשה להצעת מחיר — {venue.name}
         </h1>
         <p className="mt-1 text-right text-sm text-[#5F5F5F]">
-          בוחרים תאריך, סוג אירוע ואורחים — ולכל שירות שהאולם מציע בוחרים אם לסגור דרך האולם או עם ספק
-          חיצוני. התמחור (כלול / בתוספת) מוצג לפי מה שהאולם הגדיר.
+          {INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} התמחור (כלול / בתוספת) מוצג לפי מה שהאולם
+          הגדיר.
         </p>
         <Suspense
           fallback={
