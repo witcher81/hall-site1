@@ -27,7 +27,10 @@ export default function SeekerExternalSourceToggle({
         className="checkbox-hall mt-0.5 shrink-0"
       />
       <span className="leading-snug">
-        מאפשר למבקש לבחור ספק חיצוני (במקום דרך האולם בלבד)
+        מאפשר להביא ספק חיצוני{" "}
+        <span className="text-[#9A928A]" title="אופציונלי" aria-label="אופציונלי">
+          *
+        </span>
       </span>
     </label>
   );

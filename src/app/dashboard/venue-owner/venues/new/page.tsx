@@ -997,7 +997,7 @@ export default function NewVenuePage() {
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
               אוכל, ריקודים, שולחנות, הגברה וחדר כלה — גרירה ל«כלול במחיר» או «בתוספת תשלום», ובחרו
-              לכל פריט אם מבקשי פנייה יוכלו להביא ספק חיצוני.
+              לכל פריט אם מותר להביא ספק חיצוני (אופציונלי).
               {anyEventOffersFood
                 ? " האוכל נקבע גם לפי סוגי האירוע למטה."
                 : ""}
@@ -1216,8 +1216,8 @@ export default function NewVenuePage() {
                             מה יש באולם לסוג &quot;{et}&quot;? (אופציונלי)
                           </p>
                           <p className="mb-2 text-[11px] text-[#6B6560]">
-                            פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה. סמנו אם
-                            מותר ספק חיצוני.
+                            פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה. אפשר לסמן אם
+                            מותר להביא ספק חיצוני (* אופציונלי).
                           </p>
                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           {profile.customHallRows.map((row, idx) => (
