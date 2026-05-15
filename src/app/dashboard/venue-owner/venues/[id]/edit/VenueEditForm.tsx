@@ -78,7 +78,6 @@ const HALL_GENERAL_PRICE_KEYS = [
   { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
   { key: "hasTableSetup" as const, label: "סידור שולחנות" },
   { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
-  { key: "hasBridalRoom" as const, label: "חדר חתן/כלה" },
 ] as const;
 function isPositivePrice(value: string) {
   const n = Number(value);
@@ -118,7 +117,6 @@ export default function VenueEditForm({
     seaView: initial.seaView,
     boutique: initial.boutique,
     accessible: initial.accessible,
-    hasBridalRoom: initial.hasBridalRoom,
     hasDanceFloor: initial.hasDanceFloor,
     hasTableSetup: initial.hasTableSetup,
     hasSoundSystem: initial.hasSoundSystem,
@@ -230,7 +228,6 @@ export default function VenueEditForm({
     hasDanceFloor: form.hasDanceFloor,
     hasTableSetup: form.hasTableSetup,
     hasSoundSystem: form.hasSoundSystem,
-    hasBridalRoom: form.hasBridalRoom,
   };
 
   const setHallBuiltin = useCallback(
@@ -570,7 +567,7 @@ export default function VenueEditForm({
       fd.append("hasDanceFloor", String(anyEventDanceFloor));
       fd.append("hasTableSetup", String(anyEventTableSetup));
       fd.append("hasSoundSystem", String(anyEventSoundSystem));
-      fd.append("hasBridalRoom", String(form.hasBridalRoom));
+      fd.append("hasBridalRoom", "false");
       fd.append("seaView", String(form.seaView));
       fd.append("boutique", String(form.boutique));
       fd.append("accessible", String(form.accessible));
@@ -582,7 +579,6 @@ export default function VenueEditForm({
         hasDanceFloor: anyEventDanceFloor,
         hasTableSetup: anyEventTableSetup,
         hasSoundSystem: anyEventSoundSystem,
-        hasBridalRoom: form.hasBridalRoom,
       };
       const customAmenitiesPayload = [
         ...VENUE_PRODUCT_BUILTIN_KEYS.map((key) => ({
@@ -939,7 +935,7 @@ export default function VenueEditForm({
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-              אוכל, ריקודים, שולחנות, הגברה וחדר כלה — גרירה ל«כלול במחיר» או «בתוספת תשלום», ובחרו
+              אוכל, ריקודים, שולחנות והגברה — גרירה ל«כלול במחיר» או «בתוספת תשלום», ובחרו
               לכל פריט אם מותר להביא ספק חיצוני (אופציונלי).
               {anyEventOffersFood ? " האוכל נקבע גם לפי סוגי האירוע למטה." : ""}
             </p>
@@ -1398,7 +1394,7 @@ export default function VenueEditForm({
 
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">
-              תיאור קצר
+              על האולם
             </label>
             <textarea
               rows={3}

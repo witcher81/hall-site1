@@ -6,15 +6,13 @@ export type HallMoneyBuiltinKey =
   | "hasFood"
   | "hasDanceFloor"
   | "hasTableSetup"
-  | "hasSoundSystem"
-  | "hasBridalRoom";
+  | "hasSoundSystem";
 
 export const HALL_BUILTIN_LABELS: Record<HallMoneyBuiltinKey, string> = {
   hasFood: "אוכל באולם",
   hasDanceFloor: "רחבת ריקודים",
   hasTableSetup: "סידור שולחנות",
   hasSoundSystem: "מערכת הגברה",
-  hasBridalRoom: "חדר חתן/כלה",
 };
 
 /** קטגוריית שירות במאגר הספקים (תואם ל־ProvidersSearchClient) */
@@ -29,8 +27,6 @@ export function providerCategoryForHallBuiltin(
       return "DJ";
     case "hasTableSetup":
       return "עיצוב אירועים";
-    case "hasBridalRoom":
-      return null;
     default:
       return null;
   }

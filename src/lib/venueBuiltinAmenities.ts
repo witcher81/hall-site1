@@ -4,7 +4,6 @@ export const HALL_VENUE_PRODUCT_DND_ITEMS = [
   { key: "hasDanceFloor", label: "רחבת ריקודים", supportsExtraPrice: true as const },
   { key: "hasTableSetup", label: "סידור שולחנות", supportsExtraPrice: true as const },
   { key: "hasSoundSystem", label: "מערכת הגברה", supportsExtraPrice: true as const },
-  { key: "hasBridalRoom", label: "חדר חתן/כלה", supportsExtraPrice: true as const },
 ] as const;
 
 export type HallGeneralBuiltinKey =

@@ -13,8 +13,7 @@ type BuiltinAmenityKey =
   | "hasFood"
   | "hasDanceFloor"
   | "hasTableSetup"
-  | "hasSoundSystem"
-  | "hasBridalRoom";
+  | "hasSoundSystem";
 
 function truncateMeta(s: string, max: number) {
   const t = s.replace(/\s+/g, " ").trim();
@@ -152,7 +151,6 @@ export default async function HallPublicPage({
       hasDanceFloor: true,
       hasTableSetup: true,
       hasSoundSystem: true,
-      hasBridalRoom: true,
       customAmenitiesJson: true,
       venueSoftAttributesJson: true,
       coverImageUrl: true,
@@ -244,8 +242,7 @@ export default async function HallPublicPage({
       key === "hasFood" ||
       key === "hasDanceFloor" ||
       key === "hasTableSetup" ||
-      key === "hasSoundSystem" ||
-      key === "hasBridalRoom"
+      key === "hasSoundSystem"
     ) {
       amenityPriceModes[key] = row.priceMode;
       if (typeof row.extraPrice === "number" && row.extraPrice > 0) {
@@ -312,7 +309,6 @@ export default async function HallPublicPage({
           hasDanceFloor: venue.hasDanceFloor,
           hasTableSetup: venue.hasTableSetup,
           hasSoundSystem: venue.hasSoundSystem,
-          hasBridalRoom: venue.hasBridalRoom,
           amenityPriceModes,
           amenityExtraPrices,
           softCustomAttributeLabels:

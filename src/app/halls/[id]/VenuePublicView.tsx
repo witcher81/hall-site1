@@ -16,8 +16,7 @@ type BuiltinAmenityKey =
   | "hasFood"
   | "hasDanceFloor"
   | "hasTableSetup"
-  | "hasSoundSystem"
-  | "hasBridalRoom";
+  | "hasSoundSystem";
 type Venue = {
   id: number;
   name: string;
@@ -45,7 +44,6 @@ type Venue = {
   hasDanceFloor?: boolean | null;
   hasTableSetup?: boolean | null;
   hasSoundSystem?: boolean | null;
-  hasBridalRoom?: boolean | null;
   customAmenities?: {
     label: string;
     checked: boolean;
@@ -406,7 +404,6 @@ export default function VenuePublicView({
         venue.hasTableSetup ||
         venue.hasDanceFloor ||
         venue.hasSoundSystem ||
-        venue.hasBridalRoom ||
         hasCheckedCustomAmenities ||
         (venue.softCustomAttributeLabels?.length ?? 0) > 0
     );
@@ -450,16 +447,6 @@ export default function VenuePublicView({
             label: "מערכת הגברה",
             mode: venue.amenityPriceModes?.hasSoundSystem,
             extraPrice: venue.amenityExtraPrices?.hasSoundSystem,
-          },
-        ]
-      : []),
-    ...(venue.hasBridalRoom
-      ? [
-          {
-            key: "builtin-bridal-room",
-            label: "חדר חתן/כלה",
-            mode: venue.amenityPriceModes?.hasBridalRoom,
-            extraPrice: venue.amenityExtraPrices?.hasBridalRoom,
           },
         ]
       : []),

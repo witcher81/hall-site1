@@ -80,7 +80,6 @@ export async function POST(req: NextRequest) {
       hasDanceFloor: true,
       hasTableSetup: true,
       hasSoundSystem: true,
-      hasBridalRoom: true,
       customAmenitiesJson: true,
       venueSoftAttributesJson: true,
       eventTypeProfilesJson: true,

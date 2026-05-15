@@ -1,4 +1,7 @@
-import type { BuiltinAmenityKeyFull } from "@/lib/venueBuiltinAmenities";
+import {
+  VENUE_PRODUCT_BUILTIN_KEYS,
+  type BuiltinAmenityKeyFull,
+} from "@/lib/venueBuiltinAmenities";
 
 /** שדה ב-JSON של שירותים (customAmenitiesJson / customHallItems) */
 export const SEEKER_EXTERNAL_JSON_KEY = "allowsSeekerExternalSource";
@@ -7,7 +10,6 @@ export const SEEKER_EXTERNAL_JSON_KEY = "allowsSeekerExternalSource";
 export const BUILTIN_FIXED_VENUE_ONLY_KEYS = new Set<BuiltinAmenityKeyFull>([
   "hasDanceFloor",
   "hasTableSetup",
-  "hasBridalRoom",
 ]);
 
 export function builtinAmenityOffersSeekerExternalConfig(
@@ -70,14 +72,6 @@ export function initialBuiltinSeekerExternalMap(): Record<
   boolean
 > {
   return Object.fromEntries(
-    (
-      [
-        "hasFood",
-        "hasDanceFloor",
-        "hasTableSetup",
-        "hasSoundSystem",
-        "hasBridalRoom",
-      ] as BuiltinAmenityKeyFull[]
-    ).map((k) => [k, defaultSeekerExternalForBuiltin(k)])
+    VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, defaultSeekerExternalForBuiltin(k)])
   ) as Record<BuiltinAmenityKeyFull, boolean>;
 }

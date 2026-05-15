@@ -48,8 +48,7 @@ function parseVenueMoneyRows(customAmenitiesJson: string | null): {
           key === "hasFood" ||
           key === "hasDanceFloor" ||
           key === "hasTableSetup" ||
-          key === "hasSoundSystem" ||
-          key === "hasBridalRoom"
+          key === "hasSoundSystem"
         ) {
           if (
             priceMode === "extra" &&

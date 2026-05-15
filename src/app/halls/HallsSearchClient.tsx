@@ -58,7 +58,6 @@ const EMPTY_SEARCH_FORM = {
   hasTableSetup: false,
   hasDanceFloor: false,
   hasSoundSystem: false,
-  hasBridalRoom: false,
 };
 
 const EVENT_TYPE_OPTIONS = [
@@ -115,7 +114,6 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   if (f.hasTableSetup) params.set("hasTableSetup", "true");
   if (f.hasDanceFloor) params.set("hasDanceFloor", "true");
   if (f.hasSoundSystem) params.set("hasSoundSystem", "true");
-  if (f.hasBridalRoom) params.set("hasBridalRoom", "true");
   return params;
 }
 
@@ -175,7 +173,6 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
     hasTableSetup: sp.get("hasTableSetup") === "true",
     hasDanceFloor: sp.get("hasDanceFloor") === "true",
     hasSoundSystem: sp.get("hasSoundSystem") === "true",
-    hasBridalRoom: sp.get("hasBridalRoom") === "true",
   };
 }
 
@@ -206,7 +203,6 @@ type Venue = {
   hasTableSetup?: boolean | null;
   hasDanceFloor?: boolean | null;
   hasSoundSystem?: boolean | null;
-  hasBridalRoom?: boolean | null;
   customAmenities?: { label: string; checked: boolean }[];
   /** קידום פעיל — האולם מוצג בראש תוצאות החיפוש */
   isBoosted?: boolean;
@@ -433,7 +429,6 @@ function VenueResultCard({
           v.hasTableSetup ||
           v.hasDanceFloor ||
           v.hasSoundSystem ||
-          v.hasBridalRoom ||
           (v.customAmenities?.some((a) => a.checked) ?? false)) && (
           <div className="mt-2 flex flex-wrap gap-1">
             {v.hasChuppa && (
@@ -459,11 +454,6 @@ function VenueResultCard({
             {v.hasSoundSystem && (
               <span className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[10px] text-[#0F3B2E]">
                 הגברה
-              </span>
-            )}
-            {v.hasBridalRoom && (
-              <span className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[10px] text-[#0F3B2E]">
-                חדר חתן/כלה
               </span>
             )}
             {v.customAmenities
@@ -594,7 +584,6 @@ export default function HallsSearchClient({
      const hasTableSetup = searchParams.get("hasTableSetup");
      const hasDanceFloor = searchParams.get("hasDanceFloor");
      const hasSoundSystem = searchParams.get("hasSoundSystem");
-     const hasBridalRoom = searchParams.get("hasBridalRoom");
     if (city) params.set("city", city);
     if (guestsRange === "true") params.set("guestsRange", "true");
     if (priceRange === "true") params.set("priceRange", "true");
@@ -618,7 +607,6 @@ export default function HallsSearchClient({
     if (hasTableSetup) params.set("hasTableSetup", hasTableSetup);
     if (hasDanceFloor) params.set("hasDanceFloor", hasDanceFloor);
     if (hasSoundSystem) params.set("hasSoundSystem", hasSoundSystem);
-    if (hasBridalRoom) params.set("hasBridalRoom", hasBridalRoom);
     const qs = params.toString();
     fetch(`/api/venues${qs ? `?${qs}` : ""}`)
       .then((res) => res.json())
@@ -1003,7 +991,6 @@ export default function HallsSearchClient({
                 hasTableSetup: form.hasTableSetup,
                 hasDanceFloor: form.hasDanceFloor,
                 hasSoundSystem: form.hasSoundSystem,
-                hasBridalRoom: form.hasBridalRoom,
               }}
               onChange={(key, checked) =>
                 setForm((f) => ({ ...f, [key]: checked }))

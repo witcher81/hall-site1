@@ -38,7 +38,6 @@ export type VenueEditFormInitial = {
   seaView: boolean;
   boutique: boolean;
   accessible: boolean;
-  hasBridalRoom: boolean;
   hasDanceFloor: boolean;
   hasTableSetup: boolean;
   hasSoundSystem: boolean;
@@ -162,7 +161,6 @@ export function buildVenueEditInitial(
     seaView: venue.seaView === true,
     boutique: venue.boutique === true,
     accessible: venue.accessible === true,
-    hasBridalRoom: venue.hasBridalRoom,
     hasDanceFloor: venue.hasDanceFloor,
     hasTableSetup: venue.hasTableSetup,
     hasSoundSystem: venue.hasSoundSystem,

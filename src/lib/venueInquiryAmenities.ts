@@ -23,7 +23,6 @@ const BUILTIN_SERVICE_KEYS: BuiltinServiceKey[] = [
   "hasDanceFloor",
   "hasTableSetup",
   "hasSoundSystem",
-  "hasBridalRoom",
 ];
 
 const BUILTIN_LABELS: Record<BuiltinServiceKey, string> = {
@@ -31,7 +30,6 @@ const BUILTIN_LABELS: Record<BuiltinServiceKey, string> = {
   hasDanceFloor: "רחבת ריקודים",
   hasTableSetup: "סידור שולחנות",
   hasSoundSystem: "מערכת הגברה",
-  hasBridalRoom: "חדר חתן/כלה",
 };
 
 export type VenueInquiryAmenitiesInput = {
@@ -42,7 +40,6 @@ export type VenueInquiryAmenitiesInput = {
   hasDanceFloor?: boolean | null;
   hasTableSetup?: boolean | null;
   hasSoundSystem?: boolean | null;
-  hasBridalRoom?: boolean | null;
   customAmenitiesJson?: string | null;
   venueSoftAttributesJson?: string | null;
   eventTypeProfilesJson?: string | null;

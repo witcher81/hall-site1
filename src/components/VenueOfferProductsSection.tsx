@@ -17,7 +17,6 @@ export type VenueOfferProductsSlice = {
   hasTableSetup: boolean;
   hasDanceFloor: boolean;
   hasSoundSystem: boolean;
-  hasBridalRoom: boolean;
 };
 
 type Props = {
@@ -141,15 +140,6 @@ export default function VenueOfferProductsSection({
             className={offerInputClass}
           />
           מערכת הגברה
-        </label>
-        <label className={offerCheckboxClass}>
-          <input
-            type="checkbox"
-            checked={values.hasBridalRoom}
-            onChange={(e) => onChange("hasBridalRoom", e.target.checked)}
-            className={offerInputClass}
-          />
-          חדר חתן/כלה
         </label>
       </div>
       {chuppaDetailLocked ? (
