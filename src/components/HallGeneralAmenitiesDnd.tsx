@@ -2,6 +2,9 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import SeekerExternalSourceToggle, {
+  SeekerExternalVenueOnlyHint,
+} from "@/components/SeekerExternalSourceToggle";
 import {
   HALL_VENUE_PRODUCT_DND_ITEMS,
   VENUE_PRODUCT_BUILTIN_KEYS,
@@ -9,6 +12,10 @@ import {
   type HallGeneralBuiltinKey,
   type HallGeneralPriceMode,
 } from "@/lib/venueBuiltinAmenities";
+import {
+  builtinAmenityOffersSeekerExternalConfig,
+  defaultSeekerExternalForCustomRow,
+} from "@/lib/venueAmenitySeekerExternal";
 
 export type { HallGeneralPriceMode, HallGeneralBuiltinKey, BuiltinAmenityKeyFull };
 export { HALL_VENUE_PRODUCT_DND_ITEMS, VENUE_PRODUCT_BUILTIN_KEYS };
@@ -21,6 +28,7 @@ export type HallGeneralCustomRow = {
   checked: boolean;
   priceMode: HallGeneralPriceMode;
   extraPrice: string;
+  allowsSeekerExternal: boolean;
 };
 
 const DND_MIME = "application/x-hall-general-amenity";
@@ -66,6 +74,7 @@ export function newHallGeneralCustomRow(label: string): HallGeneralCustomRow {
     checked: false,
     priceMode: "included",
     extraPrice: "",
+    allowsSeekerExternal: defaultSeekerExternalForCustomRow(),
   };
 }
 
@@ -94,6 +103,10 @@ type Props = {
   setBuiltinAmenityPriceModes: Dispatch<SetStateAction<BuiltinPriceModes>>;
   builtinAmenityExtraPrices: BuiltinExtraPrices;
   setBuiltinAmenityExtraPrices: Dispatch<SetStateAction<BuiltinExtraPrices>>;
+  builtinAmenityAllowsSeekerExternal: Record<BuiltinAmenityKeyFull, boolean>;
+  setBuiltinAmenityAllowsSeekerExternal: Dispatch<
+    SetStateAction<Record<BuiltinAmenityKeyFull, boolean>>
+  >;
   customAmenityRows: HallGeneralCustomRow[];
   setCustomAmenityRows: Dispatch<SetStateAction<HallGeneralCustomRow[]>>;
   customHallGeneralInput: string;
@@ -108,6 +121,8 @@ export default function HallGeneralAmenitiesDnd({
   setBuiltinAmenityPriceModes,
   builtinAmenityExtraPrices,
   setBuiltinAmenityExtraPrices,
+  builtinAmenityAllowsSeekerExternal,
+  setBuiltinAmenityAllowsSeekerExternal,
   customAmenityRows,
   setCustomAmenityRows,
   customHallGeneralInput,
@@ -226,6 +241,22 @@ export default function HallGeneralAmenitiesDnd({
             placeholder="₪"
           />
         ) : null}
+        <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2">
+          {builtinAmenityOffersSeekerExternalConfig(key) ? (
+            <SeekerExternalSourceToggle
+              compact
+              checked={builtinAmenityAllowsSeekerExternal[key] ?? false}
+              onChange={(next) =>
+                setBuiltinAmenityAllowsSeekerExternal((prev) => ({
+                  ...prev,
+                  [key]: next,
+                }))
+              }
+            />
+          ) : (
+            <SeekerExternalVenueOnlyHint compact />
+          )}
+        </div>
       </div>
     );
   };
@@ -287,6 +318,17 @@ export default function HallGeneralAmenitiesDnd({
         >
           הסר
         </button>
+        <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2">
+          <SeekerExternalSourceToggle
+            compact
+            checked={row.allowsSeekerExternal}
+            onChange={(next) =>
+              setCustomAmenityRows((prev) =>
+                prev.map((r) => (r.id === row.id ? { ...r, allowsSeekerExternal: next } : r))
+              )
+            }
+          />
+        </div>
       </div>
     );
   };
@@ -306,8 +348,8 @@ export default function HallGeneralAmenitiesDnd({
   return (
     <>
       <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
-        גררו כל פריט בין «כלול במחיר» ל«בתוספת תשלום». פריטים ללא סימון לא יופיעו בחיפוש. אפשר להוסיף
-        פרטים משלכם למטה.
+        גררו כל פריט בין «כלול במחיר» ל«בתוספת תשלום». לכל פריט פעיל סמנו אם מבקשי פנייה יוכלו לבחור
+        ספק חיצוני או רק דרך האולם. פריטים ללא סימון לא יופיעו בחיפוש.
       </p>
 
       <div className="mb-3 space-y-2">

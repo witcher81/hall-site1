@@ -32,6 +32,11 @@ import HallGeneralAmenitiesDnd, {
   VENUE_PRODUCT_BUILTIN_KEYS,
 } from "@/components/HallGeneralAmenitiesDnd";
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
+import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
+import {
+  defaultSeekerExternalForCustomRow,
+  initialBuiltinSeekerExternalMap,
+} from "@/lib/venueAmenitySeekerExternal";
 
 const PRESET_EVENT_TYPES: readonly string[] = [
   "חתונה",
@@ -62,6 +67,7 @@ type EventTypeProfileState = {
     checked: boolean;
     priceMode: PriceMode;
     extraPrice: string;
+    allowsSeekerExternal: boolean;
   }[];
 };
 type BuiltinAmenityKey = BuiltinAmenityKeyFull;
@@ -156,6 +162,8 @@ export default function NewVenuePage() {
       string
     >
   );
+  const [builtinAmenityAllowsSeekerExternal, setBuiltinAmenityAllowsSeekerExternal] =
+    useState(initialBuiltinSeekerExternalMap);
   const [parkingKind, setParkingKind] = useState<"" | ParkingKind>("");
   const [parkingLat, setParkingLat] = useState<number | null>(null);
   const [parkingLng, setParkingLng] = useState<number | null>(null);
@@ -358,6 +366,7 @@ export default function NewVenuePage() {
           checked: r.checked,
           priceMode: r.priceMode,
           extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
+          allowsSeekerExternalSource: r.allowsSeekerExternal,
         }));
         const showMealPricesPayload = et === "חתונה" || base.hasFoodAtEvent === true;
         const veganPayload: Record<string, unknown> = {};
@@ -414,12 +423,14 @@ export default function NewVenuePage() {
             builtinAmenityPriceModes[key] === "extra"
               ? Number(builtinAmenityExtraPrices[key])
               : null,
+          allowsSeekerExternalSource: builtinAmenityAllowsSeekerExternal[key],
         })),
         ...customAmenityRows.map((r) => ({
           label: r.label,
           checked: r.checked,
           priceMode: r.priceMode,
           extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
+          allowsSeekerExternalSource: r.allowsSeekerExternal,
         })),
       ];
       fd.append("customAmenitiesJson", JSON.stringify(customAmenitiesPayload));
@@ -985,7 +996,8 @@ export default function NewVenuePage() {
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-              אוכל, ריקודים, שולחנות, הגברה וחדר כלה — גרירה ל«כלול במחיר» או «בתוספת תשלום».
+              אוכל, ריקודים, שולחנות, הגברה וחדר כלה — גרירה ל«כלול במחיר» או «בתוספת תשלום», ובחרו
+              לכל פריט אם מבקשי פנייה יוכלו להביא ספק חיצוני.
               {anyEventOffersFood
                 ? " האוכל נקבע גם לפי סוגי האירוע למטה."
                 : ""}
@@ -998,6 +1010,8 @@ export default function NewVenuePage() {
               setBuiltinAmenityPriceModes={setBuiltinAmenityPriceModes}
               builtinAmenityExtraPrices={builtinAmenityExtraPrices}
               setBuiltinAmenityExtraPrices={setBuiltinAmenityExtraPrices}
+              builtinAmenityAllowsSeekerExternal={builtinAmenityAllowsSeekerExternal}
+              setBuiltinAmenityAllowsSeekerExternal={setBuiltinAmenityAllowsSeekerExternal}
               customAmenityRows={customAmenityRows}
               setCustomAmenityRows={setCustomAmenityRows}
               customHallGeneralInput={customHallGeneralInput}
@@ -1202,14 +1216,16 @@ export default function NewVenuePage() {
                             מה יש באולם לסוג &quot;{et}&quot;? (אופציונלי)
                           </p>
                           <p className="mb-2 text-[11px] text-[#6B6560]">
-                            פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה.
+                            פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה. סמנו אם
+                            מותר ספק חיצוני.
                           </p>
                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           {profile.customHallRows.map((row, idx) => (
                             <div
                               key={`hall-${et}-${row.label}-${idx}`}
-                              className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
+                              className="flex min-w-0 flex-col gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
                             >
+                              <div className="flex min-w-0 flex-wrap items-center gap-2">
                               <label className="flex min-w-0 flex-1 items-center gap-2">
                                 <input
                                   type="checkbox"
@@ -1290,6 +1306,24 @@ export default function NewVenuePage() {
                               >
                                 הסר
                               </button>
+                              </div>
+                              {row.checked && (
+                                <SeekerExternalSourceToggle
+                                  compact
+                                  checked={row.allowsSeekerExternal}
+                                  onChange={(next) =>
+                                    setEventTypeProfiles((prev) => ({
+                                      ...prev,
+                                      [et]: {
+                                        ...profile,
+                                        customHallRows: profile.customHallRows.map((r, i) =>
+                                          i === idx ? { ...r, allowsSeekerExternal: next } : r
+                                        ),
+                                      },
+                                    }))
+                                  }
+                                />
+                              )}
                             </div>
                           ))}
                           </div>
@@ -1330,6 +1364,8 @@ export default function NewVenuePage() {
                                         checked: true,
                                         priceMode: "included",
                                         extraPrice: "",
+                                        allowsSeekerExternal:
+                                          defaultSeekerExternalForCustomRow(),
                                       },
                                     ],
                                   },

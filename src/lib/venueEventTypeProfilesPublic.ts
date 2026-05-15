@@ -2,11 +2,17 @@
  * פרופיל לפי סוג אירוע — לתצוגה ציבורית בדף אולם (מחפש לוחץ על סוג אירוע).
  */
 
+import {
+  parseSeekerExternalFromRecord,
+  resolveSeekerExternalForCustomRow,
+} from "@/lib/venueAmenitySeekerExternal";
+
 export type PublicEventHallItem = {
   label: string;
   checked: boolean;
   priceMode: "included" | "extra";
   extraPrice: number | null;
+  allowsSeekerExternalSource: boolean;
 };
 
 export type PublicEventTypeProfile = {
@@ -50,6 +56,10 @@ function parseCustomHallItems(raw: unknown): PublicEventHallItem[] {
       checked: o.checked === true,
       priceMode,
       extraPrice,
+      allowsSeekerExternalSource: resolveSeekerExternalForCustomRow(
+        parseSeekerExternalFromRecord(o),
+        false
+      ),
     });
   }
   return out;

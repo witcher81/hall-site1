@@ -1,4 +1,9 @@
 import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
+import {
+  defaultSeekerExternalForCustomRow,
+  parseSeekerExternalFromRecord,
+  resolveSeekerExternalForCustomRow,
+} from "@/lib/venueAmenitySeekerExternal";
 
 export type VenueEditPriceMode = "included" | "extra";
 
@@ -7,6 +12,7 @@ export type VenueEditCustomHallRow = {
   checked: boolean;
   priceMode: VenueEditPriceMode;
   extraPrice: string;
+  allowsSeekerExternal: boolean;
 };
 
 export type VenueEditEventTypeProfile = {
@@ -74,6 +80,9 @@ export function parseCustomAmenitiesFromDb(
           typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
             ? String(Math.trunc(o.extraPrice))
             : "",
+        allowsSeekerExternal: resolveSeekerExternalForCustomRow(
+          parseSeekerExternalFromRecord(o)
+        ),
       });
     }
     return out;
@@ -95,6 +104,7 @@ export function splitWeddingAmenities(rows: VenueEditCustomHallRow[]) {
           checked: row.checked,
           priceMode: row.priceMode,
           extraPrice: row.extraPrice,
+          allowsSeekerExternal: row.allowsSeekerExternal,
         });
       }
       continue;
@@ -128,6 +138,9 @@ function parseCustomHallItemsFromProfileJson(
         typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
           ? String(Math.trunc(o.extraPrice))
           : "",
+      allowsSeekerExternal: resolveSeekerExternalForCustomRow(
+        parseSeekerExternalFromRecord(o)
+      ),
     });
   }
   return out;

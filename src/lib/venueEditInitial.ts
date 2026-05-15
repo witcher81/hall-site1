@@ -16,6 +16,11 @@ import {
 } from "@/lib/venueEditFormParse";
 import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
+import {
+  initialBuiltinSeekerExternalMap,
+  parseSeekerExternalFromRecord,
+  resolveSeekerExternalForBuiltin,
+} from "@/lib/venueAmenitySeekerExternal";
 
 export type VenueEditFormInitial = {
   name: string;
@@ -47,6 +52,7 @@ export type VenueEditFormInitial = {
   customAmenitiesJson: string | null;
   builtinAmenityPriceModes: Record<BuiltinAmenityKeyFull, HallGeneralPriceMode>;
   builtinAmenityExtraPrices: Record<BuiltinAmenityKeyFull, string>;
+  builtinAmenityAllowsSeekerExternal: Record<BuiltinAmenityKeyFull, boolean>;
   latitude: number | null;
   longitude: number | null;
   parkingKind: ParkingKind;
@@ -94,6 +100,7 @@ export function buildVenueEditInitial(
   const builtinAmenityExtraPrices = Object.fromEntries(
     VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, ""])
   ) as Record<BuiltinAmenityKeyFull, string>;
+  const builtinAmenityAllowsSeekerExternal = initialBuiltinSeekerExternalMap();
 
   if (venue.customAmenitiesJson) {
     try {
@@ -119,6 +126,10 @@ export function buildVenueEditInitial(
               builtinAmenityExtraPrices[key] = String(Math.trunc(n));
             }
           }
+          builtinAmenityAllowsSeekerExternal[key] = resolveSeekerExternalForBuiltin(
+            key,
+            parseSeekerExternalFromRecord(o)
+          );
         }
       }
     } catch {
@@ -163,6 +174,7 @@ export function buildVenueEditInitial(
     customAmenitiesJson: venue.customAmenitiesJson ?? null,
     builtinAmenityPriceModes,
     builtinAmenityExtraPrices,
+    builtinAmenityAllowsSeekerExternal,
     latitude: venue.latitude ?? null,
     longitude: venue.longitude ?? null,
     parkingKind: inferParkingKindFromDb({

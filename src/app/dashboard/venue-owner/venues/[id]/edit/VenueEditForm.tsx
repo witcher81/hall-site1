@@ -38,6 +38,8 @@ import HallGeneralAmenitiesDnd, {
   VENUE_PRODUCT_BUILTIN_KEYS,
 } from "@/components/HallGeneralAmenitiesDnd";
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
+import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
+import { defaultSeekerExternalForCustomRow } from "@/lib/venueAmenitySeekerExternal";
 
 const VenueLocationPicker = dynamic(
   () => import("@/components/VenueLocationPicker"),
@@ -205,6 +207,8 @@ export default function VenueEditForm({
   const [builtinAmenityExtraPrices, setBuiltinAmenityExtraPrices] = useState<
     Record<BuiltinAmenityKey, string>
   >(initial.builtinAmenityExtraPrices);
+  const [builtinAmenityAllowsSeekerExternal, setBuiltinAmenityAllowsSeekerExternal] =
+    useState(initial.builtinAmenityAllowsSeekerExternal);
   const isWeddingSelected = eventTypes.includes("חתונה");
   const anyEventOffersFood = useMemo(
     () =>
@@ -513,6 +517,7 @@ export default function VenueEditForm({
           checked: r.checked,
           priceMode: r.priceMode,
           extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
+          allowsSeekerExternalSource: r.allowsSeekerExternal,
         }));
         const showMealPricesPayload = et === "חתונה" || base.hasFoodAtEvent === true;
         const veganPayload: Record<string, unknown> = {};
@@ -588,12 +593,14 @@ export default function VenueEditForm({
             builtinAmenityPriceModes[key] === "extra"
               ? Number(builtinAmenityExtraPrices[key])
               : null,
+          allowsSeekerExternalSource: builtinAmenityAllowsSeekerExternal[key],
         })),
         ...customAmenityRows.map((r) => ({
           label: r.label,
           checked: r.checked,
           priceMode: r.priceMode,
           extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
+          allowsSeekerExternalSource: r.allowsSeekerExternal,
         })),
       ];
       fd.append("customAmenitiesJson", JSON.stringify(customAmenitiesPayload));
@@ -943,6 +950,8 @@ export default function VenueEditForm({
               setBuiltinAmenityPriceModes={setBuiltinAmenityPriceModes}
               builtinAmenityExtraPrices={builtinAmenityExtraPrices}
               setBuiltinAmenityExtraPrices={setBuiltinAmenityExtraPrices}
+              builtinAmenityAllowsSeekerExternal={builtinAmenityAllowsSeekerExternal}
+              setBuiltinAmenityAllowsSeekerExternal={setBuiltinAmenityAllowsSeekerExternal}
               customAmenityRows={customAmenityRows}
               setCustomAmenityRows={setCustomAmenityRows}
               customHallGeneralInput={customHallGeneralInput}
@@ -1153,14 +1162,16 @@ export default function VenueEditForm({
                             מה יש באולם לסוג &quot;{et}&quot;? (אופציונלי)
                           </p>
                           <p className="mb-2 text-[11px] text-[#6B6560]">
-                            פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה.
+                            פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה. סמנו אם
+                            מותר ספק חיצוני.
                           </p>
                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                           {profile.customHallRows.map((row, idx) => (
                             <div
                               key={`hall-${et}-${row.label}-${idx}`}
-                              className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
+                              className="flex min-w-0 flex-col gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
                             >
+                              <div className="flex min-w-0 flex-wrap items-center gap-2">
                               <label className="flex min-w-0 flex-1 items-center gap-2">
                                 <input
                                   type="checkbox"
@@ -1241,6 +1252,24 @@ export default function VenueEditForm({
                               >
                                 הסר
                               </button>
+                              </div>
+                              {row.checked && (
+                                <SeekerExternalSourceToggle
+                                  compact
+                                  checked={row.allowsSeekerExternal}
+                                  onChange={(next) =>
+                                    setEventTypeProfiles((prev) => ({
+                                      ...prev,
+                                      [et]: {
+                                        ...profile,
+                                        customHallRows: profile.customHallRows.map((r, i) =>
+                                          i === idx ? { ...r, allowsSeekerExternal: next } : r
+                                        ),
+                                      },
+                                    }))
+                                  }
+                                />
+                              )}
                             </div>
                           ))}
                           </div>
@@ -1281,6 +1310,8 @@ export default function VenueEditForm({
                                         checked: true,
                                         priceMode: "included",
                                         extraPrice: "",
+                                        allowsSeekerExternal:
+                                          defaultSeekerExternalForCustomRow(),
                                       },
                                     ],
                                   },

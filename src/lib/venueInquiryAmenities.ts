@@ -2,6 +2,12 @@ import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
 import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
 import { parseEventTypesList } from "@/lib/venueEditFormParse";
 import type { BuiltinAmenityKeyFull } from "@/lib/venueBuiltinAmenities";
+import {
+  BUILTIN_FIXED_VENUE_ONLY_KEYS,
+  parseSeekerExternalFromRecord,
+  resolveSeekerExternalForBuiltin,
+  resolveSeekerExternalForCustomRow,
+} from "@/lib/venueAmenitySeekerExternal";
 
 /**
  * רשימת שירותים/תוספים שהאולם מציע — לטופס בקשה (מחפש בוחר מקור לכל פריט).
@@ -60,24 +66,15 @@ export type InquiryServiceOption = {
   allowsExternalSource: boolean;
 };
 
-/** מפתחות מובנים שלא מוצגים עם «ספק חיצוני» */
-const VENUE_ONLY_BUILTIN_KEYS = new Set<BuiltinServiceKey>([
-  "hasDanceFloor",
-  "hasTableSetup",
-  "hasBridalRoom",
-]);
-
 export function inquiryServiceAllowsExternalSource(opt: {
   id: string;
   allowsExternalSource?: boolean;
 }): boolean {
   if (typeof opt.allowsExternalSource === "boolean") return opt.allowsExternalSource;
   if (opt.id.startsWith("service:chuppa")) return false;
-  if (opt.id.startsWith("service:eventHallCustom:")) return false;
-  if (opt.id.startsWith("service:weddingCustom:")) return false;
   const builtin = opt.id.replace(/^service:/, "") as BuiltinServiceKey;
-  if (VENUE_ONLY_BUILTIN_KEYS.has(builtin)) return false;
-  return true;
+  if (BUILTIN_FIXED_VENUE_ONLY_KEYS.has(builtin)) return false;
+  return false;
 }
 
 /** מאפיינים רכים (נוף לים, בוטיק…) — מידע בלבד, לא בחירת מקור */
@@ -101,6 +98,7 @@ type ParsedCustomRow = {
   checked: boolean;
   priceMode: "included" | "extra";
   extraPrice: number | null;
+  allowsSeekerExternal: boolean;
 };
 
 function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustomRow[] {
@@ -123,11 +121,22 @@ function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustom
       ) {
         extraPrice = Math.trunc(o.extraPrice);
       }
+      const storedExternal = parseSeekerExternalFromRecord(o);
+      let allowsSeekerExternal: boolean;
+      if (label.startsWith("__builtin__:")) {
+        const bKey = label.slice("__builtin__:".length) as BuiltinServiceKey;
+        allowsSeekerExternal = BUILTIN_SERVICE_KEYS.includes(bKey)
+          ? resolveSeekerExternalForBuiltin(bKey, storedExternal)
+          : false;
+      } else {
+        allowsSeekerExternal = resolveSeekerExternalForCustomRow(storedExternal, false);
+      }
       out.push({
         label,
         checked: o.checked === true,
         priceMode,
         extraPrice,
+        allowsSeekerExternal,
       });
     }
     return out;
@@ -140,6 +149,7 @@ type BuiltinState = {
   checked: boolean;
   priceMode: "included" | "extra";
   extraPrice: number | null;
+  allowsSeekerExternal: boolean;
 };
 
 function parseBuiltinStates(
@@ -154,6 +164,7 @@ function parseBuiltinStates(
       checked: row.checked,
       priceMode: row.priceMode,
       extraPrice: row.extraPrice,
+      allowsSeekerExternal: row.allowsSeekerExternal,
     };
   }
   return out;
@@ -231,7 +242,9 @@ function pushBuiltinOption(
     label: BUILTIN_LABELS[key],
     priceMode: state?.priceMode ?? "included",
     extraPrice: state?.extraPrice ?? null,
-    allowsExternalSource: !VENUE_ONLY_BUILTIN_KEYS.has(key),
+    allowsExternalSource:
+      state?.allowsSeekerExternal ??
+      resolveSeekerExternalForBuiltin(key, undefined),
   });
 }
 
@@ -274,7 +287,7 @@ export function getVenueInquiryOptions(
         label,
         priceMode: row.priceMode,
         extraPrice: row.extraPrice,
-        allowsExternalSource: false,
+        allowsExternalSource: row.allowsSeekerExternal,
       });
       weddingCustomIdx += 1;
     } else {
@@ -283,7 +296,7 @@ export function getVenueInquiryOptions(
         label: row.label,
         priceMode: row.priceMode,
         extraPrice: row.extraPrice,
-        allowsExternalSource: true,
+        allowsExternalSource: row.allowsSeekerExternal,
       });
       generalIdx += 1;
     }
@@ -309,7 +322,7 @@ export function getVenueInquiryOptions(
           label: item.label,
           priceMode: item.priceMode,
           extraPrice: item.extraPrice,
-          allowsExternalSource: false,
+          allowsExternalSource: item.allowsSeekerExternalSource ?? false,
         });
         hallIdx += 1;
       }

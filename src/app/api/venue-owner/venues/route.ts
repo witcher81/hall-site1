@@ -18,6 +18,15 @@ import {
 } from "@/lib/userInputValidation";
 import { saveVenueImageFile } from "@/lib/venueImageUpload";
 import {
+  VENUE_PRODUCT_BUILTIN_KEYS,
+  type BuiltinAmenityKeyFull,
+} from "@/lib/venueBuiltinAmenities";
+import {
+  parseSeekerExternalFromRecord,
+  resolveSeekerExternalForBuiltin,
+  resolveSeekerExternalForCustomRow,
+} from "@/lib/venueAmenitySeekerExternal";
+import {
   coerceParkingKindFromStorage,
   parkingKindHasAnyParking,
   parkingKindNeedsMap,
@@ -82,6 +91,7 @@ function parseCustomHallItemsForEventProfile(
     checked: boolean;
     priceMode: "included" | "extra";
     extraPrice: number | null;
+    allowsSeekerExternalSource: boolean;
   }[];
   error: string | null;
 } {
@@ -100,6 +110,7 @@ function parseCustomHallItemsForEventProfile(
     checked: boolean;
     priceMode: "included" | "extra";
     extraPrice: number | null;
+    allowsSeekerExternalSource: boolean;
   }[] = [];
   const seen = new Set<string>();
   for (const item of raw) {
@@ -132,7 +143,11 @@ function parseCustomHallItemsForEventProfile(
         extraPrice = Math.trunc(n);
       }
     }
-    rows.push({ label, checked, priceMode, extraPrice });
+    const allowsSeekerExternalSource = resolveSeekerExternalForCustomRow(
+      parseSeekerExternalFromRecord(o),
+      false
+    );
+    rows.push({ label, checked, priceMode, extraPrice, allowsSeekerExternalSource });
   }
   return { items: rows, error: null };
 }
@@ -404,6 +419,7 @@ function parseCustomAmenitiesJson(
       checked: boolean;
       priceMode: "included" | "extra";
       extraPrice: number | null;
+      allowsSeekerExternalSource: boolean;
     }[] = [];
     const seen = new Set<string>();
     for (const item of v) {
@@ -436,7 +452,19 @@ function parseCustomAmenitiesJson(
           extraPrice = Math.trunc(n);
         }
       }
-      rows.push({ label, checked, priceMode, extraPrice });
+      let allowsSeekerExternalSource: boolean;
+      if (label.startsWith("__builtin__:")) {
+        const bKey = label.slice("__builtin__:".length) as BuiltinAmenityKeyFull;
+        allowsSeekerExternalSource = VENUE_PRODUCT_BUILTIN_KEYS.includes(bKey)
+          ? resolveSeekerExternalForBuiltin(bKey, parseSeekerExternalFromRecord(o))
+          : false;
+      } else {
+        allowsSeekerExternalSource = resolveSeekerExternalForCustomRow(
+          parseSeekerExternalFromRecord(o),
+          false
+        );
+      }
+      rows.push({ label, checked, priceMode, extraPrice, allowsSeekerExternalSource });
     }
     return { json: rows.length > 0 ? JSON.stringify(rows) : null, error: null };
   } catch {
