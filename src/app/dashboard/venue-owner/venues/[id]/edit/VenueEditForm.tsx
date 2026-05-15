@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import { validatePriceMinMax } from "@/lib/userInputValidation";
 import {
   buildInitialCustomHallGeneralRows,
@@ -1042,38 +1043,21 @@ export default function VenueEditForm({
                         )}
                         {isWeddingEt && (
                           <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
-                            בחתונה מניחים שיש אוכל — הזינו טווח מחירים למנה. בטופס פנייה יופיעו גם סוגי חופה וכשרות.
+                            בחתונה מניחים שיש אוכל — הזינו מחיר למנה. בטופס פנייה יופיעו גם סוגי חופה וכשרות.
                           </p>
                         )}
                         {showMealPrices && (
-                          <>
-                            <input
-                              type="number"
-                              min={0}
-                              value={profile.minPrice}
-                              onChange={(e) =>
-                                setEventTypeProfiles((prev) => ({
-                                  ...prev,
-                                  [et]: { ...profile, minPrice: e.target.value },
-                                }))
-                              }
-                              className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                              placeholder="מחיר מינימום למנה (₪)"
-                            />
-                            <input
-                              type="number"
-                              min={0}
-                              value={profile.maxPrice}
-                              onChange={(e) =>
-                                setEventTypeProfiles((prev) => ({
-                                  ...prev,
-                                  [et]: { ...profile, maxPrice: e.target.value },
-                                }))
-                              }
-                              className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                              placeholder="מחיר מקסימום למנה (₪)"
-                            />
-                          </>
+                          <OptionalPriceRangeFields
+                            className="sm:col-span-2"
+                            minPrice={profile.minPrice}
+                            maxPrice={profile.maxPrice}
+                            onChange={(min, max) =>
+                              setEventTypeProfiles((prev) => ({
+                                ...prev,
+                                [et]: { ...profile, minPrice: min, maxPrice: max },
+                              }))
+                            }
+                          />
                         )}
                         {showMealPrices && (
                           <div className="mt-1 space-y-2 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
@@ -1121,34 +1105,18 @@ export default function VenueEditForm({
                                   אותו מחיר כמו למנה שצוין למעלה
                                 </label>
                                 {!profile.veganSameAsMealPrice && (
-                                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:pe-8">
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      value={profile.veganMinPrice}
-                                      onChange={(e) =>
-                                        setEventTypeProfiles((prev) => ({
-                                          ...prev,
-                                          [et]: { ...profile, veganMinPrice: e.target.value },
-                                        }))
-                                      }
-                                      className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                                      placeholder="מחיר מינימום למנה (טבעוני, ₪)"
-                                    />
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      value={profile.veganMaxPrice}
-                                      onChange={(e) =>
-                                        setEventTypeProfiles((prev) => ({
-                                          ...prev,
-                                          [et]: { ...profile, veganMaxPrice: e.target.value },
-                                        }))
-                                      }
-                                      className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                                      placeholder="מחיר מקסימום למנה (טבעוני, ₪)"
-                                    />
-                                  </div>
+                                  <OptionalPriceRangeFields
+                                    className="sm:pe-8"
+                                    singleLabel="מחיר למנה טבעונית (₪)"
+                                    minPrice={profile.veganMinPrice}
+                                    maxPrice={profile.veganMaxPrice}
+                                    onChange={(min, max) =>
+                                      setEventTypeProfiles((prev) => ({
+                                        ...prev,
+                                        [et]: { ...profile, veganMinPrice: min, veganMaxPrice: max },
+                                      }))
+                                    }
+                                  />
                                 )}
                               </>
                             )}
@@ -1394,7 +1362,7 @@ export default function VenueEditForm({
 
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">
-              על האולם
+              תיאור על האולם
             </label>
             <textarea
               rows={3}
@@ -1414,7 +1382,7 @@ export default function VenueEditForm({
                 תמונת שער
               </label>
               {initial.coverImageUrl && !coverImage && (
-                <p className="mb-1 text-[11px] text-[#1A1A1A]0">
+                <p className="mb-1 text-[11px] text-[#6B6560]">
                   תמונה נוכחית:
                 </p>
               )}
@@ -1435,7 +1403,7 @@ export default function VenueEditForm({
                 onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
                 className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#C9A227] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
               />
-              <p className="mt-1 text-[11px] text-[#1A1A1A]0">
+              <p className="mt-1 text-[11px] text-[#6B6560]">
                 להחליף: בחר תמונה חדשה. לא בוחרים – נשארת התמונה הקיימת.
               </p>
             </div>
@@ -1449,32 +1417,10 @@ export default function VenueEditForm({
                 galleryChuppaImages.length === 0 &&
                 galleryDanceImages.length === 0 &&
                 galleryFoodImages.length === 0 && (
-                  <>
-                    <p className="mt-1 text-[11px] text-[#1A1A1A]0">
-                      תמונות קיימות (משויכות כרגע לקטגוריית אולם):{" "}
-                      {initial.galleryImageUrls.length}
-                    </p>
-                    <div className="mt-2 flex gap-1 overflow-x-auto pb-1">
-                      {initial.galleryImageUrls.slice(0, 5).map((url, idx) => (
-                        <div
-                          key={idx}
-                          className="h-14 w-14 shrink-0 overflow-hidden rounded border border-[#E0D4C3]"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={url}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                      ))}
-                      {initial.galleryImageUrls.length > 5 && (
-                        <span className="flex items-center text-xs text-[#1A1A1A]0">
-                          +{initial.galleryImageUrls.length - 5}
-                        </span>
-                      )}
-                    </div>
-                  </>
+                  <p className="mt-1 text-[11px] text-[#6B6560]">
+                    {initial.galleryImageUrls.length} תמונות קיימות — יוצגו בתצוגה המקדימה למטה
+                    (קטגוריית אולם).
+                  </p>
                 )}
 
               <div className="mt-3 space-y-4">
@@ -1571,6 +1517,7 @@ export default function VenueEditForm({
           </div>
 
           {(coverPreview ||
+            (!coverPreview && initial.coverImageUrl) ||
             galleryHallPreviews.length > 0 ||
             (isWeddingSelected && galleryChuppaPreviews.length > 0) ||
             galleryDancePreviews.length > 0 ||
@@ -1604,6 +1551,37 @@ export default function VenueEditForm({
                     </div>
                   </div>
                 )}
+                {!coverPreview && initial.coverImageUrl && (
+                  <div className="relative">
+                    <p className="mb-1 text-[11px] text-[#6B6560]">תמונת שער (קיימת)</p>
+                    <div className="overflow-hidden rounded-lg border border-[#E0D4C3]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={initial.coverImageUrl}
+                        alt="תמונת שער קיימת"
+                        className="h-20 w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+                {initial.galleryImageUrls.length > 0 &&
+                  galleryHallImages.length === 0 &&
+                  galleryChuppaImages.length === 0 &&
+                  galleryDanceImages.length === 0 &&
+                  galleryFoodImages.length === 0 &&
+                  initial.galleryImageUrls.map((url, idx) => (
+                    <div key={`existing-hall-${idx}`} className="relative">
+                      <p className="mb-1 text-[11px] text-[#6B6560]">
+                        אולם (קיים) #{idx + 1}
+                      </p>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt=""
+                        className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                      />
+                    </div>
+                  ))}
                 {galleryHallPreviews.map(({ file, url }, idx) => (
                   <div key={`hall-${file.name}-${file.size}-${idx}`} className="relative">
                     <p className="mb-1 text-[11px] text-[#6B6560]">

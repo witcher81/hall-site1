@@ -417,7 +417,7 @@ export default function VenueDetailsClient({ initialVenue }: { initialVenue: Ven
 
           {venue.description && (
             <p className="text-[#2A261F]">
-              <span className="font-semibold text-[#0F3B2E]">על האולם: </span>
+              <span className="font-semibold text-[#0F3B2E]">תיאור על האולם: </span>
               <span className="text-[#5F5F5F]">{venue.description}</span>
             </p>
           )}

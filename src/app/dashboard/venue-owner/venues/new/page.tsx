@@ -13,6 +13,7 @@ import {
 import { validatePriceMinMax } from "@/lib/userInputValidation";
 import dynamic from "next/dynamic";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import {
   PARKING_KINDS,
   PARKING_KIND_LABELS,
@@ -1095,38 +1096,21 @@ export default function NewVenuePage() {
                         )}
                         {isWeddingEt && (
                           <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
-                            בחתונה מניחים שיש אוכל — הזינו טווח מחירים למנה. למטה: חופה וכשרות. פרטים נוספים לחתונה ניתן להוסיף באותו כרטיס, תחת &quot;מה יש באולם לסוג חתונה&quot;.
+                            בחתונה מניחים שיש אוכל — הזינו מחיר למנה. למטה: חופה וכשרות. פרטים נוספים לחתונה ניתן להוסיף באותו כרטיס, תחת &quot;מה יש באולם לסוג חתונה&quot;.
                           </p>
                         )}
                         {showMealPrices && (
-                          <>
-                            <input
-                              type="number"
-                              min={0}
-                              value={profile.minPrice}
-                              onChange={(e) =>
-                                setEventTypeProfiles((prev) => ({
-                                  ...prev,
-                                  [et]: { ...profile, minPrice: e.target.value },
-                                }))
-                              }
-                              className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                              placeholder="מחיר מינימום למנה (₪)"
-                            />
-                            <input
-                              type="number"
-                              min={0}
-                              value={profile.maxPrice}
-                              onChange={(e) =>
-                                setEventTypeProfiles((prev) => ({
-                                  ...prev,
-                                  [et]: { ...profile, maxPrice: e.target.value },
-                                }))
-                              }
-                              className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                              placeholder="מחיר מקסימום למנה (₪)"
-                            />
-                          </>
+                          <OptionalPriceRangeFields
+                            className="sm:col-span-2"
+                            minPrice={profile.minPrice}
+                            maxPrice={profile.maxPrice}
+                            onChange={(min, max) =>
+                              setEventTypeProfiles((prev) => ({
+                                ...prev,
+                                [et]: { ...profile, minPrice: min, maxPrice: max },
+                              }))
+                            }
+                          />
                         )}
                         {showMealPrices && (
                           <div className="mt-1 space-y-2 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
@@ -1174,34 +1158,18 @@ export default function NewVenuePage() {
                                   אותו מחיר כמו למנה שצוין למעלה
                                 </label>
                                 {!profile.veganSameAsMealPrice && (
-                                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:pe-8">
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      value={profile.veganMinPrice}
-                                      onChange={(e) =>
-                                        setEventTypeProfiles((prev) => ({
-                                          ...prev,
-                                          [et]: { ...profile, veganMinPrice: e.target.value },
-                                        }))
-                                      }
-                                      className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                                      placeholder="מחיר מינימום למנה (טבעוני, ₪)"
-                                    />
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      value={profile.veganMaxPrice}
-                                      onChange={(e) =>
-                                        setEventTypeProfiles((prev) => ({
-                                          ...prev,
-                                          [et]: { ...profile, veganMaxPrice: e.target.value },
-                                        }))
-                                      }
-                                      className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
-                                      placeholder="מחיר מקסימום למנה (טבעוני, ₪)"
-                                    />
-                                  </div>
+                                  <OptionalPriceRangeFields
+                                    className="sm:pe-8"
+                                    singleLabel="מחיר למנה טבעונית (₪)"
+                                    minPrice={profile.veganMinPrice}
+                                    maxPrice={profile.veganMaxPrice}
+                                    onChange={(min, max) =>
+                                      setEventTypeProfiles((prev) => ({
+                                        ...prev,
+                                        [et]: { ...profile, veganMinPrice: min, veganMaxPrice: max },
+                                      }))
+                                    }
+                                  />
                                 )}
                               </>
                             )}
@@ -1447,7 +1415,7 @@ export default function NewVenuePage() {
 
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">
-              על האולם
+              תיאור על האולם
             </label>
             <textarea
               rows={3}
