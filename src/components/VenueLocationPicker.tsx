@@ -86,6 +86,15 @@ function isValidIsraelLatLng(lat: number, lng: number) {
   return lat >= 29 && lat <= 34 && lng >= 33 && lng <= 36;
 }
 
+/** Leaflet leaves _leaflet_id on the DOM — must clear before re-init (React strict / remount). */
+function resetLeafletContainer(el: HTMLElement) {
+  const node = el as HTMLElement & { _leaflet_id?: number };
+  if (node._leaflet_id != null) {
+    delete node._leaflet_id;
+  }
+  el.replaceChildren();
+}
+
 const HALL_MARKER_TOOLTIP = "מיקום האולם — סיכה כחולה עם האות «א»";
 const PARKING_MARKER_TOOLTIP = "מיקום חניה — סיכה כתומה עם האות «ח»";
 
@@ -138,6 +147,7 @@ export default function VenueLocationPicker({
   initialVenueRef.current = initialVenue;
 
   const [loading, setLoading] = useState(false);
+  const [mapInitError, setMapInitError] = useState<string | null>(null);
   const [hint, setHint] = useState(
     "לחץ על המפה או מלא עיר וכתובת — המפה תתעדכן. אפשר לגרור את הסיכה למיקום המדויק."
   );
@@ -204,17 +214,32 @@ export default function VenueLocationPicker({
   }, [removeParkingMarkerLayer]);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
-    const israelBounds = L.latLngBounds(L.latLng(29.5, 34.25), L.latLng(33.3, 35.85));
-    const map = L.map(containerRef.current, {
-      attributionControl: false,
-      maxBounds: israelBounds,
-      maxBoundsViscosity: 1.0,
-      minZoom: 7,
-      maxZoom: 19,
-      worldCopyJump: false,
-    }).setView([31.5, 34.85], 8);
-    mapRef.current = map;
+    const container = containerRef.current;
+    if (!container || mapRef.current) return;
+
+    const israelBounds = L.latLngBounds(
+      L.latLng(29.5, 34.25),
+      L.latLng(33.3, 35.85)
+    );
+    let map: L.Map;
+    try {
+      resetLeafletContainer(container);
+      map = L.map(container, {
+        attributionControl: false,
+        maxBounds: israelBounds,
+        maxBoundsViscosity: 1.0,
+        minZoom: 7,
+        maxZoom: 19,
+        worldCopyJump: false,
+      }).setView([31.5, 34.85], 8);
+      mapRef.current = map;
+      setMapInitError(null);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "שגיאה בטעינת המפה";
+      setMapInitError(msg);
+      setHint("לא הצלחנו לטעון את המפה. נסו לרענן את הדף.");
+      return;
+    }
 
     const roadLayer = createRoadTileLayer();
     const satelliteLayer = L.tileLayer(
@@ -560,7 +585,13 @@ export default function VenueLocationPicker({
         dir="ltr"
         className="h-64 w-full rounded-2xl bg-[#FAF8F4]"
       />
-      <p className="text-[11px] text-[#6B6560]">{loading ? "טוען..." : hint}</p>
+      <p className="text-[11px] text-[#6B6560]">
+        {mapInitError
+          ? mapInitError
+          : loading
+            ? "טוען..."
+            : hint}
+      </p>
 
       {parkingOnSameMap != null && (
         <div className="space-y-2 rounded-xl border border-[#E8D5C4] bg-[#FFFBF7] px-3 py-2">

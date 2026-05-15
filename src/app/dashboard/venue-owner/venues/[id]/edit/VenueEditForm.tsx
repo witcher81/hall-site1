@@ -6,13 +6,18 @@ import {
   FormEvent,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import { validatePriceMinMax } from "@/lib/userInputValidation";
-import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
+import {
+  buildInitialCustomHallGeneralRows,
+  type VenueEditFormInitial,
+} from "@/lib/venueEditInitial";
+import type { VenueEditEventTypeProfile } from "@/lib/venueEditFormParse";
 import {
   PARKING_KINDS,
   PARKING_KIND_LABELS,
@@ -62,24 +67,9 @@ const PRESET_EVENT_TYPES: readonly string[] = [
 
 const MAX_CUSTOM_EVENT_TYPES = 20;
 type PriceMode = "included" | "extra";
-type EventTypeProfileState = {
-  minGuests: string;
-  maxGuests: string;
-  hasFoodAtEvent: boolean;
-  minPrice: string;
-  maxPrice: string;
-  hasVeganFood: boolean;
-  veganSameAsMealPrice: boolean;
-  veganMinPrice: string;
-  veganMaxPrice: string;
-  customHallRows: {
-    label: string;
-    checked: boolean;
-    priceMode: PriceMode;
-    extraPrice: string;
-  }[];
-};
+type EventTypeProfileState = VenueEditEventTypeProfile;
 type BuiltinAmenityKey = BuiltinAmenityKeyFull;
+type Initial = VenueEditFormInitial;
 
 const HALL_GENERAL_PRICE_KEYS = [
   { key: "hasFood" as const, label: "כולל אוכל" },
@@ -100,297 +90,6 @@ function mealIntOrNull(s: string): number | null {
   return Number.isFinite(n) ? Math.trunc(n) : null;
 }
 
-function parseCustomAmenitiesFromDb(
-  raw: string | null | undefined
-): { label: string; checked: boolean; priceMode: PriceMode; extraPrice: string }[] {
-  if (!raw) return [];
-  try {
-    const v = JSON.parse(raw) as unknown;
-    if (!Array.isArray(v)) return [];
-    const out: {
-      label: string;
-      checked: boolean;
-      priceMode: PriceMode;
-      extraPrice: string;
-    }[] = [];
-    const seen = new Set<string>();
-    for (const item of v) {
-      if (out.length >= 20) break;
-      if (typeof item !== "object" || item === null) continue;
-      const o = item as Record<string, unknown>;
-      const label = typeof o.label === "string" ? o.label.trim() : "";
-      if (!label || label.length > 80) continue;
-      const k = label.toLowerCase();
-      if (seen.has(k)) continue;
-      seen.add(k);
-      out.push({
-        label,
-        checked: o.checked === true,
-        priceMode: o.priceMode === "extra" ? "extra" : "included",
-        extraPrice:
-          typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
-            ? String(Math.trunc(o.extraPrice))
-            : "",
-      });
-    }
-    return out;
-  } catch {
-    return [];
-  }
-}
-
-function splitWeddingAmenities(
-  rows: { label: string; checked: boolean; priceMode: PriceMode; extraPrice: string }[]
-) {
-  const general: {
-    label: string;
-    checked: boolean;
-    priceMode: PriceMode;
-    extraPrice: string;
-  }[] = [];
-  const wedding: {
-    label: string;
-    checked: boolean;
-    priceMode: PriceMode;
-    extraPrice: string;
-  }[] = [];
-  for (const row of rows) {
-    if (row.label.startsWith("__builtin__:")) {
-      continue;
-    }
-    if (row.label.startsWith(WEDDING_CUSTOM_PREFIX)) {
-      const normalized = row.label
-        .slice(WEDDING_CUSTOM_PREFIX.length)
-        .trim();
-      if (normalized) {
-        wedding.push({
-          label: normalized,
-          checked: row.checked,
-          priceMode: row.priceMode,
-          extraPrice: row.extraPrice,
-        });
-      }
-      continue;
-    }
-    general.push(row);
-  }
-  return { general, wedding };
-}
-
-function parseCustomHallItemsFromProfileJson(
-  profile: Record<string, unknown>
-): EventTypeProfileState["customHallRows"] {
-  const raw = profile.customHallItems;
-  if (!Array.isArray(raw)) return [];
-  const out: EventTypeProfileState["customHallRows"] = [];
-  const seen = new Set<string>();
-  for (const item of raw) {
-    if (out.length >= 20) break;
-    if (typeof item !== "object" || item === null) continue;
-    const o = item as Record<string, unknown>;
-    const label = typeof o.label === "string" ? o.label.trim() : "";
-    if (!label || label.length > 80) continue;
-    const k = label.toLowerCase();
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push({
-      label,
-      checked: o.checked === true,
-      priceMode: o.priceMode === "extra" ? "extra" : "included",
-      extraPrice:
-        typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
-          ? String(Math.trunc(o.extraPrice))
-          : "",
-    });
-  }
-  return out;
-}
-
-function mergeLegacyWeddingIntoWeddingProfile(
-  profiles: Record<string, EventTypeProfileState>,
-  weddingLegacy: EventTypeProfileState["customHallRows"]
-) {
-  const p = profiles["חתונה"];
-  if (!p || weddingLegacy.length === 0) return;
-  const rows = Array.isArray(p.customHallRows) ? p.customHallRows : [];
-  p.customHallRows = [...rows];
-  const seen = new Set(p.customHallRows.map((r) => r.label.toLowerCase()));
-  for (const w of weddingLegacy) {
-    const k = w.label.toLowerCase();
-    if (!seen.has(k)) {
-      p.customHallRows.push({ ...w });
-      seen.add(k);
-    }
-  }
-}
-
-function inferVeganSameAsMealPrice(profile: Record<string, unknown>): boolean {
-  if (profile.veganSameAsMealPrice === true || profile.veganSameAsMealPrice === "true") {
-    return true;
-  }
-  if (profile.veganSameAsMealPrice === false || profile.veganSameAsMealPrice === "false") {
-    return false;
-  }
-  const minP =
-    profile.minPrice == null || profile.minPrice === "" ? null : Number(profile.minPrice);
-  const maxP =
-    profile.maxPrice == null || profile.maxPrice === "" ? null : Number(profile.maxPrice);
-  const vMin =
-    profile.veganMinPrice == null || profile.veganMinPrice === ""
-      ? null
-      : Number(profile.veganMinPrice);
-  const vMax =
-    profile.veganMaxPrice == null || profile.veganMaxPrice === ""
-      ? null
-      : Number(profile.veganMaxPrice);
-  if (vMin == null && vMax == null) return true;
-  if (
-    minP != null &&
-    maxP != null &&
-    vMin != null &&
-    vMax != null &&
-    minP === vMin &&
-    maxP === vMax
-  ) {
-    return true;
-  }
-  return false;
-}
-
-function parseEventTypeProfilesForForm(
-  raw: string | null | undefined,
-  eventTypes: string[],
-  fallbackVegan: boolean
-): Record<string, EventTypeProfileState> {
-  const out: Record<string, EventTypeProfileState> = {};
-  for (const et of eventTypes) {
-    out[et] = {
-      minGuests: "",
-      maxGuests: "",
-      hasFoodAtEvent: et === "חתונה",
-      minPrice: "",
-      maxPrice: "",
-      hasVeganFood: fallbackVegan,
-      veganSameAsMealPrice: true,
-      veganMinPrice: "",
-      veganMaxPrice: "",
-      customHallRows: [],
-    };
-  }
-  if (!raw) return out;
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
-    const obj = parsed as Record<string, unknown>;
-    const boolVegan = (profile: Record<string, unknown>) =>
-      "hasVeganFood" in profile
-        ? profile.hasVeganFood === true || profile.hasVeganFood === "true"
-        : fallbackVegan;
-    for (const et of eventTypes) {
-      const row = obj[et];
-      if (typeof row !== "object" || row === null || Array.isArray(row)) continue;
-      const profile = row as Record<string, unknown>;
-      const minP =
-        profile.minPrice == null || profile.minPrice === ""
-          ? ""
-          : String(profile.minPrice);
-      const maxP =
-        profile.maxPrice == null || profile.maxPrice === ""
-          ? ""
-          : String(profile.maxPrice);
-      const veganMinP =
-        profile.veganMinPrice == null || profile.veganMinPrice === ""
-          ? ""
-          : String(profile.veganMinPrice);
-      const veganMaxP =
-        profile.veganMaxPrice == null || profile.veganMaxPrice === ""
-          ? ""
-          : String(profile.veganMaxPrice);
-      const veganSameAs = inferVeganSameAsMealPrice(profile);
-      const customHallRows = parseCustomHallItemsFromProfileJson(profile);
-      if (et === "חתונה") {
-        out[et] = {
-          minGuests: profile.minGuests == null ? "" : String(profile.minGuests),
-          maxGuests: profile.maxGuests == null ? "" : String(profile.maxGuests),
-          hasFoodAtEvent: true,
-          minPrice: minP,
-          maxPrice: maxP,
-          hasVeganFood: boolVegan(profile),
-          veganSameAsMealPrice: veganSameAs,
-          veganMinPrice: veganSameAs ? "" : veganMinP,
-          veganMaxPrice: veganSameAs ? "" : veganMaxP,
-          customHallRows,
-        };
-        continue;
-      }
-      const legacyFood =
-        profile.nonWeddingFoodMode === "required" ||
-        profile.nonWeddingFoodMode === "optional";
-      let hasFoodAtEvent =
-        profile.hasFoodAtEvent === true || profile.hasFoodAtEvent === "true";
-      if (profile.hasFoodAtEvent === false || profile.hasFoodAtEvent === "false") {
-        hasFoodAtEvent = false;
-      } else if (!("hasFoodAtEvent" in profile)) {
-        hasFoodAtEvent = legacyFood || minP !== "" || maxP !== "";
-      }
-      out[et] = {
-        minGuests: profile.minGuests == null ? "" : String(profile.minGuests),
-        maxGuests: profile.maxGuests == null ? "" : String(profile.maxGuests),
-        hasFoodAtEvent,
-        minPrice: hasFoodAtEvent ? minP : "",
-        maxPrice: hasFoodAtEvent ? maxP : "",
-        hasVeganFood: boolVegan(profile),
-        veganSameAsMealPrice: hasFoodAtEvent ? veganSameAs : true,
-        veganMinPrice: hasFoodAtEvent && !veganSameAs ? veganMinP : "",
-        veganMaxPrice: hasFoodAtEvent && !veganSameAs ? veganMaxP : "",
-        customHallRows,
-      };
-    }
-  } catch {
-    return out;
-  }
-  return out;
-}
-
-type Initial = {
-  name: string;
-  city: string;
-  address: string;
-  minGuests: string | number;
-  maxGuests: string | number;
-  minPrice: string | number;
-  maxPrice: string | number;
-  description: string;
-  hasChuppaOutdoor: boolean;
-  hasChuppaCovered: boolean;
-  productHasChuppa: boolean;
-  productHasFood: boolean;
-  seaView: boolean;
-  boutique: boolean;
-  accessible: boolean;
-  hasBridalRoom: boolean;
-  hasDanceFloor: boolean;
-  hasTableSetup: boolean;
-  hasSoundSystem: boolean;
-  hasVeganFood: boolean;
-  foodKashrut: string;
-  eventTypes: string[];
-  coverImageUrl: string | null;
-  galleryImageUrls: string[];
-  foodGalleryImageCount: number;
-  customAmenitiesJson: string | null;
-  builtinAmenityPriceModes: Record<BuiltinAmenityKey, HallGeneralPriceMode>;
-  builtinAmenityExtraPrices: Record<BuiltinAmenityKey, string>;
-  eventTypeProfilesJson: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  parkingKind: ParkingKind;
-  parkingLatitude: number | null;
-  parkingLongitude: number | null;
-  venueType: string;
-  softAttributeRows: VenueSoftAttributeRow[];
-};
-
 export default function VenueEditForm({
   venueId,
   initial,
@@ -409,7 +108,7 @@ export default function VenueEditForm({
     maxGuests: String(initial.maxGuests),
     minPrice: String(initial.minPrice),
     maxPrice: String(initial.maxPrice),
-    description: initial.description,
+    description: initial.description ?? "",
     hasChuppaOutdoor: initial.hasChuppaOutdoor,
     hasChuppaCovered: initial.hasChuppaCovered,
     productHasChuppa: initial.productHasChuppa,
@@ -425,9 +124,12 @@ export default function VenueEditForm({
     foodKashrut: initial.foodKashrut,
     venueType: initial.venueType,
   });
-  const [eventTypes, setEventTypes] = useState<string[]>(initial.eventTypes);
+  const safeEventTypes = Array.isArray(initial.eventTypes)
+    ? initial.eventTypes.filter((e): e is string => typeof e === "string")
+    : [];
+  const [eventTypes, setEventTypes] = useState<string[]>(safeEventTypes);
   const [customEventLabels, setCustomEventLabels] = useState<string[]>(() =>
-    initial.eventTypes.filter(
+    safeEventTypes.filter(
       (e) =>
         !PRESET_EVENT_TYPES.some((p) => p.toLowerCase() === e.toLowerCase())
     )
@@ -436,40 +138,52 @@ export default function VenueEditForm({
   const [eventTypeProfiles, setEventTypeProfiles] = useState<
     Record<string, EventTypeProfileState>
   >(() => {
-    const base = parseEventTypeProfilesForForm(
-      initial.eventTypeProfilesJson,
-      initial.eventTypes,
-      initial.hasVeganFood
-    );
-    const weddingLegacy = splitWeddingAmenities(
-      parseCustomAmenitiesFromDb(initial.customAmenitiesJson)
-    ).wedding;
-    mergeLegacyWeddingIntoWeddingProfile(base, weddingLegacy);
-    return base;
+    const base = initial.eventTypeProfiles ?? {};
+    const out: Record<string, EventTypeProfileState> = {};
+    for (const et of safeEventTypes) {
+      const row = base[et];
+      out[et] = {
+        minGuests: row?.minGuests ?? "",
+        maxGuests: row?.maxGuests ?? "",
+        hasFoodAtEvent: et === "חתונה" ? true : row?.hasFoodAtEvent === true,
+        minPrice: row?.minPrice ?? "",
+        maxPrice: row?.maxPrice ?? "",
+        hasVeganFood: row?.hasVeganFood ?? initial.hasVeganFood,
+        veganSameAsMealPrice: row?.veganSameAsMealPrice ?? true,
+        veganMinPrice: row?.veganMinPrice ?? "",
+        veganMaxPrice: row?.veganMaxPrice ?? "",
+        customHallRows: Array.isArray(row?.customHallRows) ? row.customHallRows : [],
+      };
+    }
+    return out;
   });
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryHallImages, setGalleryHallImages] = useState<File[]>([]);
   const [galleryChuppaImages, setGalleryChuppaImages] = useState<File[]>([]);
   const [galleryDanceImages, setGalleryDanceImages] = useState<File[]>([]);
   const [galleryFoodImages, setGalleryFoodImages] = useState<File[]>([]);
-  const parsedInitialAmenities = useMemo(
-    () => splitWeddingAmenities(parseCustomAmenitiesFromDb(initial.customAmenitiesJson)),
-    [initial.customAmenitiesJson]
-  );
   const [customHallGeneralInput, setCustomHallGeneralInput] = useState("");
   const [customHallInputByEvent, setCustomHallInputByEvent] = useState<
     Record<string, string>
   >({});
   const cityAutocompleteExtras = useMemo(
-    () => (initial.city?.trim() ? [initial.city.trim()] : []),
+    () => {
+      const c = String(initial.city ?? "").trim();
+      return c ? [c] : [];
+    },
     [initial.city]
   );
   const [customAmenityRows, setCustomAmenityRows] = useState<HallGeneralCustomRow[]>(() =>
-    assignHallGeneralRowIds(parsedInitialAmenities.general)
+    assignHallGeneralRowIds(buildInitialCustomHallGeneralRows(initial.customAmenitiesJson))
   );
   const [softAttributeRows, setSoftAttributeRows] = useState<VenueSoftAttributeRow[]>(
-    () => initial.softAttributeRows.map((r) => ({ ...r }))
+    () =>
+      Array.isArray(initial.softAttributeRows)
+        ? initial.softAttributeRows.map((r) => ({ ...r }))
+        : []
   );
+  const [loadVenueMap, setLoadVenueMap] = useState(false);
+  const mapLoadGeocodeBumpRef = useRef(false);
   const [softAttrCustomInput, setSoftAttrCustomInput] = useState("");
   const [parkingKind, setParkingKind] = useState<ParkingKind>(
     () => initial.parkingKind
@@ -578,6 +292,17 @@ export default function VenueEditForm({
       setParkingLng(null);
     }
   }, [parkingKind]);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setLoadVenueMap(true), 400);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!loadVenueMap || mapLoadGeocodeBumpRef.current) return;
+    mapLoadGeocodeBumpRef.current = true;
+    setMapFieldSyncNonce((n) => n + 1);
+  }, [loadVenueMap]);
 
   useEffect(() => {
     if (isWeddingSelected) return;
@@ -1036,49 +761,58 @@ export default function VenueEditForm({
                 ))}
               </div>
             </div>
-            <VenueLocationPicker
-              formCity={form.city}
-              formAddress={form.address}
-              formFieldsSyncNonce={mapFieldSyncNonce}
-              initialVenue={
-                initial.latitude != null &&
-                initial.longitude != null &&
-                initial.latitude >= 29 &&
-                initial.latitude <= 34 &&
-                initial.longitude >= 33 &&
-                initial.longitude <= 36
-                  ? { lat: initial.latitude, lng: initial.longitude }
-                  : null
-              }
-              parkingOnSameMap={
-                parkingKindNeedsMap(parkingKind)
-                  ? {
-                      active: true,
-                      lat: parkingLat,
-                      lng: parkingLng,
-                      onPick: (la, ln) => {
-                        setParkingLat(la);
-                        setParkingLng(ln);
-                      },
-                      onClear: () => {
-                        setParkingLat(null);
-                        setParkingLng(null);
-                      },
-                    }
-                  : null
-              }
-              onPick={({ lat, lng, city, address }) => {
-                setForm((f) => ({
-                  ...f,
-                  city: city?.trim() || f.city,
-                  address: address?.trim() || f.address,
-                }));
-              }}
-              onClear={() => {
-                setParkingLat(null);
-                setParkingLng(null);
-              }}
-            />
+            {loadVenueMap ? (
+              <VenueLocationPicker
+                formCity={form.city}
+                formAddress={form.address}
+                formFieldsSyncNonce={mapFieldSyncNonce}
+                initialVenue={
+                  initial.latitude != null &&
+                  initial.longitude != null &&
+                  initial.latitude >= 29 &&
+                  initial.latitude <= 34 &&
+                  initial.longitude >= 33 &&
+                  initial.longitude <= 36
+                    ? { lat: initial.latitude, lng: initial.longitude }
+                    : null
+                }
+                parkingOnSameMap={
+                  parkingKindNeedsMap(parkingKind)
+                    ? {
+                        active: true,
+                        lat: parkingLat,
+                        lng: parkingLng,
+                        onPick: (la, ln) => {
+                          setParkingLat(la);
+                          setParkingLng(ln);
+                        },
+                        onClear: () => {
+                          setParkingLat(null);
+                          setParkingLng(null);
+                        },
+                      }
+                    : null
+                }
+                onPick={({ lat, lng, city, address }) => {
+                  setForm((f) => ({
+                    ...f,
+                    city: city?.trim() || f.city,
+                    address: address?.trim() || f.address,
+                  }));
+                }}
+                onClear={() => {
+                  setParkingLat(null);
+                  setParkingLng(null);
+                }}
+              />
+            ) : (
+              <div
+                className="flex h-64 w-full items-center justify-center rounded-2xl bg-[#E8E4DC] text-[11px] text-[#6B6560]"
+                aria-hidden
+              >
+                טוען מפה…
+              </div>
+            )}
           </div>
 
           <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
