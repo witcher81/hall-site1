@@ -924,10 +924,6 @@ export default function VenueEditForm({
               onPresetChange={(key: VenueHallSoftPresetKey, checked) =>
                 setForm((f) => ({ ...f, [key]: checked }))
               }
-              customRows={softAttributeRows}
-              onCustomRowsChange={setSoftAttributeRows}
-              customInput={softAttrCustomInput}
-              onCustomInputChange={setSoftAttrCustomInput}
             />
           </div>
 
@@ -936,8 +932,9 @@ export default function VenueEditForm({
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-              אוכל, ריקודים, שולחנות והגברה — גרירה ל«כלול במחיר» או «בתוספת תשלום», ובחרו
-              לכל פריט אם מותר להביא ספק חיצוני (אופציונלי).
+              למעלה: פריטים שמגיעים עם האולם בלי תוספת. למטה: אוכל, ריקודים, שולחנות והגברה —
+              גרירה ל«כלול במחיר» או «בתוספת תשלום», ובחרו לכל פריט אם מותר ספק חיצוני
+              (אופציונלי).
               {anyEventOffersFood ? " האוכל נקבע גם לפי סוגי האירוע למטה." : ""}
             </p>
             <HallGeneralAmenitiesDnd
@@ -954,6 +951,10 @@ export default function VenueEditForm({
               setCustomAmenityRows={setCustomAmenityRows}
               customHallGeneralInput={customHallGeneralInput}
               setCustomHallGeneralInput={setCustomHallGeneralInput}
+              bundledItemRows={softAttributeRows}
+              setBundledItemRows={setSoftAttributeRows}
+              bundledItemInput={softAttrCustomInput}
+              setBundledItemInput={setSoftAttrCustomInput}
             />
           </div>
 
