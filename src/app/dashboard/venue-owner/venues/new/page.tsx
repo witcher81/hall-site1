@@ -75,7 +75,6 @@ type BuiltinAmenityKey = BuiltinAmenityKeyFull;
 
 const HALL_GENERAL_PRICE_KEYS = [
   { key: "hasFood" as const, label: "כולל אוכל" },
-  { key: "hasDanceFloor" as const, label: "רחבת ריקודים" },
   { key: "hasTableSetup" as const, label: "סידור שולחנות" },
   { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
 ] as const;
@@ -408,7 +407,6 @@ export default function NewVenuePage() {
       fd.append("eventTypes", JSON.stringify(eventTypes));
       const builtinChecked: Record<BuiltinAmenityKey, boolean> = {
         hasFood: hasFoodForApi,
-        hasDanceFloor: anyEventDanceFloor,
         hasTableSetup: anyEventTableSetup,
         hasSoundSystem: anyEventSoundSystem,
       };
@@ -527,7 +525,6 @@ export default function NewVenuePage() {
 
   const hallProductBools: VenueProductBools = {
     hasFood: anyEventOffersFood || form.productHasFood,
-    hasDanceFloor: form.hasDanceFloor,
     hasTableSetup: form.hasTableSetup,
     hasSoundSystem: form.hasSoundSystem,
   };
@@ -981,6 +978,10 @@ export default function NewVenuePage() {
               onPresetChange={(key: VenueHallSoftPresetKey, checked) =>
                 setForm((f) => ({ ...f, [key]: checked }))
               }
+              customRows={softAttributeRows}
+              onCustomRowsChange={setSoftAttributeRows}
+              customInput={softAttrCustomInput}
+              onCustomInputChange={setSoftAttrCustomInput}
             />
           </div>
 
@@ -989,9 +990,9 @@ export default function NewVenuePage() {
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-              למעלה: פריטים שמגיעים עם האולם בלי תוספת. למטה: אוכל, ריקודים, שולחנות והגברה —
-              גרירה ל«כלול במחיר» או «בתוספת תשלום», ובחרו לכל פריט אם מותר ספק חיצוני
-              (אופציונלי).
+              הוסיפו פריטים שהמחפש מקבל מהאולם — הם נכנסים לטבלת המיון (לא פעיל / כלול /
+              בתוספת תשלום). אוכל, שולחנות והגברה — גרירה; רחבת ריקודים מסומנת ב«מה האולם
+              מציע» למעלה.
               {anyEventOffersFood
                 ? " האוכל נקבע גם לפי סוגי האירוע למטה."
                 : ""}
@@ -1010,10 +1011,6 @@ export default function NewVenuePage() {
               setCustomAmenityRows={setCustomAmenityRows}
               customHallGeneralInput={customHallGeneralInput}
               setCustomHallGeneralInput={setCustomHallGeneralInput}
-              bundledItemRows={softAttributeRows}
-              setBundledItemRows={setSoftAttributeRows}
-              bundledItemInput={softAttrCustomInput}
-              setBundledItemInput={setSoftAttrCustomInput}
             />
           </div>
 

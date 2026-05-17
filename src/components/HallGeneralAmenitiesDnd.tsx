@@ -16,10 +16,6 @@ import {
   builtinAmenityOffersSeekerExternalConfig,
   defaultSeekerExternalForCustomRow,
 } from "@/lib/venueAmenitySeekerExternal";
-import {
-  newVenueSoftAttributeRow,
-  type VenueSoftAttributeRow,
-} from "@/lib/venueSoftAttributesJson";
 
 export type { HallGeneralPriceMode, HallGeneralBuiltinKey, BuiltinAmenityKeyFull };
 export { HALL_VENUE_PRODUCT_DND_ITEMS, VENUE_PRODUCT_BUILTIN_KEYS };
@@ -115,11 +111,6 @@ type Props = {
   setCustomAmenityRows: Dispatch<SetStateAction<HallGeneralCustomRow[]>>;
   customHallGeneralInput: string;
   setCustomHallGeneralInput: Dispatch<SetStateAction<string>>;
-  /** פריטים שמגיעים עם האולם לכל האירועים — ללא תוספת תשלום (venueSoftAttributesJson) */
-  bundledItemRows: VenueSoftAttributeRow[];
-  setBundledItemRows: Dispatch<SetStateAction<VenueSoftAttributeRow[]>>;
-  bundledItemInput: string;
-  setBundledItemInput: Dispatch<SetStateAction<string>>;
 };
 
 export default function HallGeneralAmenitiesDnd({
@@ -136,14 +127,7 @@ export default function HallGeneralAmenitiesDnd({
   setCustomAmenityRows,
   customHallGeneralInput,
   setCustomHallGeneralInput,
-  bundledItemRows,
-  setBundledItemRows,
-  bundledItemInput,
-  setBundledItemInput,
 }: Props) {
-  const MAX_BUNDLED = 25;
-  const bundledCbClass =
-    "h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]";
   const dndItems = useMemo(
     () =>
       HALL_VENUE_PRODUCT_DND_ITEMS.filter(
@@ -365,17 +349,17 @@ export default function HallGeneralAmenitiesDnd({
     <>
       <div className="mb-4 rounded-xl border border-[#E0D4C3]/80 bg-white/70 p-3">
         <p className="mb-1 text-xs font-semibold text-[#5F5F5F]">
-          פריטים נוספים בלי תוספת
+          מה המחפש מקבל מהאולם
         </p>
         <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-          דברים שחלק מהאולם ומגיעים איתו בכל סוגי האירועים — ללא תמחור וללא גרירה ל«בתוספת
-          תשלום». סמנו אם להציג למחפשים.
+          הוסיפו פריטים משלכם — הם ייכנסו לטבלה למטה ב«לא פעיל». משם גררו ל«כלול במחיר» (ללא
+          תשלום נוסף) או ל«בתוספת תשלום», או סמנו את התיבה ובחרו עמודה.
         </p>
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
           <input
             type="text"
-            value={bundledItemInput}
-            onChange={(e) => setBundledItemInput(e.target.value)}
+            value={customHallGeneralInput}
+            onChange={(e) => setCustomHallGeneralInput(e.target.value)}
             className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
             placeholder="הוסף פריט משלך…"
             maxLength={80}
@@ -383,62 +367,28 @@ export default function HallGeneralAmenitiesDnd({
           <button
             type="button"
             onClick={() => {
-              const v = bundledItemInput.trim();
-              if (!v) return;
-              if (bundledItemRows.length >= MAX_BUNDLED) return;
+              const value = customHallGeneralInput.trim();
+              if (!value) return;
+              if (customAmenityRows.length >= 20) return;
               if (
-                bundledItemRows.some((r) => r.label.toLowerCase() === v.toLowerCase())
+                customAmenityRows.some((r) => r.label.toLowerCase() === value.toLowerCase())
               ) {
                 return;
               }
-              setBundledItemRows((prev) => [...prev, newVenueSoftAttributeRow(v)]);
-              setBundledItemInput("");
+              setCustomAmenityRows((prev) => [...prev, newHallGeneralCustomRow(value)]);
+              setCustomHallGeneralInput("");
             }}
             className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
           >
             הוסף
           </button>
         </div>
-        {bundledItemRows.length > 0 ? (
-          <ul className="mt-3 space-y-2">
-            {bundledItemRows.map((row) => (
-              <li
-                key={row.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-3 py-2 text-xs"
-              >
-                <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={row.on}
-                    onChange={(e) =>
-                      setBundledItemRows((prev) =>
-                        prev.map((r) =>
-                          r.id === row.id ? { ...r, on: e.target.checked } : r
-                        )
-                      )
-                    }
-                    className={bundledCbClass}
-                  />
-                  <span className="truncate font-medium text-[#2A261F]">{row.label}</span>
-                </label>
-                <button
-                  type="button"
-                  className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
-                  onClick={() =>
-                    setBundledItemRows((prev) => prev.filter((r) => r.id !== row.id))
-                  }
-                >
-                  הסר
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
       </div>
 
       <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
         גררו כל פריט בין «כלול במחיר» ל«בתוספת תשלום». לכל פריט פעיל אפשר לסמן אם מותר להביא ספק
-        חיצוני (* אופציונלי). פריטים ללא סימון לא יופיעו בחיפוש.
+        חיצוני (* אופציונלי). פריטים ללא סימון לא יופיעו בחיפוש. רחבת ריקודים — מסומנת בנפרד
+        בסעיף «מה האולם מציע» למעלה.
       </p>
 
       <div className="mb-3 space-y-2">
@@ -578,42 +528,6 @@ export default function HallGeneralAmenitiesDnd({
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="mt-3 border-t border-[#E0D4C3]/70 pt-3">
-        <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">פרטים נוספים עם תמחור (כללי)</p>
-        <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-          <input
-            type="text"
-            value={customHallGeneralInput}
-            onChange={(e) => setCustomHallGeneralInput(e.target.value)}
-            className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-            placeholder="הוסף פרט משלך…"
-            maxLength={80}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              const value = customHallGeneralInput.trim();
-              if (!value) return;
-              if (customAmenityRows.length >= 20) return;
-              if (
-                customAmenityRows.some((r) => r.label.toLowerCase() === value.toLowerCase())
-              ) {
-                return;
-              }
-              setCustomAmenityRows((prev) => [...prev, newHallGeneralCustomRow(value)]);
-              setCustomHallGeneralInput("");
-            }}
-            className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
-          >
-            הוסף
-          </button>
-        </div>
-        <p className="mt-2 text-[10px] text-[#9A928A]">
-          אחרי הוספה הפריט מופיע ב«לא פעיל» — גררו ל«כלול במחיר» או ל«בתוספת תשלום», או סמנו את התיבה
-          ואז בחרו עמודה.
-        </p>
       </div>
     </>
   );

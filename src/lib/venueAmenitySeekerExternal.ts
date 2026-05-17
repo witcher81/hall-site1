@@ -8,7 +8,6 @@ export const SEEKER_EXTERNAL_JSON_KEY = "allowsSeekerExternalSource";
 
 /** פריטים מובנים שחלק מהאולם — אין בחירת ספק חיצוני */
 export const BUILTIN_FIXED_VENUE_ONLY_KEYS = new Set<BuiltinAmenityKeyFull>([
-  "hasDanceFloor",
   "hasTableSetup",
 ]);
 

@@ -20,14 +20,12 @@ export type BuiltinServiceKey = BuiltinAmenityKeyFull;
 
 const BUILTIN_SERVICE_KEYS: BuiltinServiceKey[] = [
   "hasFood",
-  "hasDanceFloor",
   "hasTableSetup",
   "hasSoundSystem",
 ];
 
 const BUILTIN_LABELS: Record<BuiltinServiceKey, string> = {
   hasFood: "אוכל",
-  hasDanceFloor: "רחבת ריקודים",
   hasTableSetup: "סידור שולחנות",
   hasSoundSystem: "מערכת הגברה",
 };
@@ -257,6 +255,16 @@ export function getVenueInquiryOptions(
   const infoTraits: InquiryInfoTrait[] = [];
 
   appendChuppaOptionsForInquiry(v, wedding, services);
+
+  if (v.hasDanceFloor) {
+    services.push({
+      id: "service:hasDanceFloor",
+      label: "רחבת ריקודים",
+      priceMode: "included",
+      extraPrice: null,
+      allowsExternalSource: false,
+    });
+  }
 
   const showFood = eventTypeHasFood(v, eventType);
   for (const key of BUILTIN_SERVICE_KEYS) {

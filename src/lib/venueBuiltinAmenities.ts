@@ -1,7 +1,6 @@
 /** מפתחות שירותי אולם עם תמחור (שרת + לקוח) — בלי "use client" */
 export const HALL_VENUE_PRODUCT_DND_ITEMS = [
   { key: "hasFood", label: "כולל אוכל", supportsExtraPrice: true as const },
-  { key: "hasDanceFloor", label: "רחבת ריקודים", supportsExtraPrice: true as const },
   { key: "hasTableSetup", label: "סידור שולחנות", supportsExtraPrice: true as const },
   { key: "hasSoundSystem", label: "מערכת הגברה", supportsExtraPrice: true as const },
 ] as const;
