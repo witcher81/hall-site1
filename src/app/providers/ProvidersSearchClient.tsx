@@ -1,5 +1,6 @@
 "use client";
 
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import PopularBadge from "@/components/PopularBadge";
 import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
@@ -117,26 +118,20 @@ export default function ProvidersSearchClient() {
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">מחיר מינימלי (₪)</label>
-            <input
-              type="number"
-              min={0}
-              value={form.minPrice}
-              onChange={(e) => setForm((f) => ({ ...f, minPrice: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-              placeholder="0"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">מחיר מקסימלי (₪)</label>
-            <input
-              type="number"
-              min={0}
-              value={form.maxPrice}
-              onChange={(e) => setForm((f) => ({ ...f, maxPrice: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-              placeholder="5000"
+          <div className="sm:col-span-2">
+            <OptionalPriceRangeFields
+              minPrice={form.minPrice}
+              maxPrice={form.maxPrice}
+              onChange={(min, max) =>
+                setForm((f) => ({ ...f, minPrice: min, maxPrice: max }))
+              }
+              singleLabel="מחיר לשירות (₪)"
+              singlePlaceholder="למשל 2500"
+              minLabel="מחיר מינימלי (₪)"
+              maxLabel="מחיר מקסימלי (₪)"
+              expandRangeLabel="אין לי מחיר מדויק — חפש לפי טווח"
+              collapseRangeLabel="יש לי מחיר מדויק"
+              inputClassName="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
             />
           </div>
           <div className="flex items-end">

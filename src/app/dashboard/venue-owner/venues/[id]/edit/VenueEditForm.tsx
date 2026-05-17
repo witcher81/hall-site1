@@ -1048,9 +1048,12 @@ export default function VenueEditForm({
                         )}
                         {showMealPrices && (
                           <OptionalPriceRangeFields
+                            key={`${et}-meal`}
+                            resetKey={`${et}-meal`}
                             className="sm:col-span-2"
                             minPrice={profile.minPrice}
                             maxPrice={profile.maxPrice}
+                            collapseRangeLabel="יש לי מחיר קבוע למנה"
                             onChange={(min, max) =>
                               setEventTypeProfiles((prev) => ({
                                 ...prev,
@@ -1106,8 +1109,11 @@ export default function VenueEditForm({
                                 </label>
                                 {!profile.veganSameAsMealPrice && (
                                   <OptionalPriceRangeFields
+                                    key={`${et}-vegan`}
+                                    resetKey={`${et}-vegan`}
                                     className="sm:pe-8"
                                     singleLabel="מחיר למנה טבעונית (₪)"
+                                    collapseRangeLabel="יש לי מחיר קבוע למנה טבעונית"
                                     minPrice={profile.veganMinPrice}
                                     maxPrice={profile.veganMaxPrice}
                                     onChange={(min, max) =>

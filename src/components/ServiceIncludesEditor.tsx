@@ -1,5 +1,7 @@
 "use client";
 
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
+
 import type {
   ServiceCustomInclude,
   ServicePaidExtraItem,
@@ -232,10 +234,7 @@ export default function ServiceIncludesEditor({
                 key={index}
                 className="rounded-lg border border-amber-200/80 bg-white/85 p-2.5"
               >
-                {(() => {
-                  const isRange = row.usePriceRange === true;
-                  return (
-                    <>
+                <>
                 <div className="flex flex-wrap items-start gap-2">
                   <input
                     type="text"
@@ -265,95 +264,72 @@ export default function ServiceIncludesEditor({
                   className={textarea}
                 />
                 <div className="mt-2 rounded-lg border border-amber-200/60 bg-amber-50/40 p-2">
-                  {!isRange ? (
-                    <div>
-                      <label className="block text-[11px] font-medium text-amber-900">
-                        מחיר מדויק (₪)
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={row.exactPrice ?? ""}
-                        onChange={(e) =>
-                          updatePaidExtra(index, {
-                            exactPrice: parsePriceInput(e.target.value),
-                          })
-                        }
-                        className={`${input} mt-1`}
-                        placeholder="למשל: 500"
-                      />
-                    </div>
-                  ) : (
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-[11px] font-medium text-amber-900">
-                          מינימום (₪)
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={row.minPrice ?? ""}
-                          onChange={(e) =>
-                            updatePaidExtra(index, {
-                              minPrice: parsePriceInput(e.target.value),
-                            })
-                          }
-                          className={`${input} mt-1`}
-                          placeholder="למשל: 300"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-medium text-amber-900">
-                          מקסימום (₪)
-                        </label>
-                        <input
-                          type="number"
-                          min={0}
-                          value={row.maxPrice ?? ""}
-                          onChange={(e) =>
-                            updatePaidExtra(index, {
-                              maxPrice: parsePriceInput(e.target.value),
-                            })
-                          }
-                          className={`${input} mt-1`}
-                          placeholder="למשל: 900"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <label className="mt-2 flex cursor-pointer items-center gap-2 text-[11px] text-amber-900">
-                    <input
-                      type="checkbox"
-                      className={checkbox}
-                      checked={isRange}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        if (checked) {
-                          const ex = row.exactPrice;
-                          updatePaidExtra(index, {
-                            usePriceRange: true,
-                            exactPrice: null,
-                            minPrice: ex ?? row.minPrice ?? null,
-                            maxPrice: ex ?? row.maxPrice ?? null,
-                          });
-                          return;
-                        }
+                  <OptionalPriceRangeFields
+                    key={`paid-extra-price-${index}`}
+                    resetKey={`paid-extra-price-${index}`}
+                    useRange={row.usePriceRange === true}
+                    onUseRangeChange={(useRange) => {
+                      if (useRange) {
+                        const ex = row.exactPrice;
+                        updatePaidExtra(index, {
+                          usePriceRange: true,
+                          exactPrice: null,
+                          minPrice: ex ?? row.minPrice ?? null,
+                          maxPrice: ex ?? row.maxPrice ?? null,
+                        });
+                      } else {
                         const exact =
                           row.minPrice != null &&
                           row.maxPrice != null &&
                           row.minPrice === row.maxPrice
                             ? row.minPrice
-                            : null;
+                            : row.minPrice ?? row.maxPrice ?? null;
                         updatePaidExtra(index, {
                           usePriceRange: false,
                           exactPrice: exact,
                           minPrice: null,
                           maxPrice: null,
                         });
-                      }}
-                    />
-                    אין לי מחיר מדויק — אציג טווח מחירים
-                  </label>
+                      }
+                    }}
+                    minPrice={
+                      row.usePriceRange
+                        ? row.minPrice != null
+                          ? String(row.minPrice)
+                          : ""
+                        : row.exactPrice != null
+                          ? String(row.exactPrice)
+                          : ""
+                    }
+                    maxPrice={
+                      row.usePriceRange
+                        ? row.maxPrice != null
+                          ? String(row.maxPrice)
+                          : ""
+                        : row.exactPrice != null
+                          ? String(row.exactPrice)
+                          : ""
+                    }
+                    onChange={(min, max) => {
+                      if (row.usePriceRange) {
+                        updatePaidExtra(index, {
+                          minPrice: parsePriceInput(min),
+                          maxPrice: parsePriceInput(max),
+                        });
+                      } else {
+                        updatePaidExtra(index, {
+                          exactPrice: parsePriceInput(min),
+                        });
+                      }
+                    }}
+                    singleLabel="מחיר מדויק (₪)"
+                    singlePlaceholder="למשל: 500"
+                    minLabel="מינימום (₪)"
+                    maxLabel="מקסימום (₪)"
+                    expandRangeLabel="אין לי מחיר מדויק — אציג טווח מחירים"
+                    collapseRangeLabel="יש לי מחיר קבוע"
+                    inputClassName={`${input} mt-1`}
+                  />
                 </div>
                 <div className="mt-1 flex justify-end">
                   <button
@@ -364,9 +340,7 @@ export default function ServiceIncludesEditor({
                     הסרה
                   </button>
                 </div>
-                    </>
-                  );
-                })()}
+                </>
               </li>
             ))}
           </ul>

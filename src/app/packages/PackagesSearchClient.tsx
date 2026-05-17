@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import CityDatalist from "@/components/CityDatalist";
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
 import type { PackagesListSort } from "@/lib/packagesFilter";
@@ -310,32 +311,20 @@ export default function PackagesSearchClient() {
               placeholder="400"
             />
           </div>
-          <div className="min-w-0">
-            <label className={labelClass}>מחיר מינימום חבילה (₪)</label>
-            <input
-              type="number"
-              min={0}
-              step={1000}
-              value={form.bundleMin}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, bundleMin: e.target.value }))
+          <div className="min-w-0 sm:col-span-2">
+            <OptionalPriceRangeFields
+              minPrice={form.bundleMin}
+              maxPrice={form.bundleMax}
+              onChange={(min, max) =>
+                setForm((f) => ({ ...f, bundleMin: min, bundleMax: max }))
               }
-              className={fieldClass}
-              placeholder="למשל 30000"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className={labelClass}>מחיר מקסימום חבילה (₪)</label>
-            <input
-              type="number"
-              min={0}
-              step={1000}
-              value={form.bundleMax}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, bundleMax: e.target.value }))
-              }
-              className={fieldClass}
-              placeholder="למשל 90000"
+              singleLabel="מחיר חבילה (₪)"
+              singlePlaceholder="למשל 50000"
+              minLabel="מחיר מינימום חבילה (₪)"
+              maxLabel="מחיר מקסימום חבילה (₪)"
+              expandRangeLabel="אין לי מחיר קבוע — חפש לפי טווח"
+              collapseRangeLabel="יש לי מחיר קבוע לחבילה"
+              inputClassName={fieldClass}
             />
           </div>
           <div className="min-w-0">

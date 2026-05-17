@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import {
@@ -810,84 +811,50 @@ export default function HallsSearchClient({
           </div>
 
           <div className="rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4 sm:p-5">
-            {!form.priceUseRange ? (
-              <div className="min-w-0">
-                <label className={labelClass}>מחיר למנה שאני מחפש (₪)</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={form.exactPrice}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, exactPrice: e.target.value }))
-                  }
-                  className={fieldClass}
-                  placeholder="לדוגמה: 250"
-                />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div className="min-w-0">
-                  <label className={labelClass}>מחיר מינימום למנה (₪)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.minPrice}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, minPrice: e.target.value }))
-                    }
-                    className={fieldClass}
-                    placeholder="לדוגמה: 150"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <label className={labelClass}>מחיר מקסימום למנה (₪)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.maxPrice}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, maxPrice: e.target.value }))
-                    }
-                    className={fieldClass}
-                    placeholder="לדוגמה: 400"
-                  />
-                </div>
-              </div>
-            )}
-            <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-[#0F3B2E]">
-              <input
-                type="checkbox"
-                checked={form.priceUseRange}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setForm((f) => {
-                    if (checked) {
-                      const p = f.exactPrice.trim();
-                      return {
-                        ...f,
-                        priceUseRange: true,
-                        minPrice: p || f.minPrice,
-                        maxPrice: p || f.maxPrice || p,
-                        exactPrice: "",
-                      };
-                    }
-                    const ep =
-                      f.minPrice && f.minPrice === f.maxPrice
-                        ? f.minPrice
-                        : "";
+            <OptionalPriceRangeFields
+              useRange={form.priceUseRange}
+              onUseRangeChange={(useRange) =>
+                setForm((f) => {
+                  if (useRange) {
+                    const p = f.exactPrice.trim();
                     return {
                       ...f,
-                      priceUseRange: false,
-                      exactPrice: ep,
-                      minPrice: "",
-                      maxPrice: "",
+                      priceUseRange: true,
+                      minPrice: p || f.minPrice,
+                      maxPrice: p || f.maxPrice || p,
+                      exactPrice: "",
                     };
-                  });
-                }}
-                className="h-4 w-4 shrink-0 rounded border-[#E7E0CF] text-[#C9A227] focus:ring-[#C9A227]/40"
-              />
-              יש לי טווח מחירים ולא מחיר מדויק למנה
-            </label>
+                  }
+                  const ep =
+                    f.minPrice && f.minPrice === f.maxPrice
+                      ? f.minPrice
+                      : f.minPrice || f.maxPrice || "";
+                  return {
+                    ...f,
+                    priceUseRange: false,
+                    exactPrice: ep,
+                    minPrice: "",
+                    maxPrice: "",
+                  };
+                })
+              }
+              minPrice={form.priceUseRange ? form.minPrice : form.exactPrice}
+              maxPrice={form.priceUseRange ? form.maxPrice : form.exactPrice}
+              onChange={(min, max) =>
+                setForm((f) =>
+                  f.priceUseRange
+                    ? { ...f, minPrice: min, maxPrice: max }
+                    : { ...f, exactPrice: min, minPrice: "", maxPrice: "" }
+                )
+              }
+              singleLabel="מחיר למנה שאני מחפש (₪)"
+              singlePlaceholder="לדוגמה: 250"
+              minLabel="מחיר מינימום למנה (₪)"
+              maxLabel="מחיר מקסימום למנה (₪)"
+              expandRangeLabel="יש לי טווח מחירים ולא מחיר מדויק למנה"
+              collapseRangeLabel="יש לי מחיר מדויק למנה"
+              inputClassName={fieldClass}
+            />
           </div>
         </div>
 

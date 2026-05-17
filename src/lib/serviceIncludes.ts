@@ -81,8 +81,17 @@ function sanitizePaidExtrasArray(data: unknown): ServicePaidExtraItem[] {
       usePriceRange = false;
       minPrice = null;
       maxPrice = null;
-    } else {
-      if (minPrice != null || maxPrice != null) usePriceRange = true;
+    } else if (
+      minPrice != null &&
+      maxPrice != null &&
+      minPrice !== maxPrice
+    ) {
+      usePriceRange = true;
+    } else if (minPrice != null || maxPrice != null) {
+      usePriceRange = false;
+      exactPrice = minPrice ?? maxPrice;
+      minPrice = null;
+      maxPrice = null;
     }
     if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
       [minPrice, maxPrice] = [maxPrice, minPrice];

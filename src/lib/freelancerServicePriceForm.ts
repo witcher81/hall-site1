@@ -1,4 +1,16 @@
-/** טופס מחיר לשירות פרילנסר: מחיר מדויק או טווח מינ'/מקס' */
+/** טופס מחיר: מחיר מדויק (ברירת מחדל) או טווח מינ'/מקס' */
+
+/** האם הערכים השמורים מייצגים טווח (מינ' ≠ מקס') ולא מחיר קבוע */
+export function storedMinMaxIsPriceRange(
+  minRaw: string | number | null | undefined,
+  maxRaw: string | number | null | undefined
+): boolean {
+  const minS = String(minRaw ?? "").trim();
+  const maxS = String(maxRaw ?? "").trim();
+  if (!minS && !maxS) return false;
+  if (minS && maxS && minS === maxS) return false;
+  return true;
+}
 
 export type FreelancerServicePriceFormFields = {
   priceUseRange: boolean;
@@ -21,10 +33,11 @@ export function parseMinMaxToFreelancerPriceForm(
       maxPrice: "",
     };
   }
-  if (minS && maxS && minS === maxS) {
+  if (!storedMinMaxIsPriceRange(minS, maxS)) {
+    const exact = minS || maxS;
     return {
       priceUseRange: false,
-      exactPrice: minS,
+      exactPrice: exact,
       minPrice: "",
       maxPrice: "",
     };

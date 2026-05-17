@@ -9,6 +9,7 @@ import {
   composeServiceCategoryValue,
   parseServiceCategoryValue,
 } from "@/lib/freelancerServiceCategories";
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import {
   buildMinMaxStringsForSubmit,
   parseMinMaxToFreelancerPriceForm,
@@ -273,88 +274,48 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       />
 
       <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/50 p-4">
-        {!form.priceUseRange ? (
-          <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
-              מחיר לשירות (₪)
-            </label>
-            <input
-              type="number"
-              min={0}
-              value={form.exactPrice}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, exactPrice: e.target.value }))
-              }
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-              placeholder="למשל 2500"
-            />
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
-                מחיר מינימלי (₪)
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.minPrice}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, minPrice: e.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="1500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
-                מחיר מקסימלי (₪)
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.maxPrice}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, maxPrice: e.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="5000"
-              />
-            </div>
-          </div>
-        )}
-        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-[#0F3B2E]">
-          <input
-            type="checkbox"
-            checked={form.priceUseRange}
-            onChange={(e) => {
-              const checked = e.target.checked;
-              setForm((f) => {
-                if (checked) {
-                  const ex = f.exactPrice.trim();
-                  return {
-                    ...f,
-                    priceUseRange: true,
-                    minPrice: ex || f.minPrice,
-                    maxPrice: ex || f.maxPrice,
-                    exactPrice: "",
-                  };
-                }
-                const ep =
-                  f.minPrice && f.minPrice === f.maxPrice ? f.minPrice : "";
+        <OptionalPriceRangeFields
+          useRange={form.priceUseRange}
+          onUseRangeChange={(useRange) =>
+            setForm((f) => {
+              if (useRange) {
+                const ex = f.exactPrice.trim();
                 return {
                   ...f,
-                  priceUseRange: false,
-                  exactPrice: ep,
-                  minPrice: "",
-                  maxPrice: "",
+                  priceUseRange: true,
+                  minPrice: ex || f.minPrice,
+                  maxPrice: ex || f.maxPrice || ex,
+                  exactPrice: "",
                 };
-              });
-            }}
-            className="h-4 w-4 shrink-0 rounded border-[#E0D4C3] text-[#0F3B2E] focus:ring-[#C9A227]/40"
-          />
-          אין לי מחיר מדויק — אציג טווח מחירים
-        </label>
+              }
+              const ep =
+                f.minPrice && f.minPrice === f.maxPrice
+                  ? f.minPrice
+                  : f.minPrice || f.maxPrice || "";
+              return {
+                ...f,
+                priceUseRange: false,
+                exactPrice: ep,
+                minPrice: "",
+                maxPrice: "",
+              };
+            })
+          }
+          minPrice={form.priceUseRange ? form.minPrice : form.exactPrice}
+          maxPrice={form.priceUseRange ? form.maxPrice : form.exactPrice}
+          onChange={(min, max) =>
+            setForm((f) =>
+              f.priceUseRange
+                ? { ...f, minPrice: min, maxPrice: max }
+                : { ...f, exactPrice: min, minPrice: "", maxPrice: "" }
+            )
+          }
+          singleLabel="מחיר לשירות (₪)"
+          singlePlaceholder="למשל 2500"
+          expandRangeLabel="אין לי מחיר מדויק — אציג טווח מחירים"
+          collapseRangeLabel="יש לי מחיר קבוע לשירות"
+          inputClassName="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+        />
       </div>
 
       <div>
