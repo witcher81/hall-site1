@@ -1,19 +1,24 @@
 "use client";
 
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
+import InquiryOfferOverview from "@/components/venue-inquiry/InquiryOfferOverview";
+import InquiryServiceChoicesStep from "@/components/venue-inquiry/InquiryServiceChoicesStep";
+import InquiryWizardNav, {
+  type InquiryWizardStep,
+} from "@/components/venue-inquiry/InquiryWizardNav";
 import {
-  formatInquiryPriceHint,
   getInquiryGuestBounds,
   getVenueInquiryOptions,
   inquiryServiceAllowsExternalSource,
   isWeddingInquiryEventType,
-  type InquiryInfoTrait,
-  type InquiryServiceOption,
   type ServiceChoiceSource,
   type VenueInquiryAmenitiesInput,
 } from "@/lib/venueInquiryAmenities";
-import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
-import { PARKING_KIND_LABELS, type ParkingKind } from "@/lib/venueParkingKind";
+import {
+  hasChuppaChoiceSection,
+  partitionInquiryServices,
+} from "@/lib/venueInquiryOfferGroups";
+import { type ParkingKind } from "@/lib/venueParkingKind";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -55,6 +60,7 @@ export default function VenueInquiryClient({
   const [weddingChuppahPick, setWeddingChuppahPick] = useState<"outdoor" | "covered">(
     "outdoor"
   );
+  const [stepId, setStepId] = useState<"event" | "offers" | "choices" | "send">("event");
 
   const eventTypeTrimmed = form.eventType.trim() || null;
 
@@ -81,45 +87,62 @@ export default function VenueInquiryClient({
 
   const weddingForm = isWeddingInquiryEventType(eventTypeTrimmed);
 
-  const splitChuppa = useMemo(() => {
-    const rest: InquiryServiceOption[] = [];
-    let outdoor: InquiryServiceOption | null = null;
-    let covered: InquiryServiceOption | null = null;
-    for (const o of serviceOptions) {
-      if (o.id === "service:chuppaOutdoor") outdoor = o;
-      else if (o.id === "service:chuppaCovered") covered = o;
-      else rest.push(o);
+  const partition = useMemo(
+    () =>
+      partitionInquiryServices(serviceOptions, inquiryServiceAllowsExternalSource),
+    [serviceOptions]
+  );
+
+  const chuppahBoth = weddingForm && partition.chuppa.outdoor && partition.chuppa.covered;
+  const chuppahSingleOutdoor =
+    weddingForm && partition.chuppa.outdoor && !partition.chuppa.covered;
+  const chuppahSingleCovered =
+    weddingForm && !partition.chuppa.outdoor && partition.chuppa.covered;
+
+  const hasChoicesStep = useMemo(
+    () =>
+      partition.choosable.length > 0 ||
+      hasChuppaChoiceSection(weddingForm, partition.chuppa),
+    [partition.choosable.length, partition.chuppa, weddingForm]
+  );
+
+  const wizardSteps = useMemo((): InquiryWizardStep[] => {
+    const steps: InquiryWizardStep[] = [
+      { id: "event", title: "פרטי האירוע" },
+      { id: "offers", title: "מה באולם" },
+    ];
+    if (hasChoicesStep) steps.push({ id: "choices", title: "הבחירות שלכם" });
+    steps.push({ id: "send", title: "שליחה" });
+    return steps;
+  }, [hasChoicesStep]);
+
+  const stepOrder = useMemo(
+    () => wizardSteps.map((s) => s.id as "event" | "offers" | "choices" | "send"),
+    [wizardSteps]
+  );
+
+  const stepIndex = Math.max(0, stepOrder.indexOf(stepId));
+
+  useEffect(() => {
+    if (!stepOrder.includes(stepId)) {
+      setStepId(stepOrder[stepOrder.length - 1] ?? "event");
     }
-    return { rest, outdoor, covered };
-  }, [serviceOptions]);
+  }, [stepId, stepOrder]);
 
-  const chuppahBoth = weddingForm && splitChuppa.outdoor && splitChuppa.covered;
-  const chuppahSingleOutdoor = weddingForm && splitChuppa.outdoor && !splitChuppa.covered;
-  const chuppahSingleCovered = weddingForm && !splitChuppa.outdoor && splitChuppa.covered;
-  const hasChuppahSection = chuppahBoth || chuppahSingleOutdoor || chuppahSingleCovered;
-
-  const optionIdsKey = useMemo(
-    () => splitChuppa.rest.map((o) => o.id).join("\n"),
-    [splitChuppa.rest]
+  const choosableKey = useMemo(
+    () => partition.choosable.map((o) => o.id).join("\n"),
+    [partition.choosable]
   );
 
   useEffect(() => {
     const next: Record<string, ServiceChoiceSource> = {};
-    for (const o of splitChuppa.rest) next[o.id] = "venue";
+    for (const o of partition.choosable) next[o.id] = "venue";
     setSourceById(next);
-  }, [optionIdsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [choosableKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const inputMinGuests = guestBounds.min ?? 1;
   const inputMaxGuests = guestBounds.max ?? undefined;
-
-  const allInfoTraits = useMemo(() => {
-    const traits: InquiryInfoTrait[] = [...infoTraits];
-    for (const label of presetLabels ?? []) {
-      if (label.trim()) traits.push({ id: `info:preset:${label}`, label: label.trim() });
-    }
-    return traits;
-  }, [infoTraits, presetLabels]);
 
   const applyDateFromQuery = useCallback((raw: string | null) => {
     if (!raw || raw.length !== 10) return;
@@ -171,50 +194,18 @@ export default function VenueInquiryClient({
     return d >= todayDate;
   }
 
-  function ServicePriceBadge({ opt }: { opt: InquiryServiceOption }) {
-    const hint = formatInquiryPriceHint(opt.priceMode, opt.extraPrice, opt.extraPriceMax);
-    const isExtra = opt.priceMode === "extra" && opt.extraPrice != null && opt.extraPrice > 0;
-    return (
-      <span
-        className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-          isExtra
-            ? "border border-[#C9A227]/40 bg-[#FFFBF0] text-[#8B6914]"
-            : "border border-[#0F3B2E]/15 bg-[#0F3B2E]/[0.06] text-[#0F3B2E]"
-        }`}
-      >
-        {hint}
-      </span>
-    );
-  }
+  const allRestServices = useMemo(
+    () => [...partition.included, ...partition.extra],
+    [partition.included, partition.extra]
+  );
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setSuccess(false);
-
-    if (!form.preferredDate.trim()) {
-      setError("נא לבחור תאריך אירוע");
-      return;
-    }
-    if (!isDateValid(form.preferredDate)) {
-      setError("נא לבחור תאריך שעדיין לא עבר");
-      return;
-    }
-    const num = Number(form.guestCount);
-    if (!form.guestCount.trim() || !Number.isFinite(num) || num < 1) {
-      setError("נא לציין כמות אורחים צפויה");
-      return;
-    }
-    if (guestBounds.min != null && num < guestBounds.min) {
-      setError(`לפחות ${guestBounds.min} אורחים (מינימום לסוג האירוע)`);
-      return;
-    }
-    if (guestBounds.max != null && num > guestBounds.max) {
-      setError(`עד ${guestBounds.max} אורחים (מקסימום לסוג האירוע)`);
-      return;
-    }
-
-    const restChoices = splitChuppa.rest.map((o) => ({
+  function buildServiceChoicesPayload(): Array<{
+    id: string;
+    source: ServiceChoiceSource;
+    priceMode: "included" | "extra";
+    extraPrice: number | null;
+  }> {
+    const restChoices = allRestServices.map((o) => ({
       id: o.id,
       source: inquiryServiceAllowsExternalSource(o)
         ? (sourceById[o.id] ?? "venue")
@@ -222,37 +213,131 @@ export default function VenueInquiryClient({
       priceMode: o.priceMode,
       extraPrice: o.extraPrice,
     }));
-    const chuppaChoices: {
+
+    const chuppaChoices: Array<{
       id: string;
       source: ServiceChoiceSource;
       priceMode: "included" | "extra";
       extraPrice: number | null;
-    }[] = [];
-    if (chuppahBoth && splitChuppa.outdoor && splitChuppa.covered) {
+    }> = [];
+
+    if (chuppahBoth && partition.chuppa.outdoor && partition.chuppa.covered) {
       const picked =
-        weddingChuppahPick === "outdoor" ? splitChuppa.outdoor : splitChuppa.covered;
+        weddingChuppahPick === "outdoor"
+          ? partition.chuppa.outdoor
+          : partition.chuppa.covered;
       chuppaChoices.push({
         id: picked.id,
         source: "venue",
         priceMode: picked.priceMode,
         extraPrice: picked.extraPrice,
       });
-    } else if (chuppahSingleOutdoor && splitChuppa.outdoor) {
+    } else if (chuppahSingleOutdoor && partition.chuppa.outdoor) {
       chuppaChoices.push({
         id: "service:chuppaOutdoor",
         source: "venue",
-        priceMode: splitChuppa.outdoor.priceMode,
-        extraPrice: splitChuppa.outdoor.extraPrice,
+        priceMode: partition.chuppa.outdoor.priceMode,
+        extraPrice: partition.chuppa.outdoor.extraPrice,
       });
-    } else if (chuppahSingleCovered && splitChuppa.covered) {
+    } else if (chuppahSingleCovered && partition.chuppa.covered) {
       chuppaChoices.push({
         id: "service:chuppaCovered",
         source: "venue",
-        priceMode: splitChuppa.covered.priceMode,
-        extraPrice: splitChuppa.covered.extraPrice,
+        priceMode: partition.chuppa.covered.priceMode,
+        extraPrice: partition.chuppa.covered.extraPrice,
       });
     }
-    const serviceChoices = [...restChoices, ...chuppaChoices];
+
+    return [...restChoices, ...chuppaChoices];
+  }
+
+  function validateEventStep(): string | null {
+    if (!form.preferredDate.trim()) {
+      return "נא לבחור תאריך אירוע";
+    }
+    if (!isDateValid(form.preferredDate)) {
+      return "נא לבחור תאריך שעדיין לא עבר";
+    }
+    const num = Number(form.guestCount);
+    if (!form.guestCount.trim() || !Number.isFinite(num) || num < 1) {
+      return "נא לציין כמות אורחים צפויה";
+    }
+    if (guestBounds.min != null && num < guestBounds.min) {
+      return `לפחות ${guestBounds.min} אורחים (מינימום לסוג האירוע)`;
+    }
+    if (guestBounds.max != null && num > guestBounds.max) {
+      return `עד ${guestBounds.max} אורחים (מקסימום לסוג האירוע)`;
+    }
+    if (eventTypes.length > 0 && !form.eventType.trim()) {
+      return "נא לבחור סוג אירוע";
+    }
+    return null;
+  }
+
+  function goNext() {
+    setError(null);
+    if (stepId === "event") {
+      const err = validateEventStep();
+      if (err) {
+        setError(err);
+        return;
+      }
+      setStepId("offers");
+      return;
+    }
+    if (stepId === "offers") {
+      setStepId(hasChoicesStep ? "choices" : "send");
+      return;
+    }
+    if (stepId === "choices") {
+      setStepId("send");
+    }
+  }
+
+  function goBack() {
+    setError(null);
+    if (stepId === "send") {
+      setStepId(hasChoicesStep ? "choices" : "offers");
+      return;
+    }
+    if (stepId === "choices") {
+      setStepId("offers");
+      return;
+    }
+    if (stepId === "offers") {
+      setStepId("event");
+    }
+  }
+
+  function goToStep(index: number) {
+    const target = stepOrder[index];
+    if (!target || index > stepIndex) return;
+    setError(null);
+    if (index > 0 && stepOrder.includes("event")) {
+      const err = validateEventStep();
+      if (err && target !== "event") {
+        setError(err);
+        setStepId("event");
+        return;
+      }
+    }
+    setStepId(target);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+
+    const eventErr = validateEventStep();
+    if (eventErr) {
+      setError(eventErr);
+      setStepId("event");
+      return;
+    }
+
+    const num = Number(form.guestCount);
+    const serviceChoices = buildServiceChoicesPayload();
 
     setLoading(true);
     try {
@@ -294,35 +379,23 @@ export default function VenueInquiryClient({
         sectionClassName="rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-sm"
       />
 
-      {(allInfoTraits.length > 0 || (parkingKind && parkingKind !== "none")) && (
-        <section className="rounded-2xl border border-[#E0D4C3] bg-[#FAF8F4] p-4 text-right text-sm">
-          <p className="text-xs font-semibold text-[#0F3B2E]">מידע על האולם (ללא בחירת מקור)</p>
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {parkingKind && parkingKind !== "none" && (
-              <li className="rounded-full border border-[#E0D4C3] bg-white px-3 py-1 text-xs text-[#2A261F]">
-                {PARKING_KIND_LABELS[parkingKind]}
-              </li>
-            )}
-            {allInfoTraits.map((t) => (
-              <li
-                key={t.id}
-                className="rounded-full border border-[#E0D4C3] bg-white px-3 py-1 text-xs text-[#2A261F]"
-              >
-                {t.label}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section className="rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-        <h2 className="text-base font-semibold text-[#0F3B2E]">פרטי הבקשה</h2>
+        <h2 className="text-base font-semibold text-[#0F3B2E]">הזמנת אולם — {venueName}</h2>
         <p className="mt-1 text-xs text-[#6B6560]">
-          {venueName} — בחרו סוג אירוע כדי לראות שירותים וטווחי אורחים מדויקים. אפשר לשלוח כמה פניות
-          לאותו אולם.
+          מלאו בשלבים: פרטי האירוע, מה האולם מציע (כלול / בתוספת תשלום), בחירות מקור ספקים, ושליחה.
         </p>
 
+        <div className="mt-4">
+          <InquiryWizardNav
+            steps={wizardSteps}
+            currentIndex={stepIndex}
+            onGoTo={goToStep}
+          />
+        </div>
+
         <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+          {stepId === "event" ? (
+          <div className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-semibold text-[#0F3B2E]">תאריך האירוע *</label>
@@ -454,136 +527,77 @@ export default function VenueInquiryClient({
             </div>
           )}
 
-          {(splitChuppa.rest.length > 0 || hasChuppahSection) && (
-            <div className="rounded-xl border border-[#E8E0D4] bg-[#FAF8F4]/80 p-4">
-              <p className="text-xs font-semibold text-[#0F3B2E]">שירותים שהאולם מציע — איך תרצו לסגור?</p>
-              <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
-                {INQUIRY_EXTERNAL_SOURCE_COPY.servicesSectionHelp} תגית מחיר לפי הגדרת האולם.
-              </p>
+          </div>
+          ) : null}
+
+          {stepId === "offers" ? (
+            <div className="space-y-4">
               {!eventTypeTrimmed && eventTypes.length > 0 && (
-                <p className="mt-2 rounded-lg border border-[#C9A227]/25 bg-[#FFFBF0] px-2.5 py-1.5 text-[11px] text-[#5C564C]">
-                  טיפ: בחרו סוג אירוע למעלה כדי לראות רק את השירותים הרלוונטיים (למשל אוכל לפי סוג האירוע).
+                <p className="rounded-lg border border-[#C9A227]/25 bg-[#FFFBF0] px-3 py-2 text-[11px] text-[#5C564C]">
+                  טיפ: חזרו לשלב «פרטי האירוע» ובחרו סוג אירוע.
                 </p>
               )}
-              {weddingForm && (
-                <p className="mt-2 rounded-lg border border-[#C9A227]/30 bg-[#FFFBF0] px-2.5 py-1.5 text-[11px] text-[#5C564C]">
-                  לחתונה לא מוצגת אופציית אוכל נפרדת — האוכל כלול בהגדרת החתונה. יופיעו גם פרטים שהאולם
-                  הוסיף לחתונה.
+              {allRestServices.length === 0 &&
+              infoTraits.length === 0 &&
+              !(presetLabels?.length) &&
+              !(parkingKind && parkingKind !== "none") ? (
+                <p className="rounded-xl border border-[#E8E0D4] bg-[#FAF8F4] px-4 py-6 text-center text-sm text-[#6B6560]">
+                  האולם עדיין לא הגדיר שירותים לסוג האירוע שנבחר.
                 </p>
-              )}
-              {hasChuppahSection && (
-                <div className="mt-4 space-y-4">
-                  {chuppahBoth && splitChuppa.outdoor && splitChuppa.covered && (
-                    <div className="rounded-lg border border-[#E0D4C3] bg-white px-3 py-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-medium text-[#1A1A1A]">חופה</p>
-                        <ServicePriceBadge opt={splitChuppa.outdoor} />
-                      </div>
-                      <p className="mt-1 text-[11px] text-[#6B6560]">דרך האולם בלבד — בוחרים סוג חופה אחד:</p>
-                      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-                        <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-                          <input
-                            type="radio"
-                            name="wedding-chuppah-type"
-                            checked={weddingChuppahPick === "outdoor"}
-                            onChange={() => setWeddingChuppahPick("outdoor")}
-                            className="h-4 w-4 accent-[#0F3B2E]"
-                          />
-                          {splitChuppa.outdoor.label}
-                        </label>
-                        <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-                          <input
-                            type="radio"
-                            name="wedding-chuppah-type"
-                            checked={weddingChuppahPick === "covered"}
-                            onChange={() => setWeddingChuppahPick("covered")}
-                            className="h-4 w-4 accent-[#0F3B2E]"
-                          />
-                          {splitChuppa.covered.label}
-                        </label>
-                      </div>
-                    </div>
-                  )}
-                  {chuppahSingleOutdoor && splitChuppa.outdoor && (
-                    <div className="rounded-lg border border-[#E0D4C3] bg-white px-3 py-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-medium text-[#1A1A1A]">{splitChuppa.outdoor.label}</p>
-                        <ServicePriceBadge opt={splitChuppa.outdoor} />
-                      </div>
-                      <p className="mt-1 text-[11px] text-[#6B6560]">דרך האולם בלבד.</p>
-                    </div>
-                  )}
-                  {chuppahSingleCovered && splitChuppa.covered && (
-                    <div className="rounded-lg border border-[#E0D4C3] bg-white px-3 py-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-medium text-[#1A1A1A]">{splitChuppa.covered.label}</p>
-                        <ServicePriceBadge opt={splitChuppa.covered} />
-                      </div>
-                      <p className="mt-1 text-[11px] text-[#6B6560]">דרך האולם בלבד.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-              {splitChuppa.rest.length > 0 && (
-                <ul className="mt-4 space-y-4">
-                  {splitChuppa.rest.map((opt) => (
-                    <li
-                      key={opt.id}
-                      className="rounded-lg border border-[#E0D4C3] bg-white px-3 py-3"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-medium text-[#1A1A1A]">{opt.label}</p>
-                        <ServicePriceBadge opt={opt} />
-                      </div>
-                      {inquiryServiceAllowsExternalSource(opt) ? (
-                        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-                          <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-                            <input
-                              type="radio"
-                              name={`svc-${opt.id}`}
-                              checked={(sourceById[opt.id] ?? "venue") === "venue"}
-                              onChange={() =>
-                                setSourceById((m) => ({ ...m, [opt.id]: "venue" }))
-                              }
-                              className="h-4 w-4 accent-[#0F3B2E]"
-                            />
-                            {INQUIRY_EXTERNAL_SOURCE_COPY.venueRadio}
-                          </label>
-                          <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-                            <input
-                              type="radio"
-                              name={`svc-${opt.id}`}
-                              checked={(sourceById[opt.id] ?? "venue") === "external"}
-                              onChange={() =>
-                                setSourceById((m) => ({ ...m, [opt.id]: "external" }))
-                              }
-                              className="h-4 w-4 accent-[#0F3B2E]"
-                            />
-                            {INQUIRY_EXTERNAL_SOURCE_COPY.externalRadio}
-                          </label>
-                        </div>
-                      ) : (
-                        <p className="mt-1 text-[11px] text-[#6B6560]">
-                          {INQUIRY_EXTERNAL_SOURCE_COPY.venueOnlyLine}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+              ) : (
+                <InquiryOfferOverview
+                  included={partition.included}
+                  extra={partition.extra}
+                  infoTraits={infoTraits}
+                  presetLabels={presetLabels}
+                  parkingKind={parkingKind}
+                  eventTypeLabel={eventTypeTrimmed}
+                  weddingFoodNote={weddingForm}
+                />
               )}
             </div>
-          )}
+          ) : null}
 
-          <div>
-            <label className="block text-xs font-semibold text-[#0F3B2E]">הערות נוספות (אופציונלי)</label>
-            <textarea
-              rows={3}
-              value={form.message}
-              onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-              className="mt-1 w-full rounded-xl border-2 border-[#E0D4C3] px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-              placeholder="למשל: שעת כניסה, דגשים מיוחדים..."
+          {stepId === "choices" ? (
+            <InquiryServiceChoicesStep
+              choosable={partition.choosable}
+              chuppa={partition.chuppa}
+              chuppahBoth={!!chuppahBoth}
+              chuppahSingleOutdoor={!!chuppahSingleOutdoor}
+              chuppahSingleCovered={!!chuppahSingleCovered}
+              weddingChuppahPick={weddingChuppahPick}
+              onWeddingChuppahPick={setWeddingChuppahPick}
+              sourceById={sourceById}
+              onSourceChange={(id, source) =>
+                setSourceById((m) => ({ ...m, [id]: source }))
+              }
             />
-          </div>
+          ) : null}
+
+          {stepId === "send" ? (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-[#E8E0D4] bg-[#FAF8F4] p-4 text-sm">
+                <p className="font-semibold text-[#0F3B2E]">סיכום לפני שליחה</p>
+                <ul className="mt-2 space-y-1 text-xs text-[#5F5F5F]">
+                  <li>תאריך: <strong>{form.preferredDate || "—"}</strong></li>
+                  <li>אורחים: <strong>{form.guestCount || "—"}</strong></li>
+                  {form.eventType ? <li>סוג: <strong>{form.eventType}</strong></li> : null}
+                  <li>כלול: <strong>{partition.included.length}</strong></li>
+                  <li>בתוספת: <strong>{partition.extra.length}</strong></li>
+                </ul>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#0F3B2E]">הערות (אופציונלי)</label>
+                <textarea
+                  rows={3}
+                  value={form.message}
+                  onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                  className="mt-1 w-full rounded-xl border-2 border-[#E0D4C3] px-3 py-2 outline-none focus:border-[#C9A227]"
+                  placeholder="דגשים מיוחדים..."
+                />
+              </div>
+            </div>
+          ) : null}
 
           {error && <p className="text-xs text-red-700">{error}</p>}
           {success && (
@@ -592,13 +606,37 @@ export default function VenueInquiryClient({
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full min-h-[52px] rounded-2xl bg-[#C9A227] text-base font-bold text-white shadow-lg hover:bg-[#E5C96B] disabled:opacity-60"
-          >
-            {loading ? "שולח..." : "שלח בקשה לאולם"}
-          </button>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+            {stepIndex > 0 ? (
+              <button
+                type="button"
+                onClick={goBack}
+                disabled={loading}
+                className="min-h-[48px] rounded-2xl border-2 border-[#E0D4C3] bg-white px-6 font-semibold text-[#0F3B2E] hover:border-[#C9A227]/60 disabled:opacity-60"
+              >
+                חזרה
+              </button>
+            ) : (
+              <span className="hidden sm:block" />
+            )}
+            {stepId !== "send" ? (
+              <button
+                type="button"
+                onClick={goNext}
+                className="min-h-[48px] flex-1 rounded-2xl bg-[#0F3B2E] px-6 font-bold text-white shadow-md hover:bg-[#164d3d] sm:max-w-xs sm:ml-auto"
+              >
+                המשך
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={loading}
+                className="min-h-[52px] flex-1 rounded-2xl bg-[#C9A227] px-6 text-base font-bold text-white shadow-lg hover:bg-[#E5C96B] disabled:opacity-60 sm:max-w-xs sm:ml-auto"
+              >
+                {loading ? "שולח..." : "שלח בקשה לאולם"}
+              </button>
+            )}
+          </div>
         </form>
       </section>
     </div>
