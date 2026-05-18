@@ -2,7 +2,7 @@
 
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
 
-/** רק מאפיינים שלא מופיעים בבלוק הגרירה עם תמחור */
+/** סימונים לחיפוש/תצוגה — לא בבלוק «מה יש באולם» עם מחיר */
 export type VenueHallSoftPresetKey = "seaView" | "boutique" | "accessible";
 
 const PRESET_CHECKS: readonly { key: VenueHallSoftPresetKey; label: string }[] = [
@@ -35,14 +35,26 @@ export default function VenueHallSoftAttributesSection({
 }: Props) {
   const MAX_CUSTOM = 25;
 
+  const addCustom = () => {
+    const v = customInput.trim();
+    if (!v) return;
+    if (customRows.length >= MAX_CUSTOM) return;
+    if (customRows.some((r) => r.label.toLowerCase() === v.toLowerCase())) return;
+    const id =
+      typeof globalThis.crypto !== "undefined" &&
+      typeof globalThis.crypto.randomUUID === "function"
+        ? globalThis.crypto.randomUUID()
+        : `sa-${Date.now()}`;
+    onCustomRowsChange([...customRows, { id, label: v, on: true }]);
+    onCustomInputChange("");
+  };
+
   return (
     <div>
-      <p className="mb-1 text-xs font-semibold text-[#5F5F5F]">
-        מאפייני האולם (ללא תמחור נפרד)
-      </p>
+      <p className="mb-1 text-xs font-semibold text-[#5F5F5F]">מה מיוחד באולם?</p>
       <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
-        סימון בלבד — נוף, נגישות וכדומה. פריטים שהמחפש מקבל מהאולם עם בחירת מחיר נמצאים
-        בסעיף «מה יש באולם» למטה.
+        סמנו כאן מה המחפש רואה בחיפוש ובעמוד האולם — נוף, נגישות, סגנון האירוע ועוד. אין כאן
+        מחירים: שירותים או מתנות מהאולם (כלול או בתוספת תשלום) מוסיפים בסעיף «מה יש באולם» למטה.
       </p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -60,41 +72,37 @@ export default function VenueHallSoftAttributesSection({
       </div>
 
       <div className="mt-4 border-t border-[#E0D4C3]/70 pt-3">
-        <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">מאפיינים משלכם (ללא תמחור)</p>
-        <p className="mb-2 text-[11px] text-[#6B6560]">
-          לדוגמה: גג פתוח, לובי כפול — מוצגים למחפשים בלי «כלול» / «בתוספת תשלום».
+        <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">פרטים נוספים משלכם</p>
+        <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+          לדוגמה: גג פתוח, לובי כפול — יופיעו למחפשים יחד עם הסימונים למעלה.
         </p>
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-          <input
-            type="text"
-            value={customInput}
-            onChange={(e) => onCustomInputChange(e.target.value)}
-            className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-            placeholder="הוסף מאפיין…"
-            maxLength={80}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              const v = customInput.trim();
-              if (!v) return;
-              if (customRows.length >= MAX_CUSTOM) return;
-              if (customRows.some((r) => r.label.toLowerCase() === v.toLowerCase())) return;
-              const id =
-                typeof globalThis.crypto !== "undefined" &&
-                typeof globalThis.crypto.randomUUID === "function"
-                  ? globalThis.crypto.randomUUID()
-                  : `sa-${Date.now()}`;
-              onCustomRowsChange([...customRows, { id, label: v, on: true }]);
-              onCustomInputChange("");
-            }}
-            className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
-          >
-            הוסף
-          </button>
+        <div className="mb-3 rounded-xl border border-[#E0D4C3]/90 bg-white/70 p-3">
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              value={customInput}
+              onChange={(e) => onCustomInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addCustom();
+                }
+              }}
+              className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+              placeholder="הוסף פרט…"
+              maxLength={80}
+            />
+            <button
+              type="button"
+              onClick={addCustom}
+              className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
+            >
+              הוסף
+            </button>
+          </div>
         </div>
         {customRows.length > 0 ? (
-          <ul className="mt-3 space-y-2">
+          <ul className="space-y-2">
             {customRows.map((row) => (
               <li
                 key={row.id}
