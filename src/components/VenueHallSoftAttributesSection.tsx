@@ -45,7 +45,7 @@ export default function VenueHallSoftAttributesSection({
       typeof globalThis.crypto.randomUUID === "function"
         ? globalThis.crypto.randomUUID()
         : `sa-${Date.now()}`;
-    onCustomRowsChange([...customRows, { id, label: v, on: true }]);
+    onCustomRowsChange([{ id, label: v, on: true }, ...customRows]);
     onCustomInputChange("");
   };
 
@@ -73,10 +73,7 @@ export default function VenueHallSoftAttributesSection({
 
       <div className="mt-4 border-t border-[#E0D4C3]/70 pt-3">
         <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">פרטים נוספים משלכם</p>
-        <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-          לדוגמה: גג פתוח, לובי כפול — יופיעו למחפשים יחד עם הסימונים למעלה.
-        </p>
-        <div className="mb-3 rounded-xl border border-[#E0D4C3]/90 bg-white/70 p-3">
+        <div className="mb-2 rounded-xl border border-[#E0D4C3]/90 bg-white/70 p-3">
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
             <input
               type="text"
@@ -101,6 +98,9 @@ export default function VenueHallSoftAttributesSection({
             </button>
           </div>
         </div>
+        <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+          לדוגמה: גג פתוח, לובי כפול — יופיעו למחפשים יחד עם הסימונים למעלה.
+        </p>
         {customRows.length > 0 ? (
           <ul className="space-y-2">
             {customRows.map((row) => (
