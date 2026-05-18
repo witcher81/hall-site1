@@ -172,7 +172,7 @@ export default function VenueInquiryClient({
   }
 
   function ServicePriceBadge({ opt }: { opt: InquiryServiceOption }) {
-    const hint = formatInquiryPriceHint(opt.priceMode, opt.extraPrice);
+    const hint = formatInquiryPriceHint(opt.priceMode, opt.extraPrice, opt.extraPriceMax);
     const isExtra = opt.priceMode === "extra" && opt.extraPrice != null && opt.extraPrice > 0;
     return (
       <span

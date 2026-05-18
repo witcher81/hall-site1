@@ -13,10 +13,8 @@ export type OptionalPriceRangeFieldsProps = {
   minPrice: string;
   maxPrice: string;
   onChange: (min: string, max: string) => void;
-  /** מצב טווח — כשמועבר, הרכיב בשליטה מלאה של ההורה */
   useRange?: boolean;
   onUseRangeChange?: (useRange: boolean) => void;
-  /** שינוי מפתח מאפס מצב פנימי (למשל סוג אירוע אחר) */
   resetKey?: string;
   singleLabel?: string;
   singlePlaceholder?: string;
@@ -24,6 +22,9 @@ export type OptionalPriceRangeFieldsProps = {
   maxLabel?: string;
   expandRangeLabel?: string;
   collapseRangeLabel?: string;
+  /** מסגרת אחת — הכותרת והשדה נראים כיחידה */
+  grouped?: boolean;
+  expandAsButton?: boolean;
   className?: string;
   inputClassName?: string;
 };
@@ -41,11 +42,14 @@ export default function OptionalPriceRangeFields({
   maxLabel = "מחיר מקסימלי (₪)",
   expandRangeLabel = "אין לך מחיר קבוע? הכנס טווח מחירים",
   collapseRangeLabel = "יש לי מחיר קבוע",
+  grouped = false,
+  expandAsButton = false,
   className = "",
   inputClassName = defaultInputClass,
 }: OptionalPriceRangeFieldsProps) {
-  const storedIsRange = storedMinMaxIsPriceRange(minPrice, maxPrice);
-  const [internalUseRange, setInternalUseRange] = useState(storedIsRange);
+  const [internalUseRange, setInternalUseRange] = useState(() =>
+    storedMinMaxIsPriceRange(minPrice, maxPrice)
+  );
 
   useEffect(() => {
     if (resetKey === undefined) return;
@@ -81,13 +85,27 @@ export default function OptionalPriceRangeFields({
     onChange(ep, ep);
   };
 
+  const expandBtnClass = expandAsButton
+    ? "mt-2 rounded-lg border border-[#D4C9BC] bg-[#FAF7F2] px-2.5 py-1.5 text-[11px] font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+    : "mt-2 text-[11px] font-medium text-[#0F3B2E] underline decoration-[#C9A227]/60 underline-offset-2 hover:text-[#174D3B]";
+
+  const collapseBtnClass = expandAsButton
+    ? "rounded-lg border border-[#E0D4C3] bg-white px-2.5 py-1.5 text-[11px] font-medium text-[#5F5F5F] hover:bg-[#FAF7F2]"
+    : "text-[11px] font-medium text-[#5F5F5F] underline decoration-[#E0D4C3] underline-offset-2 hover:text-[#2A261F]";
+
+  const outerClass = grouped
+    ? `rounded-xl border border-[#E0D4C3]/90 bg-white/90 p-3 ${className}`
+    : className;
+
+  const titleClass = grouped
+    ? "mb-2 block text-xs font-semibold text-[#0F3B2E]"
+    : "mb-1 block text-[11px] font-medium text-[#5F5F5F]";
+
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-2 ${outerClass}`}>
       {!useRange ? (
         <div>
-          <label className="mb-1 block text-[11px] font-medium text-[#5F5F5F]">
-            {singleLabel}
-          </label>
+          <p className={titleClass}>{singleLabel}</p>
           <input
             type="number"
             min={0}
@@ -99,16 +117,15 @@ export default function OptionalPriceRangeFields({
             className={inputClassName}
             placeholder={singlePlaceholder}
           />
-          <button
-            type="button"
-            onClick={enableRange}
-            className="mt-2 text-[11px] font-medium text-[#0F3B2E] underline decoration-[#C9A227]/60 underline-offset-2 hover:text-[#174D3B]"
-          >
+          <button type="button" onClick={enableRange} className={expandBtnClass}>
             {expandRangeLabel}
           </button>
         </div>
       ) : (
         <div className="space-y-2">
+          {grouped ? (
+            <p className="mb-1 text-xs font-semibold text-[#0F3B2E]">טווח מחירים (₪)</p>
+          ) : null}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-[11px] font-medium text-[#5F5F5F]">
@@ -137,11 +154,7 @@ export default function OptionalPriceRangeFields({
               />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={disableRange}
-            className="text-[11px] font-medium text-[#5F5F5F] underline decoration-[#E0D4C3] underline-offset-2 hover:text-[#2A261F]"
-          >
+          <button type="button" onClick={disableRange} className={collapseBtnClass}>
             {collapseRangeLabel}
           </button>
         </div>

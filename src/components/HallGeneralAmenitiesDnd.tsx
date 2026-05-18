@@ -1,7 +1,8 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, MouseEvent, ReactNode, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import SeekerExternalSourceToggle, {
   SeekerExternalVenueOnlyHint,
 } from "@/components/SeekerExternalSourceToggle";
@@ -28,6 +29,7 @@ export type HallGeneralCustomRow = {
   checked: boolean;
   priceMode: HallGeneralPriceMode;
   extraPrice: string;
+  extraPriceMax: string;
   allowsSeekerExternal: boolean;
 };
 
@@ -74,15 +76,20 @@ export function newHallGeneralCustomRow(label: string): HallGeneralCustomRow {
     checked: false,
     priceMode: "included",
     extraPrice: "",
+    extraPriceMax: "",
     allowsSeekerExternal: defaultSeekerExternalForCustomRow(),
   };
 }
 
+const compactPriceInputClass =
+  "w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px] outline-none focus:border-[#C9A227]";
+
 export function assignHallGeneralRowIds(
-  rows: Omit<HallGeneralCustomRow, "id">[]
+  rows: (Omit<HallGeneralCustomRow, "id"> & { extraPriceMax?: string })[]
 ): HallGeneralCustomRow[] {
   return rows.map((r, i) => ({
     ...r,
+    extraPriceMax: r.extraPriceMax ?? r.extraPrice,
     id:
       typeof globalThis.crypto !== "undefined" &&
       typeof globalThis.crypto.randomUUID === "function"
@@ -94,6 +101,33 @@ export function assignHallGeneralRowIds(
 type BuiltinPriceModes = Record<BuiltinAmenityKeyFull, HallGeneralPriceMode>;
 type BuiltinExtraPrices = Record<BuiltinAmenityKeyFull, string>;
 
+function renderExtraPriceBlock(
+  min: string,
+  max: string,
+  onChange: (min: string, max: string) => void,
+  stopPropagation: (ev: MouseEvent) => void
+) {
+  return (
+    <div className="w-full basis-full" onClick={stopPropagation}>
+      <OptionalPriceRangeFields
+        minPrice={min}
+        maxPrice={max || min}
+        onChange={onChange}
+        grouped
+        expandAsButton
+        singleLabel="תוספת תשלום (₪)"
+        singlePlaceholder="למשל 500"
+        minLabel="מינימום (₪)"
+        maxLabel="מקסימום (₪)"
+        expandRangeLabel="הכנס טווח מחירים"
+        collapseRangeLabel="מחיר קבוע"
+        inputClassName={compactPriceInputClass}
+        className="!p-2"
+      />
+    </div>
+  );
+}
+
 type Props = {
   productBools: VenueProductBools;
   onSetHallBuiltin: (key: HallGeneralBuiltinKey, checked: boolean) => void;
@@ -103,6 +137,8 @@ type Props = {
   setBuiltinAmenityPriceModes: Dispatch<SetStateAction<BuiltinPriceModes>>;
   builtinAmenityExtraPrices: BuiltinExtraPrices;
   setBuiltinAmenityExtraPrices: Dispatch<SetStateAction<BuiltinExtraPrices>>;
+  builtinAmenityExtraPriceMaxes: BuiltinExtraPrices;
+  setBuiltinAmenityExtraPriceMaxes: Dispatch<SetStateAction<BuiltinExtraPrices>>;
   builtinAmenityAllowsSeekerExternal: Record<BuiltinAmenityKeyFull, boolean>;
   setBuiltinAmenityAllowsSeekerExternal: Dispatch<
     SetStateAction<Record<BuiltinAmenityKeyFull, boolean>>
@@ -121,6 +157,8 @@ export default function HallGeneralAmenitiesDnd({
   setBuiltinAmenityPriceModes,
   builtinAmenityExtraPrices,
   setBuiltinAmenityExtraPrices,
+  builtinAmenityExtraPriceMaxes,
+  setBuiltinAmenityExtraPriceMaxes,
   builtinAmenityAllowsSeekerExternal,
   setBuiltinAmenityAllowsSeekerExternal,
   customAmenityRows,
@@ -191,12 +229,33 @@ export default function HallGeneralAmenitiesDnd({
     setDragOver(zone);
   };
 
-  const zoneClass = (zone: DropZone) =>
-    `min-h-[100px] rounded-xl border-2 border-dashed p-2 transition-colors sm:min-h-[140px] ${
-      dragOver === zone
-        ? "border-[#0F3B2E] bg-[#0F3B2E]/[0.06]"
-        : "border-[#D4C9BC] bg-white/40"
-    }`;
+  const zoneDropClass = (zone: DropZone) =>
+    dragOver === zone ? "bg-[#0F3B2E]/[0.06]" : "";
+
+  const SortColumn = ({
+    title,
+    zone,
+    children,
+  }: {
+    title: string;
+    zone: DropZone;
+    children: ReactNode;
+  }) => (
+    <div
+      className={`flex min-h-[120px] flex-col overflow-hidden rounded-xl border-2 border-dashed transition-colors sm:min-h-[160px] ${
+        dragOver === zone
+          ? "border-[#0F3B2E] bg-[#0F3B2E]/[0.04]"
+          : "border-[#D4C9BC] bg-white/40"
+      }`}
+      onDragOver={(e) => onDragOverZone(zone, e)}
+      onDrop={(e) => onDropZone(zone, e)}
+    >
+      <div className="border-b border-[#D4C9BC]/90 bg-[#0F3B2E]/[0.08] px-2 py-2 text-center text-xs font-semibold text-[#0F3B2E]">
+        {title}
+      </div>
+      <div className={`flex flex-1 flex-col gap-2 p-2 ${zoneDropClass(zone)}`}>{children}</div>
+    </div>
+  );
 
   const renderBuiltinCard = (key: HallGeneralBuiltinKey, label: string, zone: DropZone) => {
     const inExtra = zone === "extra";
@@ -225,22 +284,17 @@ export default function HallGeneralAmenitiesDnd({
           />
           <span className="font-medium">{label}</span>
         </label>
-        {inExtra && supportsExtraPrice ? (
-          <input
-            type="number"
-            min={1}
-            value={builtinAmenityExtraPrices[key] ?? ""}
-            onChange={(e) =>
-              setBuiltinAmenityExtraPrices((prev) => ({
-                ...prev,
-                [key]: e.target.value,
-              }))
-            }
-            onClick={(ev) => ev.stopPropagation()}
-            className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-            placeholder="₪"
-          />
-        ) : null}
+        {inExtra && supportsExtraPrice
+          ? renderExtraPriceBlock(
+              builtinAmenityExtraPrices[key] ?? "",
+              builtinAmenityExtraPriceMaxes[key] ?? builtinAmenityExtraPrices[key] ?? "",
+              (min, max) => {
+                setBuiltinAmenityExtraPrices((prev) => ({ ...prev, [key]: min }));
+                setBuiltinAmenityExtraPriceMaxes((prev) => ({ ...prev, [key]: max }));
+              },
+              (ev) => ev.stopPropagation()
+            )
+          : null}
         <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2">
           {builtinAmenityOffersSeekerExternalConfig(key) ? (
             <SeekerExternalSourceToggle
@@ -291,23 +345,19 @@ export default function HallGeneralAmenitiesDnd({
           />
           <span className="truncate">{row.label}</span>
         </label>
-        {inExtra && (
-          <input
-            type="number"
-            min={1}
-            value={row.extraPrice}
-            onChange={(e) =>
-              setCustomAmenityRows((prev) =>
-                prev.map((r) =>
-                  r.id === row.id ? { ...r, extraPrice: e.target.value } : r
-                )
-              )
-            }
-            onClick={(ev) => ev.stopPropagation()}
-            className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-            placeholder="₪"
-          />
-        )}
+        {inExtra
+          ? renderExtraPriceBlock(
+              row.extraPrice,
+              row.extraPriceMax || row.extraPrice,
+              (min, max) =>
+                setCustomAmenityRows((prev) =>
+                  prev.map((r) =>
+                    r.id === row.id ? { ...r, extraPrice: min, extraPriceMax: max } : r
+                  )
+                ),
+              (ev) => ev.stopPropagation()
+            )
+          : null}
         <button
           type="button"
           className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
@@ -391,13 +441,8 @@ export default function HallGeneralAmenitiesDnd({
         בסעיף «מה האולם מציע» למעלה.
       </p>
 
-      <div className="mb-3 space-y-2">
-        <p className="text-[11px] font-medium text-[#5F5F5F]">לא פעיל (לא בחיפוש)</p>
-        <div
-          className={zoneClass("inactive")}
-          onDragOver={(e) => onDragOverZone("inactive", e)}
-          onDrop={(e) => onDropZone("inactive", e)}
-        >
+      <div className="mb-3">
+        <SortColumn title="לא פעיל (לא בחיפוש)" zone="inactive">
           {inactiveBuiltins.length === 0 && inactiveCustoms.length === 0 ? (
             <p className="py-4 text-center text-[11px] text-[#9A928A]">
               כל הפריטים המסומנים מופיעים בעמודות למטה
@@ -486,48 +531,26 @@ export default function HallGeneralAmenitiesDnd({
               ))}
             </div>
           )}
-        </div>
+        </SortColumn>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <p className="mb-1.5 text-center text-[11px] font-semibold text-[#0F3B2E]">
-            כלול במחיר
-          </p>
-          <div
-            className={zoneClass("included")}
-            onDragOver={(e) => onDragOverZone("included", e)}
-            onDrop={(e) => onDropZone("included", e)}
-          >
-            <div className="flex flex-col gap-2">
-              {includedBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "included"))}
-              {includedCustoms.map((row) => renderCustomCard(row, "included"))}
-              {includedBuiltins.length === 0 && includedCustoms.length === 0 ? (
-                <p className="py-3 text-center text-[11px] text-[#9A928A]">שחררו כאן פריטים כלולים</p>
-              ) : null}
-            </div>
-          </div>
-        </div>
-        <div>
-          <p className="mb-1.5 text-center text-[11px] font-semibold text-[#0F3B2E]">
-            בתוספת תשלום
-          </p>
-          <div
-            className={zoneClass("extra")}
-            onDragOver={(e) => onDragOverZone("extra", e)}
-            onDrop={(e) => onDropZone("extra", e)}
-          >
-            <div className="flex flex-col gap-2">
-              {extraBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "extra"))}
-              {extraCustoms.map((row) => renderCustomCard(row, "extra"))}
-              {extraBuiltins.length === 0 && extraCustoms.length === 0 ? (
-                <p className="py-3 text-center text-[11px] text-[#9A928A]">
-                  שחררו כאן פריטים בתשלום נפרד
-                </p>
-              ) : null}
-            </div>
-          </div>
-        </div>
+        <SortColumn title="כלול במחיר" zone="included">
+          {includedBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "included"))}
+          {includedCustoms.map((row) => renderCustomCard(row, "included"))}
+          {includedBuiltins.length === 0 && includedCustoms.length === 0 ? (
+            <p className="py-3 text-center text-[11px] text-[#9A928A]">שחררו כאן פריטים כלולים</p>
+          ) : null}
+        </SortColumn>
+        <SortColumn title="בתוספת תשלום" zone="extra">
+          {extraBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "extra"))}
+          {extraCustoms.map((row) => renderCustomCard(row, "extra"))}
+          {extraBuiltins.length === 0 && extraCustoms.length === 0 ? (
+            <p className="py-3 text-center text-[11px] text-[#9A928A]">
+              שחררו כאן פריטים בתשלום נפרד
+            </p>
+          ) : null}
+        </SortColumn>
       </div>
     </>
   );

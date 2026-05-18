@@ -4,6 +4,7 @@ import {
   type HallGeneralPriceMode,
   VENUE_PRODUCT_BUILTIN_KEYS,
 } from "@/lib/venueBuiltinAmenities";
+import { parseAmenityExtraFromDb } from "@/lib/amenityExtraPrice";
 import { inferParkingKindFromDb, type ParkingKind } from "@/lib/venueParkingKind";
 import { resolveVenueTypeInitial } from "@/lib/venueTypeOptions";
 import {
@@ -51,6 +52,7 @@ export type VenueEditFormInitial = {
   customAmenitiesJson: string | null;
   builtinAmenityPriceModes: Record<BuiltinAmenityKeyFull, HallGeneralPriceMode>;
   builtinAmenityExtraPrices: Record<BuiltinAmenityKeyFull, string>;
+  builtinAmenityExtraPriceMaxes: Record<BuiltinAmenityKeyFull, string>;
   builtinAmenityAllowsSeekerExternal: Record<BuiltinAmenityKeyFull, boolean>;
   latitude: number | null;
   longitude: number | null;
@@ -99,6 +101,9 @@ export function buildVenueEditInitial(
   const builtinAmenityExtraPrices = Object.fromEntries(
     VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, ""])
   ) as Record<BuiltinAmenityKeyFull, string>;
+  const builtinAmenityExtraPriceMaxes = Object.fromEntries(
+    VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, ""])
+  ) as Record<BuiltinAmenityKeyFull, string>;
   const builtinAmenityAllowsSeekerExternal = initialBuiltinSeekerExternalMap();
 
   if (venue.customAmenitiesJson) {
@@ -115,15 +120,9 @@ export function buildVenueEditInitial(
           builtinAmenityPriceModes[key] =
             o.priceMode === "extra" ? "extra" : "included";
           if (o.priceMode === "extra") {
-            const n =
-              typeof o.extraPrice === "number"
-                ? o.extraPrice
-                : typeof o.extraPrice === "string"
-                  ? Number(o.extraPrice)
-                  : NaN;
-            if (Number.isFinite(n) && n > 0) {
-              builtinAmenityExtraPrices[key] = String(Math.trunc(n));
-            }
+            const { min, max } = parseAmenityExtraFromDb(o.extraPrice, o.extraPriceMax);
+            builtinAmenityExtraPrices[key] = min;
+            builtinAmenityExtraPriceMaxes[key] = max;
           }
           builtinAmenityAllowsSeekerExternal[key] = resolveSeekerExternalForBuiltin(
             key,
@@ -172,6 +171,7 @@ export function buildVenueEditInitial(
     customAmenitiesJson: venue.customAmenitiesJson ?? null,
     builtinAmenityPriceModes,
     builtinAmenityExtraPrices,
+    builtinAmenityExtraPriceMaxes,
     builtinAmenityAllowsSeekerExternal,
     latitude: venue.latitude ?? null,
     longitude: venue.longitude ?? null,

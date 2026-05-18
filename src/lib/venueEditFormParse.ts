@@ -1,3 +1,4 @@
+import { parseAmenityExtraFromDb } from "@/lib/amenityExtraPrice";
 import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
 import {
   defaultSeekerExternalForCustomRow,
@@ -12,6 +13,7 @@ export type VenueEditCustomHallRow = {
   checked: boolean;
   priceMode: VenueEditPriceMode;
   extraPrice: string;
+  extraPriceMax: string;
   allowsSeekerExternal: boolean;
 };
 
@@ -72,14 +74,13 @@ export function parseCustomAmenitiesFromDb(
       const k = label.toLowerCase();
       if (seen.has(k)) continue;
       seen.add(k);
+      const { min, max } = parseAmenityExtraFromDb(o.extraPrice, o.extraPriceMax);
       out.push({
         label,
         checked: o.checked === true,
         priceMode: o.priceMode === "extra" ? "extra" : "included",
-        extraPrice:
-          typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
-            ? String(Math.trunc(o.extraPrice))
-            : "",
+        extraPrice: min,
+        extraPriceMax: max,
         allowsSeekerExternal: resolveSeekerExternalForCustomRow(
           parseSeekerExternalFromRecord(o)
         ),
@@ -104,6 +105,7 @@ export function splitWeddingAmenities(rows: VenueEditCustomHallRow[]) {
           checked: row.checked,
           priceMode: row.priceMode,
           extraPrice: row.extraPrice,
+          extraPriceMax: row.extraPriceMax,
           allowsSeekerExternal: row.allowsSeekerExternal,
         });
       }
@@ -130,14 +132,13 @@ function parseCustomHallItemsFromProfileJson(
     const k = label.toLowerCase();
     if (seen.has(k)) continue;
     seen.add(k);
+    const { min, max } = parseAmenityExtraFromDb(o.extraPrice, o.extraPriceMax);
     out.push({
       label,
       checked: o.checked === true,
       priceMode: o.priceMode === "extra" ? "extra" : "included",
-      extraPrice:
-        typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
-          ? String(Math.trunc(o.extraPrice))
-          : "",
+      extraPrice: min,
+      extraPriceMax: max,
       allowsSeekerExternal: resolveSeekerExternalForCustomRow(
         parseSeekerExternalFromRecord(o)
       ),

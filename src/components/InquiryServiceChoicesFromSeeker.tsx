@@ -23,6 +23,7 @@ export default function InquiryServiceChoicesFromSeeker({
       source?: string;
       priceMode?: string;
       extraPrice?: number | null;
+      extraPriceMax?: number | null;
     }[];
     if (!Array.isArray(arr) || arr.length === 0) return null;
     return (
@@ -41,7 +42,11 @@ export default function InquiryServiceChoicesFromSeeker({
               typeof row.extraPrice === "number" && Number.isFinite(row.extraPrice)
                 ? Math.trunc(row.extraPrice)
                 : null;
-            const priceHint = formatInquiryPriceHint(priceMode, extraPrice);
+            const extraPriceMax =
+              typeof row.extraPriceMax === "number" && Number.isFinite(row.extraPriceMax)
+                ? Math.trunc(row.extraPriceMax)
+                : null;
+            const priceHint = formatInquiryPriceHint(priceMode, extraPrice, extraPriceMax);
             const venueOnly =
               typeof row.id === "string" && !inquiryServiceAllowsExternalSource({ id: row.id });
             const via = venueOnly ? (

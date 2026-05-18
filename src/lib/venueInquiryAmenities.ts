@@ -1,3 +1,4 @@
+import { formatAmenityExtraPriceHint } from "@/lib/amenityExtraPrice";
 import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
 import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
 import { parseEventTypesList } from "@/lib/venueEditFormParse";
@@ -54,6 +55,7 @@ export type InquiryServiceOption = {
   label: string;
   priceMode: "included" | "extra";
   extraPrice: number | null;
+  extraPriceMax?: number | null;
   /**
    * false = חלק מהאולם / לא ניתן להביא ספק חיצוני (רחבה, חופה, פריטי «מה יש באולם»).
    * true = אפשר לבחור דרך האולם או ספק חיצוני (למשל אוכל, הגברה, תוספת כללית).
@@ -93,6 +95,7 @@ type ParsedCustomRow = {
   checked: boolean;
   priceMode: "included" | "extra";
   extraPrice: number | null;
+  extraPriceMax: number | null;
   allowsSeekerExternal: boolean;
 };
 
@@ -109,12 +112,16 @@ function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustom
       if (!label) continue;
       const priceMode = o.priceMode === "extra" ? "extra" : "included";
       let extraPrice: number | null = null;
-      if (
-        priceMode === "extra" &&
-        typeof o.extraPrice === "number" &&
-        Number.isFinite(o.extraPrice)
-      ) {
+      let extraPriceMax: number | null = null;
+      if (priceMode === "extra" && typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)) {
         extraPrice = Math.trunc(o.extraPrice);
+        if (
+          typeof o.extraPriceMax === "number" &&
+          Number.isFinite(o.extraPriceMax) &&
+          Math.trunc(o.extraPriceMax) !== extraPrice
+        ) {
+          extraPriceMax = Math.trunc(o.extraPriceMax);
+        }
       }
       const storedExternal = parseSeekerExternalFromRecord(o);
       let allowsSeekerExternal: boolean;
@@ -131,6 +138,7 @@ function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustom
         checked: o.checked === true,
         priceMode,
         extraPrice,
+        extraPriceMax,
         allowsSeekerExternal,
       });
     }
@@ -144,6 +152,7 @@ type BuiltinState = {
   checked: boolean;
   priceMode: "included" | "extra";
   extraPrice: number | null;
+  extraPriceMax: number | null;
   allowsSeekerExternal: boolean;
 };
 
@@ -159,6 +168,7 @@ function parseBuiltinStates(
       checked: row.checked,
       priceMode: row.priceMode,
       extraPrice: row.extraPrice,
+      extraPriceMax: row.extraPriceMax,
       allowsSeekerExternal: row.allowsSeekerExternal,
     };
   }
@@ -237,6 +247,7 @@ function pushBuiltinOption(
     label: BUILTIN_LABELS[key],
     priceMode: state?.priceMode ?? "included",
     extraPrice: state?.extraPrice ?? null,
+    extraPriceMax: state?.extraPriceMax ?? null,
     allowsExternalSource:
       state?.allowsSeekerExternal ??
       resolveSeekerExternalForBuiltin(key, undefined),
@@ -292,6 +303,7 @@ export function getVenueInquiryOptions(
         label,
         priceMode: row.priceMode,
         extraPrice: row.extraPrice,
+        extraPriceMax: row.extraPriceMax,
         allowsExternalSource: row.allowsSeekerExternal,
       });
       weddingCustomIdx += 1;
@@ -301,6 +313,7 @@ export function getVenueInquiryOptions(
         label: row.label,
         priceMode: row.priceMode,
         extraPrice: row.extraPrice,
+        extraPriceMax: row.extraPriceMax,
         allowsExternalSource: row.allowsSeekerExternal,
       });
       generalIdx += 1;
@@ -327,6 +340,7 @@ export function getVenueInquiryOptions(
           label: item.label,
           priceMode: item.priceMode,
           extraPrice: item.extraPrice,
+          extraPriceMax: item.extraPriceMax ?? null,
           allowsExternalSource: item.allowsSeekerExternalSource ?? false,
         });
         hallIdx += 1;
@@ -428,10 +442,11 @@ export function normalizeInquiryServiceChoices(
 
 export function formatInquiryPriceHint(
   priceMode: "included" | "extra",
-  extraPrice: number | null
+  extraPrice: number | null,
+  extraPriceMax?: number | null
 ): string {
-  if (priceMode === "extra" && extraPrice != null && extraPrice > 0) {
-    return `בתוספת תשלום · ₪${extraPrice.toLocaleString("he-IL")}`;
+  if (priceMode === "extra") {
+    return formatAmenityExtraPriceHint(extraPrice, extraPriceMax);
   }
   return "כלול במחיר";
 }

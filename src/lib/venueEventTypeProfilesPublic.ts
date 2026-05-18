@@ -12,6 +12,7 @@ export type PublicEventHallItem = {
   checked: boolean;
   priceMode: "included" | "extra";
   extraPrice: number | null;
+  extraPriceMax?: number | null;
   allowsSeekerExternalSource: boolean;
 };
 
@@ -48,14 +49,23 @@ function parseCustomHallItems(raw: unknown): PublicEventHallItem[] {
     if (!label) continue;
     const priceMode = o.priceMode === "extra" ? "extra" : "included";
     let extraPrice: number | null = null;
+    let extraPriceMax: number | null = null;
     if (priceMode === "extra" && typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)) {
       extraPrice = Math.trunc(o.extraPrice);
+      if (
+        typeof o.extraPriceMax === "number" &&
+        Number.isFinite(o.extraPriceMax) &&
+        Math.trunc(o.extraPriceMax) !== extraPrice
+      ) {
+        extraPriceMax = Math.trunc(o.extraPriceMax);
+      }
     }
     out.push({
       label,
       checked: o.checked === true,
       priceMode,
       extraPrice,
+      ...(extraPriceMax != null ? { extraPriceMax } : {}),
       allowsSeekerExternalSource: resolveSeekerExternalForCustomRow(
         parseSeekerExternalFromRecord(o),
         false

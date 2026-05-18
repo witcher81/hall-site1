@@ -34,6 +34,7 @@ import {
 } from "@/lib/venueParkingKind";
 import { parseVenueSoftAttributesJson } from "@/lib/venueSoftAttributesJson";
 import { parseVenueTypeFromForm } from "@/lib/venueTypeOptions";
+import { parseAmenityExtraFromApiRecord } from "@/lib/amenityExtraPrice";
 
 const MAX_INT = 2_147_483_647;
 
@@ -110,6 +111,7 @@ function parseCustomHallItemsForEventProfile(
     checked: boolean;
     priceMode: "included" | "extra";
     extraPrice: number | null;
+    extraPriceMax?: number;
     allowsSeekerExternalSource: boolean;
   }[] = [];
   const seen = new Set<string>();
@@ -125,29 +127,30 @@ function parseCustomHallItemsForEventProfile(
     const priceMode = o.priceMode === "extra" ? "extra" : "included";
     const checked = o.checked === true;
     let extraPrice: number | null = null;
+    let extraPriceMax: number | undefined;
     if (priceMode === "extra") {
-      const rawPrice = o.extraPrice;
-      const n =
-        typeof rawPrice === "number"
-          ? rawPrice
-          : typeof rawPrice === "string"
-            ? Number(rawPrice)
-            : NaN;
-      if (checked && (!Number.isFinite(n) || n <= 0 || n > MAX_INT)) {
+      const parsed = parseAmenityExtraFromApiRecord(o, checked);
+      if ("error" in parsed) {
         return {
           items: [],
           error: `בסוג האירוע "${et}": נדרש מחיר תקין עבור "${label}" (בתוספת תשלום).`,
         };
       }
-      if (Number.isFinite(n) && n > 0) {
-        extraPrice = Math.trunc(n);
-      }
+      extraPrice = parsed.extraPrice;
+      extraPriceMax = parsed.extraPriceMax;
     }
     const allowsSeekerExternalSource = resolveSeekerExternalForCustomRow(
       parseSeekerExternalFromRecord(o),
       false
     );
-    rows.push({ label, checked, priceMode, extraPrice, allowsSeekerExternalSource });
+    rows.push({
+      label,
+      checked,
+      priceMode,
+      extraPrice,
+      ...(extraPriceMax != null ? { extraPriceMax } : {}),
+      allowsSeekerExternalSource,
+    });
   }
   return { items: rows, error: null };
 }
@@ -419,6 +422,7 @@ function parseCustomAmenitiesJson(
       checked: boolean;
       priceMode: "included" | "extra";
       extraPrice: number | null;
+      extraPriceMax?: number;
       allowsSeekerExternalSource: boolean;
     }[] = [];
     const seen = new Set<string>();
@@ -434,23 +438,17 @@ function parseCustomAmenitiesJson(
       const priceMode = o.priceMode === "extra" ? "extra" : "included";
       const checked = o.checked === true;
       let extraPrice: number | null = null;
+      let extraPriceMax: number | undefined;
       if (priceMode === "extra") {
-        const rawPrice = o.extraPrice;
-        const n =
-          typeof rawPrice === "number"
-            ? rawPrice
-            : typeof rawPrice === "string"
-              ? Number(rawPrice)
-              : NaN;
-        if (checked && (!Number.isFinite(n) || n <= 0 || n > MAX_INT)) {
+        const parsed = parseAmenityExtraFromApiRecord(o, checked);
+        if ("error" in parsed) {
           return {
             json: null,
             error: `נדרש מחיר תקין עבור "${label}" (בתוספת תשלום).`,
           };
         }
-        if (Number.isFinite(n) && n > 0) {
-          extraPrice = Math.trunc(n);
-        }
+        extraPrice = parsed.extraPrice;
+        extraPriceMax = parsed.extraPriceMax;
       }
       let allowsSeekerExternalSource: boolean;
       if (label.startsWith("__builtin__:")) {
@@ -464,7 +462,14 @@ function parseCustomAmenitiesJson(
           false
         );
       }
-      rows.push({ label, checked, priceMode, extraPrice, allowsSeekerExternalSource });
+      rows.push({
+        label,
+        checked,
+        priceMode,
+        extraPrice,
+        ...(extraPriceMax != null ? { extraPriceMax } : {}),
+        allowsSeekerExternalSource,
+      });
     }
     return { json: rows.length > 0 ? JSON.stringify(rows) : null, error: null };
   } catch {

@@ -12,7 +12,12 @@ import {
   useState,
 } from "react";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
+import EventTypeCustomHallRowsEditor from "@/components/EventTypeCustomHallRowsEditor";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
+import {
+  amenityExtraPayloadFields,
+  isValidAmenityExtraPrice,
+} from "@/lib/amenityExtraPrice";
 import { validatePriceMinMax } from "@/lib/userInputValidation";
 import {
   buildInitialCustomHallGeneralRows,
@@ -205,6 +210,9 @@ export default function VenueEditForm({
   const [builtinAmenityExtraPrices, setBuiltinAmenityExtraPrices] = useState<
     Record<BuiltinAmenityKey, string>
   >(initial.builtinAmenityExtraPrices);
+  const [builtinAmenityExtraPriceMaxes, setBuiltinAmenityExtraPriceMaxes] = useState<
+    Record<BuiltinAmenityKey, string>
+  >(initial.builtinAmenityExtraPriceMaxes);
   const [builtinAmenityAllowsSeekerExternal, setBuiltinAmenityAllowsSeekerExternal] =
     useState(initial.builtinAmenityAllowsSeekerExternal);
   const isWeddingSelected = eventTypes.includes("חתונה");
@@ -404,7 +412,10 @@ export default function VenueEditForm({
         return;
       }
       const missingGeneral = customAmenityRows.find(
-        (row) => row.checked && row.priceMode === "extra" && !isPositivePrice(row.extraPrice)
+        (row) =>
+          row.checked &&
+          row.priceMode === "extra" &&
+          !isValidAmenityExtraPrice(row.extraPrice, row.extraPriceMax || row.extraPrice)
       );
       if (missingGeneral) {
         setError(`יש להזין מחיר עבור "${missingGeneral.label}" כי סומן בתוספת תשלום.`);
@@ -424,7 +435,10 @@ export default function VenueEditForm({
         if (
           pricingActive &&
           builtinAmenityPriceModes[key] === "extra" &&
-          !isPositivePrice(builtinAmenityExtraPrices[key])
+          !isValidAmenityExtraPrice(
+            builtinAmenityExtraPrices[key],
+            builtinAmenityExtraPriceMaxes[key] || builtinAmenityExtraPrices[key]
+          )
         ) {
           setError(`יש להזין מחיר עבור "${label}" כי נבחר «בתוספת תשלום».`);
           setSaving(false);
@@ -458,7 +472,10 @@ export default function VenueEditForm({
       for (const et of eventTypes) {
         const rows = eventTypeProfiles[et]?.customHallRows ?? [];
         const bad = rows.find(
-          (row) => row.checked && row.priceMode === "extra" && !isPositivePrice(row.extraPrice)
+          (row) =>
+            row.checked &&
+            row.priceMode === "extra" &&
+            !isValidAmenityExtraPrice(row.extraPrice, row.extraPriceMax || row.extraPrice)
         );
         if (bad) {
           setError(
@@ -512,7 +529,9 @@ export default function VenueEditForm({
           label: r.label,
           checked: r.checked,
           priceMode: r.priceMode,
-          extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
+          ...(r.priceMode === "extra"
+            ? amenityExtraPayloadFields(r.extraPrice, r.extraPriceMax || r.extraPrice)
+            : { extraPrice: null }),
           allowsSeekerExternalSource: r.allowsSeekerExternal,
         }));
         const showMealPricesPayload = et === "חתונה" || base.hasFoodAtEvent === true;
@@ -583,17 +602,21 @@ export default function VenueEditForm({
           label: `__builtin__:${key}`,
           checked: builtinChecked[key],
           priceMode: builtinAmenityPriceModes[key],
-          extraPrice:
-            builtinAmenityPriceModes[key] === "extra"
-              ? Number(builtinAmenityExtraPrices[key])
-              : null,
+          ...(builtinAmenityPriceModes[key] === "extra"
+            ? amenityExtraPayloadFields(
+                builtinAmenityExtraPrices[key],
+                builtinAmenityExtraPriceMaxes[key] || builtinAmenityExtraPrices[key]
+              )
+            : { extraPrice: null }),
           allowsSeekerExternalSource: builtinAmenityAllowsSeekerExternal[key],
         })),
         ...customAmenityRows.map((r) => ({
           label: r.label,
           checked: r.checked,
           priceMode: r.priceMode,
-          extraPrice: r.priceMode === "extra" ? Number(r.extraPrice) : null,
+          ...(r.priceMode === "extra"
+            ? amenityExtraPayloadFields(r.extraPrice, r.extraPriceMax || r.extraPrice)
+            : { extraPrice: null }),
           allowsSeekerExternalSource: r.allowsSeekerExternal,
         })),
       ];
@@ -946,6 +969,8 @@ export default function VenueEditForm({
               setBuiltinAmenityPriceModes={setBuiltinAmenityPriceModes}
               builtinAmenityExtraPrices={builtinAmenityExtraPrices}
               setBuiltinAmenityExtraPrices={setBuiltinAmenityExtraPrices}
+              builtinAmenityExtraPriceMaxes={builtinAmenityExtraPriceMaxes}
+              setBuiltinAmenityExtraPriceMaxes={setBuiltinAmenityExtraPriceMaxes}
               builtinAmenityAllowsSeekerExternal={builtinAmenityAllowsSeekerExternal}
               setBuiltinAmenityAllowsSeekerExternal={setBuiltinAmenityAllowsSeekerExternal}
               customAmenityRows={customAmenityRows}
@@ -1048,6 +1073,8 @@ export default function VenueEditForm({
                           <OptionalPriceRangeFields
                             key={`${et}-meal`}
                             resetKey={`${et}-meal`}
+                            grouped
+                            expandAsButton
                             className="sm:col-span-2"
                             minPrice={profile.minPrice}
                             maxPrice={profile.maxPrice}
@@ -1126,173 +1153,20 @@ export default function VenueEditForm({
                             )}
                           </div>
                         )}
-                        <div className="mt-1 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
-                          <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
-                            מה יש באולם לסוג &quot;{et}&quot;? (אופציונלי)
-                          </p>
-                          <p className="mb-2 text-[11px] text-[#6B6560]">
-                            פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה. אפשר לסמן אם
-                            מותר להביא ספק חיצוני (* אופציונלי).
-                          </p>
-                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                          {profile.customHallRows.map((row, idx) => (
-                            <div
-                              key={`hall-${et}-${row.label}-${idx}`}
-                              className="flex min-w-0 flex-col gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
-                            >
-                              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                              <label className="flex min-w-0 flex-1 items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  checked={row.checked}
-                                  onChange={(e) =>
-                                    setEventTypeProfiles((prev) => ({
-                                      ...prev,
-                                      [et]: {
-                                        ...profile,
-                                        customHallRows: profile.customHallRows.map((r, i) =>
-                                          i === idx ? { ...r, checked: e.target.checked } : r
-                                        ),
-                                      },
-                                    }))
-                                  }
-                                  className="checkbox-hall shrink-0"
-                                />
-                                <span className="truncate">{row.label}</span>
-                              </label>
-                              <select
-                                value={row.priceMode}
-                                onChange={(e) =>
-                                  setEventTypeProfiles((prev) => ({
-                                    ...prev,
-                                    [et]: {
-                                      ...profile,
-                                      customHallRows: profile.customHallRows.map((r, i) =>
-                                        i === idx
-                                          ? {
-                                              ...r,
-                                              priceMode:
-                                                e.target.value === "extra" ? "extra" : "included",
-                                            }
-                                          : r
-                                      ),
-                                    },
-                                  }))
-                                }
-                                className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                              >
-                                <option value="included">כלול</option>
-                                <option value="extra">בתוספת תשלום</option>
-                              </select>
-                              {row.priceMode === "extra" && (
-                                <input
-                                  type="number"
-                                  min={1}
-                                  value={row.extraPrice}
-                                  onChange={(e) =>
-                                    setEventTypeProfiles((prev) => ({
-                                      ...prev,
-                                      [et]: {
-                                        ...profile,
-                                        customHallRows: profile.customHallRows.map((r, i) =>
-                                          i === idx ? { ...r, extraPrice: e.target.value } : r
-                                        ),
-                                      },
-                                    }))
-                                  }
-                                  className="w-20 rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
-                                  placeholder="₪"
-                                />
-                              )}
-                              <button
-                                type="button"
-                                className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
-                                onClick={() =>
-                                  setEventTypeProfiles((prev) => ({
-                                    ...prev,
-                                    [et]: {
-                                      ...profile,
-                                      customHallRows: profile.customHallRows.filter(
-                                        (_, i) => i !== idx
-                                      ),
-                                    },
-                                  }))
-                                }
-                              >
-                                הסר
-                              </button>
-                              </div>
-                              {row.checked && (
-                                <SeekerExternalSourceToggle
-                                  compact
-                                  checked={row.allowsSeekerExternal}
-                                  onChange={(next) =>
-                                    setEventTypeProfiles((prev) => ({
-                                      ...prev,
-                                      [et]: {
-                                        ...profile,
-                                        customHallRows: profile.customHallRows.map((r, i) =>
-                                          i === idx ? { ...r, allowsSeekerExternal: next } : r
-                                        ),
-                                      },
-                                    }))
-                                  }
-                                />
-                              )}
-                            </div>
-                          ))}
-                          </div>
-                          <div className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-                            <input
-                              type="text"
-                              value={customHallInputByEvent[et] ?? ""}
-                              onChange={(e) =>
-                                setCustomHallInputByEvent((prev) => ({
-                                  ...prev,
-                                  [et]: e.target.value,
-                                }))
-                              }
-                              className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
-                              placeholder="הוסף פרט משלך לאולם…"
-                              maxLength={80}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const value = (customHallInputByEvent[et] ?? "").trim();
-                                if (!value) return;
-                                if (profile.customHallRows.length >= 20) return;
-                                if (
-                                  profile.customHallRows.some(
-                                    (r) => r.label.toLowerCase() === value.toLowerCase()
-                                  )
-                                )
-                                  return;
-                                setEventTypeProfiles((prev) => ({
-                                  ...prev,
-                                  [et]: {
-                                    ...profile,
-                                    customHallRows: [
-                                      ...profile.customHallRows,
-                                      {
-                                        label: value,
-                                        checked: true,
-                                        priceMode: "included",
-                                        extraPrice: "",
-                                        allowsSeekerExternal:
-                                          defaultSeekerExternalForCustomRow(),
-                                      },
-                                    ],
-                                  },
-                                }));
-                                setCustomHallInputByEvent((prev) => ({ ...prev, [et]: "" }));
-                              }}
-                              className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
-                            >
-                              הוסף
-                            </button>
-                          </div>
-                        </div>
+                        <EventTypeCustomHallRowsEditor
+                          eventType={et}
+                          rows={profile.customHallRows}
+                          inputValue={customHallInputByEvent[et] ?? ""}
+                          onInputChange={(value) =>
+                            setCustomHallInputByEvent((prev) => ({ ...prev, [et]: value }))
+                          }
+                          onRowsChange={(customHallRows) =>
+                            setEventTypeProfiles((prev) => ({
+                              ...prev,
+                              [et]: { ...profile, customHallRows },
+                            }))
+                          }
+                        />
                         {isWeddingEt && (
                           <>
                             <p className="mb-1 text-xs font-semibold text-[#0F3B2E] sm:col-span-2">
