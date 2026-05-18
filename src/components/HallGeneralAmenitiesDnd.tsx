@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, MouseEvent, ReactNode, SetStateAction } from "react";
+import type { Dispatch, DragEvent, MouseEvent, ReactNode, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import SeekerExternalSourceToggle, {
@@ -84,6 +84,28 @@ export function newHallGeneralCustomRow(label: string): HallGeneralCustomRow {
 const compactPriceInputClass =
   "w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px] outline-none focus:border-[#C9A227]";
 
+const EXPAND_EXTRA_PRICE_RANGE_LABEL = "אין לך מחיר מדויק? הכנס טווח מחירים";
+
+function AmenityDragHandle({
+  onDragStart,
+  title = "גרור לעמודה אחרת",
+}: {
+  onDragStart: (e: DragEvent) => void;
+  title?: string;
+}) {
+  return (
+    <span
+      draggable
+      onDragStart={onDragStart}
+      className="shrink-0 cursor-grab text-[10px] text-[#9A928A] active:cursor-grabbing"
+      title={title}
+      aria-hidden
+    >
+      ⠿
+    </span>
+  );
+}
+
 export function assignHallGeneralRowIds(
   rows: (Omit<HallGeneralCustomRow, "id"> & { extraPriceMax?: string })[]
 ): HallGeneralCustomRow[] {
@@ -119,7 +141,7 @@ function renderExtraPriceBlock(
         singlePlaceholder="למשל 500"
         minLabel="מינימום (₪)"
         maxLabel="מקסימום (₪)"
-        expandRangeLabel="הכנס טווח מחירים"
+        expandRangeLabel={EXPAND_EXTRA_PRICE_RANGE_LABEL}
         collapseRangeLabel="מחיר קבוע"
         inputClassName={compactPriceInputClass}
         className="!p-2"
@@ -260,20 +282,16 @@ export default function HallGeneralAmenitiesDnd({
   const renderBuiltinCard = (key: HallGeneralBuiltinKey, label: string, zone: DropZone) => {
     const inExtra = zone === "extra";
     const { supportsExtraPrice } = itemMeta(key);
+    const onDragStart = (e: DragEvent) => {
+      e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "builtin", key }));
+      e.dataTransfer.effectAllowed = "move";
+    };
     return (
       <div
         key={`${zone}-b-${key}`}
-        draggable
-        onDragStart={(e) => {
-          e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "builtin", key }));
-          e.dataTransfer.effectAllowed = "move";
-        }}
-        className="flex min-w-0 cursor-grab flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-[#2A261F] active:cursor-grabbing"
-        title="גרור לעמודה אחרת"
+        className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-[#2A261F]"
       >
-        <span className="text-[10px] text-[#9A928A]" aria-hidden>
-          ⠿
-        </span>
+        <AmenityDragHandle onDragStart={onDragStart} />
         <label className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2">
           <input
             type="checkbox"
@@ -320,17 +338,14 @@ export default function HallGeneralAmenitiesDnd({
     return (
       <div
         key={`${zone}-c-${row.id}`}
-        draggable
-        onDragStart={(e) => {
-          e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "custom", id: row.id }));
-          e.dataTransfer.effectAllowed = "move";
-        }}
-        className="flex min-w-0 cursor-grab flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-[#2A261F] active:cursor-grabbing"
-        title="גרור לעמודה אחרת"
+        className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-[#2A261F]"
       >
-        <span className="text-[10px] text-[#9A928A]" aria-hidden>
-          ⠿
-        </span>
+        <AmenityDragHandle
+          onDragStart={(e) => {
+            e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "custom", id: row.id }));
+            e.dataTransfer.effectAllowed = "move";
+          }}
+        />
         <label className="flex min-w-0 items-center gap-2">
           <input
             type="checkbox"
@@ -452,17 +467,15 @@ export default function HallGeneralAmenitiesDnd({
               {inactiveBuiltins.map(({ key, label }) => (
                 <div
                   key={`in-b-${key}`}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "builtin", key }));
-                    e.dataTransfer.effectAllowed = "move";
-                  }}
-                  className="flex cursor-grab items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs active:cursor-grabbing"
-                  title="גרור ל«כלול» או «בתוספת תשלום»"
+                  className="flex items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
                 >
-                  <span className="text-[10px] text-[#9A928A]" aria-hidden>
-                    ⠿
-                  </span>
+                  <AmenityDragHandle
+                    title="גרור ל«כלול» או «בתוספת תשלום»"
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "builtin", key }));
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                  />
                   <label className="flex cursor-pointer items-center gap-2">
                     <input
                       type="checkbox"
@@ -484,16 +497,17 @@ export default function HallGeneralAmenitiesDnd({
               {inactiveCustoms.map((row) => (
                 <div
                   key={`in-c-${row.id}`}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "custom", id: row.id }));
-                    e.dataTransfer.effectAllowed = "move";
-                  }}
-                  className="flex cursor-grab flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs active:cursor-grabbing"
+                  className="flex flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
                 >
-                  <span className="text-[10px] text-[#9A928A]" aria-hidden>
-                    ⠿
-                  </span>
+                  <AmenityDragHandle
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(
+                        DND_MIME,
+                        JSON.stringify({ kind: "custom", id: row.id })
+                      );
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                  />
                   <label className="flex min-w-0 items-center gap-2">
                     <input
                       type="checkbox"

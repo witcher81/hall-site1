@@ -1,5 +1,6 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
 import {
   parseMinMaxToFreelancerPriceForm,
@@ -40,7 +41,7 @@ export default function OptionalPriceRangeFields({
   singlePlaceholder = "למשל 250",
   minLabel = "מחיר מינימלי (₪)",
   maxLabel = "מחיר מקסימלי (₪)",
-  expandRangeLabel = "אין לך מחיר קבוע? הכנס טווח מחירים",
+  expandRangeLabel = "אין לך מחיר מדויק? הכנס טווח מחירים",
   collapseRangeLabel = "יש לי מחיר קבוע",
   grouped = false,
   expandAsButton = false,
@@ -70,13 +71,21 @@ export default function OptionalPriceRangeFields({
     ? ""
     : derived.exactPrice || (minPrice === maxPrice ? minPrice : minPrice || maxPrice);
 
-  const enableRange = () => {
-    const v = singleValue.trim();
-    setUseRange(true);
-    onChange(v, v || maxPrice.trim());
+  const stopPointer = (e: MouseEvent) => {
+    e.stopPropagation();
   };
 
-  const disableRange = () => {
+  const enableRange = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const v = singleValue.trim() || minPrice.trim() || maxPrice.trim();
+    setUseRange(true);
+    onChange(v, maxPrice.trim() || v);
+  };
+
+  const disableRange = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     const ep =
       minPrice.trim() && minPrice.trim() === maxPrice.trim()
         ? minPrice.trim()
@@ -102,7 +111,12 @@ export default function OptionalPriceRangeFields({
     : "mb-1 block text-[11px] font-medium text-[#5F5F5F]";
 
   return (
-    <div className={`space-y-2 ${outerClass}`}>
+    <div
+      className={`space-y-2 ${outerClass}`}
+      onMouseDown={stopPointer}
+      onPointerDown={stopPointer}
+      onDragStart={(e) => e.preventDefault()}
+    >
       {!useRange ? (
         <div>
           <p className={titleClass}>{singleLabel}</p>

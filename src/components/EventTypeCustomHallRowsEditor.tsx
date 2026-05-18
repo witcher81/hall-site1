@@ -129,7 +129,7 @@ export default function EventTypeCustomHallRowsEditor({
                   singleLabel="תוספת תשלום (₪)"
                   minLabel="מינימום (₪)"
                   maxLabel="מקסימום (₪)"
-                  expandRangeLabel="הכנס טווח מחירים"
+                  expandRangeLabel="אין לך מחיר מדויק? הכנס טווח מחירים"
                   collapseRangeLabel="מחיר קבוע"
                   inputClassName={compactPriceInputClass}
                   className="!p-2"
