@@ -100,10 +100,8 @@ export default function VenueInquiryClient({
     weddingForm && !partition.chuppa.outdoor && partition.chuppa.covered;
 
   const hasChoicesStep = useMemo(
-    () =>
-      partition.choosable.length > 0 ||
-      hasChuppaChoiceSection(weddingForm, partition.chuppa),
-    [partition.choosable.length, partition.chuppa, weddingForm]
+    () => hasChuppaChoiceSection(weddingForm, partition.chuppa),
+    [partition.chuppa, weddingForm]
   );
 
   const wizardSteps = useMemo((): InquiryWizardStep[] => {
@@ -111,7 +109,7 @@ export default function VenueInquiryClient({
       { id: "event", title: "פרטי האירוע" },
       { id: "offers", title: "מה באולם" },
     ];
-    if (hasChoicesStep) steps.push({ id: "choices", title: "הבחירות שלכם" });
+    if (hasChoicesStep) steps.push({ id: "choices", title: "חופה" });
     steps.push({ id: "send", title: "שליחה" });
     return steps;
   }, [hasChoicesStep]);
@@ -553,6 +551,10 @@ export default function VenueInquiryClient({
                   parkingKind={parkingKind}
                   eventTypeLabel={eventTypeTrimmed}
                   weddingFoodNote={weddingForm}
+                  sourceById={sourceById}
+                  onSourceChange={(id, source) =>
+                    setSourceById((m) => ({ ...m, [id]: source }))
+                  }
                 />
               )}
             </div>
@@ -560,17 +562,12 @@ export default function VenueInquiryClient({
 
           {stepId === "choices" ? (
             <InquiryServiceChoicesStep
-              choosable={partition.choosable}
               chuppa={partition.chuppa}
               chuppahBoth={!!chuppahBoth}
               chuppahSingleOutdoor={!!chuppahSingleOutdoor}
               chuppahSingleCovered={!!chuppahSingleCovered}
               weddingChuppahPick={weddingChuppahPick}
               onWeddingChuppahPick={setWeddingChuppahPick}
-              sourceById={sourceById}
-              onSourceChange={(id, source) =>
-                setSourceById((m) => ({ ...m, [id]: source }))
-              }
             />
           ) : null}
 
@@ -584,6 +581,17 @@ export default function VenueInquiryClient({
                   {form.eventType ? <li>סוג: <strong>{form.eventType}</strong></li> : null}
                   <li>כלול: <strong>{partition.included.length}</strong></li>
                   <li>בתוספת: <strong>{partition.extra.length}</strong></li>
+                  <li>
+                    ספק חיצוני:{" "}
+                    <strong>
+                      {
+                        partition.choosable.filter(
+                          (o) => (sourceById[o.id] ?? "venue") === "external"
+                        ).length
+                      }
+                    </strong>{" "}
+                    מתוך {partition.choosable.length} פריטים לבחירה
+                  </li>
                 </ul>
               </div>
               <div>
