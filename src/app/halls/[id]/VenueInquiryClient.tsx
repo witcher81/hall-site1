@@ -1,7 +1,9 @@
 "use client";
 
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
-import InquiryOfferOverview from "@/components/venue-inquiry/InquiryOfferOverview";
+import InquiryOfferOverview, {
+  type MarketplaceAvailability,
+} from "@/components/venue-inquiry/InquiryOfferOverview";
 import InquiryServiceChoicesStep from "@/components/venue-inquiry/InquiryServiceChoicesStep";
 import InquiryWizardNav, {
   type InquiryWizardStep,
@@ -61,6 +63,10 @@ export default function VenueInquiryClient({
     "outdoor"
   );
   const [stepId, setStepId] = useState<"event" | "offers" | "choices" | "send">("event");
+  const [marketplaceById, setMarketplaceById] = useState<
+    Record<string, MarketplaceAvailability>
+  >({});
+  const [marketplaceLoading, setMarketplaceLoading] = useState(false);
 
   const eventTypeTrimmed = form.eventType.trim() || null;
 
@@ -137,6 +143,56 @@ export default function VenueInquiryClient({
     for (const o of partition.choosable) next[o.id] = "venue";
     setSourceById(next);
   }, [choosableKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const marketplaceCheckKey = useMemo(
+    () =>
+      partition.choosable
+        .map((o) => `${o.id}:${o.label}`)
+        .join("\n"),
+    [partition.choosable]
+  );
+
+  useEffect(() => {
+    if (partition.choosable.length === 0) {
+      setMarketplaceById({});
+      setMarketplaceLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setMarketplaceLoading(true);
+    fetch("/api/inquiry/freelancer-availability", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: partition.choosable.map((o) => ({ id: o.id, label: o.label })),
+      }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("availability"))))
+      .then((json: { byId?: Record<string, MarketplaceAvailability> }) => {
+        if (cancelled) return;
+        const byId = json.byId ?? {};
+        setMarketplaceById(byId);
+        setSourceById((prev) => {
+          const next = { ...prev };
+          for (const o of partition.choosable) {
+            const m = byId[o.id];
+            if (!m?.available && next[o.id] === "external") {
+              next[o.id] = "venue";
+            }
+          }
+          return next;
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setMarketplaceById({});
+      })
+      .finally(() => {
+        if (!cancelled) setMarketplaceLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [marketplaceCheckKey, partition.choosable]);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const inputMinGuests = guestBounds.min ?? 1;
@@ -555,6 +611,8 @@ export default function VenueInquiryClient({
                   onSourceChange={(id, source) =>
                     setSourceById((m) => ({ ...m, [id]: source }))
                   }
+                  marketplaceById={marketplaceById}
+                  marketplaceLoading={marketplaceLoading}
                 />
               )}
             </div>

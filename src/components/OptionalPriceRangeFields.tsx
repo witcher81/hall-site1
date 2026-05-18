@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   parseMinMaxToFreelancerPriceForm,
   storedMinMaxIsPriceRange,
@@ -51,9 +51,12 @@ export default function OptionalPriceRangeFields({
   const [internalUseRange, setInternalUseRange] = useState(() =>
     storedMinMaxIsPriceRange(minPrice, maxPrice)
   );
+  const lastResetKeyRef = useRef(resetKey);
 
   useEffect(() => {
     if (resetKey === undefined) return;
+    if (lastResetKeyRef.current === resetKey) return;
+    lastResetKeyRef.current = resetKey;
     setInternalUseRange(storedMinMaxIsPriceRange(minPrice, maxPrice));
   }, [resetKey, minPrice, maxPrice]);
 

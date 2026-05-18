@@ -1,18 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CATEGORY_VALUE_SEPARATOR } from "@/lib/freelancerServiceCategories";
+import { buildMarketplaceServiceWhere } from "@/lib/marketplaceServiceSearch";
+import { getInquiryMarketplaceSearch } from "@/lib/venueInquiryFreelancerMatch";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-/** שירותי פרילנסרים בקטגוריה — להשוואה מול תוספת באולם */
+/** שירותי פרילנסרים להשוואה מול תוספת באולם */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const category = searchParams.get("category")?.trim();
+  const serviceId = searchParams.get("serviceId")?.trim() ?? "";
+  const label = searchParams.get("label")?.trim() ?? "";
+  const categoryLegacy = searchParams.get("category")?.trim() ?? "";
   const hallPriceRaw = searchParams.get("hallPrice");
   const limitRaw = searchParams.get("limit");
 
-  if (!category) {
-    return NextResponse.json({ error: "חסרה קטגוריה" }, { status: 400 });
+  const search =
+    serviceId || label
+      ? getInquiryMarketplaceSearch({ id: serviceId, label })
+      : categoryLegacy
+        ? {
+            categories: [categoryLegacy],
+            keywords: [] as string[],
+            browseCategory: categoryLegacy,
+          }
+        : null;
+
+  if (!search || search.categories.length + search.keywords.length === 0) {
+    return NextResponse.json({ error: "לא ניתן למפות לקטגוריית ספקים" }, { status: 400 });
   }
 
   const hallPrice =
@@ -24,16 +38,11 @@ export async function GET(req: NextRequest) {
     Math.max(1, limitRaw && limitRaw !== "" ? Number(limitRaw) : 4)
   );
 
-  const categoryWhere = {
-    OR: [
-      { category },
-      { category: { startsWith: `${category}${CATEGORY_VALUE_SEPARATOR}` } },
-    ],
-  };
+  const baseWhere = buildMarketplaceServiceWhere(search.categories, search.keywords);
 
   const marketRow = await prisma.service.findFirst({
     where: {
-      ...categoryWhere,
+      ...baseWhere,
       minPrice: { not: null, gt: 0 },
     },
     orderBy: { minPrice: "asc" },
@@ -41,18 +50,21 @@ export async function GET(req: NextRequest) {
   });
   const marketFrom = marketRow?.minPrice ?? null;
 
-  const cheaperWhere = hallPriceValid
+  const totalCount = await prisma.service.count({ where: baseWhere });
+
+  const listWhere = hallPriceValid
     ? {
-        ...categoryWhere,
-        minPrice: { not: null, gt: 0, lt: hallPrice },
+        AND: [
+          baseWhere,
+          { minPrice: { not: null, gt: 0, lt: hallPrice } },
+        ],
       }
     : {
-        ...categoryWhere,
-        minPrice: { not: null, gt: 0 },
+        AND: [baseWhere, { minPrice: { not: null, gt: 0 } }],
       };
 
   const services = await prisma.service.findMany({
-    where: cheaperWhere,
+    where: listWhere,
     orderBy: [{ minPrice: "asc" }, { createdAt: "desc" }],
     take: limit,
     select: {
@@ -76,7 +88,10 @@ export async function GET(req: NextRequest) {
     hallPriceValid && marketFrom != null && marketFrom > 0 && marketFrom < hallPrice;
 
   return NextResponse.json({
-    category,
+    available: totalCount > 0,
+    totalCount,
+    browseCategory: search.browseCategory,
+    categories: search.categories,
     marketFrom,
     hallPrice: hallPriceValid ? hallPrice : null,
     cheaperThanHall,

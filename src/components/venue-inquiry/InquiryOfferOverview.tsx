@@ -8,24 +8,33 @@ import {
 } from "@/lib/venueInquiryAmenities";
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import { PARKING_KIND_LABELS, type ParkingKind } from "@/lib/venueParkingKind";
-import {
-  inquiryServiceHallComparePrice,
-  inquiryServiceProviderCategory,
-} from "@/lib/venueInquiryFreelancerMatch";
+import { inquiryServiceHallComparePrice } from "@/lib/venueInquiryFreelancerMatch";
 import InquiryFreelancerAlternatives from "./InquiryFreelancerAlternatives";
 import InquiryServicePriceBadge from "./InquiryServicePriceBadge";
+
+export type MarketplaceAvailability = {
+  available: boolean;
+  totalCount: number;
+  browseCategory: string | null;
+};
 
 function OfferRow({
   opt,
   source,
   onSourceChange,
+  marketplace,
+  marketplaceLoading,
 }: {
   opt: InquiryServiceOption;
   source: ServiceChoiceSource;
   onSourceChange: (source: ServiceChoiceSource) => void;
+  marketplace?: MarketplaceAvailability;
+  marketplaceLoading?: boolean;
 }) {
-  const choosable = inquiryServiceAllowsExternalSource(opt);
-  const category = choosable ? inquiryServiceProviderCategory(opt) : null;
+  const configAllowsExternal = inquiryServiceAllowsExternalSource(opt);
+  const hasMarketplace =
+    marketplace?.available === true && (marketplace.totalCount ?? 0) > 0;
+  const showExternalChoice = configAllowsExternal && hasMarketplace;
   const hallPrice = inquiryServiceHallComparePrice(opt);
   const external = source === "external";
 
@@ -36,44 +45,41 @@ function OfferRow({
         <InquiryServicePriceBadge opt={opt} />
       </div>
 
-      {choosable ? (
+      {configAllowsExternal ? (
         <>
-          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-              <input
-                type="radio"
-                name={`offer-${opt.id}`}
-                checked={source === "venue"}
-                onChange={() => onSourceChange("venue")}
-                className="h-4 w-4 accent-[#0F3B2E]"
-              />
-              {INQUIRY_EXTERNAL_SOURCE_COPY.venueRadio}
-            </label>
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
-              <input
-                type="radio"
-                name={`offer-${opt.id}`}
-                checked={source === "external"}
-                onChange={() => onSourceChange("external")}
-                className="h-4 w-4 accent-[#0F3B2E]"
-              />
-              {INQUIRY_EXTERNAL_SOURCE_COPY.externalRadio}
-            </label>
-          </div>
-          {external && category ? (
-            <InquiryFreelancerAlternatives
-              category={category}
-              hallPrice={hallPrice}
-              serviceLabel={opt.label}
-            />
-          ) : external && !category ? (
+          {marketplaceLoading ? (
+            <p className="mt-2 text-[11px] text-[#9A928A]">בודקים אם יש ספקים במאגר…</p>
+          ) : showExternalChoice ? (
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                <input
+                  type="radio"
+                  name={`offer-${opt.id}`}
+                  checked={source === "venue"}
+                  onChange={() => onSourceChange("venue")}
+                  className="h-4 w-4 accent-[#0F3B2E]"
+                />
+                {INQUIRY_EXTERNAL_SOURCE_COPY.venueRadio}
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                <input
+                  type="radio"
+                  name={`offer-${opt.id}`}
+                  checked={source === "external"}
+                  onChange={() => onSourceChange("external")}
+                  className="h-4 w-4 accent-[#0F3B2E]"
+                />
+                {INQUIRY_EXTERNAL_SOURCE_COPY.externalRadio}
+              </label>
+            </div>
+          ) : (
             <p className="mt-2 text-[11px] text-[#6B6560]">
-              אפשר לחפש ספק חיצוני ב־
-              <a href="/providers" className="font-semibold text-[#0F3B2E] underline">
-                מאגר הספקים
-              </a>
-              .
+              {INQUIRY_EXTERNAL_SOURCE_COPY.venueOnlyLine} אין כרגע ספק מתאים במאגר — רק דרך
+              האולם.
             </p>
+          )}
+          {external && showExternalChoice ? (
+            <InquiryFreelancerAlternatives opt={opt} hallPrice={hallPrice} />
           ) : null}
         </>
       ) : (
@@ -90,11 +96,15 @@ function OfferList({
   emptyText,
   sourceById,
   onSourceChange,
+  marketplaceById,
+  marketplaceLoading,
 }: {
   items: InquiryServiceOption[];
   emptyText: string;
   sourceById: Record<string, ServiceChoiceSource>;
   onSourceChange: (id: string, source: ServiceChoiceSource) => void;
+  marketplaceById: Record<string, MarketplaceAvailability>;
+  marketplaceLoading: boolean;
 }) {
   if (items.length === 0) {
     return <p className="py-4 text-center text-[11px] text-[#9A928A]">{emptyText}</p>;
@@ -107,6 +117,8 @@ function OfferList({
           opt={opt}
           source={sourceById[opt.id] ?? "venue"}
           onSourceChange={(src) => onSourceChange(opt.id, src)}
+          marketplace={marketplaceById[opt.id]}
+          marketplaceLoading={marketplaceLoading}
         />
       ))}
     </ul>
@@ -123,6 +135,8 @@ type Props = {
   weddingFoodNote?: boolean;
   sourceById: Record<string, ServiceChoiceSource>;
   onSourceChange: (id: string, source: ServiceChoiceSource) => void;
+  marketplaceById: Record<string, MarketplaceAvailability>;
+  marketplaceLoading: boolean;
 };
 
 export default function InquiryOfferOverview({
@@ -135,6 +149,8 @@ export default function InquiryOfferOverview({
   weddingFoodNote,
   sourceById,
   onSourceChange,
+  marketplaceById,
+  marketplaceLoading,
 }: Props) {
   const allInfo: { id: string; label: string }[] = [
     ...infoTraits,
@@ -180,6 +196,8 @@ export default function InquiryOfferOverview({
               emptyText="אין פריטים כלולים ברשימה זו"
               sourceById={sourceById}
               onSourceChange={onSourceChange}
+              marketplaceById={marketplaceById}
+              marketplaceLoading={marketplaceLoading}
             />
           </div>
         </section>
@@ -193,6 +211,8 @@ export default function InquiryOfferOverview({
               emptyText="אין פריטים בתוספת תשלום"
               sourceById={sourceById}
               onSourceChange={onSourceChange}
+              marketplaceById={marketplaceById}
+              marketplaceLoading={marketplaceLoading}
             />
           </div>
         </section>
