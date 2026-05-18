@@ -73,7 +73,12 @@ export default function VenueHallSoftAttributesSection({
 
       <div className="mt-4 border-t border-[#E0D4C3]/70 pt-3">
         <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">פרטים נוספים משלכם</p>
-        <div className="mb-2 rounded-xl border border-[#E0D4C3]/90 bg-white/70 p-3">
+        {customRows.length === 0 ? (
+          <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+            לדוגמה: גג פתוח, לובי כפול — יופיעו למחפשים יחד עם הסימונים למעלה.
+          </p>
+        ) : null}
+        <div className="rounded-xl border border-[#E0D4C3]/90 bg-white/70 p-3">
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
             <input
               type="text"
@@ -98,11 +103,10 @@ export default function VenueHallSoftAttributesSection({
             </button>
           </div>
         </div>
-        <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-          לדוגמה: גג פתוח, לובי כפול — יופיעו למחפשים יחד עם הסימונים למעלה.
-        </p>
         {customRows.length > 0 ? (
-          <ul className="space-y-2">
+          <>
+            <p className="mb-2 mt-3 text-[11px] font-medium text-[#5F5F5F]">הוספתם:</p>
+            <ul className="space-y-2">
             {customRows.map((row) => (
               <li
                 key={row.id}
@@ -132,7 +136,8 @@ export default function VenueHallSoftAttributesSection({
                 </button>
               </li>
             ))}
-          </ul>
+            </ul>
+          </>
         ) : null}
       </div>
     </div>
