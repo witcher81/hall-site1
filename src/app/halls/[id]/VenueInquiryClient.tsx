@@ -44,6 +44,8 @@ export default function VenueInquiryClient({
   const searchParams = useSearchParams();
   const dateInputRef = useRef<HTMLInputElement>(null);
   const eventTypeMenuRef = useRef<HTMLDivElement>(null);
+  /** Blocks accidental submit when "המשך" is replaced by "שלח" under the same click. */
+  const stepTransitionLockRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -332,7 +334,11 @@ export default function VenueInquiryClient({
       return;
     }
     if (stepId === "offers") {
+      stepTransitionLockRef.current = true;
       setStepId("send");
+      window.setTimeout(() => {
+        stepTransitionLockRef.current = false;
+      }, 400);
     }
   }
 
@@ -359,11 +365,20 @@ export default function VenueInquiryClient({
         return;
       }
     }
+    if (target === "send") {
+      stepTransitionLockRef.current = true;
+      window.setTimeout(() => {
+        stepTransitionLockRef.current = false;
+      }, 400);
+    }
     setStepId(target);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (stepId !== "send" || stepTransitionLockRef.current) {
+      return;
+    }
     setError(null);
     setSuccess(false);
 
@@ -431,7 +446,15 @@ export default function VenueInquiryClient({
           />
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && stepId !== "send") {
+              e.preventDefault();
+            }
+          }}
+          className="mt-5 space-y-5"
+        >
           {stepId === "event" ? (
           <div className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
