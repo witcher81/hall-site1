@@ -9,8 +9,10 @@ import {
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import { PARKING_KIND_LABELS, type ParkingKind } from "@/lib/venueParkingKind";
 import { inquiryServiceHallComparePrice } from "@/lib/venueInquiryFreelancerMatch";
+import InquiryChuppahSection from "./InquiryChuppahSection";
 import InquiryFreelancerAlternatives from "./InquiryFreelancerAlternatives";
 import InquiryServicePriceBadge from "./InquiryServicePriceBadge";
+import type { InquiryChuppaSplit } from "@/lib/venueInquiryOfferGroups";
 
 export type MarketplaceAvailability = {
   available: boolean;
@@ -137,6 +139,12 @@ type Props = {
   onSourceChange: (id: string, source: ServiceChoiceSource) => void;
   marketplaceById: Record<string, MarketplaceAvailability>;
   marketplaceLoading: boolean;
+  chuppa?: InquiryChuppaSplit;
+  chuppahBoth?: boolean;
+  chuppahSingleOutdoor?: boolean;
+  chuppahSingleCovered?: boolean;
+  weddingChuppahPick?: "outdoor" | "covered";
+  onWeddingChuppahPick?: (v: "outdoor" | "covered") => void;
 };
 
 export default function InquiryOfferOverview({
@@ -151,6 +159,12 @@ export default function InquiryOfferOverview({
   onSourceChange,
   marketplaceById,
   marketplaceLoading,
+  chuppa,
+  chuppahBoth = false,
+  chuppahSingleOutdoor = false,
+  chuppahSingleCovered = false,
+  weddingChuppahPick = "outdoor",
+  onWeddingChuppahPick,
 }: Props) {
   const allInfo: { id: string; label: string }[] = [
     ...infoTraits,
@@ -217,6 +231,17 @@ export default function InquiryOfferOverview({
           </div>
         </section>
       </div>
+
+      {chuppa && onWeddingChuppahPick ? (
+        <InquiryChuppahSection
+          chuppa={chuppa}
+          chuppahBoth={chuppahBoth}
+          chuppahSingleOutdoor={chuppahSingleOutdoor}
+          chuppahSingleCovered={chuppahSingleCovered}
+          weddingChuppahPick={weddingChuppahPick}
+          onWeddingChuppahPick={onWeddingChuppahPick}
+        />
+      ) : null}
 
       {allInfo.length > 0 ? (
         <section className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-4">

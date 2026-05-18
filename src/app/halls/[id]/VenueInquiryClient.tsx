@@ -4,7 +4,6 @@ import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import InquiryOfferOverview, {
   type MarketplaceAvailability,
 } from "@/components/venue-inquiry/InquiryOfferOverview";
-import InquiryServiceChoicesStep from "@/components/venue-inquiry/InquiryServiceChoicesStep";
 import InquiryWizardNav, {
   type InquiryWizardStep,
 } from "@/components/venue-inquiry/InquiryWizardNav";
@@ -16,10 +15,7 @@ import {
   type ServiceChoiceSource,
   type VenueInquiryAmenitiesInput,
 } from "@/lib/venueInquiryAmenities";
-import {
-  hasChuppaChoiceSection,
-  partitionInquiryServices,
-} from "@/lib/venueInquiryOfferGroups";
+import { partitionInquiryServices } from "@/lib/venueInquiryOfferGroups";
 import { type ParkingKind } from "@/lib/venueParkingKind";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -62,7 +58,7 @@ export default function VenueInquiryClient({
   const [weddingChuppahPick, setWeddingChuppahPick] = useState<"outdoor" | "covered">(
     "outdoor"
   );
-  const [stepId, setStepId] = useState<"event" | "offers" | "choices" | "send">("event");
+  const [stepId, setStepId] = useState<"event" | "offers" | "send">("event");
   const [marketplaceById, setMarketplaceById] = useState<
     Record<string, MarketplaceAvailability>
   >({});
@@ -105,23 +101,19 @@ export default function VenueInquiryClient({
   const chuppahSingleCovered =
     weddingForm && !partition.chuppa.outdoor && partition.chuppa.covered;
 
-  const hasChoicesStep = useMemo(
-    () => hasChuppaChoiceSection(weddingForm, partition.chuppa),
-    [partition.chuppa, weddingForm]
-  );
+  const hasChuppahSection =
+    chuppahBoth || chuppahSingleOutdoor || chuppahSingleCovered;
 
   const wizardSteps = useMemo((): InquiryWizardStep[] => {
-    const steps: InquiryWizardStep[] = [
+    return [
       { id: "event", title: "פרטי האירוע" },
       { id: "offers", title: "מה באולם" },
+      { id: "send", title: "שליחה" },
     ];
-    if (hasChoicesStep) steps.push({ id: "choices", title: "חופה" });
-    steps.push({ id: "send", title: "שליחה" });
-    return steps;
-  }, [hasChoicesStep]);
+  }, []);
 
   const stepOrder = useMemo(
-    () => wizardSteps.map((s) => s.id as "event" | "offers" | "choices" | "send"),
+    () => wizardSteps.map((s) => s.id as "event" | "offers" | "send"),
     [wizardSteps]
   );
 
@@ -340,10 +332,6 @@ export default function VenueInquiryClient({
       return;
     }
     if (stepId === "offers") {
-      setStepId(hasChoicesStep ? "choices" : "send");
-      return;
-    }
-    if (stepId === "choices") {
       setStepId("send");
     }
   }
@@ -351,10 +339,6 @@ export default function VenueInquiryClient({
   function goBack() {
     setError(null);
     if (stepId === "send") {
-      setStepId(hasChoicesStep ? "choices" : "offers");
-      return;
-    }
-    if (stepId === "choices") {
       setStepId("offers");
       return;
     }
@@ -594,7 +578,8 @@ export default function VenueInquiryClient({
               {allRestServices.length === 0 &&
               infoTraits.length === 0 &&
               !(presetLabels?.length) &&
-              !(parkingKind && parkingKind !== "none") ? (
+              !(parkingKind && parkingKind !== "none") &&
+              !hasChuppahSection ? (
                 <p className="rounded-xl border border-[#E8E0D4] bg-[#FAF8F4] px-4 py-6 text-center text-sm text-[#6B6560]">
                   האולם עדיין לא הגדיר שירותים לסוג האירוע שנבחר.
                 </p>
@@ -613,20 +598,15 @@ export default function VenueInquiryClient({
                   }
                   marketplaceById={marketplaceById}
                   marketplaceLoading={marketplaceLoading}
+                  chuppa={partition.chuppa}
+                  chuppahBoth={!!chuppahBoth}
+                  chuppahSingleOutdoor={!!chuppahSingleOutdoor}
+                  chuppahSingleCovered={!!chuppahSingleCovered}
+                  weddingChuppahPick={weddingChuppahPick}
+                  onWeddingChuppahPick={setWeddingChuppahPick}
                 />
               )}
             </div>
-          ) : null}
-
-          {stepId === "choices" ? (
-            <InquiryServiceChoicesStep
-              chuppa={partition.chuppa}
-              chuppahBoth={!!chuppahBoth}
-              chuppahSingleOutdoor={!!chuppahSingleOutdoor}
-              chuppahSingleCovered={!!chuppahSingleCovered}
-              weddingChuppahPick={weddingChuppahPick}
-              onWeddingChuppahPick={setWeddingChuppahPick}
-            />
           ) : null}
 
           {stepId === "send" ? (
@@ -650,6 +630,16 @@ export default function VenueInquiryClient({
                     </strong>{" "}
                     מתוך {partition.choosable.length} פריטים לבחירה
                   </li>
+                  {hasChuppahSection && chuppahBoth ? (
+                    <li>
+                      חופה:{" "}
+                      <strong>
+                        {weddingChuppahPick === "outdoor"
+                          ? partition.chuppa.outdoor?.label ?? "בחוץ"
+                          : partition.chuppa.covered?.label ?? "מקורה"}
+                      </strong>
+                    </li>
+                  ) : null}
                 </ul>
               </div>
               <div>

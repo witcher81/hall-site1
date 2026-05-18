@@ -107,7 +107,7 @@ export default async function VenueInquiryPage({
         </h1>
         <p className="mt-1 text-right text-sm text-[#5F5F5F]">
           {INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} ההזמנה בשלבים: פרטי האירוע, מה האולם
-          מציע (כלול במחיר / בתוספת תשלום), בחירות מקור ספקים, ושליחה.
+          מציע (כלול / בתוספת, בחירת מקור ספקים, וחופה בחתונה), ושליחה.
         </p>
         <Suspense
           fallback={
