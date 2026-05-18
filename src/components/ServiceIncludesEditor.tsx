@@ -265,8 +265,6 @@ export default function ServiceIncludesEditor({
                 />
                 <div className="mt-2 rounded-lg border border-amber-200/60 bg-amber-50/40 p-2">
                   <OptionalPriceRangeFields
-                    key={`paid-extra-price-${index}`}
-                    resetKey={`paid-extra-price-${index}`}
                     useRange={row.usePriceRange === true}
                     onUseRangeChange={(useRange) => {
                       if (useRange) {
@@ -311,7 +309,8 @@ export default function ServiceIncludesEditor({
                           : ""
                     }
                     onChange={(min, max) => {
-                      if (row.usePriceRange) {
+                      const current = paidExtras[index];
+                      if (current?.usePriceRange) {
                         updatePaidExtra(index, {
                           minPrice: parsePriceInput(min),
                           maxPrice: parsePriceInput(max),

@@ -78,10 +78,16 @@ export default function OptionalPriceRangeFields({
     e.stopPropagation();
   };
 
+  const isControlled = controlledUseRange !== undefined;
+
   const enableRange = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const v = singleValue.trim() || minPrice.trim() || maxPrice.trim();
+    if (isControlled) {
+      onUseRangeChange?.(true);
+      return;
+    }
     setUseRange(true);
     onChange(v, maxPrice.trim() || v);
   };
@@ -89,6 +95,10 @@ export default function OptionalPriceRangeFields({
   const disableRange = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isControlled) {
+      onUseRangeChange?.(false);
+      return;
+    }
     const ep =
       minPrice.trim() && minPrice.trim() === maxPrice.trim()
         ? minPrice.trim()
