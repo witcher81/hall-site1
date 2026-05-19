@@ -7,6 +7,7 @@ import { recordVenueRecentlyViewed } from "@/lib/recentlyViewedVenues";
 import { useEngagedVenueView } from "@/lib/useEngagedViewAnalytics";
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import { WEDDING_AMENITY_STORAGE_PREFIX } from "@/lib/venueInquiryAmenities";
+import { getVenueTypePublicLabel } from "@/lib/venueTypeOptions";
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
 
@@ -223,6 +224,80 @@ function EventTypeProfilePanel({
 
 const metaOfferPillClass =
   "rounded-2xl border px-3 py-2 text-sm font-medium leading-snug sm:text-[15px]";
+
+type AmenityOfferRow = {
+  key: string;
+  label: string;
+  mode?: PriceMode;
+  extraPrice?: number | null;
+  foodNonWeddingPricing?: boolean;
+};
+
+function CharacteristicPill({ label }: { label: string }) {
+  return (
+    <span
+      className={`${metaOfferPillClass} border-[#0F3B2E]/18 bg-gradient-to-br from-[#F5F1EA] to-[#EDE8DF] text-[#1A1A1A]`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function VenueMetaPill({ label }: { label: string }) {
+  return (
+    <span
+      className={`${metaOfferPillClass} border-[#D4C9BC] bg-[#F0EBE3] text-[#1A1A1A]`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function OfferServicesGrid({ items }: { items: AmenityOfferRow[] }) {
+  if (items.length === 0) return null;
+  return (
+    <ul className="grid list-none gap-2 p-0 sm:grid-cols-2">
+      {items.map((a) => (
+        <li key={a.key} className="min-w-0">
+          <AmenityOfferPill
+            label={a.label}
+            mode={a.mode}
+            extraPrice={a.extraPrice}
+            foodNonWeddingPricing={a.foodNonWeddingPricing}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function OfferSectionCard({
+  title,
+  hint,
+  variant = "default",
+  children,
+}: {
+  title: string;
+  hint?: string;
+  variant?: "default" | "traits" | "wedding";
+  children: ReactNode;
+}) {
+  const shell =
+    variant === "traits"
+      ? "border-[#D4C9BC]/80 bg-gradient-to-br from-[#F8F4EC] to-[#F0EBE3]"
+      : variant === "wedding"
+        ? "border-[#0F3B2E]/15 bg-gradient-to-br from-[#E8F0EC]/80 to-[#E0EDE8]/50"
+        : "border-[#D4C9BC]/70 bg-white/80";
+  return (
+    <section className={`rounded-xl border p-3 sm:p-4 ${shell}`}>
+      <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="text-xs font-bold text-[#0F3B2E] sm:text-sm">{title}</p>
+        {hint ? <p className="text-[11px] text-[#6B6560]">{hint}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
 
 function VenueSocialProofStrip({
   venueId,
@@ -456,7 +531,10 @@ export default function VenuePublicView({
       mode: a.priceMode,
       extraPrice: a.extraPrice,
     })),
-  ].sort((a, b) => Number(a.mode === "extra") - Number(b.mode === "extra"));
+  ];
+
+  const generalIncludedOffers = generalAmenityOffers.filter((a) => a.mode !== "extra");
+  const generalExtraOffers = generalAmenityOffers.filter((a) => a.mode === "extra");
 
   const weddingAmenityOffers = [
     {
@@ -471,7 +549,30 @@ export default function VenuePublicView({
       mode: a.priceMode,
       extraPrice: a.extraPrice,
     })),
-  ].sort((a, b) => Number(a.mode === "extra") - Number(b.mode === "extra"));
+  ];
+
+  const weddingIncludedOffers = weddingAmenityOffers.filter((a) => a.mode !== "extra");
+  const weddingExtraOffers = weddingAmenityOffers.filter((a) => a.mode === "extra");
+
+  const venueTypePublicLabel = getVenueTypePublicLabel(venue.venueType);
+
+  const venueCharacteristicLabels: string[] = [
+    ...(venueTypePublicLabel ? [venueTypePublicLabel] : []),
+    ...(venue.seaView ? ["נוף לים"] : []),
+    ...(venue.boutique ? ["אירועי בוטיק"] : []),
+    ...(venue.accessible ? ["נגיש לנכים"] : []),
+    ...(venue.softCustomAttributeLabels ?? []),
+  ];
+  const hasVenueCharacteristics = venueCharacteristicLabels.length > 0;
+
+  const venueMetaLabels: string[] = [
+    ...(venue.kashrut ? [`כשרות: ${venue.kashrut}`] : []),
+    ...(venue.parking ? [`חניה: ${venue.parking}`] : []),
+  ];
+  const hasGeneralServicesSection =
+    venueMetaLabels.length > 0 ||
+    generalIncludedOffers.length > 0 ||
+    generalExtraOffers.length > 0;
 
   const openLightbox = (index: number) => {
     if (index >= 0 && index < visibleImages.length) setLightboxIndex(index);
@@ -621,100 +722,102 @@ export default function VenuePublicView({
                 <p className="mb-1 text-base font-bold text-[#0F3B2E] sm:text-lg">
                   מה מציע האולם
                 </p>
-                <p className="mb-3 text-xs text-[#6B6560] sm:text-sm">
-                  שירותים עם סימון מחיר — מה כלול בחבילה ומה בתוספת.
+                <p className="mb-4 text-xs text-[#6B6560] sm:text-sm">
+                  מאפייני המקום, שירותים ותמחור — מופרדים לפי קטגוריה לקריאה נוחה.
                 </p>
-                <div className="space-y-4">
-                  <section className="rounded-xl border border-[#D4C9BC]/70 bg-white/70 p-3">
-                    <p className="mb-2 text-xs font-bold text-[#2A261F]">כללי</p>
-                    <div className="flex flex-wrap gap-2.5 sm:gap-3">
-                      {venue.kashrut && (
-                        <span
-                          className={`${metaOfferPillClass} border-[#0F3B2E]/20 bg-[#E0EDE8] text-[#0F3B2E]`}
-                        >
-                          כשרות: {venue.kashrut}
-                        </span>
-                      )}
-                      {venue.parking && (
-                        <span
-                          className={`${metaOfferPillClass} border-[#D4C9BC] bg-[#F0EBE3] text-[#1A1A1A]`}
-                        >
-                          חניה: {venue.parking}
-                        </span>
-                      )}
-                      {venue.venueType && (
-                        <span
-                          className={`${metaOfferPillClass} border-[#D4C9BC] bg-[#F0EBE3] text-[#1A1A1A]`}
-                        >
-                          סוג: {venue.venueType}
-                        </span>
-                      )}
-                      {venue.seaView && (
-                        <span
-                          className={`${metaOfferPillClass} border-[#0F3B2E]/20 bg-[#E8F0EC] text-[#0F3B2E]`}
-                        >
-                          נוף לים
-                        </span>
-                      )}
-                      {venue.boutique && (
-                        <span
-                          className={`${metaOfferPillClass} border-[#9A7B18]/35 bg-[#FAF3DC] text-[#3D2E0A]`}
-                        >
-                          אירועי בוטיק
-                        </span>
-                      )}
-                      {venue.accessible && (
-                        <span
-                          className={`${metaOfferPillClass} border-[#D4C9BC] bg-[#F0EBE3] text-[#1A1A1A]`}
-                        >
-                          נגיש לנכים
-                        </span>
-                      )}
-                      {(venue.softCustomAttributeLabels ?? []).map((label, idx) => (
-                        <span
-                          key={`soft-custom-${idx}-${label}`}
-                          className={`${metaOfferPillClass} border-[#D4C9BC] bg-[#F5F1EA] text-[#1A1A1A]`}
-                        >
-                          {label}
-                        </span>
-                      ))}
-                      {generalAmenityOffers.map((a) => (
-                        <AmenityOfferPill
-                          key={a.key}
-                          label={a.label}
-                          mode={a.mode}
-                          extraPrice={a.extraPrice}
-                          foodNonWeddingPricing={
-                            "foodNonWeddingPricing" in a ? a.foodNonWeddingPricing : undefined
-                          }
-                        />
-                      ))}
-                    </div>
-                  </section>
-
-                  {offersWedding && (
-                    <section className="rounded-xl border border-[#0F3B2E]/15 bg-[#E8F0EC]/60 p-3">
-                      <p className="mb-2 text-xs font-bold text-[#0F3B2E]">לחתונה</p>
-                      <div className="flex flex-wrap gap-2.5 sm:gap-3">
-                        {venue.hasChuppa && (
-                          <span
-                            className={`${metaOfferPillClass} border-[#0F3B2E]/20 bg-[#E8F0EC] font-semibold text-[#0F3B2E]`}
-                          >
-                            כולל חופה
-                          </span>
-                        )}
-                        {weddingAmenityOffers.map((a) => (
-                          <AmenityOfferPill
-                            key={a.key}
-                            label={a.label}
-                            mode={a.mode}
-                            extraPrice={a.extraPrice}
-                          />
+                <div className="space-y-3">
+                  {hasVenueCharacteristics ? (
+                    <OfferSectionCard
+                      title="מאפייני האולם"
+                      hint="מיקום, נגישות ומאפיינים נוספים"
+                      variant="traits"
+                    >
+                      <div className="flex flex-wrap gap-2 sm:gap-2.5">
+                        {venueCharacteristicLabels.map((label) => (
+                          <CharacteristicPill key={label} label={label} />
                         ))}
                       </div>
-                    </section>
-                  )}
+                    </OfferSectionCard>
+                  ) : null}
+
+                  {hasGeneralServicesSection ? (
+                    <OfferSectionCard title="שירותים כלליים" hint="לכל סוגי האירועים">
+                      {venueMetaLabels.length > 0 ? (
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {venueMetaLabels.map((label) => (
+                            <VenueMetaPill key={label} label={label} />
+                          ))}
+                        </div>
+                      ) : null}
+                      {generalIncludedOffers.length > 0 ? (
+                        <div className={venueMetaLabels.length > 0 ? "mt-1" : undefined}>
+                          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-900/80">
+                            כלול במחיר
+                          </p>
+                          <OfferServicesGrid
+                            items={generalIncludedOffers.map((a) => ({
+                              key: a.key,
+                              label: a.label,
+                              mode: a.mode,
+                              extraPrice: a.extraPrice,
+                              foodNonWeddingPricing:
+                                "foodNonWeddingPricing" in a
+                                  ? a.foodNonWeddingPricing
+                                  : undefined,
+                            }))}
+                          />
+                        </div>
+                      ) : null}
+                      {generalExtraOffers.length > 0 ? (
+                        <div
+                          className={
+                            generalIncludedOffers.length > 0 || venueMetaLabels.length > 0
+                              ? "mt-4 border-t border-[#E8E0D4] pt-3"
+                              : undefined
+                          }
+                        >
+                          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-700/90">
+                            בתוספת תשלום
+                          </p>
+                          <OfferServicesGrid items={generalExtraOffers} />
+                        </div>
+                      ) : null}
+                    </OfferSectionCard>
+                  ) : null}
+
+                  {offersWedding ? (
+                    <OfferSectionCard title="לחתונה" variant="wedding">
+                      {venue.hasChuppa ? (
+                        <div className="mb-3">
+                          <CharacteristicPill label="כולל חופה" />
+                        </div>
+                      ) : null}
+                      {weddingIncludedOffers.length > 0 ? (
+                        <div className={venue.hasChuppa ? "mt-1" : undefined}>
+                          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-900/80">
+                            כלול במחיר
+                          </p>
+                          <OfferServicesGrid items={weddingIncludedOffers} />
+                        </div>
+                      ) : null}
+                      {weddingExtraOffers.length > 0 ? (
+                        <div
+                          className={
+                            weddingIncludedOffers.length > 0 || venue.hasChuppa
+                              ? "mt-4 border-t border-[#0F3B2E]/12 pt-3"
+                              : undefined
+                          }
+                        >
+                          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-700/90">
+                            בתוספת תשלום
+                          </p>
+                          <OfferServicesGrid items={weddingExtraOffers} />
+                        </div>
+                      ) : null}
+                    </OfferSectionCard>
+                  ) : null}
                 </div>
+
               </div>
             )}
 

@@ -40,3 +40,13 @@ export function parseVenueTypeFromForm(raw: unknown): {
   if (!VENUE_TYPE_VALUE_SET.has(t)) return { value: null, error: "סוג מקום לא תקין." };
   return { value: t, error: null };
 }
+
+/** תווית לעמוד אולם ציבורי — מסתיר «אולם» (ברירת מחדל מיותרת); שאר הסוגים עם שם ברור */
+export function getVenueTypePublicLabel(
+  stored: string | null | undefined
+): string | null {
+  const t = resolveVenueTypeInitial(stored);
+  if (t === "אולם") return null;
+  const opt = VENUE_TYPE_OPTIONS.find((o) => o.value === t);
+  return opt?.label ?? t;
+}

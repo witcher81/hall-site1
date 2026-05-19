@@ -90,6 +90,12 @@ export function isWeddingInquiryEventType(eventType: string | null | undefined):
   return eventType.trim().toLowerCase() === "חתונה";
 }
 
+function isChuppahInquiryOption(opt: InquiryServiceOption): boolean {
+  if (opt.id.startsWith("service:chuppa")) return true;
+  const label = opt.label.trim();
+  return label === "חופה" || label.startsWith("חופה ");
+}
+
 type ParsedCustomRow = {
   label: string;
   checked: boolean;
@@ -226,15 +232,8 @@ function appendChuppaOptionsForInquiry(
         allowsExternalSource: false,
       });
     }
-  } else if (v.hasChuppa) {
-    out.push({
-      id: "service:chuppa",
-      label: "חופה",
-      priceMode: "included",
-      extraPrice: null,
-      allowsExternalSource: false,
-    });
   }
+  /* חופה מוצגת רק בחתונה — לא מציגים hasChuppa גנרי לסוגי אירוע אחרים */
 }
 
 function pushBuiltinOption(
@@ -348,7 +347,11 @@ export function getVenueInquiryOptions(
     }
   }
 
-  return { services, infoTraits };
+  const finalServices = wedding
+    ? services
+    : services.filter((o) => !isChuppahInquiryOption(o));
+
+  return { services: finalServices, infoTraits };
 }
 
 /** תאימות לאחור */

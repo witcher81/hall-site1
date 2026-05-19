@@ -82,18 +82,28 @@ export default function VenueInquiryClient({
     [venueAmenities, eventTypeTrimmed]
   );
 
-  const guestBounds = useMemo(
-    () =>
-      getInquiryGuestBounds(
-        {
-          minGuests,
-          maxGuests,
-          eventTypeProfilesJson: venueAmenities.eventTypeProfilesJson,
-        },
-        eventTypeTrimmed
-      ),
-    [minGuests, maxGuests, venueAmenities.eventTypeProfilesJson, eventTypeTrimmed]
-  );
+  const requiresEventType = eventTypes.length > 0;
+  const guestBoundsReady = !requiresEventType || !!eventTypeTrimmed;
+
+  const guestBounds = useMemo(() => {
+    if (!guestBoundsReady) {
+      return { min: null as number | null, max: null as number | null };
+    }
+    return getInquiryGuestBounds(
+      {
+        minGuests,
+        maxGuests,
+        eventTypeProfilesJson: venueAmenities.eventTypeProfilesJson,
+      },
+      eventTypeTrimmed
+    );
+  }, [
+    guestBoundsReady,
+    minGuests,
+    maxGuests,
+    venueAmenities.eventTypeProfilesJson,
+    eventTypeTrimmed,
+  ]);
 
   const weddingForm = isWeddingInquiryEventType(eventTypeTrimmed);
 
@@ -239,8 +249,20 @@ export default function VenueInquiryClient({
   );
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const inputMinGuests = guestBounds.min ?? 1;
-  const inputMaxGuests = guestBounds.max ?? undefined;
+  const inputMinGuests = guestBoundsReady ? (guestBounds.min ?? 1) : 1;
+  const inputMaxGuests = guestBoundsReady ? guestBounds.max ?? undefined : undefined;
+
+  useEffect(() => {
+    if (!guestBoundsReady || !form.guestCount.trim()) return;
+    const num = Number(form.guestCount);
+    if (!Number.isFinite(num)) return;
+    let next = num;
+    if (guestBounds.min != null && num < guestBounds.min) next = guestBounds.min;
+    if (guestBounds.max != null && num > guestBounds.max) next = guestBounds.max;
+    if (next !== num) {
+      setForm((f) => ({ ...f, guestCount: String(next) }));
+    }
+  }, [guestBoundsReady, guestBounds.min, guestBounds.max, form.guestCount]);
 
   const applyDateFromQuery = useCallback((raw: string | null) => {
     if (!raw || raw.length !== 10) return;
@@ -507,61 +529,12 @@ export default function VenueInquiryClient({
         >
           {stepId === "event" ? (
           <div className="space-y-5">
-          <div className="grid gap-4 sm:grid-cols-2">
+          {requiresEventType ? (
             <div>
-              <label className="block text-xs font-semibold text-[#0F3B2E]">תאריך האירוע *</label>
-              <div className="mt-1 flex gap-2">
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  required
-                  min={today}
-                  value={form.preferredDate}
-                  onChange={(e) => setForm((f) => ({ ...f, preferredDate: e.target.value }))}
-                  className="min-h-[48px] flex-1 rounded-xl border-2 border-[#E0D4C3] bg-white px-3 py-2 outline-none focus:border-[#C9A227]"
-                />
-                <button
-                  type="button"
-                  onClick={() => dateInputRef.current?.showPicker?.()}
-                  className="rounded-xl border-2 border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2"
-                  aria-label="לוח שנה"
-                >
-                  📅
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#0F3B2E]">
-                כמות אורחים *
-                {(guestBounds.min != null || guestBounds.max != null) && (
-                  <span className="mr-1 font-normal text-[#6B6560]">
-                    ({guestBounds.min != null ? `מינ׳ ${guestBounds.min}` : ""}
-                    {guestBounds.min != null && guestBounds.max != null ? " · " : ""}
-                    {guestBounds.max != null ? `מקס׳ ${guestBounds.max}` : ""}
-                    {eventTypeTrimmed ? ` · לפי «${eventTypeTrimmed}»` : ""})
-                  </span>
-                )}
-              </label>
-              <input
-                type="number"
-                required
-                min={inputMinGuests}
-                max={inputMaxGuests}
-                value={form.guestCount}
-                onChange={(e) => setForm((f) => ({ ...f, guestCount: e.target.value }))}
-                className="mt-1 min-h-[48px] w-full rounded-xl border-2 border-[#E0D4C3] px-3 py-2 text-lg font-semibold outline-none focus:border-[#C9A227]"
-                placeholder="250"
-              />
-            </div>
-          </div>
-
-          {eventTypes.length > 0 && (
-            <div>
-              <label className="block text-xs font-semibold text-[#0F3B2E]">
-                סוג אירוע {eventTypes.length > 0 ? "(מומלץ)" : "(אופציונלי)"}
-              </label>
+              <label className="block text-xs font-semibold text-[#0F3B2E]">סוג אירוע *</label>
               <p className="mt-0.5 text-[11px] text-[#6B6560]">
-                בחירת סוג אירוע מעדכנת את רשימת השירותים ואת טווח האורחים לפי מה שהאולם הגדיר.
+                בחרו סוג אירוע תחילה — אחר כך יוצג טווח האורחים והשירותים המתאימים (חופה רק
+                בחתונה).
               </p>
               <div className="relative mt-1" ref={eventTypeMenuRef}>
                 <button
@@ -595,20 +568,6 @@ export default function VenueInquiryClient({
                 </button>
                 {eventTypeMenuOpen && (
                   <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white shadow-[0_16px_40px_rgba(15,59,46,0.16)]">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setForm((f) => ({ ...f, eventType: "" }));
-                        setEventTypeMenuOpen(false);
-                      }}
-                      className={`w-full border-b border-[#F1ECE4] px-3 py-2 text-right text-sm transition ${
-                        !form.eventType
-                          ? "bg-[#F6F0E4] font-semibold text-[#0F3B2E]"
-                          : "text-[#2A261F] hover:bg-[#FAF8F4]"
-                      }`}
-                    >
-                      בלי סוג ספציפי
-                    </button>
                     <div className="max-h-56 overflow-y-auto py-1">
                       {eventTypes.map((t) => {
                         const active = form.eventType === t;
@@ -635,8 +594,71 @@ export default function VenueInquiryClient({
                   </div>
                 )}
               </div>
+              {guestBoundsReady &&
+              (guestBounds.min != null || guestBounds.max != null) ? (
+                <p className="mt-2 rounded-lg border border-[#0F3B2E]/15 bg-[#E8F0EC]/50 px-3 py-2 text-[11px] text-[#0F3B2E]">
+                  לאירוע «{eventTypeTrimmed}»:{" "}
+                  {guestBounds.min != null ? (
+                    <strong>מינימום {guestBounds.min} אורחים</strong>
+                  ) : null}
+                  {guestBounds.min != null && guestBounds.max != null ? " · " : null}
+                  {guestBounds.max != null ? (
+                    <strong>עד {guestBounds.max} אורחים</strong>
+                  ) : null}
+                </p>
+              ) : null}
             </div>
-          )}
+          ) : null}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-semibold text-[#0F3B2E]">תאריך האירוע *</label>
+              <div className="mt-1 flex gap-2">
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  required
+                  min={today}
+                  value={form.preferredDate}
+                  onChange={(e) => setForm((f) => ({ ...f, preferredDate: e.target.value }))}
+                  className="min-h-[48px] flex-1 rounded-xl border-2 border-[#E0D4C3] bg-white px-3 py-2 outline-none focus:border-[#C9A227]"
+                />
+                <button
+                  type="button"
+                  onClick={() => dateInputRef.current?.showPicker?.()}
+                  className="rounded-xl border-2 border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2"
+                  aria-label="לוח שנה"
+                >
+                  📅
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#0F3B2E]">כמות אורחים *</label>
+              {!guestBoundsReady ? (
+                <p className="mt-1 text-[11px] text-[#6B6560]">
+                  בחרו סוג אירוע כדי לראות מינימום ומקסימום.
+                </p>
+              ) : guestBounds.min != null || guestBounds.max != null ? (
+                <p className="mt-1 text-[11px] font-medium text-[#0F3B2E]">
+                  {guestBounds.min != null ? `מינימום ${guestBounds.min}` : ""}
+                  {guestBounds.min != null && guestBounds.max != null ? " · " : ""}
+                  {guestBounds.max != null ? `מקסימום ${guestBounds.max}` : ""} אורחים
+                </p>
+              ) : null}
+              <input
+                type="number"
+                required
+                disabled={!guestBoundsReady}
+                min={inputMinGuests}
+                max={inputMaxGuests}
+                value={form.guestCount}
+                onChange={(e) => setForm((f) => ({ ...f, guestCount: e.target.value }))}
+                className="mt-1 min-h-[48px] w-full rounded-xl border-2 border-[#E0D4C3] bg-white px-3 py-2 text-lg font-semibold outline-none focus:border-[#C9A227] disabled:cursor-not-allowed disabled:bg-[#F5F2ED] disabled:text-[#9A928A]"
+                placeholder={guestBoundsReady ? "250" : "בחרו סוג אירוע תחילה"}
+              />
+            </div>
+          </div>
 
           </div>
           ) : null}
