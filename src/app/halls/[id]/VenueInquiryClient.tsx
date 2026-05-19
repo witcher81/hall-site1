@@ -22,6 +22,21 @@ import { type ParkingKind } from "@/lib/venueParkingKind";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+function clampGuestCountString(
+  raw: string,
+  min: number | null,
+  max: number | null
+): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  const num = Number(trimmed);
+  if (!Number.isFinite(num)) return trimmed;
+  let next = num;
+  if (min != null && num < min) next = min;
+  if (max != null && num > max) next = max;
+  return String(next);
+}
+
 export default function VenueInquiryClient({
   venueId,
   venueName,
@@ -249,20 +264,32 @@ export default function VenueInquiryClient({
   );
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const inputMinGuests = guestBoundsReady ? (guestBounds.min ?? 1) : 1;
-  const inputMaxGuests = guestBoundsReady ? guestBounds.max ?? undefined : undefined;
 
+  /** Clamp only when event-type bounds change — not on every keystroke */
   useEffect(() => {
-    if (!guestBoundsReady || !form.guestCount.trim()) return;
-    const num = Number(form.guestCount);
-    if (!Number.isFinite(num)) return;
-    let next = num;
-    if (guestBounds.min != null && num < guestBounds.min) next = guestBounds.min;
-    if (guestBounds.max != null && num > guestBounds.max) next = guestBounds.max;
-    if (next !== num) {
-      setForm((f) => ({ ...f, guestCount: String(next) }));
-    }
-  }, [guestBoundsReady, guestBounds.min, guestBounds.max, form.guestCount]);
+    if (!guestBoundsReady) return;
+    setForm((f) => {
+      if (!f.guestCount.trim()) return f;
+      const next = clampGuestCountString(
+        f.guestCount,
+        guestBounds.min,
+        guestBounds.max
+      );
+      return next !== f.guestCount ? { ...f, guestCount: next } : f;
+    });
+  }, [guestBoundsReady, guestBounds.min, guestBounds.max, eventTypeTrimmed]);
+
+  const handleGuestCountBlur = useCallback(() => {
+    if (!guestBoundsReady) return;
+    setForm((f) => ({
+      ...f,
+      guestCount: clampGuestCountString(
+        f.guestCount,
+        guestBounds.min,
+        guestBounds.max
+      ),
+    }));
+  }, [guestBoundsReady, guestBounds.min, guestBounds.max]);
 
   const applyDateFromQuery = useCallback((raw: string | null) => {
     if (!raw || raw.length !== 10) return;
@@ -647,13 +674,19 @@ export default function VenueInquiryClient({
                 </p>
               ) : null}
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
                 required
                 disabled={!guestBoundsReady}
-                min={inputMinGuests}
-                max={inputMaxGuests}
                 value={form.guestCount}
-                onChange={(e) => setForm((f) => ({ ...f, guestCount: e.target.value }))}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "");
+                  setForm((f) => ({ ...f, guestCount: digits }));
+                }}
+                onBlur={handleGuestCountBlur}
+                aria-valuemin={guestBounds.min ?? undefined}
+                aria-valuemax={guestBounds.max ?? undefined}
                 className="mt-1 min-h-[48px] w-full rounded-xl border-2 border-[#E0D4C3] bg-white px-3 py-2 text-lg font-semibold outline-none focus:border-[#C9A227] disabled:cursor-not-allowed disabled:bg-[#F5F2ED] disabled:text-[#9A928A]"
                 placeholder={guestBoundsReady ? "250" : "בחרו סוג אירוע תחילה"}
               />
