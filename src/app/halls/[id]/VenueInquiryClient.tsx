@@ -15,7 +15,9 @@ import {
   type ServiceChoiceSource,
   type VenueInquiryAmenitiesInput,
 } from "@/lib/venueInquiryAmenities";
+import { aggregateDealSavings, type InquiryDealInsight } from "@/lib/inquiryDealInsights";
 import { partitionInquiryServices } from "@/lib/venueInquiryOfferGroups";
+import { inquiryServiceHallComparePrice } from "@/lib/venueInquiryFreelancerMatch";
 import { type ParkingKind } from "@/lib/venueParkingKind";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -65,6 +67,10 @@ export default function VenueInquiryClient({
     Record<string, MarketplaceAvailability>
   >({});
   const [marketplaceLoading, setMarketplaceLoading] = useState(false);
+  const [dealInsightsById, setDealInsightsById] = useState<
+    Record<string, InquiryDealInsight>
+  >({});
+  const [dealInsightsLoading, setDealInsightsLoading] = useState(false);
 
   const eventTypeTrimmed = form.eventType.trim() || null;
 
@@ -187,6 +193,50 @@ export default function VenueInquiryClient({
       cancelled = true;
     };
   }, [marketplaceCheckKey, partition.choosable]);
+
+  useEffect(() => {
+    const priced = partition.choosable.filter((o) => {
+      const hp = inquiryServiceHallComparePrice(o);
+      return hp != null && hp > 0;
+    });
+    if (priced.length === 0) {
+      setDealInsightsById({});
+      setDealInsightsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setDealInsightsLoading(true);
+    fetch("/api/inquiry/deal-insights", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: priced.map((o) => ({
+          id: o.id,
+          label: o.label,
+          hallPrice: inquiryServiceHallComparePrice(o),
+        })),
+        listLimit: 4,
+      }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("deal-insights"))))
+      .then((json: { byId?: Record<string, InquiryDealInsight> }) => {
+        if (!cancelled) setDealInsightsById(json.byId ?? {});
+      })
+      .catch(() => {
+        if (!cancelled) setDealInsightsById({});
+      })
+      .finally(() => {
+        if (!cancelled) setDealInsightsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [marketplaceCheckKey, partition.choosable]);
+
+  const dealSavingsSummary = useMemo(
+    () => aggregateDealSavings(dealInsightsById),
+    [dealInsightsById]
+  );
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const inputMinGuests = guestBounds.min ?? 1;
@@ -621,6 +671,8 @@ export default function VenueInquiryClient({
                   }
                   marketplaceById={marketplaceById}
                   marketplaceLoading={marketplaceLoading}
+                  dealInsightsById={dealInsightsById}
+                  dealInsightsLoading={dealInsightsLoading}
                   chuppa={partition.chuppa}
                   chuppahBoth={!!chuppahBoth}
                   chuppahSingleOutdoor={!!chuppahSingleOutdoor}
@@ -653,6 +705,15 @@ export default function VenueInquiryClient({
                     </strong>{" "}
                     מתוך {partition.choosable.length} פריטים לבחירה
                   </li>
+                  {dealSavingsSummary.itemCount > 0 ? (
+                    <li>
+                      חיסכון אפשרי במאגר:{" "}
+                      <strong className="tabular-nums">
+                        עד ₪{dealSavingsSummary.totalSavings}
+                      </strong>{" "}
+                      ב-{dealSavingsSummary.itemCount} פריטים (השוואת מחיר מינימום)
+                    </li>
+                  ) : null}
                   {hasChuppahSection && chuppahBoth ? (
                     <li>
                       חופה:{" "}

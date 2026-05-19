@@ -25,6 +25,7 @@ function personalAreaLinks(role: string | undefined): { href: string; label: str
         { href: "/my-inquiries", label: "הפניות שלי" },
         { href: "/my-service-requests", label: "הבקשות לספקים" },
         { href: "/event-planner", label: "צ׳קליסט אירוע" },
+        { href: "/event-builder", label: "בניית חבילה" },
       ];
     case "VENUE_OWNER":
       return [

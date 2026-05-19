@@ -8,9 +8,12 @@ import {
 } from "@/lib/venueInquiryAmenities";
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import { PARKING_KIND_LABELS, type ParkingKind } from "@/lib/venueParkingKind";
+import type { InquiryDealInsight } from "@/lib/inquiryDealInsights";
 import { inquiryServiceHallComparePrice } from "@/lib/venueInquiryFreelancerMatch";
 import InquiryChuppahSection from "./InquiryChuppahSection";
+import InquiryDealInsightBadge from "./InquiryDealInsightBadge";
 import InquiryFreelancerAlternatives from "./InquiryFreelancerAlternatives";
+import InquirySavingsSummary from "./InquirySavingsSummary";
 import InquiryServicePriceBadge from "./InquiryServicePriceBadge";
 import type { InquiryChuppaSplit } from "@/lib/venueInquiryOfferGroups";
 
@@ -26,12 +29,14 @@ function OfferRow({
   onSourceChange,
   marketplace,
   marketplaceLoading,
+  dealInsight,
 }: {
   opt: InquiryServiceOption;
   source: ServiceChoiceSource;
   onSourceChange: (source: ServiceChoiceSource) => void;
   marketplace?: MarketplaceAvailability;
   marketplaceLoading?: boolean;
+  dealInsight?: InquiryDealInsight;
 }) {
   const configAllowsExternal = inquiryServiceAllowsExternalSource(opt);
   const hasMarketplace =
@@ -39,12 +44,22 @@ function OfferRow({
   const showExternalChoice = configAllowsExternal && hasMarketplace;
   const hallPrice = inquiryServiceHallComparePrice(opt);
   const external = source === "external";
+  const showDealHint =
+    dealInsight?.recommendExternal === true && !external && showExternalChoice;
+  const showAlternatives =
+    showExternalChoice &&
+    (external ||
+      (dealInsight?.recommendExternal &&
+        (dealInsight.topServices.length > 0 || dealInsight.totalCount > 0)));
 
   return (
     <li className="rounded-lg border border-[#E8E0D6]/80 bg-white px-3 py-2.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-medium text-[#1A1A1A]">{opt.label}</span>
-        <InquiryServicePriceBadge opt={opt} />
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <InquiryDealInsightBadge insight={dealInsight} />
+          <InquiryServicePriceBadge opt={opt} />
+        </div>
       </div>
 
       {configAllowsExternal ? (
@@ -80,8 +95,18 @@ function OfferRow({
               האולם.
             </p>
           )}
-          {external && showExternalChoice ? (
-            <InquiryFreelancerAlternatives opt={opt} hallPrice={hallPrice} />
+          {showDealHint ? (
+            <p className="mt-2 rounded-md border border-[#0F3B2E]/20 bg-[#E8F0EC]/50 px-2.5 py-1.5 text-[10px] text-[#2A261F]">
+              במאגר יש הצעות זולות יותר — בחרו «ספק חיצוני» כדי לשמור את ההעדפה בפנייה, או השוו
+              להלן.
+            </p>
+          ) : null}
+          {showAlternatives ? (
+            <InquiryFreelancerAlternatives
+              opt={opt}
+              hallPrice={hallPrice}
+              prefetched={dealInsight}
+            />
           ) : null}
         </>
       ) : (
@@ -100,6 +125,7 @@ function OfferList({
   onSourceChange,
   marketplaceById,
   marketplaceLoading,
+  dealInsightsById,
 }: {
   items: InquiryServiceOption[];
   emptyText: string;
@@ -107,6 +133,7 @@ function OfferList({
   onSourceChange: (id: string, source: ServiceChoiceSource) => void;
   marketplaceById: Record<string, MarketplaceAvailability>;
   marketplaceLoading: boolean;
+  dealInsightsById: Record<string, InquiryDealInsight>;
 }) {
   if (items.length === 0) {
     return <p className="py-4 text-center text-[11px] text-[#9A928A]">{emptyText}</p>;
@@ -121,6 +148,7 @@ function OfferList({
           onSourceChange={(src) => onSourceChange(opt.id, src)}
           marketplace={marketplaceById[opt.id]}
           marketplaceLoading={marketplaceLoading}
+          dealInsight={dealInsightsById[opt.id]}
         />
       ))}
     </ul>
@@ -139,6 +167,8 @@ type Props = {
   onSourceChange: (id: string, source: ServiceChoiceSource) => void;
   marketplaceById: Record<string, MarketplaceAvailability>;
   marketplaceLoading: boolean;
+  dealInsightsById: Record<string, InquiryDealInsight>;
+  dealInsightsLoading?: boolean;
   chuppa?: InquiryChuppaSplit;
   chuppahBoth?: boolean;
   chuppahSingleOutdoor?: boolean;
@@ -159,6 +189,8 @@ export default function InquiryOfferOverview({
   onSourceChange,
   marketplaceById,
   marketplaceLoading,
+  dealInsightsById,
+  dealInsightsLoading = false,
   chuppa,
   chuppahBoth = false,
   chuppahSingleOutdoor = false,
@@ -194,10 +226,15 @@ export default function InquiryOfferOverview({
 
       {hasChoosable ? (
         <p className="text-[11px] leading-relaxed text-[#6B6560]">
-          {INQUIRY_EXTERNAL_SOURCE_COPY.servicesSectionHelp} כשבוחרים ספק חיצוני — מציגים
-          הצעות מהמאגר שעשויות להיות משתלמות יותר.
+          {INQUIRY_EXTERNAL_SOURCE_COPY.servicesSectionHelp} המערכת משווה מול מאגר הספקים ומדגישה
+          היכן עשוי להיות חיסכון.
         </p>
       ) : null}
+
+      <InquirySavingsSummary
+        dealInsightsById={dealInsightsById}
+        loading={dealInsightsLoading}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <section className="overflow-hidden rounded-xl border-2 border-dashed border-[#0F3B2E]/25 bg-[#0F3B2E]/[0.03]">
@@ -212,6 +249,7 @@ export default function InquiryOfferOverview({
               onSourceChange={onSourceChange}
               marketplaceById={marketplaceById}
               marketplaceLoading={marketplaceLoading}
+              dealInsightsById={dealInsightsById}
             />
           </div>
         </section>
@@ -227,6 +265,7 @@ export default function InquiryOfferOverview({
               onSourceChange={onSourceChange}
               marketplaceById={marketplaceById}
               marketplaceLoading={marketplaceLoading}
+              dealInsightsById={dealInsightsById}
             />
           </div>
         </section>

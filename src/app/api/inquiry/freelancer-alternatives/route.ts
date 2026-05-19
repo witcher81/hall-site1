@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildMarketplaceServiceWhere } from "@/lib/marketplaceServiceSearch";
+import { queryInquiryDealInsight } from "@/lib/inquiryDealInsights";
 import { getInquiryMarketplaceSearch } from "@/lib/venueInquiryFreelancerMatch";
 import { prisma } from "@/lib/prisma";
 
@@ -38,63 +38,21 @@ export async function GET(req: NextRequest) {
     Math.max(1, limitRaw && limitRaw !== "" ? Number(limitRaw) : 4)
   );
 
-  const baseWhere = buildMarketplaceServiceWhere(search.categories, search.keywords);
-
-  const marketRow = await prisma.service.findFirst({
-    where: {
-      ...baseWhere,
-      minPrice: { not: null, gt: 0 },
-    },
-    orderBy: { minPrice: "asc" },
-    select: { minPrice: true },
-  });
-  const marketFrom = marketRow?.minPrice ?? null;
-
-  const totalCount = await prisma.service.count({ where: baseWhere });
-
-  const listWhere = hallPriceValid
-    ? {
-        AND: [
-          baseWhere,
-          { minPrice: { not: null, gt: 0, lt: hallPrice } },
-        ],
-      }
-    : {
-        AND: [baseWhere, { minPrice: { not: null, gt: 0 } }],
-      };
-
-  const services = await prisma.service.findMany({
-    where: listWhere,
-    orderBy: [{ minPrice: "asc" }, { createdAt: "desc" }],
-    take: limit,
-    select: {
-      id: true,
-      name: true,
-      category: true,
-      minPrice: true,
-      maxPrice: true,
-      coverImageUrl: true,
-      provider: {
-        select: {
-          id: true,
-          name: true,
-          businessName: true,
-        },
-      },
-    },
-  });
-
-  const cheaperThanHall =
-    hallPriceValid && marketFrom != null && marketFrom > 0 && marketFrom < hallPrice;
+  const insight = await queryInquiryDealInsight(
+    prisma,
+    search,
+    hallPriceValid ? hallPrice : null,
+    limit
+  );
 
   return NextResponse.json({
-    available: totalCount > 0,
-    totalCount,
-    browseCategory: search.browseCategory,
+    available: insight.available,
+    totalCount: insight.totalCount,
+    browseCategory: insight.browseCategory,
     categories: search.categories,
-    marketFrom,
-    hallPrice: hallPriceValid ? hallPrice : null,
-    cheaperThanHall,
-    services,
+    marketFrom: insight.marketFrom,
+    hallPrice: insight.hallPrice,
+    cheaperThanHall: insight.cheaperThanHall,
+    services: insight.topServices,
   });
 }

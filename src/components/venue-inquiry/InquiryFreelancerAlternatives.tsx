@@ -1,10 +1,11 @@
 "use client";
 
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
+import type { InquiryDealInsight } from "@/lib/inquiryDealInsights";
 import { inquiryProvidersHref } from "@/lib/venueInquiryFreelancerMatch";
 import type { InquiryServiceOption } from "@/lib/venueInquiryAmenities";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type FreelancerServiceRow = {
   id: number;
@@ -29,17 +30,44 @@ type ApiPayload = {
   services: FreelancerServiceRow[];
 };
 
+function insightToPayload(insight: InquiryDealInsight): ApiPayload {
+  return {
+    available: insight.available,
+    totalCount: insight.totalCount,
+    browseCategory: insight.browseCategory,
+    marketFrom: insight.marketFrom,
+    hallPrice: insight.hallPrice,
+    cheaperThanHall: insight.cheaperThanHall,
+    services: insight.topServices,
+  };
+}
+
 type Props = {
   opt: Pick<InquiryServiceOption, "id" | "label">;
   hallPrice: number | null;
+  prefetched?: InquiryDealInsight | null;
 };
 
-export default function InquiryFreelancerAlternatives({ opt, hallPrice }: Props) {
-  const [data, setData] = useState<ApiPayload | null>(null);
+export default function InquiryFreelancerAlternatives({
+  opt,
+  hallPrice,
+  prefetched,
+}: Props) {
+  const initial = useMemo(
+    () => (prefetched ? insightToPayload(prefetched) : null),
+    [prefetched]
+  );
+  const [data, setData] = useState<ApiPayload | null>(initial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (prefetched) {
+      setData(insightToPayload(prefetched));
+      setLoading(false);
+      setError(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setError(false);
@@ -65,7 +93,7 @@ export default function InquiryFreelancerAlternatives({ opt, hallPrice }: Props)
     return () => {
       cancelled = true;
     };
-  }, [opt.id, opt.label, hallPrice]);
+  }, [opt.id, opt.label, hallPrice, prefetched]);
 
   const browseHref = inquiryProvidersHref(opt);
   const browseLabel = data?.browseCategory ?? "המאגר";

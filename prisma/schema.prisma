@@ -39,6 +39,7 @@ model User {
   conversationsAsP2 Conversation[] @relation("ConvP2")
   messagesSent      Message[]
   eventPlans        EventPlan[]
+  seekerEventBundles SeekerEventBundle[]
   notifications     Notification[]
   freelancerProfileViews FreelancerProfileView[]
   managedUsersAsAdmin   DevManagedUser[] @relation("AdminManagedUsers")
@@ -137,6 +138,7 @@ model Venue {
   plannedInEvents  EventPlan[] @relation("EventPlanVenue")
   pageViews        VenuePageView[]
   eventPackages    EventPackage[]
+  seekerEventBundles SeekerEventBundle[]
   /// קידום בתשלום — עד תאריך זה האולם מוצג בראש תוצאות החיפוש
   boostExpiresAt   DateTime?
   /// מענה אוטומטי לפניות חדשות (אופציונלי)
@@ -281,6 +283,33 @@ model EventPackageService {
 
   @@unique([packageId, serviceId])
   @@index([serviceId])
+}
+
+/// חבילת אירוע אישית למחפש — אולם + שירותים (ידני או שנבנה אוטומטית)
+model SeekerEventBundle {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String?
+  eventType   String
+  eventDate   String?
+  guestCount  Int?
+  area        String?
+  budgetMin   Int?
+  budgetMax   Int?
+  venueId     Int?
+  venue       Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  /// manual | auto
+  buildMode   String   @default("manual")
+  /// draft | ready
+  status      String   @default("draft")
+  /// JSON: SeekerBundleItem[]
+  itemsJson   String   @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([venueId])
 }
 
 model EventPlan {
