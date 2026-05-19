@@ -17,6 +17,8 @@ export type VenueEditCustomHallRow = {
   allowsSeekerExternal: boolean;
 };
 
+export const EVENT_TYPE_PUBLIC_NOTES_MAX = 800;
+
 export type VenueEditEventTypeProfile = {
   minGuests: string;
   maxGuests: string;
@@ -27,8 +29,19 @@ export type VenueEditEventTypeProfile = {
   veganSameAsMealPrice: boolean;
   veganMinPrice: string;
   veganMaxPrice: string;
+  /** הערות למחפשים בדף האולם — אופציונלי */
+  publicNotes: string;
   customHallRows: VenueEditCustomHallRow[];
 };
+
+export function trimEventTypePublicNotes(raw: string): string {
+  return raw.trim().slice(0, EVENT_TYPE_PUBLIC_NOTES_MAX);
+}
+
+function parsePublicNotesFromProfile(profile: Record<string, unknown>): string {
+  if (typeof profile.publicNotes !== "string") return "";
+  return trimEventTypePublicNotes(profile.publicNotes);
+}
 
 export function parseEventTypesList(raw: string | null | undefined): string[] {
   if (!raw) return [];
@@ -218,6 +231,7 @@ export function parseEventTypeProfilesForForm(
       veganSameAsMealPrice: true,
       veganMinPrice: "",
       veganMaxPrice: "",
+      publicNotes: "",
       customHallRows: [],
     };
   }
@@ -263,6 +277,7 @@ export function parseEventTypeProfilesForForm(
           veganSameAsMealPrice: veganSameAs,
           veganMinPrice: veganSameAs ? "" : veganMinP,
           veganMaxPrice: veganSameAs ? "" : veganMaxP,
+          publicNotes: parsePublicNotesFromProfile(profile),
           customHallRows,
         };
         continue;
@@ -287,6 +302,7 @@ export function parseEventTypeProfilesForForm(
         veganSameAsMealPrice: hasFoodAtEvent ? veganSameAs : true,
         veganMinPrice: hasFoodAtEvent && !veganSameAs ? veganMinP : "",
         veganMaxPrice: hasFoodAtEvent && !veganSameAs ? veganMaxP : "",
+        publicNotes: parsePublicNotesFromProfile(profile),
         customHallRows,
       };
     }

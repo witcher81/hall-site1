@@ -6,6 +6,7 @@ import {
   parseSeekerExternalFromRecord,
   resolveSeekerExternalForCustomRow,
 } from "@/lib/venueAmenitySeekerExternal";
+import { trimEventTypePublicNotes } from "@/lib/venueEditFormParse";
 
 export type PublicEventHallItem = {
   label: string;
@@ -26,6 +27,8 @@ export type PublicEventTypeProfile = {
   veganSameAsMealPrice: boolean;
   veganMinPrice: number | null;
   veganMaxPrice: number | null;
+  /** הערות בעל האולם למחפשים — אופציונלי */
+  publicNotes: string | null;
   customHallItems: PublicEventHallItem[];
 };
 
@@ -102,6 +105,9 @@ function parseOneProfile(o: Record<string, unknown>, et: string): PublicEventTyp
   const veganMinPrice = toInt(o.veganMinPrice);
   const veganMaxPrice = toInt(o.veganMaxPrice);
 
+  const notesRaw = typeof o.publicNotes === "string" ? o.publicNotes : "";
+  const publicNotes = notesRaw.trim() ? trimEventTypePublicNotes(notesRaw) : null;
+
   return {
     minGuests,
     maxGuests,
@@ -112,6 +118,7 @@ function parseOneProfile(o: Record<string, unknown>, et: string): PublicEventTyp
     veganSameAsMealPrice,
     veganMinPrice,
     veganMaxPrice,
+    publicNotes,
     customHallItems: parseCustomHallItems(o.customHallItems),
   };
 }
@@ -128,6 +135,7 @@ function emptyProfile(et: string): PublicEventTypeProfile {
     veganSameAsMealPrice: false,
     veganMinPrice: null,
     veganMaxPrice: null,
+    publicNotes: null,
     customHallItems: [],
   };
 }

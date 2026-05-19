@@ -155,6 +155,11 @@ function EventTypeProfilePanel({
       <p className="text-sm font-bold text-[#0F3B2E] sm:text-base">
         פרטים לפי סוג: {eventLabel}
       </p>
+      {profile.publicNotes ? (
+        <p className="mt-3 rounded-lg border border-[#0F3B2E]/12 bg-[#E8F0EC]/40 px-3 py-2.5 text-sm leading-relaxed text-[#2A261F] whitespace-pre-wrap">
+          {profile.publicNotes}
+        </p>
+      ) : null}
       <dl className="mt-3 space-y-3 text-sm text-[#2A261F]">
         <div>
           <dt className="text-xs font-semibold text-[#6B6560]">טווח אורחים</dt>
@@ -454,9 +459,6 @@ export default function VenuePublicView({
   const hasCheckedCustomAmenities =
     venue.customAmenities?.some((a) => a.checked) ?? false;
   const checkedCustomAmenities = (venue.customAmenities ?? []).filter((a) => a.checked);
-  const weddingCustomAmenities = checkedCustomAmenities.filter((a) =>
-    a.label.startsWith(WEDDING_AMENITY_STORAGE_PREFIX)
-  );
   const generalCustomAmenities = checkedCustomAmenities.filter(
     (a) => !a.label.startsWith(WEDDING_AMENITY_STORAGE_PREFIX)
   );
@@ -535,24 +537,6 @@ export default function VenuePublicView({
 
   const generalIncludedOffers = generalAmenityOffers.filter((a) => a.mode !== "extra");
   const generalExtraOffers = generalAmenityOffers.filter((a) => a.mode === "extra");
-
-  const weddingAmenityOffers = [
-    {
-      key: "wedding-food",
-      label: "אוכל",
-      mode: "included" as const,
-      extraPrice: null,
-    },
-    ...weddingCustomAmenities.map((a, idx) => ({
-      key: `custom-wedding-${idx}-${a.label}`,
-      label: a.label.replace(WEDDING_AMENITY_STORAGE_PREFIX, "").trim() || a.label,
-      mode: a.priceMode,
-      extraPrice: a.extraPrice,
-    })),
-  ];
-
-  const weddingIncludedOffers = weddingAmenityOffers.filter((a) => a.mode !== "extra");
-  const weddingExtraOffers = weddingAmenityOffers.filter((a) => a.mode === "extra");
 
   const venueTypePublicLabel = getVenueTypePublicLabel(venue.venueType);
 
@@ -785,37 +769,6 @@ export default function VenuePublicView({
                     </OfferSectionCard>
                   ) : null}
 
-                  {offersWedding ? (
-                    <OfferSectionCard title="לחתונה" variant="wedding">
-                      {venue.hasChuppa ? (
-                        <div className="mb-3">
-                          <CharacteristicPill label="כולל חופה" />
-                        </div>
-                      ) : null}
-                      {weddingIncludedOffers.length > 0 ? (
-                        <div className={venue.hasChuppa ? "mt-1" : undefined}>
-                          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-900/80">
-                            כלול במחיר
-                          </p>
-                          <OfferServicesGrid items={weddingIncludedOffers} />
-                        </div>
-                      ) : null}
-                      {weddingExtraOffers.length > 0 ? (
-                        <div
-                          className={
-                            weddingIncludedOffers.length > 0 || venue.hasChuppa
-                              ? "mt-4 border-t border-[#0F3B2E]/12 pt-3"
-                              : undefined
-                          }
-                        >
-                          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-700/90">
-                            בתוספת תשלום
-                          </p>
-                          <OfferServicesGrid items={weddingExtraOffers} />
-                        </div>
-                      ) : null}
-                    </OfferSectionCard>
-                  ) : null}
                 </div>
 
               </div>

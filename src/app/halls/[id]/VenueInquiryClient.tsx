@@ -291,6 +291,44 @@ export default function VenueInquiryClient({
     }));
   }, [guestBoundsReady, guestBounds.min, guestBounds.max]);
 
+  const guestCountFieldError = useMemo(() => {
+    if (!guestBoundsReady || !form.guestCount.trim()) return null;
+    const num = Number(form.guestCount);
+    if (!Number.isFinite(num)) return null;
+    if (guestBounds.min != null && num < guestBounds.min) {
+      return `יש להזין לפחות ${guestBounds.min} אורחים`;
+    }
+    if (guestBounds.max != null && num > guestBounds.max) {
+      return `ניתן עד ${guestBounds.max} אורחים לסוג האירוע`;
+    }
+    return null;
+  }, [
+    guestBoundsReady,
+    form.guestCount,
+    guestBounds.min,
+    guestBounds.max,
+  ]);
+
+  const handleGuestCountChange = useCallback(
+    (raw: string) => {
+      const digits = raw.replace(/\D/g, "");
+      if (!digits) {
+        setForm((f) => ({ ...f, guestCount: "" }));
+        return;
+      }
+      if (
+        guestBoundsReady &&
+        guestBounds.max != null &&
+        Number(digits) > guestBounds.max
+      ) {
+        setForm((f) => ({ ...f, guestCount: String(guestBounds.max) }));
+        return;
+      }
+      setForm((f) => ({ ...f, guestCount: digits }));
+    },
+    [guestBoundsReady, guestBounds.max]
+  );
+
   const applyDateFromQuery = useCallback((raw: string | null) => {
     if (!raw || raw.length !== 10) return;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return;
@@ -680,16 +718,30 @@ export default function VenueInquiryClient({
                 required
                 disabled={!guestBoundsReady}
                 value={form.guestCount}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, "");
-                  setForm((f) => ({ ...f, guestCount: digits }));
-                }}
+                onChange={(e) => handleGuestCountChange(e.target.value)}
                 onBlur={handleGuestCountBlur}
+                aria-invalid={guestCountFieldError ? true : undefined}
+                aria-describedby={
+                  guestCountFieldError ? "guest-count-error" : undefined
+                }
                 aria-valuemin={guestBounds.min ?? undefined}
                 aria-valuemax={guestBounds.max ?? undefined}
-                className="mt-1 min-h-[48px] w-full rounded-xl border-2 border-[#E0D4C3] bg-white px-3 py-2 text-lg font-semibold outline-none focus:border-[#C9A227] disabled:cursor-not-allowed disabled:bg-[#F5F2ED] disabled:text-[#9A928A]"
+                className={`mt-1 min-h-[48px] w-full rounded-xl border-2 bg-white px-3 py-2 text-lg font-semibold outline-none disabled:cursor-not-allowed disabled:bg-[#F5F2ED] disabled:text-[#9A928A] ${
+                  guestCountFieldError
+                    ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                    : "border-[#E0D4C3] focus:border-[#C9A227]"
+                }`}
                 placeholder={guestBoundsReady ? "250" : "בחרו סוג אירוע תחילה"}
               />
+              {guestCountFieldError ? (
+                <p
+                  id="guest-count-error"
+                  className="mt-1 text-[11px] font-medium text-red-700"
+                  role="alert"
+                >
+                  {guestCountFieldError}
+                </p>
+              ) : null}
             </div>
           </div>
 

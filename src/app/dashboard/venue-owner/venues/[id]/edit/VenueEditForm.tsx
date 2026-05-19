@@ -23,7 +23,11 @@ import {
   buildInitialCustomHallGeneralRows,
   type VenueEditFormInitial,
 } from "@/lib/venueEditInitial";
-import type { VenueEditEventTypeProfile } from "@/lib/venueEditFormParse";
+import { EventTypeProfilePublicNotesField } from "@/components/EventTypeProfilePublicNotesField";
+import {
+  trimEventTypePublicNotes,
+  type VenueEditEventTypeProfile,
+} from "@/lib/venueEditFormParse";
 import {
   PARKING_KINDS,
   PARKING_KIND_LABELS,
@@ -157,6 +161,7 @@ export default function VenueEditForm({
         veganSameAsMealPrice: row?.veganSameAsMealPrice ?? true,
         veganMinPrice: row?.veganMinPrice ?? "",
         veganMaxPrice: row?.veganMaxPrice ?? "",
+        publicNotes: row?.publicNotes ?? "",
         customHallRows: Array.isArray(row?.customHallRows) ? row.customHallRows : [],
       };
     }
@@ -272,6 +277,7 @@ export default function VenueEditForm({
             veganSameAsMealPrice: true,
             veganMinPrice: "",
             veganMaxPrice: "",
+            publicNotes: "",
             customHallRows: [],
           };
         next[et] =
@@ -519,6 +525,7 @@ export default function VenueEditForm({
           veganSameAsMealPrice: true,
           veganMinPrice: "",
           veganMaxPrice: "",
+          publicNotes: "",
           customHallRows: [] as EventTypeProfileState["customHallRows"],
         };
         const base =
@@ -546,6 +553,7 @@ export default function VenueEditForm({
             if (vx != null) veganPayload.veganMaxPrice = vx;
           }
         }
+        const publicNotes = trimEventTypePublicNotes(base.publicNotes ?? "");
         eventTypeProfilesPayload[et] = {
           minGuests: base.minGuests,
           maxGuests: base.maxGuests,
@@ -554,6 +562,7 @@ export default function VenueEditForm({
           hasFoodAtEvent: base.hasFoodAtEvent,
           hasVeganFood: base.hasVeganFood,
           ...veganPayload,
+          ...(publicNotes ? { publicNotes } : {}),
           ...(items.length > 0 ? { customHallItems: items } : {}),
         };
       }
@@ -998,6 +1007,7 @@ export default function VenueEditForm({
                     veganSameAsMealPrice: true,
                     veganMinPrice: "",
                     veganMaxPrice: "",
+                    publicNotes: "",
                     customHallRows: [],
                   };
                   const profile = {
@@ -1153,6 +1163,15 @@ export default function VenueEditForm({
                             )}
                           </div>
                         )}
+                        <EventTypeProfilePublicNotesField
+                          value={profile.publicNotes ?? ""}
+                          onChange={(publicNotes) =>
+                            setEventTypeProfiles((prev) => ({
+                              ...prev,
+                              [et]: { ...profile, publicNotes },
+                            }))
+                          }
+                        />
                         <EventTypeCustomHallRowsEditor
                           eventType={et}
                           rows={profile.customHallRows}
