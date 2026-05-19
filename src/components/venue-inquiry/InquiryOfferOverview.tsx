@@ -226,8 +226,8 @@ export default function InquiryOfferOverview({
 
       {hasChoosable ? (
         <p className="text-[11px] leading-relaxed text-[#6B6560]">
-          {INQUIRY_EXTERNAL_SOURCE_COPY.servicesSectionHelp} המערכת משווה מול מאגר הספקים ומדגישה
-          היכן עשוי להיות חיסכון.
+          {INQUIRY_EXTERNAL_SOURCE_COPY.servicesSectionHelp} המערכת משווה מחיר מול דירוג וביקורות
+          וממליצה מה הכי משתלם — לא רק את הרשימה הזולה ביותר.
         </p>
       ) : null}
 

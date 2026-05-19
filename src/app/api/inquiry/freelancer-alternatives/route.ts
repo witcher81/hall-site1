@@ -54,5 +54,6 @@ export async function GET(req: NextRequest) {
     hallPrice: insight.hallPrice,
     cheaperThanHall: insight.cheaperThanHall,
     services: insight.topServices,
+    recommendation: insight.recommendation,
   });
 }

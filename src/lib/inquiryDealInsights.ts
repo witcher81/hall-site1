@@ -1,5 +1,10 @@
 import type { PrismaClient } from "@prisma/client";
 import { buildMarketplaceServiceWhere } from "@/lib/marketplaceServiceSearch";
+import {
+  scoreMarketplaceCandidates,
+  scoredToDealServiceRow,
+  type MarketplaceRecommendation,
+} from "@/lib/marketplaceValueScore";
 import type { InquiryMarketplaceSearch } from "@/lib/venueInquiryFreelancerMatch";
 
 export type InquiryDealServiceRow = {
@@ -13,6 +18,12 @@ export type InquiryDealServiceRow = {
     name: string | null;
     businessName: string | null;
   };
+  rating?: number;
+  reviewCount?: number;
+  ratingIsEstimated?: boolean;
+  valueScore?: number;
+  valueBadge?: "best_value" | "cheapest" | "top_rated" | null;
+  compareNote?: string | null;
 };
 
 export type InquiryDealInsight = {
@@ -21,33 +32,51 @@ export type InquiryDealInsight = {
   browseCategory: string;
   marketFrom: number | null;
   hallPrice: number | null;
-  /** hallPrice − marketFrom when market is cheaper */
   savingsAmount: number | null;
   cheaperThanHall: boolean;
-  /** יש מחיר במאגר נמוך מתוספת האולם */
   recommendExternal: boolean;
   topServices: InquiryDealServiceRow[];
+  recommendation: MarketplaceRecommendation | null;
 };
+
+const candidateSelect = {
+  id: true,
+  name: true,
+  category: true,
+  minPrice: true,
+  maxPrice: true,
+  experienceYears: true,
+  includesTravel: true,
+  includesEquipment: true,
+  provider: {
+    select: { id: true, name: true, businessName: true },
+  },
+  reviews: { select: { rating: true } },
+  _count: { select: { serviceRequests: true } },
+} as const;
+
+const CANDIDATE_POOL = 24;
 
 export async function queryInquiryDealInsight(
   prisma: PrismaClient,
   search: InquiryMarketplaceSearch,
   hallPrice: number | null,
-  listLimit = 4
+  listLimit = 3
 ): Promise<InquiryDealInsight> {
   const baseWhere = buildMarketplaceServiceWhere(search.categories, search.keywords);
   const hallPriceValid = hallPrice != null && hallPrice > 0;
 
-  const [marketRow, totalCount] = await Promise.all([
-    prisma.service.findFirst({
-      where: { ...baseWhere, minPrice: { not: null, gt: 0 } },
-      orderBy: { minPrice: "asc" },
-      select: { minPrice: true },
-    }),
+  const [totalCount, candidates] = await Promise.all([
     prisma.service.count({ where: baseWhere }),
+    prisma.service.findMany({
+      where: { AND: [baseWhere, { minPrice: { not: null, gt: 0 } }] },
+      orderBy: [{ minPrice: "asc" }, { createdAt: "desc" }],
+      take: CANDIDATE_POOL,
+      select: candidateSelect,
+    }),
   ]);
 
-  const marketFrom = marketRow?.minPrice ?? null;
+  const marketFrom = candidates.length > 0 ? candidates[0].minPrice : null;
   const cheaperThanHall =
     hallPriceValid &&
     marketFrom != null &&
@@ -59,27 +88,24 @@ export async function queryInquiryDealInsight(
       ? (hallPrice as number) - marketFrom
       : null;
 
-  const listWhere = hallPriceValid
-    ? {
-        AND: [baseWhere, { minPrice: { not: null, gt: 0, lt: hallPrice as number } }],
-      }
-    : { AND: [baseWhere, { minPrice: { not: null, gt: 0 } }] };
+  const { offers, recommendation } = scoreMarketplaceCandidates(
+    candidates.map((c) => ({
+      id: c.id,
+      name: c.name,
+      category: c.category,
+      minPrice: c.minPrice,
+      maxPrice: c.maxPrice,
+      experienceYears: c.experienceYears,
+      includesTravel: c.includesTravel,
+      includesEquipment: c.includesEquipment,
+      requestCount: c._count.serviceRequests,
+      reviews: c.reviews,
+      provider: c.provider,
+    })),
+    { hallPrice: hallPriceValid ? hallPrice : null, displayLimit: listLimit }
+  );
 
-  const topServices = await prisma.service.findMany({
-    where: listWhere,
-    orderBy: [{ minPrice: "asc" }, { createdAt: "desc" }],
-    take: listLimit,
-    select: {
-      id: true,
-      name: true,
-      category: true,
-      minPrice: true,
-      maxPrice: true,
-      provider: {
-        select: { id: true, name: true, businessName: true },
-      },
-    },
-  });
+  const topServices = offers.map(scoredToDealServiceRow);
 
   return {
     available: totalCount > 0,
@@ -89,8 +115,9 @@ export async function queryInquiryDealInsight(
     hallPrice: hallPriceValid ? hallPrice : null,
     savingsAmount,
     cheaperThanHall,
-    recommendExternal: cheaperThanHall,
+    recommendExternal: cheaperThanHall || offers.length > 0,
     topServices,
+    recommendation,
   };
 }
 

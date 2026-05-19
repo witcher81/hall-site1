@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
           cheaperThanHall: false,
           recommendExternal: false,
           topServices: [],
+          recommendation: null,
         };
         return;
       }

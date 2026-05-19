@@ -35,6 +35,7 @@ model User {
   serviceRequestsSent ServiceRequest[]
   favorites         Favorite[]
   venueReviews      VenueReview[]
+  serviceReviews    ServiceReview[]
   conversationsAsP1 Conversation[] @relation("ConvP1")
   conversationsAsP2 Conversation[] @relation("ConvP2")
   messagesSent      Message[]
@@ -240,6 +241,7 @@ model Service {
   plannedAsDj          EventPlan[] @relation("EventPlanDj")
   plannedAsCatering    EventPlan[] @relation("EventPlanCatering")
   packageLinks    EventPackageService[]
+  reviews         ServiceReview[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -413,6 +415,20 @@ model VenueReview {
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
+}
+
+model ServiceReview {
+  id        Int      @id @default(autoincrement())
+  serviceId Int
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, serviceId])
+  @@index([serviceId])
 }
 
 model VenueAvailability {
