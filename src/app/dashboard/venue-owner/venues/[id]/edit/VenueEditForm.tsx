@@ -6,7 +6,6 @@ import {
   FormEvent,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -97,6 +96,17 @@ const HALL_GENERAL_PRICE_KEYS = [
 function isPositivePrice(value: string) {
   const n = Number(value);
   return Number.isFinite(n) && n > 0;
+}
+
+function isValidIsraelVenueCoord(lat: number | null, lng: number | null): lat is number {
+  return (
+    lat != null &&
+    lng != null &&
+    lat >= 29 &&
+    lat <= 34 &&
+    lng >= 33 &&
+    lng <= 36
+  );
 }
 
 function mealIntOrNull(s: string): number | null {
@@ -199,8 +209,17 @@ export default function VenueEditForm({
         : []
   );
   const [loadVenueMap, setLoadVenueMap] = useState(false);
-  const mapLoadGeocodeBumpRef = useRef(false);
   const [softAttrCustomInput, setSoftAttrCustomInput] = useState("");
+  const [venueLat, setVenueLat] = useState<number | null>(() =>
+    isValidIsraelVenueCoord(initial.latitude, initial.longitude)
+      ? initial.latitude
+      : null
+  );
+  const [venueLng, setVenueLng] = useState<number | null>(() =>
+    isValidIsraelVenueCoord(initial.latitude, initial.longitude)
+      ? initial.longitude
+      : null
+  );
   const [parkingKind, setParkingKind] = useState<ParkingKind>(
     () => initial.parkingKind
   );
@@ -317,12 +336,6 @@ export default function VenueEditForm({
     const t = window.setTimeout(() => setLoadVenueMap(true), 400);
     return () => window.clearTimeout(t);
   }, []);
-
-  useLayoutEffect(() => {
-    if (!loadVenueMap || mapLoadGeocodeBumpRef.current) return;
-    mapLoadGeocodeBumpRef.current = true;
-    setMapFieldSyncNonce((n) => n + 1);
-  }, [loadVenueMap]);
 
   useEffect(() => {
     if (isWeddingSelected) return;
@@ -681,6 +694,10 @@ export default function VenueEditForm({
         fd.append("parkingLatitude", String(parkingLat));
         fd.append("parkingLongitude", String(parkingLng));
       }
+      if (isValidIsraelVenueCoord(venueLat, venueLng)) {
+        fd.append("latitude", String(venueLat));
+        fd.append("longitude", String(venueLng));
+      }
 
       if (coverImage) fd.append("coverImage", coverImage);
       galleryHallImages.forEach((file) => fd.append("galleryImagesHALL", file));
@@ -849,6 +866,7 @@ export default function VenueEditForm({
                     ? { lat: initial.latitude, lng: initial.longitude }
                     : null
                 }
+                clearParkingOnAddressGeocode={false}
                 parkingOnSameMap={
                   parkingKindNeedsMap(parkingKind)
                     ? {
@@ -867,6 +885,8 @@ export default function VenueEditForm({
                     : null
                 }
                 onPick={({ lat, lng, city, address }) => {
+                  setVenueLat(lat);
+                  setVenueLng(lng);
                   setForm((f) => ({
                     ...f,
                     city: city?.trim() || f.city,
@@ -874,6 +894,8 @@ export default function VenueEditForm({
                   }));
                 }}
                 onClear={() => {
+                  setVenueLat(null);
+                  setVenueLng(null);
                   setParkingLat(null);
                   setParkingLng(null);
                 }}

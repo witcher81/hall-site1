@@ -38,6 +38,8 @@ type Props = {
   parkingOnSameMap?: ParkingOnSameMapConfig | null;
   /** עריכת אולם: מיקום שמור מהשרת */
   initialVenue?: { lat: number; lng: number } | null;
+  /** בעריכה — גיאוקוד לפי כתובת לא מוחק סיכת חניה שמורה */
+  clearParkingOnAddressGeocode?: boolean;
 };
 
 const CITY_DEBOUNCE_MS = 220;
@@ -128,6 +130,7 @@ export default function VenueLocationPicker({
   formFieldsSyncNonce = 0,
   parkingOnSameMap = null,
   initialVenue = null,
+  clearParkingOnAddressGeocode = true,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -145,6 +148,10 @@ export default function VenueLocationPicker({
   parkingOnSameMapRef.current = parkingOnSameMap ?? null;
   const initialVenueRef = useRef(initialVenue);
   initialVenueRef.current = initialVenue;
+  const clearParkingOnAddressGeocodeRef = useRef(clearParkingOnAddressGeocode);
+  clearParkingOnAddressGeocodeRef.current = clearParkingOnAddressGeocode;
+  /** עריכה: לא לגרור סיכה לפי עיר/כתובת עד blur מפורש (formFieldsSyncNonce) */
+  const debouncedFormGeocodeEnabledRef = useRef(initialVenue == null);
 
   const [loading, setLoading] = useState(false);
   const [mapInitError, setMapInitError] = useState<string | null>(null);
@@ -265,6 +272,7 @@ export default function VenueLocationPicker({
       forwardAfterReadyTimer = window.setTimeout(() => {
         forwardAfterReadyTimer = undefined;
         syncMapLayout(map);
+        if (initialVenueRef.current) return;
         const c = formCityRef.current.trim();
         if (c && mapRef.current) void runForwardRef.current(c);
       }, 60);
@@ -369,8 +377,10 @@ export default function VenueLocationPicker({
 
       if (data.mode === "address") {
         const { lat, lng } = data;
-        removeParkingMarkerLayer();
-        parkingOnSameMapRef.current?.onClear();
+        if (clearParkingOnAddressGeocodeRef.current) {
+          removeParkingMarkerLayer();
+          parkingOnSameMapRef.current?.onClear();
+        }
         if (!markerRef.current) {
           markerRef.current = addHallMarkerToMap(map, lat, lng);
         } else {
@@ -479,6 +489,7 @@ export default function VenueLocationPicker({
 
   useEffect(() => {
     if (formFieldsSyncNonce <= 0) return;
+    debouncedFormGeocodeEnabledRef.current = true;
     const c = formCity.trim();
     const a = formAddress.trim();
     if (a.length >= 3) {
@@ -489,6 +500,7 @@ export default function VenueLocationPicker({
   }, [formFieldsSyncNonce, formCity, formAddress, runForwardGeocode, runAddressForwardGeocode]);
 
   useEffect(() => {
+    if (!debouncedFormGeocodeEnabledRef.current) return;
     const c = formCity.trim();
     const a = formAddress.trim();
     if (!c) return;
@@ -510,10 +522,15 @@ export default function VenueLocationPicker({
     if (!iv || !isValidIsraelLatLng(iv.lat, iv.lng)) return;
     const t = window.setTimeout(() => {
       const map = mapRef.current;
-      if (!map || markerRef.current) return;
+      if (!map) return;
       const { lat, lng } = iv;
-      markerRef.current = addHallMarkerToMap(map, lat, lng);
+      if (!markerRef.current) {
+        markerRef.current = addHallMarkerToMap(map, lat, lng);
+      } else {
+        markerRef.current.setLatLng([lat, lng]);
+      }
       setPicked({ lat, lng });
+      suppressFormGeocodeUntilRef.current = Date.now() + SUPPRESS_FORM_GEOCODE_MS;
       map.flyTo([lat, lng], 16);
       syncMapAfterFly(map);
       onPickRef.current({
@@ -531,7 +548,7 @@ export default function VenueLocationPicker({
   useEffect(() => {
     const map = mapRef.current;
     const cfg = parkingOnSameMap;
-    if (!map || !cfg?.active || !markerRef.current) {
+    if (!map || !cfg?.active) {
       if (!cfg?.active) {
         setPlacingParking(false);
         removeParkingMarkerLayer();
