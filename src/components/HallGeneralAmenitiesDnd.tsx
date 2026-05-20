@@ -64,6 +64,19 @@ function parsePayload(raw: string): DragPayload | null {
   }
 }
 
+function setDragPayload(e: DragEvent, payload: DragPayload) {
+  const raw = JSON.stringify(payload);
+  e.dataTransfer.setData(DND_MIME, raw);
+  e.dataTransfer.setData("text/plain", raw);
+  e.dataTransfer.effectAllowed = "move";
+}
+
+/** מונע גרירה כשלוחצים על תיבת סימון / שדות מחיר */
+function stopDragFromControl(e: DragEvent) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
 export function newHallGeneralCustomRow(label: string): HallGeneralCustomRow {
   const id =
     typeof globalThis.crypto !== "undefined" &&
@@ -86,23 +99,23 @@ const compactPriceInputClass =
 
 const EXPAND_EXTRA_PRICE_RANGE_LABEL = "אין לך מחיר מדויק? הכנס טווח מחירים";
 
-function AmenityDragHandle({
-  onDragStart,
-  title = "גרור לעמודה אחרת",
+function DraggableAmenityRow({
+  payload,
+  className,
+  children,
 }: {
-  onDragStart: (e: DragEvent) => void;
-  title?: string;
+  payload: DragPayload;
+  className?: string;
+  children: ReactNode;
 }) {
   return (
-    <span
+    <div
       draggable
-      onDragStart={onDragStart}
-      className="shrink-0 cursor-grab text-[10px] text-[#9A928A] active:cursor-grabbing"
-      title={title}
-      aria-hidden
+      onDragStart={(e) => setDragPayload(e, payload)}
+      className={`cursor-grab active:cursor-grabbing ${className ?? ""}`}
     >
-      ⠿
-    </span>
+      {children}
+    </div>
   );
 }
 
@@ -130,7 +143,7 @@ function renderExtraPriceBlock(
   stopPropagation: (ev: MouseEvent) => void
 ) {
   return (
-    <div className="w-full basis-full" onClick={stopPropagation}>
+    <div className="w-full basis-full" onClick={stopPropagation} draggable={false} onDragStart={stopDragFromControl}>
       <OptionalPriceRangeFields
         minPrice={min}
         maxPrice={max || min}
@@ -282,17 +295,21 @@ export default function HallGeneralAmenitiesDnd({
   const renderBuiltinCard = (key: HallGeneralBuiltinKey, label: string, zone: DropZone) => {
     const inExtra = zone === "extra";
     const { supportsExtraPrice } = itemMeta(key);
-    const onDragStart = (e: DragEvent) => {
-      e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "builtin", key }));
-      e.dataTransfer.effectAllowed = "move";
-    };
+    const payload: DragPayload = { kind: "builtin", key };
     return (
-      <div
+      <DraggableAmenityRow
         key={`${zone}-b-${key}`}
+        payload={payload}
         className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-[#2A261F]"
       >
-        <AmenityDragHandle onDragStart={onDragStart} />
-        <label className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2">
+        <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden title="גרור לעמודה אחרת">
+          ⠿
+        </span>
+        <label
+          className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2"
+          draggable={false}
+          onDragStart={stopDragFromControl}
+        >
           <input
             type="checkbox"
             checked
@@ -313,7 +330,11 @@ export default function HallGeneralAmenitiesDnd({
               (ev) => ev.stopPropagation()
             )
           : null}
-        <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2">
+        <div
+          className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2"
+          draggable={false}
+          onDragStart={stopDragFromControl}
+        >
           {builtinAmenityOffersSeekerExternalConfig(key) ? (
             <SeekerExternalSourceToggle
               compact
@@ -329,30 +350,41 @@ export default function HallGeneralAmenitiesDnd({
             <SeekerExternalVenueOnlyHint compact />
           )}
         </div>
-      </div>
+      </DraggableAmenityRow>
     );
   };
 
   const renderCustomCard = (row: HallGeneralCustomRow, zone: DropZone) => {
     const inExtra = zone === "extra";
+    const payload: DragPayload = { kind: "custom", id: row.id };
     return (
-      <div
+      <DraggableAmenityRow
         key={`${zone}-c-${row.id}`}
+        payload={payload}
         className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-[#2A261F]"
       >
-        <AmenityDragHandle
-          onDragStart={(e) => {
-            e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "custom", id: row.id }));
-            e.dataTransfer.effectAllowed = "move";
-          }}
-        />
-        <label className="flex min-w-0 items-center gap-2">
+        <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden title="גרור לעמודה אחרת">
+          ⠿
+        </span>
+        <label
+          className="flex min-w-0 items-center gap-2"
+          draggable={false}
+          onDragStart={stopDragFromControl}
+        >
           <input
             type="checkbox"
             checked={row.checked}
             onChange={(e) =>
               setCustomAmenityRows((prev) =>
-                prev.map((r) => (r.id === row.id ? { ...r, checked: e.target.checked } : r))
+                prev.map((r) =>
+                  r.id === row.id
+                    ? {
+                        ...r,
+                        checked: e.target.checked,
+                        priceMode: e.target.checked ? "unplaced" : "included",
+                      }
+                    : r
+                )
               )
             }
             onClick={(ev) => ev.stopPropagation()}
@@ -376,6 +408,8 @@ export default function HallGeneralAmenitiesDnd({
         <button
           type="button"
           className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+          draggable={false}
+          onDragStart={stopDragFromControl}
           onClick={(ev) => {
             ev.stopPropagation();
             setCustomAmenityRows((prev) => prev.filter((r) => r.id !== row.id));
@@ -383,7 +417,11 @@ export default function HallGeneralAmenitiesDnd({
         >
           הסר
         </button>
-        <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2">
+        <div
+          className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2"
+          draggable={false}
+          onDragStart={stopDragFromControl}
+        >
           <SeekerExternalSourceToggle
             compact
             checked={row.allowsSeekerExternal}
@@ -394,12 +432,119 @@ export default function HallGeneralAmenitiesDnd({
             }
           />
         </div>
-      </div>
+      </DraggableAmenityRow>
     );
   };
 
-  const inactiveBuiltins = dndItems.filter((item) => !productBools[item.key]);
-  const inactiveCustoms = customAmenityRows.filter((r) => !r.checked);
+  const renderInactiveBuiltin = (key: HallGeneralBuiltinKey, label: string) => {
+    const active = productBools[key];
+    const unplaced = active && builtinAmenityPriceModes[key] === "unplaced";
+    const payload: DragPayload = { kind: "builtin", key };
+    return (
+      <DraggableAmenityRow
+        key={`in-b-${key}`}
+        payload={payload}
+        className="flex items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
+      >
+        <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden>
+          ⠿
+        </span>
+        <label
+          className="flex cursor-pointer items-center gap-2"
+          draggable={false}
+          onDragStart={stopDragFromControl}
+        >
+          <input
+            type="checkbox"
+            checked={active}
+            onChange={() => {
+              if (active) {
+                onSetHallBuiltin(key, false);
+              } else {
+                onSetHallBuiltin(key, true);
+                setBuiltinAmenityPriceModes((prev) => ({
+                  ...prev,
+                  [key]: "unplaced",
+                }));
+              }
+            }}
+            className="checkbox-hall shrink-0"
+            onClick={(ev) => ev.stopPropagation()}
+          />
+          <span className="font-medium">{label}</span>
+        </label>
+        {unplaced ? (
+          <span className="text-[10px] text-[#6B6560]">גררו ל«כלול» או «בתוספת»</span>
+        ) : null}
+      </DraggableAmenityRow>
+    );
+  };
+
+  const renderInactiveCustom = (row: HallGeneralCustomRow) => {
+    const unplaced = row.checked && row.priceMode === "unplaced";
+    const payload: DragPayload = { kind: "custom", id: row.id };
+    return (
+      <DraggableAmenityRow
+        key={`in-c-${row.id}`}
+        payload={payload}
+        className="flex flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
+      >
+        <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden>
+          ⠿
+        </span>
+        <label
+          className="flex min-w-0 items-center gap-2"
+          draggable={false}
+          onDragStart={stopDragFromControl}
+        >
+          <input
+            type="checkbox"
+            checked={row.checked}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setCustomAmenityRows((prev) =>
+                prev.map((r) =>
+                  r.id === row.id
+                    ? {
+                        ...r,
+                        checked,
+                        priceMode: checked ? "unplaced" : "included",
+                      }
+                    : r
+                )
+              );
+            }}
+            onClick={(ev) => ev.stopPropagation()}
+            className="checkbox-hall shrink-0"
+          />
+          <span className="truncate">{row.label}</span>
+        </label>
+        {unplaced ? (
+          <span className="text-[10px] text-[#6B6560]">גררו ל«כלול» או «בתוספת»</span>
+        ) : null}
+        <button
+          type="button"
+          className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+          draggable={false}
+          onDragStart={stopDragFromControl}
+          onClick={(ev) => {
+            ev.stopPropagation();
+            setCustomAmenityRows((prev) => prev.filter((r) => r.id !== row.id));
+          }}
+        >
+          הסר
+        </button>
+      </DraggableAmenityRow>
+    );
+  };
+
+  const inactiveBuiltins = dndItems.filter(
+    (item) =>
+      !productBools[item.key] || builtinAmenityPriceModes[item.key] === "unplaced"
+  );
+  const inactiveCustoms = customAmenityRows.filter(
+    (r) => !r.checked || r.priceMode === "unplaced"
+  );
 
   const includedBuiltins = dndItems.filter(
     (item) => productBools[item.key] && builtinAmenityPriceModes[item.key] === "included"
@@ -417,8 +562,8 @@ export default function HallGeneralAmenitiesDnd({
           מה המחפש מקבל מהאולם
         </p>
         <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-          הוסיפו פריטים משלכם — הם ייכנסו לטבלה למטה ב«לא פעיל». משם גררו ל«כלול במחיר» (ללא
-          תשלום נוסף) או ל«בתוספת תשלום», או סמנו את התיבה ובחרו עמודה.
+          הוסיפו פריטים משלכם — הם ייכנסו ל«לא פעיל». סמנו וי או גררו ל«כלול במחיר» / «בתוספת
+          תשלום». סימון וי בלבד משאיר את הפריט ב«לא פעיל» עד שתגררו אותו לעמודה.
         </p>
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
           <input
@@ -451,98 +596,20 @@ export default function HallGeneralAmenitiesDnd({
       </div>
 
       <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
-        גררו כל פריט בין «כלול במחיר» ל«בתוספת תשלום». לכל פריט פעיל אפשר לסמן אם מותר להביא ספק
-        חיצוני (* אופציונלי). פריטים ללא סימון לא יופיעו בחיפוש. רחבת ריקודים — מסומנת בנפרד
-        בסעיף «מה האולם מציע» למעלה.
+        גררו את כל השורה (או את הסמל ⠿) בין העמודות. לכל פריט פעיל בעמודה אפשר לסמן אם מותר להביא
+        ספק חיצוני. פריטים ללא סימון לא יופיעו בחיפוש.
       </p>
 
       <div className="mb-3">
         <SortColumn title="לא פעיל (לא בחיפוש)" zone="inactive">
           {inactiveBuiltins.length === 0 && inactiveCustoms.length === 0 ? (
             <p className="py-4 text-center text-[11px] text-[#9A928A]">
-              כל הפריטים המסומנים מופיעים בעמודות למטה
+              כל הפריטים המסומנים וממוקמים מופיעים בעמודות למטה
             </p>
           ) : (
             <div className="flex flex-col gap-2">
-              {inactiveBuiltins.map(({ key, label }) => (
-                <div
-                  key={`in-b-${key}`}
-                  className="flex items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
-                >
-                  <AmenityDragHandle
-                    title="גרור ל«כלול» או «בתוספת תשלום»"
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData(DND_MIME, JSON.stringify({ kind: "builtin", key }));
-                      e.dataTransfer.effectAllowed = "move";
-                    }}
-                  />
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      onChange={() => {
-                        onSetHallBuiltin(key, true);
-                        setBuiltinAmenityPriceModes((prev) => ({
-                          ...prev,
-                          [key]: "included",
-                        }));
-                      }}
-                      className="checkbox-hall shrink-0"
-                      onClick={(ev) => ev.stopPropagation()}
-                    />
-                    <span className="font-medium">{label}</span>
-                  </label>
-                </div>
-              ))}
-              {inactiveCustoms.map((row) => (
-                <div
-                  key={`in-c-${row.id}`}
-                  className="flex flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
-                >
-                  <AmenityDragHandle
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData(
-                        DND_MIME,
-                        JSON.stringify({ kind: "custom", id: row.id })
-                      );
-                      e.dataTransfer.effectAllowed = "move";
-                    }}
-                  />
-                  <label className="flex min-w-0 items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setCustomAmenityRows((prev) =>
-                          prev.map((r) =>
-                            r.id === row.id
-                              ? {
-                                  ...r,
-                                  checked,
-                                  priceMode: checked ? "included" : r.priceMode,
-                                }
-                              : r
-                          )
-                        );
-                      }}
-                      onClick={(ev) => ev.stopPropagation()}
-                      className="checkbox-hall shrink-0"
-                    />
-                    <span className="truncate">{row.label}</span>
-                  </label>
-                  <button
-                    type="button"
-                    className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      setCustomAmenityRows((prev) => prev.filter((r) => r.id !== row.id));
-                    }}
-                  >
-                    הסר
-                  </button>
-                </div>
-              ))}
+              {inactiveBuiltins.map(({ key, label }) => renderInactiveBuiltin(key, label))}
+              {inactiveCustoms.map((row) => renderInactiveCustom(row))}
             </div>
           )}
         </SortColumn>

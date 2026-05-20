@@ -39,6 +39,12 @@ import HallGeneralAmenitiesDnd, {
   type VenueProductBools,
   VENUE_PRODUCT_BUILTIN_KEYS,
 } from "@/components/HallGeneralAmenitiesDnd";
+import {
+  findUnplacedHallGeneralLabel,
+  hallGeneralAmenityLive,
+  isHallGeneralPricePlaced,
+  persistedHallGeneralPriceMode,
+} from "@/lib/venueBuiltinAmenities";
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
 import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
 import {
@@ -239,9 +245,24 @@ export default function NewVenuePage() {
     setError(null);
 
     try {
+      const unplacedLabel = findUnplacedHallGeneralLabel({
+        productHasFood: form.productHasFood,
+        hasTableSetup: form.hasTableSetup,
+        hasSoundSystem: form.hasSoundSystem,
+        modes: builtinAmenityPriceModes,
+        customRows: customAmenityRows,
+      });
+      if (unplacedLabel) {
+        setError(
+          `«${unplacedLabel}» מסומן אך לא הוגדר במחיר — גררו ל«כלול במחיר» או «בתוספת תשלום».`
+        );
+        setCreating(false);
+        return;
+      }
       const missingGeneral = customAmenityRows.find(
         (row) =>
           row.checked &&
+          isHallGeneralPricePlaced(row.priceMode) &&
           row.priceMode === "extra" &&
           !isValidAmenityExtraPrice(row.extraPrice, row.extraPriceMax || row.extraPrice)
       );
@@ -264,6 +285,7 @@ export default function NewVenuePage() {
             : Boolean(form[key]);
         if (
           pricingActive &&
+          isHallGeneralPricePlaced(builtinAmenityPriceModes[key]) &&
           builtinAmenityPriceModes[key] === "extra" &&
           !isValidAmenityExtraPrice(
             builtinAmenityExtraPrices[key],
@@ -360,10 +382,21 @@ export default function NewVenuePage() {
         : form.hasChuppaOutdoor ||
           form.hasChuppaCovered ||
           form.productHasChuppa;
-      const hasFoodForApi = anyEventFood || form.productHasFood;
+      const hasFoodForApi =
+        anyEventFood ||
+        hallGeneralAmenityLive(
+          form.productHasFood,
+          builtinAmenityPriceModes.hasFood
+        );
       const anyEventDanceFloor = form.hasDanceFloor;
-      const anyEventTableSetup = form.hasTableSetup;
-      const anyEventSoundSystem = form.hasSoundSystem;
+      const anyEventTableSetup = hallGeneralAmenityLive(
+        form.hasTableSetup,
+        builtinAmenityPriceModes.hasTableSetup
+      );
+      const anyEventSoundSystem = hallGeneralAmenityLive(
+        form.hasSoundSystem,
+        builtinAmenityPriceModes.hasSoundSystem
+      );
       const anyEventVeganFood = eventTypes.some(
         (et) => eventTypeProfiles[et]?.hasVeganFood === true
       );
@@ -442,27 +475,34 @@ export default function NewVenuePage() {
         hasSoundSystem: anyEventSoundSystem,
       };
       const customAmenitiesPayload = [
-        ...VENUE_PRODUCT_BUILTIN_KEYS.map((key) => ({
-          label: `__builtin__:${key}`,
-          checked: builtinChecked[key],
-          priceMode: builtinAmenityPriceModes[key],
-          ...(builtinAmenityPriceModes[key] === "extra"
-            ? amenityExtraPayloadFields(
-                builtinAmenityExtraPrices[key],
-                builtinAmenityExtraPriceMaxes[key] || builtinAmenityExtraPrices[key]
-              )
-            : { extraPrice: null }),
-          allowsSeekerExternalSource: builtinAmenityAllowsSeekerExternal[key],
-        })),
-        ...customAmenityRows.map((r) => ({
-          label: r.label,
-          checked: r.checked,
-          priceMode: r.priceMode,
-          ...(r.priceMode === "extra"
-            ? amenityExtraPayloadFields(r.extraPrice, r.extraPriceMax || r.extraPrice)
-            : { extraPrice: null }),
-          allowsSeekerExternalSource: r.allowsSeekerExternal,
-        })),
+        ...VENUE_PRODUCT_BUILTIN_KEYS.map((key) => {
+          const mode = builtinAmenityPriceModes[key];
+          const placed = isHallGeneralPricePlaced(mode);
+          return {
+            label: `__builtin__:${key}`,
+            checked: builtinChecked[key],
+            priceMode: persistedHallGeneralPriceMode(mode),
+            ...(placed && mode === "extra"
+              ? amenityExtraPayloadFields(
+                  builtinAmenityExtraPrices[key],
+                  builtinAmenityExtraPriceMaxes[key] || builtinAmenityExtraPrices[key]
+                )
+              : { extraPrice: null }),
+            allowsSeekerExternalSource: builtinAmenityAllowsSeekerExternal[key],
+          };
+        }),
+        ...customAmenityRows.map((r) => {
+          const placed = isHallGeneralPricePlaced(r.priceMode);
+          return {
+            label: r.label,
+            checked: hallGeneralAmenityLive(r.checked, r.priceMode),
+            priceMode: persistedHallGeneralPriceMode(r.priceMode),
+            ...(placed && r.priceMode === "extra"
+              ? amenityExtraPayloadFields(r.extraPrice, r.extraPriceMax || r.extraPrice)
+              : { extraPrice: null }),
+            allowsSeekerExternalSource: r.allowsSeekerExternal,
+          };
+        }),
       ];
       fd.append("customAmenitiesJson", JSON.stringify(customAmenitiesPayload));
       fd.append("venueSoftAttributesJson", JSON.stringify(softAttributeRows));
