@@ -98,7 +98,7 @@ function isPositivePrice(value: string) {
   return Number.isFinite(n) && n > 0;
 }
 
-function isValidIsraelVenueCoord(lat: number | null, lng: number | null): lat is number {
+function isValidIsraelVenueCoord(lat: number | null, lng: number | null): boolean {
   return (
     lat != null &&
     lng != null &&
@@ -234,6 +234,79 @@ export default function VenueEditForm({
       : null
   );
   const [mapFieldSyncNonce, setMapFieldSyncNonce] = useState(0);
+  const [syncMapFromAddressNonce, setSyncMapFromAddressNonce] = useState(0);
+  const hasSavedVenueCoords = useMemo(
+    () => isValidIsraelVenueCoord(initial.latitude, initial.longitude),
+    [initial.latitude, initial.longitude]
+  );
+  const savedVenueForMap = useMemo((): { lat: number; lng: number } | null => {
+    if (venueLat == null || venueLng == null || !isValidIsraelVenueCoord(venueLat, venueLng)) {
+      return null;
+    }
+    return { lat: venueLat, lng: venueLng };
+  }, [venueLat, venueLng]);
+  const savedParkingForMap = useMemo(() => {
+    if (
+      !parkingKindNeedsMap(parkingKind) ||
+      parkingLat == null ||
+      parkingLng == null ||
+      !isValidIsraelVenueCoord(parkingLat, parkingLng)
+    ) {
+      return null;
+    }
+    return { lat: parkingLat, lng: parkingLng };
+  }, [parkingKind, parkingLat, parkingLng]);
+
+  const handleParkingPick = useCallback((la: number, ln: number) => {
+    setParkingLat(la);
+    setParkingLng(ln);
+  }, []);
+  const handleParkingClear = useCallback(() => {
+    setParkingLat(null);
+    setParkingLng(null);
+  }, []);
+  const handleVenueMapPick = useCallback(
+    ({
+      lat,
+      lng,
+      city,
+      address,
+    }: {
+      lat: number;
+      lng: number;
+      city: string | null;
+      address: string | null;
+    }) => {
+      setVenueLat(lat);
+      setVenueLng(lng);
+      setForm((f) => ({
+        ...f,
+        city: city?.trim() || f.city,
+        address: address?.trim() || f.address,
+      }));
+    },
+    []
+  );
+  const handleVenueMapClear = useCallback(() => {
+    setVenueLat(null);
+    setVenueLng(null);
+    setParkingLat(null);
+    setParkingLng(null);
+  }, []);
+
+  const parkingOnSameMapConfig = useMemo(
+    () =>
+      parkingKindNeedsMap(parkingKind)
+        ? {
+            active: true as const,
+            lat: parkingLat,
+            lng: parkingLng,
+            onPick: handleParkingPick,
+            onClear: handleParkingClear,
+          }
+        : null,
+    [parkingKind, parkingLat, parkingLng, handleParkingPick, handleParkingClear]
+  );
   const [builtinAmenityPriceModes, setBuiltinAmenityPriceModes] = useState<
     Record<BuiltinAmenityKey, HallGeneralPriceMode>
   >(initial.builtinAmenityPriceModes);
@@ -779,7 +852,11 @@ export default function VenueEditForm({
                 onChange={(city) =>
                   setForm((f) => ({ ...f, city }))
                 }
-                onCommit={() => setMapFieldSyncNonce((n) => n + 1)}
+                onCommit={
+                  hasSavedVenueCoords
+                    ? undefined
+                    : () => setMapFieldSyncNonce((n) => n + 1)
+                }
                 extraCities={cityAutocompleteExtras}
                 placeholder="הקלד עיר או בחר מהרשימה"
                 className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
@@ -796,7 +873,11 @@ export default function VenueEditForm({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, address: e.target.value }))
                 }
-                onBlur={() => setMapFieldSyncNonce((n) => n + 1)}
+                onBlur={
+                  hasSavedVenueCoords
+                    ? undefined
+                    : () => setMapFieldSyncNonce((n) => n + 1)
+                }
                 className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
                 placeholder="רחוב, מספר"
               />
@@ -851,54 +932,33 @@ export default function VenueEditForm({
                 ))}
               </div>
             </div>
+            {hasSavedVenueCoords ? (
+              <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+                הסיכות נטענות מהמיקום השמור. גררו אותן לדיוק, או{" "}
+                <button
+                  type="button"
+                  className="font-medium text-[#0F3B2E] underline underline-offset-2 hover:opacity-90"
+                  onClick={() => setSyncMapFromAddressNonce((n) => n + 1)}
+                >
+                  מרכז מפה לפי כתובת בטופס
+                </button>
+                .
+              </p>
+            ) : null}
             {loadVenueMap ? (
               <VenueLocationPicker
                 formCity={form.city}
                 formAddress={form.address}
-                formFieldsSyncNonce={mapFieldSyncNonce}
-                initialVenue={
-                  initial.latitude != null &&
-                  initial.longitude != null &&
-                  initial.latitude >= 29 &&
-                  initial.latitude <= 34 &&
-                  initial.longitude >= 33 &&
-                  initial.longitude <= 36
-                    ? { lat: initial.latitude, lng: initial.longitude }
-                    : null
-                }
+                formFieldsSyncNonce={hasSavedVenueCoords ? 0 : mapFieldSyncNonce}
+                syncMapFromAddressNonce={syncMapFromAddressNonce}
+                preferSavedMapPins={hasSavedVenueCoords}
+                initialVenue={savedVenueForMap}
+                initialParking={savedParkingForMap}
                 clearParkingOnAddressGeocode={false}
-                parkingOnSameMap={
-                  parkingKindNeedsMap(parkingKind)
-                    ? {
-                        active: true,
-                        lat: parkingLat,
-                        lng: parkingLng,
-                        onPick: (la, ln) => {
-                          setParkingLat(la);
-                          setParkingLng(ln);
-                        },
-                        onClear: () => {
-                          setParkingLat(null);
-                          setParkingLng(null);
-                        },
-                      }
-                    : null
-                }
-                onPick={({ lat, lng, city, address }) => {
-                  setVenueLat(lat);
-                  setVenueLng(lng);
-                  setForm((f) => ({
-                    ...f,
-                    city: city?.trim() || f.city,
-                    address: address?.trim() || f.address,
-                  }));
-                }}
-                onClear={() => {
-                  setVenueLat(null);
-                  setVenueLng(null);
-                  setParkingLat(null);
-                  setParkingLng(null);
-                }}
+                clearParkingWhenHallMoves={!hasSavedVenueCoords}
+                parkingOnSameMap={parkingOnSameMapConfig}
+                onPick={handleVenueMapPick}
+                onClear={handleVenueMapClear}
               />
             ) : (
               <div

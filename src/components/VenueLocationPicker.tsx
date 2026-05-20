@@ -38,8 +38,16 @@ type Props = {
   parkingOnSameMap?: ParkingOnSameMapConfig | null;
   /** עריכת אולם: מיקום שמור מהשרת */
   initialVenue?: { lat: number; lng: number } | null;
+  /** עריכה: חניה שמורה מהשרת */
+  initialParking?: { lat: number; lng: number } | null;
+  /** עריכה: לא לגרור סיכות אוטומטית לפי עיר/כתובת — רק ידנית או גרירה */
+  preferSavedMapPins?: boolean;
+  /** מעלה nonce — מרכז מפה לפי כתובת (עריכה, בכפתור בלבד) */
+  syncMapFromAddressNonce?: number;
   /** בעריכה — גיאוקוד לפי כתובת לא מוחק סיכת חניה שמורה */
   clearParkingOnAddressGeocode?: boolean;
+  /** לחיצה על המפה למיקום אולם מוחקת סיכת חניה */
+  clearParkingWhenHallMoves?: boolean;
 };
 
 const CITY_DEBOUNCE_MS = 220;
@@ -107,8 +115,8 @@ const markerTooltipOpts: L.TooltipOptions = {
   className: "venue-picker-marker-tooltip",
 };
 
-function addHallMarkerToMap(map: L.Map, lat: number, lng: number) {
-  return L.marker([lat, lng], { icon: venueHallPickerMarkerIcon })
+function addHallMarkerToMap(map: L.Map, lat: number, lng: number, draggable = false) {
+  return L.marker([lat, lng], { icon: venueHallPickerMarkerIcon, draggable })
     .bindTooltip(HALL_MARKER_TOOLTIP, markerTooltipOpts)
     .addTo(map);
 }
@@ -130,7 +138,11 @@ export default function VenueLocationPicker({
   formFieldsSyncNonce = 0,
   parkingOnSameMap = null,
   initialVenue = null,
+  initialParking = null,
+  preferSavedMapPins = false,
+  syncMapFromAddressNonce = 0,
   clearParkingOnAddressGeocode = true,
+  clearParkingWhenHallMoves = true,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -148,10 +160,19 @@ export default function VenueLocationPicker({
   parkingOnSameMapRef.current = parkingOnSameMap ?? null;
   const initialVenueRef = useRef(initialVenue);
   initialVenueRef.current = initialVenue;
+  const initialParkingRef = useRef(initialParking);
+  initialParkingRef.current = initialParking;
+  const preferSavedMapPinsRef = useRef(preferSavedMapPins);
+  preferSavedMapPinsRef.current = preferSavedMapPins;
   const clearParkingOnAddressGeocodeRef = useRef(clearParkingOnAddressGeocode);
   clearParkingOnAddressGeocodeRef.current = clearParkingOnAddressGeocode;
+  const clearParkingWhenHallMovesRef = useRef(clearParkingWhenHallMoves);
+  clearParkingWhenHallMovesRef.current = clearParkingWhenHallMoves;
   /** עריכה: לא לגרור סיכה לפי עיר/כתובת עד blur מפורש (formFieldsSyncNonce) */
-  const debouncedFormGeocodeEnabledRef = useRef(initialVenue == null);
+  const debouncedFormGeocodeEnabledRef = useRef(
+    !preferSavedMapPins && initialVenue == null
+  );
+  const savedPinsRestoredRef = useRef(false);
 
   const [loading, setLoading] = useState(false);
   const [mapInitError, setMapInitError] = useState<string | null>(null);
@@ -215,10 +236,80 @@ export default function VenueLocationPicker({
     });
   }, []);
 
+  const notifyHallPick = useCallback((lat: number, lng: number) => {
+    onPickRef.current({
+      lat,
+      lng,
+      city: formCityRef.current.trim() || null,
+      address: formAddressRef.current.trim() || null,
+    });
+    setPicked({ lat, lng });
+  }, []);
+
+  const attachHallDragEnd = useCallback(
+    (marker: L.Marker) => {
+      marker.off("dragend");
+      marker.on("dragend", () => {
+        const p = marker.getLatLng();
+        notifyHallPick(p.lat, p.lng);
+        suppressFormGeocodeUntilRef.current = Date.now() + SUPPRESS_FORM_GEOCODE_MS;
+        setHint("מיקום האולם עודכן. אפשר לגרור שוב לדיוק.");
+      });
+    },
+    [notifyHallPick]
+  );
+
   const clearParkingBecauseVenueMoved = useCallback(() => {
+    if (!clearParkingWhenHallMovesRef.current) return;
     removeParkingMarkerLayer();
     parkingOnSameMapRef.current?.onClear();
   }, [removeParkingMarkerLayer]);
+
+  const restoreSavedPinsOnMap = useCallback(
+    (map: L.Map) => {
+      const iv = initialVenueRef.current;
+      if (iv && isValidIsraelLatLng(iv.lat, iv.lng)) {
+        const draggable = preferSavedMapPinsRef.current;
+        if (!markerRef.current) {
+          markerRef.current = addHallMarkerToMap(map, iv.lat, iv.lng, draggable);
+        } else {
+          markerRef.current.setLatLng([iv.lat, iv.lng]);
+        }
+        if (draggable) attachHallDragEnd(markerRef.current);
+        setPicked({ lat: iv.lat, lng: iv.lng });
+        notifyHallPick(iv.lat, iv.lng);
+        map.flyTo([iv.lat, iv.lng], 16);
+        syncMapAfterFly(map);
+      }
+
+      const ip = initialParkingRef.current;
+      const parkCfg = parkingOnSameMapRef.current;
+      if (
+        parkCfg?.active &&
+        ip &&
+        isValidIsraelLatLng(ip.lat, ip.lng)
+      ) {
+        if (!parkingMarkerRef.current) {
+          parkingMarkerRef.current = addParkingMarkerToMap(map, ip.lat, ip.lng);
+        } else {
+          parkingMarkerRef.current.setLatLng([ip.lat, ip.lng]);
+        }
+        attachParkingDragEnd(parkingMarkerRef.current);
+        parkCfg.onPick(ip.lat, ip.lng);
+      }
+
+      if (iv) {
+        suppressFormGeocodeUntilRef.current = Date.now() + SUPPRESS_FORM_GEOCODE_MS;
+        savedPinsRestoredRef.current = true;
+        setHint(
+          preferSavedMapPinsRef.current
+            ? "מיקומי האולם והחניה מהנתונים השמורים. גררו את הסיכות לדיוק."
+            : "מיקום האולם מהנתונים השמורים. אפשר לשנות בלחיצה על המפה."
+        );
+      }
+    },
+    [attachHallDragEnd, attachParkingDragEnd, notifyHallPick]
+  );
 
   useEffect(() => {
     const container = containerRef.current;
@@ -272,7 +363,10 @@ export default function VenueLocationPicker({
       forwardAfterReadyTimer = window.setTimeout(() => {
         forwardAfterReadyTimer = undefined;
         syncMapLayout(map);
-        if (initialVenueRef.current) return;
+        if (preferSavedMapPinsRef.current || initialVenueRef.current) {
+          restoreSavedPinsOnMap(map);
+          return;
+        }
         const c = formCityRef.current.trim();
         if (c && mapRef.current) void runForwardRef.current(c);
       }, 60);
@@ -354,7 +448,7 @@ export default function VenueLocationPicker({
       parkingMarkerRef.current = null;
       mapRef.current = null;
     };
-  }, [attachParkingDragEnd, clearParkingBecauseVenueMoved]);
+  }, [attachParkingDragEnd, clearParkingBecauseVenueMoved, restoreSavedPinsOnMap]);
 
   const applyForwardResult = useCallback(
     (
@@ -489,6 +583,7 @@ export default function VenueLocationPicker({
 
   useEffect(() => {
     if (formFieldsSyncNonce <= 0) return;
+    if (preferSavedMapPinsRef.current) return;
     debouncedFormGeocodeEnabledRef.current = true;
     const c = formCity.trim();
     const a = formAddress.trim();
@@ -498,6 +593,24 @@ export default function VenueLocationPicker({
       void runForwardGeocode(c);
     }
   }, [formFieldsSyncNonce, formCity, formAddress, runForwardGeocode, runAddressForwardGeocode]);
+
+  useEffect(() => {
+    if (syncMapFromAddressNonce <= 0) return;
+    debouncedFormGeocodeEnabledRef.current = true;
+    const c = formCity.trim();
+    const a = formAddress.trim();
+    if (a.length >= 3) {
+      void runAddressForwardGeocode(c, a);
+    } else if (c) {
+      void runForwardGeocode(c);
+    }
+  }, [
+    syncMapFromAddressNonce,
+    formCity,
+    formAddress,
+    runForwardGeocode,
+    runAddressForwardGeocode,
+  ]);
 
   useEffect(() => {
     if (!debouncedFormGeocodeEnabledRef.current) return;
@@ -516,33 +629,24 @@ export default function VenueLocationPicker({
     return () => window.clearTimeout(t);
   }, [formCity, formAddress, runForwardGeocode, runAddressForwardGeocode]);
 
-  /** מיקום אולם שמור (עריכה) */
+  /** מיקום אולם שמור (עריכה) — גיבוי אם המפה נטענה לפני whenReady */
   useEffect(() => {
     const iv = initialVenueRef.current;
     if (!iv || !isValidIsraelLatLng(iv.lat, iv.lng)) return;
+    if (savedPinsRestoredRef.current) return;
     const t = window.setTimeout(() => {
       const map = mapRef.current;
       if (!map) return;
-      const { lat, lng } = iv;
-      if (!markerRef.current) {
-        markerRef.current = addHallMarkerToMap(map, lat, lng);
-      } else {
-        markerRef.current.setLatLng([lat, lng]);
-      }
-      setPicked({ lat, lng });
-      suppressFormGeocodeUntilRef.current = Date.now() + SUPPRESS_FORM_GEOCODE_MS;
-      map.flyTo([lat, lng], 16);
-      syncMapAfterFly(map);
-      onPickRef.current({
-        lat,
-        lng,
-        city: formCityRef.current.trim() || null,
-        address: formAddressRef.current.trim() || null,
-      });
-      setHint("מיקום האולם מהנתונים השמורים. אפשר לשנות בלחיצה על המפה.");
-    }, 140);
+      restoreSavedPinsOnMap(map);
+    }, 180);
     return () => window.clearTimeout(t);
-  }, [initialVenue?.lat, initialVenue?.lng]);
+  }, [
+    initialVenue?.lat,
+    initialVenue?.lng,
+    initialParking?.lat,
+    initialParking?.lng,
+    restoreSavedPinsOnMap,
+  ]);
 
   /** סנכרון סיכת חניה מההורה */
   useEffect(() => {
