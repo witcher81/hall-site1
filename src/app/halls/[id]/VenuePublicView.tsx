@@ -448,14 +448,6 @@ export default function VenuePublicView({
     return allImages.filter((img) => img.category === activeCategory);
   }, [allImages, activeCategory]);
 
-  const hasDetailStats =
-    venue.minGuests != null ||
-    venue.maxGuests != null ||
-    venue.minPrice != null ||
-    venue.maxPrice != null ||
-    venue.hallRentalMin != null ||
-    venue.hallRentalMax != null;
-
   const hasCheckedCustomAmenities =
     venue.customAmenities?.some((a) => a.checked) ?? false;
   const checkedCustomAmenities = (venue.customAmenities ?? []).filter((a) => a.checked);
@@ -771,38 +763,6 @@ export default function VenuePublicView({
 
                 </div>
 
-              </div>
-            )}
-
-            {hasDetailStats && (
-              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {(venue.minGuests != null || venue.maxGuests != null) && (
-                  <div className="rounded-xl border border-[#E0D4C3]/80 bg-gradient-to-br from-[#FFFBF7] to-[#FAF8F4] p-4 text-center shadow-sm">
-                    <p className="text-[11px] font-medium text-[#6B6560]">קיבולת אורחים</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-[#0F3B2E] sm:text-2xl">
-                      {venue.minGuests ?? "?"}–{venue.maxGuests ?? "?"}
-                    </p>
-                    <p className="text-[10px] text-[#8A8278]">אורחים</p>
-                  </div>
-                )}
-                {(venue.minPrice != null || venue.maxPrice != null) && (
-                  <div className="rounded-xl border border-[#E0D4C3]/80 bg-gradient-to-br from-[#FFFBF7] to-[#FAF8F4] p-4 text-center shadow-sm">
-                    <p className="text-[11px] font-medium text-[#6B6560]">מחיר למנה</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-[#0F3B2E] sm:text-2xl">
-                      {venue.minPrice ?? "?"}–{venue.maxPrice ?? "?"}
-                    </p>
-                    <p className="text-[10px] text-[#8A8278]">₪</p>
-                  </div>
-                )}
-                {(venue.hallRentalMin != null || venue.hallRentalMax != null) && (
-                  <div className="rounded-xl border border-[#E0D4C3]/80 bg-gradient-to-br from-[#FFFBF7] to-[#FAF8F4] p-4 text-center shadow-sm">
-                    <p className="text-[11px] font-medium text-[#6B6560]">השכרת אולם</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-[#0F3B2E] sm:text-2xl">
-                      {venue.hallRentalMin ?? "?"}–{venue.hallRentalMax ?? "?"}
-                    </p>
-                    <p className="text-[10px] text-[#8A8278]">₪ לאירוע</p>
-                  </div>
-                )}
               </div>
             )}
         </div>
