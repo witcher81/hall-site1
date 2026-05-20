@@ -169,14 +169,48 @@ function isRoughlyIsrael(lat: number, lng: number): boolean {
   return lat >= 29.4 && lat <= 33.6 && lng >= 33.5 && lng <= 36.2;
 }
 
-function parseNominatimSearchJson(data: unknown): { lat: number; lng: number } | null {
-  const arr = data as { lat?: string; lon?: string }[];
-  if (!Array.isArray(arr) || arr.length === 0) return null;
-  const lat = parseFloat(String(arr[0].lat));
-  const lng = parseFloat(String(arr[0].lon));
+type NominatimSearchRow = {
+  lat?: string;
+  lon?: string;
+  type?: string;
+  class?: string;
+  address?: { house_number?: string | number };
+};
+
+function coordsFromNominatimRow(row: NominatimSearchRow): { lat: number; lng: number } | null {
+  const lat = parseFloat(String(row.lat));
+  const lng = parseFloat(String(row.lon));
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   if (!isRoughlyIsrael(lat, lng)) return null;
   return { lat, lng };
+}
+
+function parseNominatimSearchJson(
+  data: unknown,
+  options: { wantedHouse?: string | null } = {}
+): { lat: number; lng: number } | null {
+  const arr = data as NominatimSearchRow[];
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+  const wanted = options.wantedHouse?.trim();
+  if (wanted) {
+    for (const row of arr) {
+      const hn = row.address?.house_number;
+      if (hn != null && String(hn).trim() === wanted) {
+        const c = coordsFromNominatimRow(row);
+        if (c) return c;
+      }
+    }
+    for (const row of arr) {
+      const cls = row.class ?? "";
+      const typ = row.type ?? "";
+      if (cls === "building" || typ === "house" || typ === "residential") {
+        const c = coordsFromNominatimRow(row);
+        if (c) return c;
+      }
+    }
+    return null;
+  }
+  return coordsFromNominatimRow(arr[0]);
 }
 
 /**
@@ -244,6 +278,7 @@ type PhotonProps = {
   city?: string;
   locality?: string;
   town?: string;
+  housenumber?: string | number;
 };
 
 /**
@@ -253,11 +288,17 @@ type PhotonProps = {
 async function photonSearchInCity(
   query: string,
   cityVariantsCompact: Set<string>,
-  options: { lang?: "he" | "en"; timeoutMs?: number } = {}
+  options: {
+    lang?: "he" | "en";
+    timeoutMs?: number;
+    /** כשיש מספר בית — רק תוצאה עם housenumber תואם ב-OSM */
+    requireHouseNumber?: string;
+  } = {}
 ): Promise<{ lat: number; lng: number } | null> {
   const lang = options.lang ?? "he";
   const timeoutMs = options.timeoutMs ?? 12_000;
-  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=10&lang=${lang}`;
+  const wantHouse = options.requireHouseNumber?.trim();
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=${wantHouse ? 15 : 10}&lang=${lang}`;
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -292,6 +333,13 @@ async function photonSearchInCity(
               ? p.town
               : undefined;
       if (!photonCityMatchesCompact(placeName, cityVariantsCompact)) continue;
+      const hn =
+        p.housenumber != null && String(p.housenumber).trim().length > 0
+          ? String(p.housenumber).trim()
+          : "";
+      if (wantHouse) {
+        if (!hn || hn !== wantHouse) continue;
+      }
       return { lat, lng };
     }
     return null;
@@ -304,13 +352,19 @@ async function photonSearchInCity(
 
 async function nominatimSearch(
   query: string,
-  options: { allow429Retry?: boolean; timeoutMs?: number; viewbox?: string } = {}
+  options: {
+    allow429Retry?: boolean;
+    timeoutMs?: number;
+    viewbox?: string;
+    wantedHouse?: string | null;
+  } = {}
 ): Promise<{ lat: number; lng: number } | null> {
-  const { allow429Retry = true, timeoutMs = 12_000, viewbox } = options;
+  const { allow429Retry = true, timeoutMs = 12_000, viewbox, wantedHouse } = options;
   const params = new URLSearchParams({
     format: "json",
-    limit: "1",
+    limit: wantedHouse?.trim() ? "8" : "1",
     countrycodes: "il",
+    addressdetails: wantedHouse?.trim() ? "1" : "0",
     q: query,
   });
   if (viewbox) params.set("viewbox", viewbox);
@@ -342,7 +396,7 @@ async function nominatimSearch(
     } catch {
       return null;
     }
-    return parseNominatimSearchJson(data);
+    return parseNominatimSearchJson(data, { wantedHouse: wantedHouse ?? null });
   } catch {
     return null;
   } finally {
@@ -359,11 +413,12 @@ async function nominatimStructuredSearch(
 ): Promise<{ lat: number; lng: number } | null> {
   const { allow429Retry = true, timeoutMs = 12_000, viewbox } = options;
   if (!parts.city && !parts.street) return null;
+  const wantedHouse = parts.housenumber?.trim() || null;
   const params = new URLSearchParams({
     format: "json",
-    limit: "1",
+    limit: wantedHouse ? "8" : "1",
     countrycodes: "il",
-    addressdetails: "0",
+    addressdetails: wantedHouse ? "1" : "0",
   });
   if (parts.street) params.set("street", parts.street);
   if (parts.housenumber) params.set("housenumber", parts.housenumber);
@@ -398,7 +453,7 @@ async function nominatimStructuredSearch(
     } catch {
       return null;
     }
-    return parseNominatimSearchJson(data);
+    return parseNominatimSearchJson(data, { wantedHouse });
   } catch {
     return null;
   } finally {
@@ -515,13 +570,19 @@ export async function geocodeIsraelCity(city: string): Promise<{ lat: number; ln
   return null;
 }
 
-/** פיצול "רחוב 12" לרחוב + מספר — המספר תמיד בסוף; greedy כדי שלא יינתק מוקדם מדי */
-function splitStreetAndHouse(addr: string): { street: string; house: string | null } {
+/** פיצול "רחוב 12" / "12 רחוב" לרחוב + מספר בית */
+export function splitStreetAndHouse(addr: string): { street: string; house: string | null } {
   const t = addr.trim();
-  const m = t.match(/^(.+)\s+(\d{1,5})$/);
+  let m = t.match(/^(.+?)\s+(\d{1,5})$/);
   if (m) {
     const street = m[1].trim();
     const house = m[2];
+    if (street.length >= 1 && /^\d{1,5}$/.test(house)) return { street, house };
+  }
+  m = t.match(/^(\d{1,5})\s+(.+)$/);
+  if (m) {
+    const house = m[1];
+    const street = m[2].trim();
     if (street.length >= 1 && /^\d{1,5}$/.test(house)) return { street, house };
   }
   return { street: t, house: null };
@@ -604,13 +665,15 @@ export async function geocodeIsraelAddress(
   }
 
   async function photonSequential(
-    queries: { q: string; lang?: "he" | "en" }[]
+    queries: { q: string; lang?: "he" | "en" }[],
+    requireHouseNumber?: string
   ): Promise<{ lat: number; lng: number } | null> {
     for (const { q, lang } of queries) {
       if (!withinBudget()) return null;
       const r = await photonSearchInCity(q, cityVariantsCompact, {
         ...photonOpts,
         ...(lang ? { lang } : {}),
+        ...(requireHouseNumber ? { requireHouseNumber } : {}),
       });
       if (r) return r;
       await sleep(75);
@@ -619,34 +682,108 @@ export async function geocodeIsraelAddress(
   }
 
   const photonQueries: { q: string; lang?: "he" | "en" }[] = [];
-  if (streetEn && en && houseNum) {
-    photonQueries.push({ q: `${streetEn} ${houseNum}, ${en}, Israel`, lang: "en" });
-  }
-  if (streetEn && en) {
+  if (houseNum) {
+    if (streetEn && en) {
+      photonQueries.push(
+        { q: `${streetEn} ${houseNum}, ${en}, Israel`, lang: "en" },
+        { q: `${houseNum} ${streetEn}, ${en}, Israel`, lang: "en" }
+      );
+    }
+    if (en) {
+      photonQueries.push(
+        { q: `${addrNoRoad}, ${en}, Israel`, lang: "en" },
+        { q: `${addr}, ${en}, Israel`, lang: "en" }
+      );
+    }
     photonQueries.push(
-      { q: `${streetEn}, ${en}, Israel`, lang: "en" },
-      { q: `${streetEn} Street, ${en}, Israel`, lang: "en" }
+      { q: `${addr}, ${c}, Israel` },
+      { q: `${addrNoRoad}, ${c}, Israel` },
+      { q: `${houseNum} ${addrNoRoad}, ${c}, Israel` },
+      { q: `רחוב ${streetOnly} ${houseNum}, ${c}` }
+    );
+  } else {
+    if (streetEn && en) {
+      photonQueries.push(
+        { q: `${streetEn}, ${en}, Israel`, lang: "en" },
+        { q: `${streetEn} Street, ${en}, Israel`, lang: "en" }
+      );
+    }
+    if (en) {
+      photonQueries.push(
+        { q: `${addrNoRoad} ${en} Israel`, lang: "en" },
+        { q: `${addr} ${en} Israel`, lang: "en" }
+      );
+    }
+    photonQueries.push(
+      { q: `${addr}, ${c}, Israel` },
+      { q: `${addrNoRoad} ${c} Israel` },
+      { q: `רחוב ${addrNoRoad} ${c}` }
     );
   }
-  if (en) {
-    photonQueries.push(
-      { q: `${addrNoRoad} ${en} Israel`, lang: "en" },
-      { q: `${addr} ${en} Israel`, lang: "en" }
-    );
-  }
-  photonQueries.push(
-    { q: `${addr}, ${c}, Israel` },
-    { q: `${addrNoRoad} ${c} Israel` },
-    { q: `רחוב ${addrNoRoad} ${c}` }
-  );
 
   let hit: { lat: number; lng: number } | null = null;
+  const nomHouseOpts = { ...nomOpts, wantedHouse: houseNum };
 
-  /** מובנה בעברית קודם — קשור לעיר בשדה city (פחות טעויות מ-Photon הראשון) */
   if (houseNum) {
-    hit = await structTry({ street: streetOnly, city: c, housenumber: houseNum });
+    const structWithHouse: {
+      street: string;
+      city: string;
+      housenumber?: string;
+    }[] = [
+      { street: streetOnly, city: c, housenumber: houseNum },
+      { street: `${streetOnly} ${houseNum}`, city: c },
+      { street: `${houseNum} ${streetOnly}`, city: c },
+    ];
+    if (addr !== addrNoRoad) {
+      structWithHouse.push({ street: addr, city: c, housenumber: houseNum });
+    }
+    for (const parts of structWithHouse) {
+      hit = await structTry(parts);
+      if (hit) return hit;
+      await nomPause();
+    }
+
+    if (streetEn && en) {
+      for (const parts of [
+        { street: streetEn, city: en, housenumber: houseNum },
+        { street: `${streetEn} ${houseNum}`, city: en },
+        { street: `${houseNum} ${streetEn}`, city: en },
+        { street: `${streetEn} Street`, city: en, housenumber: houseNum },
+      ]) {
+        hit = await structTry(parts);
+        if (hit) return hit;
+        await nomPause();
+      }
+    }
+
+    hit = await photonSequential(photonQueries, houseNum);
     if (hit) return hit;
-    await nomPause();
+
+    const nominatimHouseQ: string[] = [];
+    const seenHouse = new Set<string>();
+    const addHouseQuery = (q: string) => {
+      const key = q.trim();
+      if (key.length < 4 || seenHouse.has(key)) return;
+      seenHouse.add(key);
+      nominatimHouseQ.push(key);
+    };
+    addHouseQuery(`${addr}, ${c}, ישראל`);
+    addHouseQuery(`${addrNoRoad}, ${c}, Israel`);
+    addHouseQuery(`${houseNum} ${addrNoRoad}, ${c}, Israel`);
+    addHouseQuery(`רחוב ${streetOnly} ${houseNum}, ${c}, Israel`);
+    if (en) {
+      addHouseQuery(`${addr}, ${en}, Israel`);
+      if (streetEn) addHouseQuery(`${streetEn} ${houseNum}, ${en}, Israel`);
+    }
+    const maxHouseQ = Math.min(nominatimHouseQ.length, 6);
+    for (let i = 0; i < maxHouseQ; i++) {
+      if (!withinBudget()) return null;
+      hit = await nominatimSearch(nominatimHouseQ[i], nomHouseOpts);
+      if (hit) return hit;
+      if (i < maxHouseQ - 1) await sleep(ADDRESS_NOMINATIM_GAP_MS);
+    }
+
+    return null;
   }
 
   hit = await structTry({ street: addrNoRoad, city: c });
@@ -667,29 +804,18 @@ export async function geocodeIsraelAddress(
   await nomPause();
 
   if (streetEn && en) {
-    const houseOpt = houseNum ? { housenumber: houseNum } : {};
-    hit = await structTry({ street: streetEn, city: en, ...houseOpt });
+    hit = await structTry({ street: streetEn, city: en });
     if (hit) return hit;
     await nomPause();
-    hit = await structTry({ street: `${streetEn} Street`, city: en, ...houseOpt });
+    hit = await structTry({ street: `${streetEn} Street`, city: en });
     if (hit) return hit;
     await nomPause();
   }
 
   if (en) {
-    hit = await structTry({
-      street: addrNoRoad,
-      city: en,
-      ...(houseNum ? { housenumber: houseNum } : {}),
-    });
+    hit = await structTry({ street: addrNoRoad, city: en });
     if (hit) return hit;
     await nomPause();
-
-    if (houseNum) {
-      hit = await structTry({ street: streetOnly, city: en, housenumber: houseNum });
-      if (hit) return hit;
-      await nomPause();
-    }
   }
 
   const nominatimQ: string[] = [];
@@ -710,7 +836,6 @@ export async function geocodeIsraelAddress(
     addQuery(`${addr}, ${en}, Israel`);
   }
   if (streetEn && en) {
-    if (houseNum) addQuery(`${streetEn} ${houseNum}, ${en}, Israel`);
     addQuery(`${streetEn}, ${en}, Israel`);
   }
 

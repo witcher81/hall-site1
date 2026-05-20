@@ -50,7 +50,12 @@ export async function fetchAddressOnMap(
     if (ac.signal.aborted) return;
 
     if (!data.found || data.lat == null || data.lng == null) {
-      setHint("לא נמצא מיקום מדויק לכתובת. נסו לדייק או לבחור במפה.");
+      const hasHouse = /\d{1,5}/.test(a);
+      setHint(
+        hasHouse
+          ? "לא נמצא מספר בית מדויק לכתובת. בדקו רחוב+מספר (למשל «יוני נתניהו 30») או גררו את הסיכה במפה."
+          : "לא נמצא מיקום מדויק לכתובת. הוסיפו מספר בית או בחרו נקודה במפה."
+      );
       return;
     }
 

@@ -873,13 +873,13 @@ export default function VenueEditForm({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, address: e.target.value }))
                 }
-                onBlur={
-                  hasSavedVenueCoords
-                    ? undefined
-                    : () => setMapFieldSyncNonce((n) => n + 1)
-                }
+                onBlur={() => {
+                  if (form.address.trim().length >= 3 && form.city.trim()) {
+                    setSyncMapFromAddressNonce((n) => n + 1);
+                  }
+                }}
                 className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="רחוב, מספר"
+                placeholder="רחוב ומספר בית, למשל יוני נתניהו 30"
               />
             </div>
           </div>
@@ -934,17 +934,14 @@ export default function VenueEditForm({
             </div>
             {hasSavedVenueCoords ? (
               <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
-                הסיכות נטענות מהמיקום השמור. גררו אותן לדיוק, או{" "}
-                <button
-                  type="button"
-                  className="font-medium text-[#0F3B2E] underline underline-offset-2 hover:opacity-90"
-                  onClick={() => setSyncMapFromAddressNonce((n) => n + 1)}
-                >
-                  מרכז מפה לפי כתובת בטופס
-                </button>
-                .
+                הסיכות נטענות מהמיקום השמור. שינוי כתובת (עם מספר בית) מעדכן את סיכת
+                האולם; אפשר גם לגרור את הסיכות לדיוק.
               </p>
-            ) : null}
+            ) : (
+              <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+                הזינו עיר וכתובת עם מספר בית — הסיכה תתעדכן לפי המיקום המדויק.
+              </p>
+            )}
             {loadVenueMap ? (
               <VenueLocationPicker
                 formCity={form.city}

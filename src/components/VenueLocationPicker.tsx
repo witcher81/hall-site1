@@ -475,14 +475,16 @@ export default function VenueLocationPicker({
           removeParkingMarkerLayer();
           parkingOnSameMapRef.current?.onClear();
         }
+        const hallDraggable = preferSavedMapPinsRef.current;
         if (!markerRef.current) {
-          markerRef.current = addHallMarkerToMap(map, lat, lng);
+          markerRef.current = addHallMarkerToMap(map, lat, lng, hallDraggable);
         } else {
           markerRef.current.setLatLng([lat, lng]);
         }
+        if (hallDraggable && markerRef.current) attachHallDragEnd(markerRef.current);
         setPicked({ lat, lng });
         syncMapLayout(map);
-        map.flyTo([lat, lng], 18, { duration: 0.75 });
+        map.flyTo([lat, lng], 19, { duration: 0.75 });
         syncMapAfterFly(map);
         onPickRef.current({
           lat,
@@ -490,10 +492,12 @@ export default function VenueLocationPicker({
           city: formCityRef.current.trim() || null,
           address: formAddressRef.current.trim() || null,
         });
-        setHint("הסימון לפי הכתובת שהזנת. אפשר לגרור במפה אם צריך לדייק.");
+        setHint(
+          "הסימון לפי הכתובת והמספר שהזנת. אפשר לגרור את הסיכה הכחולה לדיוק נוסף."
+        );
       }
     },
-    [removeMarkerOnly, removeParkingMarkerLayer]
+    [attachHallDragEnd, removeMarkerOnly, removeParkingMarkerLayer]
   );
 
   const runForwardGeocode = useCallback(
@@ -628,6 +632,28 @@ export default function VenueLocationPicker({
     }, delay);
     return () => window.clearTimeout(t);
   }, [formCity, formAddress, runForwardGeocode, runAddressForwardGeocode]);
+
+  /** עריכה: גיאוקוד כתובת רק אחרי שינוי ידני (לא בטעינה) */
+  const addressGeocodeSnapshotRef = useRef<{ city: string; address: string } | null>(
+    null
+  );
+  useEffect(() => {
+    if (!preferSavedMapPinsRef.current) return;
+    const c = formCity.trim();
+    const a = formAddress.trim();
+    if (!c || a.length < 3) return;
+    if (!addressGeocodeSnapshotRef.current) {
+      addressGeocodeSnapshotRef.current = { city: c, address: a };
+      return;
+    }
+    const snap = addressGeocodeSnapshotRef.current;
+    if (c === snap.city && a === snap.address) return;
+    const t = window.setTimeout(() => {
+      if (Date.now() < suppressFormGeocodeUntilRef.current) return;
+      void runAddressForwardGeocode(c, a);
+    }, ADDRESS_DEBOUNCE_MS);
+    return () => window.clearTimeout(t);
+  }, [formCity, formAddress, runAddressForwardGeocode]);
 
   /** מיקום אולם שמור (עריכה) — גיבוי אם המפה נטענה לפני whenReady */
   useEffect(() => {
