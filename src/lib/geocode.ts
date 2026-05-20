@@ -169,6 +169,10 @@ function isRoughlyIsrael(lat: number, lng: number): boolean {
   return lat >= 29.4 && lat <= 33.6 && lng >= 33.5 && lng <= 36.2;
 }
 
+function nominatimViewboxAround(lat: number, lng: number, deltaDeg = 0.14): string {
+  return `${lng - deltaDeg},${lat + deltaDeg},${lng + deltaDeg},${lat - deltaDeg}`;
+}
+
 type NominatimSearchRow = {
   lat?: string;
   lon?: string;
@@ -196,14 +200,6 @@ function parseNominatimSearchJson(
     for (const row of arr) {
       const hn = row.address?.house_number;
       if (hn != null && String(hn).trim() === wanted) {
-        const c = coordsFromNominatimRow(row);
-        if (c) return c;
-      }
-    }
-    for (const row of arr) {
-      const cls = row.class ?? "";
-      const typ = row.type ?? "";
-      if (cls === "building" || typ === "house" || typ === "residential") {
         const c = coordsFromNominatimRow(row);
         if (c) return c;
       }
@@ -362,12 +358,16 @@ async function nominatimSearch(
   const { allow429Retry = true, timeoutMs = 12_000, viewbox, wantedHouse } = options;
   const params = new URLSearchParams({
     format: "json",
-    limit: wantedHouse?.trim() ? "8" : "1",
+    limit: wantedHouse?.trim() ? "10" : "1",
     countrycodes: "il",
     addressdetails: wantedHouse?.trim() ? "1" : "0",
     q: query,
   });
-  if (viewbox) params.set("viewbox", viewbox);
+  if (wantedHouse?.trim()) params.set("featuretype", "house");
+  if (viewbox) {
+    params.set("viewbox", viewbox);
+    params.set("bounded", "1");
+  }
   const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
@@ -416,10 +416,11 @@ async function nominatimStructuredSearch(
   const wantedHouse = parts.housenumber?.trim() || null;
   const params = new URLSearchParams({
     format: "json",
-    limit: wantedHouse ? "8" : "1",
+    limit: wantedHouse ? "10" : "1",
     countrycodes: "il",
     addressdetails: wantedHouse ? "1" : "0",
   });
+  if (wantedHouse) params.set("featuretype", "house");
   if (parts.street) params.set("street", parts.street);
   if (parts.housenumber) params.set("housenumber", parts.housenumber);
   if (parts.city) params.set("city", parts.city);
@@ -607,6 +608,9 @@ const STREET_HE_TO_EN: Record<string, string> = {
   ויצמן: "Weizmann",
   רוטשילד: "Rothschild",
   "יוני נתניהו": "Yoni Netanyahu",
+  "בן יהודה": "Ben Yehuda",
+  "שדרות בן גוריון": "Ben Gurion Boulevard",
+  "שדרות ירושלים": "Jerusalem Boulevard",
 };
 
 function englishStreetHint(streetFragment: string): string | null {
@@ -620,14 +624,82 @@ function englishStreetHint(streetFragment: string): string | null {
   return null;
 }
 
+/** Google Geocoding (אופציונלי) — מדויק יותר לכתובות בישראל כשיש מפתח ב-Vercel */
+async function googleGeocodeIsraelAddress(
+  streetAddress: string,
+  city: string
+): Promise<{ lat: number; lng: number } | null> {
+  const key = process.env.GOOGLE_GEOCODING_API_KEY?.trim();
+  if (!key) return null;
+  const addr = normalizeUserGeocodeText(streetAddress);
+  const c = normalizeUserGeocodeText(city);
+  if (!addr || !c) return null;
+  const { house: wantedHouse } = splitStreetAndHouse(stripLeadingRoadWord(addr));
+
+  const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+  url.searchParams.set("address", `${addr}, ${c}, Israel`);
+  url.searchParams.set("key", key);
+  url.searchParams.set("region", "il");
+  url.searchParams.set("language", "he");
+
+  try {
+    const res = await fetch(url, { ...FETCH_NO_STORE });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      status?: string;
+      results?: {
+        geometry?: {
+          location?: { lat?: number; lng?: number };
+          location_type?: string;
+        };
+        address_components?: { long_name?: string; types?: string[] }[];
+      }[];
+    };
+    if (data.status !== "OK" || !data.results?.length) return null;
+
+    const pickCoords = (
+      row: NonNullable<typeof data.results>[number]
+    ): { lat: number; lng: number } | null => {
+      const lat = row.geometry?.location?.lat;
+      const lng = row.geometry?.location?.lng;
+      if (lat == null || lng == null || !isRoughlyIsrael(lat, lng)) return null;
+      return { lat, lng };
+    };
+
+    const streetNumberOf = (row: NonNullable<typeof data.results>[number]) =>
+      row.address_components
+        ?.find((c) => c.types?.includes("street_number"))
+        ?.long_name?.trim();
+
+    if (wantedHouse) {
+      const exact = data.results.find((r) => streetNumberOf(r) === wantedHouse);
+      if (exact) return pickCoords(exact);
+      return null;
+    }
+
+    const preferred =
+      data.results.find(
+        (r) =>
+          r.geometry?.location_type === "ROOFTOP" ||
+          r.geometry?.location_type === "RANGE_INTERPOLATED"
+      ) ?? data.results[0];
+    return pickCoords(preferred);
+  } catch {
+    return null;
+  }
+}
+
 /**
- * גיאוקוד כתובת: Nominatim מובנה לפי עיר+רחוב (מדויק) → Photon סדרתי עם אימות עיר → q=.
- * ללא Promise.any על Photon — הנצחה של בקשה מהירה החזירה רחוב בעיר הלא נכונה.
+ * גיאוקוד כתובת: Google (אם מוגדר) → Nominatim מובנה לפי עיר+רחוב+מספר → Photon.
+ * עם מספר בית — לא מחזירים מיקום ברחוב בלבד (רק התאמה למספר או null).
  */
 export async function geocodeIsraelAddress(
   streetAddress: string,
   city: string
 ): Promise<{ lat: number; lng: number } | null> {
+  const googleHit = await googleGeocodeIsraelAddress(streetAddress, city);
+  if (googleHit) return googleHit;
+
   const t0 = Date.now();
   const withinBudget = () => Date.now() - t0 < ADDRESS_GEOCODE_BUDGET_MS;
   const addr = normalizeUserGeocodeText(streetAddress);
@@ -648,7 +720,11 @@ export async function geocodeIsraelAddress(
   );
 
   const photonOpts = { timeoutMs: ADDRESS_HTTP_TIMEOUT_MS };
-  const nomOpts = { timeoutMs: ADDRESS_HTTP_TIMEOUT_MS };
+  const cityCenter = tryExactCityCoords(rawCity) ?? tryExactCityCoords(c);
+  const cityViewbox = cityCenter
+    ? nominatimViewboxAround(cityCenter.lat, cityCenter.lng)
+    : undefined;
+  const nomOpts = { timeoutMs: ADDRESS_HTTP_TIMEOUT_MS, viewbox: cityViewbox };
 
   async function nomPause() {
     if (!withinBudget()) return;
@@ -728,11 +804,10 @@ export async function geocodeIsraelAddress(
     const structWithHouse: {
       street: string;
       city: string;
-      housenumber?: string;
+      housenumber: string;
     }[] = [
       { street: streetOnly, city: c, housenumber: houseNum },
-      { street: `${streetOnly} ${houseNum}`, city: c },
-      { street: `${houseNum} ${streetOnly}`, city: c },
+      { street: addrNoRoad, city: c, housenumber: houseNum },
     ];
     if (addr !== addrNoRoad) {
       structWithHouse.push({ street: addr, city: c, housenumber: houseNum });
@@ -746,8 +821,6 @@ export async function geocodeIsraelAddress(
     if (streetEn && en) {
       for (const parts of [
         { street: streetEn, city: en, housenumber: houseNum },
-        { street: `${streetEn} ${houseNum}`, city: en },
-        { street: `${houseNum} ${streetEn}`, city: en },
         { street: `${streetEn} Street`, city: en, housenumber: houseNum },
       ]) {
         hit = await structTry(parts);

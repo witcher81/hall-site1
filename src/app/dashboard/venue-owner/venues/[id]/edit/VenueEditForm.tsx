@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import AddressStreetSuggest from "@/components/AddressStreetSuggest";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import EventTypeCustomHallRowsEditor from "@/components/EventTypeCustomHallRowsEditor";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
@@ -235,6 +236,11 @@ export default function VenueEditForm({
   );
   const [mapFieldSyncNonce, setMapFieldSyncNonce] = useState(0);
   const [syncMapFromAddressNonce, setSyncMapFromAddressNonce] = useState(0);
+  const [addressPinNonce, setAddressPinNonce] = useState(0);
+  const [addressPinCoords, setAddressPinCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const hasSavedVenueCoords = useMemo(
     () => isValidIsraelVenueCoord(initial.latitude, initial.longitude),
     [initial.latitude, initial.longitude]
@@ -292,7 +298,19 @@ export default function VenueEditForm({
     setVenueLng(null);
     setParkingLat(null);
     setParkingLng(null);
+    setAddressPinCoords(null);
   }, []);
+
+  const handleAddressPickFromList = useCallback(
+    (lat: number, lng: number, addressValue: string) => {
+      setVenueLat(lat);
+      setVenueLng(lng);
+      setAddressPinCoords({ lat, lng });
+      setAddressPinNonce((n) => n + 1);
+      setForm((f) => ({ ...f, address: addressValue }));
+    },
+    []
+  );
 
   const parkingOnSameMapConfig = useMemo(
     () =>
@@ -866,13 +884,14 @@ export default function VenueEditForm({
               <label className="block text-xs font-medium text-[#5F5F5F]">
                 כתובת *
               </label>
-              <input
-                type="text"
+              <AddressStreetSuggest
                 required
+                city={form.city}
                 value={form.address}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, address: e.target.value }))
+                onChange={(address) =>
+                  setForm((f) => ({ ...f, address }))
                 }
+                onPickFromList={handleAddressPickFromList}
                 onBlur={() => {
                   if (form.address.trim().length >= 3 && form.city.trim()) {
                     setSyncMapFromAddressNonce((n) => n + 1);
@@ -881,6 +900,9 @@ export default function VenueEditForm({
                 className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
                 placeholder="רחוב ומספר בית, למשל יוני נתניהו 30"
               />
+              <p className="mt-1 text-[10px] text-[#6B6560]">
+                הקלידו ולבחרו מהרשימה לדיוק מקסימלי, או צאו מהשדה לעדכון אוטומטי.
+              </p>
             </div>
           </div>
 
@@ -948,6 +970,11 @@ export default function VenueEditForm({
                 formAddress={form.address}
                 formFieldsSyncNonce={hasSavedVenueCoords ? 0 : mapFieldSyncNonce}
                 syncMapFromAddressNonce={syncMapFromAddressNonce}
+                pinVenueAt={
+                  addressPinCoords
+                    ? { ...addressPinCoords, nonce: addressPinNonce }
+                    : null
+                }
                 preferSavedMapPins={hasSavedVenueCoords}
                 initialVenue={savedVenueForMap}
                 initialParking={savedParkingForMap}

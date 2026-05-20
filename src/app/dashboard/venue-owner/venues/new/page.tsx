@@ -12,6 +12,7 @@ import {
 } from "react";
 import { validatePriceMinMax } from "@/lib/userInputValidation";
 import dynamic from "next/dynamic";
+import AddressStreetSuggest from "@/components/AddressStreetSuggest";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import EventTypeCustomHallRowsEditor from "@/components/EventTypeCustomHallRowsEditor";
 import { EventTypeProfilePublicNotesField } from "@/components/EventTypeProfilePublicNotesField";
@@ -190,6 +191,11 @@ export default function NewVenuePage() {
   const [parkingLng, setParkingLng] = useState<number | null>(null);
   const [pickedLat, setPickedLat] = useState<number | null>(null);
   const [pickedLng, setPickedLng] = useState<number | null>(null);
+  const [addressPinNonce, setAddressPinNonce] = useState(0);
+  const [addressPinCoords, setAddressPinCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   /** עולה ב-blur של עיר/כתובת — המפה מזמנת גיאוקוד מיד */
   const [formFieldsSyncNonce, setFormFieldsSyncNonce] = useState(0);
   /** מניעת כפילות ב-Strict Mode */
@@ -819,17 +825,27 @@ export default function NewVenuePage() {
               <label className="block text-xs font-medium text-[#5F5F5F]">
                 כתובת *
               </label>
-              <input
-                type="text"
+              <AddressStreetSuggest
                 required
+                city={form.city}
                 value={form.address}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, address: e.target.value }))
+                onChange={(address) =>
+                  setForm((f) => ({ ...f, address }))
                 }
+                onPickFromList={(lat, lng, addressValue) => {
+                  setPickedLat(lat);
+                  setPickedLng(lng);
+                  setAddressPinCoords({ lat, lng });
+                  setAddressPinNonce((n) => n + 1);
+                  setForm((f) => ({ ...f, address: addressValue }));
+                }}
                 onBlur={() => setFormFieldsSyncNonce((n) => n + 1)}
                 className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-                placeholder="לדוגמה: הרצל 15 או יוני נתניהו 30"
+                placeholder="רחוב ומספר בית, למשל יוני נתניהו 30"
               />
+              <p className="mt-1 text-[10px] text-[#6B6560]">
+                הקלידו ולבחרו מהרשימה לדיוק מקסימלי, או צאו מהשדה לעדכון אוטומטי.
+              </p>
             </div>
           </div>
 
@@ -895,6 +911,11 @@ export default function NewVenuePage() {
                 formCity={form.city}
                 formAddress={form.address}
                 formFieldsSyncNonce={formFieldsSyncNonce}
+                pinVenueAt={
+                  addressPinCoords
+                    ? { ...addressPinCoords, nonce: addressPinNonce }
+                    : null
+                }
                 parkingOnSameMap={
                   parkingKindNeedsMap(parkingKind)
                     ? {

@@ -2,7 +2,11 @@
  * הצעות רחוב לפי עיר — Photon + Nominatim (חינמי, ללא מפתח).
  */
 
-import { englishCityName, normalizeUserGeocodeText } from "@/lib/geocode";
+import {
+  englishCityName,
+  normalizeUserGeocodeText,
+  splitStreetAndHouse,
+} from "@/lib/geocode";
 import { normalizeCityNameForLookup, tryExactCityCoords } from "@/lib/israel-city-coords";
 
 const USER_AGENT = "HallsHub/1.0 (venue map; contact via site admin)";
@@ -41,6 +45,7 @@ type PhotonFeature = {
     locality?: string;
     countrycode?: string;
     type?: string;
+    housenumber?: string | number;
   };
 };
 
@@ -69,15 +74,21 @@ async function fetchPhotonFeatures(
 
 async function fetchNominatimSuggestions(
   q: string,
-  viewbox?: string
-): Promise<{ lat: number; lng: number; display: string }[]> {
+  viewbox?: string,
+  wantedHouse?: string | null
+): Promise<{ lat: number; lng: number; display: string; house?: string }[]> {
   const params = new URLSearchParams({
     format: "json",
     limit: "10",
     countrycodes: "il",
+    addressdetails: "1",
     q,
   });
-  if (viewbox) params.set("viewbox", viewbox);
+  if (wantedHouse?.trim()) params.set("featuretype", "house");
+  if (viewbox) {
+    params.set("viewbox", viewbox);
+    params.set("bounded", "1");
+  }
   const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), 8000);
@@ -95,16 +106,27 @@ async function fetchNominatimSuggestions(
     const text = await res.text();
     const head = text.trimStart().slice(0, 1);
     if (head !== "[" && head !== "{") return [];
-    const data = JSON.parse(text) as { lat?: string; lon?: string; display_name?: string }[];
+    const data = JSON.parse(text) as {
+      lat?: string;
+      lon?: string;
+      display_name?: string;
+      address?: { house_number?: string | number; road?: string };
+    }[];
     if (!Array.isArray(data)) return [];
-    const out: { lat: number; lng: number; display: string }[] = [];
+    const out: { lat: number; lng: number; display: string; house?: string }[] = [];
+    const want = wantedHouse?.trim();
     for (const row of data) {
       const lat = parseFloat(String(row.lat));
       const lng = parseFloat(String(row.lon));
       const display = typeof row.display_name === "string" ? row.display_name.trim() : "";
+      const hn =
+        row.address?.house_number != null
+          ? String(row.address.house_number).trim()
+          : "";
       if (!Number.isFinite(lat) || !Number.isFinite(lng) || !display) continue;
       if (!isRoughlyIsrael(lat, lng)) continue;
-      out.push({ lat, lng, display });
+      if (want && hn !== want) continue;
+      out.push({ lat, lng, display, house: hn || undefined });
     }
     return out;
   } catch {
@@ -128,16 +150,19 @@ export async function suggestStreetsInCity(
   const c = normalizeCityNameForLookup(rawCity) || rawCity;
   const q = qRaw;
   const en = englishCityName(cityInput);
+  const { street: qStreet, house: qHouse } = splitStreetAndHouse(q);
 
   const seen = new Set<string>();
   const out: StreetSuggestion[] = [];
 
-  const add = (streetName: string, lat: number, lng: number) => {
+  const add = (streetName: string, lat: number, lng: number, house?: string | null) => {
     const street = streetName.trim();
     if (!street || !isRoughlyIsrael(lat, lng)) return;
-    if (!streetMatchesQuery(street, q)) return;
-    const value = `${street}, ${c}`;
-    const key = `${lat.toFixed(4)},${lng.toFixed(4)}|${value}`;
+    const queryForMatch = qHouse ? qStreet : q;
+    if (!streetMatchesQuery(street, queryForMatch)) return;
+    if (qHouse && house && house !== qHouse) return;
+    const value = house ? `${street} ${house}` : street;
+    const key = `${lat.toFixed(5)},${lng.toFixed(5)}|${value}`;
     if (seen.has(key)) return;
     seen.add(key);
     out.push({ value, lat, lng });
@@ -147,6 +172,12 @@ export async function suggestStreetsInCity(
     `${q} ${c} ישראל`,
     `${q} ${c} Israel`,
     ...(en ? [`${q} ${en} Israel`] : []),
+    ...(qHouse && qStreet
+      ? [
+          `${qStreet} ${qHouse}, ${c}, Israel`,
+          ...(en ? [`${qStreet} ${qHouse}, ${en}, Israel`] : []),
+        ]
+      : []),
   ];
 
   for (const pq of photonQueries) {
@@ -167,8 +198,12 @@ export async function suggestStreetsInCity(
           (typeof props.name === "string" && props.name.trim()) ||
           "";
         if (!street) continue;
+        const hn =
+          props.housenumber != null && String(props.housenumber).trim().length > 0
+            ? String(props.housenumber).trim()
+            : null;
 
-        add(street, lat, lng);
+        add(street, lat, lng, hn);
         if (out.length >= 14) return out.slice(0, 12);
       }
       await new Promise((r) => setTimeout(r, 60));
@@ -179,11 +214,15 @@ export async function suggestStreetsInCity(
   if (out.length < 6) {
     const center = tryExactCityCoords(rawCity) ?? tryExactCityCoords(c);
     const vb = center ? nominatimViewboxAround(center.lat, center.lng) : undefined;
-    const rows = await fetchNominatimSuggestions(`${q}, ${c}, Israel`, vb);
+    const rows = await fetchNominatimSuggestions(
+      `${q}, ${c}, Israel`,
+      vb,
+      qHouse
+    );
     for (const row of rows) {
-      const firstPart = row.display.split(",")[0]?.trim() ?? row.display;
-      if (!streetMatchesQuery(firstPart, q)) continue;
-      add(firstPart, row.lat, row.lng);
+      const road = row.display.split(",")[0]?.trim() ?? row.display;
+      if (!streetMatchesQuery(road, qHouse ? qStreet : q)) continue;
+      add(road, row.lat, row.lng, row.house ?? qHouse);
       if (out.length >= 12) break;
     }
   }

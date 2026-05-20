@@ -44,6 +44,8 @@ type Props = {
   preferSavedMapPins?: boolean;
   /** מעלה nonce — מרכז מפה לפי כתובת (עריכה, בכפתור בלבד) */
   syncMapFromAddressNonce?: number;
+  /** קואורדינטות מדויקות מהצעת כתובת / בחירה ברשימה */
+  pinVenueAt?: { lat: number; lng: number; nonce: number } | null;
   /** בעריכה — גיאוקוד לפי כתובת לא מוחק סיכת חניה שמורה */
   clearParkingOnAddressGeocode?: boolean;
   /** לחיצה על המפה למיקום אולם מוחקת סיכת חניה */
@@ -141,6 +143,7 @@ export default function VenueLocationPicker({
   initialParking = null,
   preferSavedMapPins = false,
   syncMapFromAddressNonce = 0,
+  pinVenueAt = null,
   clearParkingOnAddressGeocode = true,
   clearParkingWhenHallMoves = true,
 }: Props) {
@@ -259,6 +262,24 @@ export default function VenueLocationPicker({
     [notifyHallPick]
   );
 
+  const placeHallPinAt = useCallback(
+    (map: L.Map, lat: number, lng: number, hintText: string) => {
+      const draggable = preferSavedMapPinsRef.current;
+      if (!markerRef.current) {
+        markerRef.current = addHallMarkerToMap(map, lat, lng, draggable);
+      } else {
+        markerRef.current.setLatLng([lat, lng]);
+      }
+      if (draggable && markerRef.current) attachHallDragEnd(markerRef.current);
+      notifyHallPick(lat, lng);
+      suppressFormGeocodeUntilRef.current = Date.now() + SUPPRESS_FORM_GEOCODE_MS;
+      map.flyTo([lat, lng], 19, { duration: 0.75 });
+      syncMapAfterFly(map);
+      setHint(hintText);
+    },
+    [attachHallDragEnd, notifyHallPick]
+  );
+
   const clearParkingBecauseVenueMoved = useCallback(() => {
     if (!clearParkingWhenHallMovesRef.current) return;
     removeParkingMarkerLayer();
@@ -269,17 +290,14 @@ export default function VenueLocationPicker({
     (map: L.Map) => {
       const iv = initialVenueRef.current;
       if (iv && isValidIsraelLatLng(iv.lat, iv.lng)) {
-        const draggable = preferSavedMapPinsRef.current;
-        if (!markerRef.current) {
-          markerRef.current = addHallMarkerToMap(map, iv.lat, iv.lng, draggable);
-        } else {
-          markerRef.current.setLatLng([iv.lat, iv.lng]);
-        }
-        if (draggable) attachHallDragEnd(markerRef.current);
-        setPicked({ lat: iv.lat, lng: iv.lng });
-        notifyHallPick(iv.lat, iv.lng);
-        map.flyTo([iv.lat, iv.lng], 16);
-        syncMapAfterFly(map);
+        placeHallPinAt(
+          map,
+          iv.lat,
+          iv.lng,
+          preferSavedMapPinsRef.current
+            ? "מיקומי האולם והחניה מהנתונים השמורים. גררו את הסיכות לדיוק."
+            : "מיקום האולם מהנתונים השמורים. אפשר לשנות בלחיצה על המפה."
+        );
       }
 
       const ip = initialParkingRef.current;
@@ -299,17 +317,23 @@ export default function VenueLocationPicker({
       }
 
       if (iv) {
-        suppressFormGeocodeUntilRef.current = Date.now() + SUPPRESS_FORM_GEOCODE_MS;
         savedPinsRestoredRef.current = true;
-        setHint(
-          preferSavedMapPinsRef.current
-            ? "מיקומי האולם והחניה מהנתונים השמורים. גררו את הסיכות לדיוק."
-            : "מיקום האולם מהנתונים השמורים. אפשר לשנות בלחיצה על המפה."
-        );
       }
     },
-    [attachHallDragEnd, attachParkingDragEnd, notifyHallPick]
+    [attachHallDragEnd, attachParkingDragEnd, placeHallPinAt]
   );
+
+  useEffect(() => {
+    if (!pinVenueAt) return;
+    const map = mapRef.current;
+    if (!map || !isValidIsraelLatLng(pinVenueAt.lat, pinVenueAt.lng)) return;
+    placeHallPinAt(
+      map,
+      pinVenueAt.lat,
+      pinVenueAt.lng,
+      "מיקום לפי הכתובת שנבחרה. אפשר לגרור את הסיכה לדיוק נוסף."
+    );
+  }, [pinVenueAt?.lat, pinVenueAt?.lng, pinVenueAt?.nonce, placeHallPinAt]);
 
   useEffect(() => {
     const container = containerRef.current;
