@@ -595,13 +595,18 @@ export default function VenueLocationPicker({
       const map = mapRef.current;
       if (!map) return;
       forwardAbortRef.current?.abort();
+      const citySnap = city.trim();
+      const addressSnap = address.trim();
       await fetchAddressOnMap(
-        city,
-        address,
+        citySnap,
+        addressSnap,
         map,
         addressForwardAbortRef,
         applyForwardResult,
-        setHint
+        setHint,
+        () =>
+          formCityRef.current.trim() === citySnap &&
+          formAddressRef.current.trim() === addressSnap
       );
     },
     [applyForwardResult]

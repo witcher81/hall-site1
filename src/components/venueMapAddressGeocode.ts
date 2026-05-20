@@ -21,7 +21,9 @@ export async function fetchAddressOnMap(
   map: LeafletMap,
   addressAbortRef: RefObject<AbortController | null>,
   applyForwardResult: ApplyFn,
-  setHint: (s: string) => void
+  setHint: (s: string) => void,
+  /** אם הכתובת/עיר השתנו בזמן הבקשה — לא מעדכנים את המפה */
+  isStillCurrent?: () => boolean
 ): Promise<void> {
   const c = city.trim();
   const a = address.trim();
@@ -50,6 +52,7 @@ export async function fetchAddressOnMap(
     if (ac.signal.aborted) return;
 
     if (!data.found || data.lat == null || data.lng == null) {
+      if (isStillCurrent && !isStillCurrent()) return;
       const hasHouse = /\d{1,5}/.test(a);
       setHint(
         hasHouse
@@ -58,6 +61,8 @@ export async function fetchAddressOnMap(
       );
       return;
     }
+
+    if (isStillCurrent && !isStillCurrent()) return;
 
     applyForwardResult(map, {
       lat: data.lat,
