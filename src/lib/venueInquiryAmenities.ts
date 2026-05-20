@@ -267,13 +267,7 @@ export function getVenueInquiryOptions(
   appendChuppaOptionsForInquiry(v, wedding, services);
 
   if (v.hasDanceFloor) {
-    services.push({
-      id: "service:hasDanceFloor",
-      label: "רחבת ריקודים",
-      priceMode: "included",
-      extraPrice: null,
-      allowsExternalSource: false,
-    });
+    infoTraits.push({ id: "trait:hasDanceFloor", label: "רחבת ריקודים" });
   }
 
   const showFood = eventTypeHasFood(v, eventType);

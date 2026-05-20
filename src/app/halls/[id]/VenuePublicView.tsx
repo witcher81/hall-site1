@@ -499,16 +499,6 @@ export default function VenuePublicView({
           },
         ]
       : []),
-    ...(venue.hasDanceFloor
-      ? [
-          {
-            key: "builtin-dance-floor",
-            label: "רחבת ריקודים",
-            mode: venue.amenityPriceModes?.hasDanceFloor,
-            extraPrice: venue.amenityExtraPrices?.hasDanceFloor,
-          },
-        ]
-      : []),
     ...(venue.hasSoundSystem
       ? [
           {
@@ -534,6 +524,7 @@ export default function VenuePublicView({
 
   const venueCharacteristicLabels: string[] = [
     ...(venueTypePublicLabel ? [venueTypePublicLabel] : []),
+    ...(venue.hasDanceFloor ? ["רחבת ריקודים"] : []),
     ...(venue.seaView ? ["נוף לים"] : []),
     ...(venue.boutique ? ["אירועי בוטיק"] : []),
     ...(venue.accessible ? ["נגיש לנכים"] : []),

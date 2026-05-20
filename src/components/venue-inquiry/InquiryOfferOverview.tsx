@@ -211,6 +211,26 @@ export default function InquiryOfferOverview({
   const hasChoosable =
     [...included, ...extra].some((o) => inquiryServiceAllowsExternalSource(o));
 
+  const hallFeaturesSection =
+    allInfo.length > 0 ? (
+      <section className="rounded-xl border border-[#0F3B2E]/15 bg-gradient-to-br from-[#F5F1EA] to-[#E8F0EC]/40 p-4">
+        <p className="text-sm font-bold text-[#0F3B2E]">מאפייני האולם</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
+          מה מקבלים במקום — מבנה, נוף ומאפיינים שחלק מהאולם (ללא תמחור נפרד לפריטים אלה).
+        </p>
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {allInfo.map((t) => (
+            <li
+              key={t.id}
+              className="rounded-2xl border border-[#0F3B2E]/18 bg-white px-3 py-1.5 text-xs font-medium text-[#0F3B2E] shadow-sm"
+            >
+              {t.label}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ) : null;
+
   return (
     <div className="space-y-4">
       {eventTypeLabel ? (
@@ -223,6 +243,8 @@ export default function InquiryOfferOverview({
           בחתונה האוכל כלול בהגדרת האולם — לא מוצג כפריט נפרד לבחירת מקור.
         </p>
       ) : null}
+
+      {hallFeaturesSection}
 
       {hasChoosable ? (
         <p className="text-[11px] leading-relaxed text-[#6B6560]">
@@ -280,25 +302,6 @@ export default function InquiryOfferOverview({
           weddingChuppahPick={weddingChuppahPick}
           onWeddingChuppahPick={onWeddingChuppahPick}
         />
-      ) : null}
-
-      {allInfo.length > 0 ? (
-        <section className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-4">
-          <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">מה מיוחד באולם (מידע בלבד)</p>
-          <p className="mb-2 text-[11px] text-[#6B6560]">
-            פרטים שהאולם סימן לתצוגה — בלי מחיר וללא בחירת ספק חיצוני.
-          </p>
-          <ul className="flex flex-wrap gap-2">
-            {allInfo.map((t) => (
-              <li
-                key={t.id}
-                className="rounded-full border border-[#E0D4C3] bg-white px-3 py-1 text-xs text-[#2A261F]"
-              >
-                {t.label}
-              </li>
-            ))}
-          </ul>
-        </section>
       ) : null}
     </div>
   );
