@@ -3,6 +3,7 @@
  */
 
 import {
+  arcgisSuggestStreetsInCity,
   englishCityName,
   normalizeUserGeocodeText,
   splitStreetAndHouse,
@@ -154,6 +155,17 @@ export async function suggestStreetsInCity(
 
   const seen = new Set<string>();
   const out: StreetSuggestion[] = [];
+
+  if (q.length >= 3) {
+    const arcgis = await arcgisSuggestStreetsInCity(cityInput, queryInput);
+    for (const s of arcgis) {
+      const key = `${s.lat.toFixed(5)},${s.lng.toFixed(5)}|${s.value}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(s);
+    }
+    if (out.length >= 8) return out.slice(0, 12);
+  }
 
   const add = (streetName: string, lat: number, lng: number, house?: string | null) => {
     const street = streetName.trim();

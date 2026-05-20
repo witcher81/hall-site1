@@ -1,5 +1,5 @@
 /**
- * גיאוקוד: Photon + Nominatim (OpenStreetMap) — ללא מפתחות תשלום.
+ * גיאוקוד: ArcGIS World (מדויק לישראל) → Google (אופציונלי) → Photon + Nominatim (OSM).
  * מדיניות Nominatim: לא יותר מבקשה אחת לשנייה בין קריאות רצופות.
  */
 
@@ -519,11 +519,13 @@ async function nominatimReverse(lat: number, lng: number): Promise<ReverseGeocod
 /** בין שתי קריאות Nominatim — מדיניות השימוש דורשת לפחות ~שנייה */
 const NOMINATIM_GAP_MS = 1050;
 
-/** כתובת: מגבלת זמן + מרווח בין Nominatim (~מדיניות שימוש) */
-const ADDRESS_GEOCODE_BUDGET_MS = 38_000;
-const ADDRESS_NOMINATIM_GAP_MS = 850;
-/** קצר יחסית — עדיף לנסות אסטרטגיה אחרת מאשר להיתקע עד timeout והפסד כל הבקשה */
-const ADDRESS_HTTP_TIMEOUT_MS = 6500;
+/** כתובת: מגבלת זמן לגיבוי OSM (אחרי ArcGIS/Google) */
+const ADDRESS_GEOCODE_BUDGET_MS = 10_000;
+const ADDRESS_NOMINATIM_GAP_MS = 450;
+const ADDRESS_HTTP_TIMEOUT_MS = 4500;
+const ARCGIS_GEOCODE_URL =
+  "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates";
+const ARCGIS_MIN_SCORE = 75;
 
 /**
  * מרכז העיר בישראל (לזום במפה) — ללא רחוב.
@@ -624,6 +626,138 @@ function englishStreetHint(streetFragment: string): string | null {
   return null;
 }
 
+function arcgisLabelHasHouse(label: string, house: string): boolean {
+  return new RegExp(`(^|[\\s,.])${house}($|[\\s,.])`).test(label);
+}
+
+function arcgisLabelMatchesCity(label: string, rawCity: string, normalizedCity: string): boolean {
+  const compact = label.replace(/\s+/g, "").toLowerCase();
+  const variants = [
+    rawCity,
+    normalizedCity,
+    englishCityName(rawCity) ?? "",
+  ]
+    .map((x) => x.replace(/\s+/g, "").toLowerCase())
+    .filter((x) => x.length > 1);
+  return variants.some((v) => compact.includes(v));
+}
+
+async function arcgisFindAddressCandidates(
+  singleLine: string,
+  timeoutMs = 5000
+): Promise<{ lat: number; lng: number; label: string; score: number }[]> {
+  const url = new URL(ARCGIS_GEOCODE_URL);
+  url.searchParams.set("f", "json");
+  url.searchParams.set("singleLine", singleLine);
+  url.searchParams.set("maxLocations", "8");
+  url.searchParams.set("countryCode", "ISR");
+  url.searchParams.set("langCode", "he");
+
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      ...FETCH_NO_STORE,
+      signal: controller.signal,
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as {
+      candidates?: {
+        address?: string;
+        score?: number;
+        location?: { x?: number; y?: number };
+      }[];
+    };
+    const out: { lat: number; lng: number; label: string; score: number }[] = [];
+    for (const cand of data.candidates ?? []) {
+      const lat = cand.location?.y;
+      const lng = cand.location?.x;
+      const label = typeof cand.address === "string" ? cand.address.trim() : "";
+      const score = typeof cand.score === "number" ? cand.score : 0;
+      if (!label || lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+        continue;
+      }
+      if (!isRoughlyIsrael(lat, lng)) continue;
+      out.push({ lat, lng, label, score });
+    }
+    return out.sort((a, b) => b.score - a.score);
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+export type ArcgisStreetSuggestion = { value: string; lat: number; lng: number };
+
+/** הצעות ArcGIS — מדויקות לרחוב+מספר בית בישראל */
+export async function arcgisSuggestStreetsInCity(
+  cityInput: string,
+  queryInput: string
+): Promise<ArcgisStreetSuggestion[]> {
+  const rawCity = normalizeUserGeocodeText(cityInput);
+  const qRaw = normalizeUserGeocodeText(queryInput);
+  if (!rawCity || qRaw.length < 2) return [];
+
+  const c = normalizeCityNameForLookup(rawCity) || rawCity;
+  const { street: qStreet, house: qHouse } = splitStreetAndHouse(qRaw);
+  const line =
+    qHouse && qStreet.length >= 1
+      ? `${qStreet} ${qHouse}, ${c}, Israel`
+      : `${qRaw}, ${c}, Israel`;
+
+  const candidates = await arcgisFindAddressCandidates(line, 4500);
+  const out: ArcgisStreetSuggestion[] = [];
+  const seen = new Set<string>();
+
+  for (const cand of candidates) {
+    if (cand.score < ARCGIS_MIN_SCORE) continue;
+    if (!arcgisLabelMatchesCity(cand.label, rawCity, c)) continue;
+    if (qHouse && !arcgisLabelHasHouse(cand.label, qHouse)) continue;
+
+    const streetPart =
+      cand.label.split(",")[0]?.replace(/^(רחוב|שדרות|דרך|רח')\s+/i, "").trim() ??
+      cand.label;
+    const { street: labelStreet, house: labelHouse } = splitStreetAndHouse(
+      stripLeadingRoadWord(streetPart)
+    );
+    const value = labelHouse
+      ? `${labelStreet} ${labelHouse}`.trim()
+      : qHouse
+        ? `${qStreet} ${qHouse}`.trim()
+        : labelStreet || streetPart;
+    if (!value) continue;
+
+    const key = `${cand.lat.toFixed(5)},${cand.lng.toFixed(5)}|${value}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ value, lat: cand.lat, lng: cand.lng });
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+
+/** ArcGIS World — מדויק לכתובות בישראל (כולל מספר בית), ללא מפתח */
+async function arcgisGeocodeIsraelAddress(
+  streetAddress: string,
+  city: string
+): Promise<{ lat: number; lng: number } | null> {
+  const addr = normalizeUserGeocodeText(streetAddress);
+  const rawCity = normalizeUserGeocodeText(city);
+  if (!addr || !rawCity) return null;
+  const c = normalizeCityNameForLookup(rawCity) || rawCity;
+  const { house: wantedHouse } = splitStreetAndHouse(stripLeadingRoadWord(addr));
+
+  const candidates = await arcgisFindAddressCandidates(`${addr}, ${c}, Israel`, 5500);
+  for (const cand of candidates) {
+    if (cand.score < ARCGIS_MIN_SCORE) continue;
+    if (!arcgisLabelMatchesCity(cand.label, rawCity, c)) continue;
+    if (wantedHouse && !arcgisLabelHasHouse(cand.label, wantedHouse)) continue;
+    return { lat: cand.lat, lng: cand.lng };
+  }
+  return null;
+}
+
 /** Google Geocoding (אופציונלי) — מדויק יותר לכתובות בישראל כשיש מפתח ב-Vercel */
 async function googleGeocodeIsraelAddress(
   streetAddress: string,
@@ -690,15 +824,19 @@ async function googleGeocodeIsraelAddress(
 }
 
 /**
- * גיאוקוד כתובת: Google (אם מוגדר) → Nominatim מובנה לפי עיר+רחוב+מספר → Photon.
+ * גיאוקוד כתובת: Google (אם מוגדר) + ArcGIS → Photon/Nominatim (גיבוי מהיר).
  * עם מספר בית — לא מחזירים מיקום ברחוב בלבד (רק התאמה למספר או null).
  */
 export async function geocodeIsraelAddress(
   streetAddress: string,
   city: string
 ): Promise<{ lat: number; lng: number } | null> {
-  const googleHit = await googleGeocodeIsraelAddress(streetAddress, city);
+  const [googleHit, arcgisHit] = await Promise.all([
+    googleGeocodeIsraelAddress(streetAddress, city),
+    arcgisGeocodeIsraelAddress(streetAddress, city),
+  ]);
   if (googleHit) return googleHit;
+  if (arcgisHit) return arcgisHit;
 
   const t0 = Date.now();
   const withinBudget = () => Date.now() - t0 < ADDRESS_GEOCODE_BUDGET_MS;
@@ -801,60 +939,32 @@ export async function geocodeIsraelAddress(
   const nomHouseOpts = { ...nomOpts, wantedHouse: houseNum };
 
   if (houseNum) {
-    const structWithHouse: {
-      street: string;
-      city: string;
-      housenumber: string;
-    }[] = [
-      { street: streetOnly, city: c, housenumber: houseNum },
-      { street: addrNoRoad, city: c, housenumber: houseNum },
+    const photonParallelQueries: { q: string; lang?: "he" | "en" }[] = [
+      { q: `${addr}, ${c}, Israel` },
+      ...(streetEn && en
+        ? [{ q: `${streetEn} ${houseNum}, ${en}, Israel`, lang: "en" as const }]
+        : []),
+      { q: `${addrNoRoad}, ${c}, Israel` },
     ];
-    if (addr !== addrNoRoad) {
-      structWithHouse.push({ street: addr, city: c, housenumber: houseNum });
-    }
-    for (const parts of structWithHouse) {
-      hit = await structTry(parts);
-      if (hit) return hit;
-      await nomPause();
-    }
-
-    if (streetEn && en) {
-      for (const parts of [
-        { street: streetEn, city: en, housenumber: houseNum },
-        { street: `${streetEn} Street`, city: en, housenumber: houseNum },
-      ]) {
-        hit = await structTry(parts);
-        if (hit) return hit;
-        await nomPause();
-      }
-    }
-
-    hit = await photonSequential(photonQueries, houseNum);
+    const photonHits = await Promise.all(
+      photonParallelQueries.map(({ q, lang }) =>
+        photonSearchInCity(q, cityVariantsCompact, {
+          ...photonOpts,
+          ...(lang ? { lang } : {}),
+          requireHouseNumber: houseNum,
+        })
+      )
+    );
+    hit = photonHits.find((r) => r != null) ?? null;
     if (hit) return hit;
 
-    const nominatimHouseQ: string[] = [];
-    const seenHouse = new Set<string>();
-    const addHouseQuery = (q: string) => {
-      const key = q.trim();
-      if (key.length < 4 || seenHouse.has(key)) return;
-      seenHouse.add(key);
-      nominatimHouseQ.push(key);
-    };
-    addHouseQuery(`${addr}, ${c}, ישראל`);
-    addHouseQuery(`${addrNoRoad}, ${c}, Israel`);
-    addHouseQuery(`${houseNum} ${addrNoRoad}, ${c}, Israel`);
-    addHouseQuery(`רחוב ${streetOnly} ${houseNum}, ${c}, Israel`);
-    if (en) {
-      addHouseQuery(`${addr}, ${en}, Israel`);
-      if (streetEn) addHouseQuery(`${streetEn} ${houseNum}, ${en}, Israel`);
-    }
-    const maxHouseQ = Math.min(nominatimHouseQ.length, 6);
-    for (let i = 0; i < maxHouseQ; i++) {
-      if (!withinBudget()) return null;
-      hit = await nominatimSearch(nominatimHouseQ[i], nomHouseOpts);
-      if (hit) return hit;
-      if (i < maxHouseQ - 1) await sleep(ADDRESS_NOMINATIM_GAP_MS);
-    }
+    hit = await structTry({ street: streetOnly, city: c, housenumber: houseNum });
+    if (hit) return hit;
+    await nomPause();
+
+    if (!withinBudget()) return null;
+    hit = await nominatimSearch(`${addr}, ${c}, ישראל`, nomHouseOpts);
+    if (hit) return hit;
 
     return null;
   }

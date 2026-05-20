@@ -13,7 +13,7 @@ type ApplyFn = (
 
 const MIN_ADDRESS_LEN = 3;
 /** מקסימום המתנה לשרת — בלי זה הטקסט "מחפש..." נשאר לנצח אם השרת איטי */
-const ADDRESS_FETCH_MAX_MS = 48_000;
+const ADDRESS_FETCH_MAX_MS = 18_000;
 
 export async function fetchAddressOnMap(
   city: string,
