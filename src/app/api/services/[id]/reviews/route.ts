@@ -8,13 +8,13 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  const venueId = Number(id);
-  if (!Number.isInteger(venueId) || venueId <= 0) {
-    return NextResponse.json({ error: "invalid venue id" }, { status: 400 });
+  const serviceId = Number(id);
+  if (!Number.isInteger(serviceId) || serviceId <= 0) {
+    return NextResponse.json({ error: "invalid service id" }, { status: 400 });
   }
 
-  const reviewsRaw = await prisma.venueReview.findMany({
-    where: { venueId },
+  const reviewsRaw = await prisma.serviceReview.findMany({
+    where: { serviceId },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -49,15 +49,37 @@ export async function POST(req: NextRequest, context: RouteContext) {
   }
   if (user.role !== "SEEKER") {
     return NextResponse.json(
-      { error: "רק מחפשי אולמות יכולים לכתוב ביקורות" },
+      { error: "רק מחפשי אולמות יכולים לכתוב ביקורות על שירותים" },
       { status: 403 }
     );
   }
 
   const { id } = await context.params;
-  const venueId = Number(id);
-  if (!Number.isInteger(venueId) || venueId <= 0) {
-    return NextResponse.json({ error: "invalid venue id" }, { status: 400 });
+  const serviceId = Number(id);
+  if (!Number.isInteger(serviceId) || serviceId <= 0) {
+    return NextResponse.json({ error: "invalid service id" }, { status: 400 });
+  }
+
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId },
+    select: { id: true },
+  });
+  if (!service) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+
+  const hasRequest = await prisma.serviceRequest.findFirst({
+    where: { serviceId, userId: user.id },
+    select: { id: true },
+  });
+  if (!hasRequest) {
+    return NextResponse.json(
+      {
+        error:
+          "ניתן לכתוב ביקורת רק לאחר שליחת בקשה לשירות זה דרך האתר.",
+      },
+      { status: 403 }
+    );
   }
 
   const body = await req.json().catch(() => null);
@@ -75,38 +97,24 @@ export async function POST(req: NextRequest, context: RouteContext) {
   }
   const ratingScore = starsToDbScore(parsed.rating);
 
-  const hasInquiry = await prisma.inquiry.findFirst({
-    where: { venueId, userId: user.id },
-    select: { id: true },
-  });
-  if (!hasInquiry) {
-    return NextResponse.json(
-      {
-        error:
-          "ניתן לכתוב ביקורת רק לאחר שליחת פנייה לאולם זה דרך האתר.",
-      },
-      { status: 403 }
-    );
-  }
-
-  const duplicate = await prisma.venueReview.findFirst({
-    where: { venueId, userId: user.id },
+  const duplicate = await prisma.serviceReview.findUnique({
+    where: { userId_serviceId: { userId: user.id, serviceId } },
     select: { id: true },
   });
   if (duplicate) {
     return NextResponse.json(
       {
         error:
-          "כבר שלחת ביקורת לאולם זה. אפשר לערוך או למחוק את הביקורת הקיימת.",
+          "כבר שלחת ביקורת לשירות זה. אפשר לערוך או למחוק את הביקורת הקיימת.",
         existingReviewId: duplicate.id,
       },
       { status: 409 }
     );
   }
 
-  const review = await prisma.venueReview.create({
+  const review = await prisma.serviceReview.create({
     data: {
-      venueId,
+      serviceId,
       userId: user.id,
       rating: ratingScore,
       comment: comment || null,
@@ -115,4 +123,3 @@ export async function POST(req: NextRequest, context: RouteContext) {
 
   return NextResponse.json({ ok: true, reviewId: review.id });
 }
-

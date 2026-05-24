@@ -25,6 +25,10 @@ export default async function PackagesPage() {
             אולם ושירותים במקום אחד — בדומה ל&quot;טיסה + מלון&quot;: מסננים כמו בחיפוש
             אולמות (עיר, אורחים, מחיר), והתוצאות מתעדכנות אוטומטית.
           </p>
+          <p className="mt-2 text-xs text-[#6B6560]">
+            עריכת חבילות חדשות מתבצעת כרגע בצד השרת (מנהל מערכת). לפניות לעדכון חבילות —
+            דרך תמיכת האתר.
+          </p>
         </header>
 
         <div className="mt-4 rounded-2xl border border-[#C9A227]/40 bg-[#FFFBF0] px-4 py-3 text-right text-sm text-[#2A261F]">

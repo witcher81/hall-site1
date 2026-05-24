@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { validatePreferredDateNotPast } from "@/lib/validatePreferredDate";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -45,7 +46,9 @@ export async function POST(req: NextRequest) {
   if (preferredDateRaw && preferredDateRaw.length > USER_INPUT_MAX.DATE_STRING) {
     return badRequest("תאריך לא תקין");
   }
-  const preferredDate = preferredDateRaw;
+  const dateCheck = validatePreferredDateNotPast(preferredDateRaw);
+  if (!dateCheck.ok) return dateCheck.response;
+  const preferredDate = dateCheck.value;
 
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
     return NextResponse.json({ error: "נא לבחור שירות" }, { status: 400 });

@@ -1,5 +1,6 @@
 "use client";
 
+import ServiceReviewsSection from "@/components/ServiceReviewsSection";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import {
@@ -53,11 +54,15 @@ export default function SingleServiceView({
   service,
   siblingServicesCount,
   seekerLoggedIn,
+  currentUserId,
+  canWriteServiceReview,
 }: {
   provider: Provider;
   service: Service;
   siblingServicesCount: number;
   seekerLoggedIn: boolean;
+  currentUserId: number | null;
+  canWriteServiceReview: boolean;
 }) {
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [requestSent, setRequestSent] = useState(false);
@@ -663,6 +668,12 @@ export default function SingleServiceView({
           </p>
         </div>
       )}
+
+      <ServiceReviewsSection
+        serviceId={service.id}
+        currentUserId={currentUserId}
+        canWriteReview={seekerLoggedIn && canWriteServiceReview}
+      />
     </main>
   );
 }

@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { assertAnalyticsViewRequest } from "@/lib/analyticsViewGuard";
 import { prisma } from "@/lib/prisma";
 import { ENGAGED_VIEW_MIN_MS } from "@/lib/popularityConfig";
 import { USER_INPUT_MAX } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
+const MAX_VIEWS_PER_PROVIDER_PER_HOUR = 80;
+
 export async function POST(req: NextRequest) {
+  if (!assertAnalyticsViewRequest(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const body = await req.json().catch(() => ({}));
   const providerUserId = Number((body as { providerUserId?: unknown }).providerUserId);
   const dwellMs = Number((body as { dwellMs?: unknown }).dwellMs);
@@ -32,6 +39,14 @@ export async function POST(req: NextRequest) {
   });
   if (!user) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const recentCount = await prisma.freelancerProfileView.count({
+    where: { providerUserId, createdAt: { gte: hourAgo } },
+  });
+  if (recentCount >= MAX_VIEWS_PER_PROVIDER_PER_HOUR) {
+    return NextResponse.json({ ok: true, skipped: true });
   }
 
   try {

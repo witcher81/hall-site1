@@ -2,7 +2,11 @@
 
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import PopularBadge from "@/components/PopularBadge";
-import { FREELANCER_SERVICE_CATEGORIES } from "@/lib/freelancerServiceCategories";
+import {
+  FREELANCER_SERVICE_CATEGORIES,
+  getSecondaryServicesForPrimary,
+} from "@/lib/freelancerServiceCategories";
+import { resolveProviderCategoryFilter } from "@/lib/serviceCategoryQuery";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
@@ -43,17 +47,26 @@ export default function ProvidersSearchClient() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     category: "",
+    secondary: "",
     minPrice: "",
     maxPrice: "",
   });
 
   useEffect(() => {
+    const rawCat = searchParams.get("category") ?? "";
+    const rawSec = searchParams.get("secondary") ?? "";
+    const { primary, secondary } = resolveProviderCategoryFilter(rawCat, rawSec);
     setForm({
-      category: searchParams.get("category") ?? "",
+      category: primary,
+      secondary,
       minPrice: searchParams.get("minPrice") ?? "",
       maxPrice: searchParams.get("maxPrice") ?? "",
     });
   }, [searchParams]);
+
+  const secondaryOptions = form.category
+    ? getSecondaryServicesForPrimary(form.category)
+    : [];
 
   useEffect(() => {
     fetch("/api/trending")
@@ -75,9 +88,11 @@ export default function ProvidersSearchClient() {
     setLoading(true);
     const params = new URLSearchParams();
     const category = searchParams.get("category");
+    const secondary = searchParams.get("secondary");
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     if (category) params.set("category", category);
+    if (secondary) params.set("secondary", secondary);
     if (minPrice) params.set("minPrice", minPrice);
     if (maxPrice) params.set("maxPrice", maxPrice);
     const qs = params.toString();
@@ -92,6 +107,7 @@ export default function ProvidersSearchClient() {
     e.preventDefault();
     const params = new URLSearchParams();
     if (form.category) params.set("category", form.category);
+    if (form.secondary) params.set("secondary", form.secondary);
     if (form.minPrice) params.set("minPrice", form.minPrice);
     if (form.maxPrice) params.set("maxPrice", form.maxPrice);
     router.push(`/providers${params.toString() ? `?${params.toString()}` : ""}`);
@@ -104,17 +120,37 @@ export default function ProvidersSearchClient() {
         className="rounded-2xl border border-[#E0D4C3] bg-white p-5 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
       >
         <p className="mb-3 text-xs font-semibold text-[#0F3B2E]">סינון חיפוש</p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div>
             <label className="block text-xs font-medium text-[#5F5F5F]">קטגוריה ראשית</label>
             <select
               value={form.category}
-              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  category: e.target.value,
+                  secondary: "",
+                }))
+              }
               className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
             >
               <option value="">הכל</option>
               {FREELANCER_SERVICE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#5F5F5F]">שירות (משני)</label>
+            <select
+              value={form.secondary}
+              disabled={!form.category || secondaryOptions.length === 0}
+              onChange={(e) => setForm((f) => ({ ...f, secondary: e.target.value }))}
+              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40 disabled:opacity-50"
+            >
+              <option value="">כל השירותים בקטגוריה</option>
+              {secondaryOptions.map((s) => (
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>

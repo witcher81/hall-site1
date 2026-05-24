@@ -34,9 +34,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 });
     }
 
-    await req.json().catch(() => ({}));
+    const body = (await req.json().catch(() => ({}))) as {
+      type?: string;
+      event?: string;
+    };
+    const eventType =
+      (typeof body.type === "string" && body.type.trim()) ||
+      (typeof body.event === "string" && body.event.trim()) ||
+      "";
 
-    return NextResponse.json({ ok: true });
+    if (eventType === "ping" || eventType === "health") {
+      return NextResponse.json({ ok: true, received: true, processed: true, eventType });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      received: true,
+      processed: false,
+      eventType: eventType || null,
+      message:
+        "הבקשה אומתה אך אין מטפל לאירוע מסוג זה. נתמך כרגע: ping, health.",
+    });
   } catch (error) {
     console.error("webhooks/inbound POST:", error);
     Sentry.captureException(error);
@@ -52,5 +70,7 @@ export async function GET() {
     method: "POST",
     auth:
       "Header X-Hall-Webhook-Secret or Authorization: Bearer <WEBHOOK_INBOUND_SECRET>",
+    supportedEvents: ["ping", "health"],
+    note: "אירועים אחרים מתקבלים (200) אך processed:false עד שיוגדר מטפל.",
   });
 }

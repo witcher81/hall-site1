@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 import { applyRateLimit } from "@/lib/rateLimit";
 
 /** Webhooks ו־SSE — לא לחסום בגלל חיבורים חוזרים */
-const SKIP_PREFIXES = ["/api/webhooks/", "/api/realtime/stream"] as const;
+const SKIP_PREFIXES = [
+  "/api/webhooks/",
+  "/api/realtime/stream",
+  "/api/health",
+] as const;
 const CORS_METHODS = "GET,POST,PUT,PATCH,DELETE,OPTIONS";
 const CORS_ALLOWED_HEADERS = "Content-Type, Authorization";
 

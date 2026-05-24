@@ -10,6 +10,7 @@ type LimiterSet = {
   auth: Ratelimit;
   heavy: Ratelimit;
   sensitive: Ratelimit;
+  analytics: Ratelimit;
 };
 
 type Cached = LimiterSet | null;
@@ -28,6 +29,8 @@ const HEAVY_PREFIXES = [
   "/api/inquiry/freelancer-alternatives",
   "/api/geocode/",
 ] as const;
+
+const ANALYTICS_PREFIXES = ["/api/analytics/"] as const;
 
 function getLimiters(): Cached {
   if (limiters !== undefined) return limiters;
@@ -62,6 +65,12 @@ function getLimiters(): Cached {
       analytics: true,
       prefix: "hall:rl:sensitive",
     }),
+    analytics: new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(20, "1 h"),
+      analytics: true,
+      prefix: "hall:rl:analytics",
+    }),
   };
   return limiters;
 }
@@ -69,6 +78,7 @@ function getLimiters(): Cached {
 function pickLimiter(pathname: string, pair: LimiterSet): Ratelimit {
   if (AUTH_PATHS.has(pathname)) return pair.auth;
   if (pathname === "/api/venue-owner/venues/boost") return pair.sensitive;
+  if (ANALYTICS_PREFIXES.some((p) => pathname.startsWith(p))) return pair.analytics;
   if (HEAVY_PREFIXES.some((p) => pathname.startsWith(p))) return pair.heavy;
   return pair.api;
 }
@@ -77,6 +87,7 @@ function rateLimitKey(pathname: string, ip: string, limiter: Ratelimit, pair: Li
   if (limiter === pair.auth) return `auth:${ip}`;
   if (limiter === pair.heavy) return `heavy:${ip}`;
   if (limiter === pair.sensitive) return `sensitive:${ip}:${pathname}`;
+  if (limiter === pair.analytics) return `analytics:${ip}`;
   return `api:${ip}`;
 }
 
@@ -141,5 +152,13 @@ export function warnIfProductionMissingUpstash(): void {
   if (getUpstashRedisConfig()) return;
   console.error(
     "[security] Production requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN — API requests return 503 until configured."
+  );
+}
+
+export function warnIfProductionMissingCronSecret(): void {
+  if (!isProductionRuntime()) return;
+  if (process.env.CRON_SECRET?.trim()) return;
+  console.error(
+    "[security] Production requires CRON_SECRET — email queue and background jobs will not run until configured."
   );
 }

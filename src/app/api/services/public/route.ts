@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CATEGORY_VALUE_SEPARATOR } from "@/lib/freelancerServiceCategories";
+import { buildServiceCategoryWhere } from "@/lib/serviceCategoryQuery";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 /** רשימת שירותים לציבור (מחפשים) – עם סינון אופציונלי */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const category = searchParams.get("category")?.trim();
+  const category = searchParams.get("category")?.trim() ?? "";
+  const secondary = searchParams.get("secondary")?.trim() ?? "";
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
 
@@ -15,13 +16,9 @@ export async function GET(req: NextRequest) {
     OR?: Array<{ category: string } | { category: { startsWith: string } }>;
     minPrice?: { gte: number };
     maxPrice?: { lte: number };
-  } = {};
-  if (category && category.length > 0) {
-    where.OR = [
-      { category },
-      { category: { startsWith: `${category}${CATEGORY_VALUE_SEPARATOR}` } },
-    ];
-  }
+  } = {
+    ...buildServiceCategoryWhere(category, secondary),
+  };
   if (minPrice && minPrice !== "") {
     const n = Number(minPrice);
     if (!Number.isNaN(n)) where.minPrice = { gte: n };

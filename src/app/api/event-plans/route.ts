@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { serviceMatchesLegacyBucket } from "@/lib/serviceCategoryQuery";
 import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
@@ -79,14 +80,16 @@ function validateEventPlanTextFields(
 
 async function validateServiceCategory(
   serviceId: number | null,
-  category: string
+  legacyBucket: string
 ): Promise<boolean> {
   if (serviceId === null) return true;
   const service = await prisma.service.findUnique({
     where: { id: serviceId },
     select: { id: true, category: true },
   });
-  return Boolean(service && service.category === category);
+  return Boolean(
+    service && serviceMatchesLegacyBucket(service.category, legacyBucket)
+  );
 }
 
 export async function GET() {

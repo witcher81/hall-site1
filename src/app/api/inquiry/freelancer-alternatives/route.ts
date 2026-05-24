@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queryInquiryDealInsight } from "@/lib/inquiryDealInsights";
+import { isSameOriginApiRequest } from "@/lib/sameOriginGuard";
+import { resolveProviderCategoryFilter } from "@/lib/serviceCategoryQuery";
 import { getInquiryMarketplaceSearch } from "@/lib/venueInquiryFreelancerMatch";
 import { prisma } from "@/lib/prisma";
 
@@ -7,6 +9,10 @@ export const runtime = "nodejs";
 
 /** שירותי פרילנסרים להשוואה מול תוספת באולם */
 export async function GET(req: NextRequest) {
+  if (!isSameOriginApiRequest(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { searchParams } = new URL(req.url);
   const serviceId = searchParams.get("serviceId")?.trim() ?? "";
   const label = searchParams.get("label")?.trim() ?? "";
@@ -18,11 +24,16 @@ export async function GET(req: NextRequest) {
     serviceId || label
       ? getInquiryMarketplaceSearch({ id: serviceId, label })
       : categoryLegacy
-        ? {
-            categories: [categoryLegacy],
-            keywords: [] as string[],
-            browseCategory: categoryLegacy,
-          }
+        ? (() => {
+            const { primary } = resolveProviderCategoryFilter(categoryLegacy);
+            return primary
+              ? {
+                  categories: [primary],
+                  keywords: [] as string[],
+                  browseCategory: primary,
+                }
+              : null;
+          })()
         : null;
 
   if (!search || search.categories.length + search.keywords.length === 0) {

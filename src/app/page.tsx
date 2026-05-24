@@ -162,7 +162,17 @@ export default async function Home() {
         </section>
 
         <footer className="mt-20 rounded-t-2xl bg-[#0F3B2E] px-4 py-4 text-center text-xs text-white">
-          © {new Date().getFullYear()} Halls Hub – חיפוש אולמות ושירותי אירועים
+          <p>
+            © {new Date().getFullYear()} Halls Hub – חיפוש אולמות ושירותי אירועים
+          </p>
+          <p className="mt-2 flex justify-center gap-4 text-[#E5C96B]">
+            <a href="/terms" className="hover:text-white">
+              תנאי שימוש
+            </a>
+            <a href="/privacy" className="hover:text-white">
+              פרטיות
+            </a>
+          </p>
         </footer>
       </main>
     </div>

@@ -124,7 +124,7 @@ export default function AfterVenueGuideClient({
                   </p>
                 ) : null}
                 <a
-                  href={providersHrefForCategory(row.category)}
+                  href={providersHrefForCategory(row.category, row.secondary)}
                   className="mt-2 inline-block text-xs font-semibold text-[#0F3B2E] underline-offset-2 hover:underline"
                 >
                   עבור לחיפוש בקטגוריה {row.category} →
@@ -184,7 +184,7 @@ export default function AfterVenueGuideClient({
                 </div>
                 {v === true && g.category ? (
                   <a
-                    href={providersHrefForCategory(g.category)}
+                    href={providersHrefForCategory(g.category, g.secondary)}
                     className="mt-2 inline-block text-xs font-bold text-[#C9A227] underline-offset-2 hover:underline"
                   >
                     פתח חיפוש ב־{g.category} →

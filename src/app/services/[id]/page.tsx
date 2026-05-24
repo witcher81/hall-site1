@@ -77,6 +77,16 @@ export default async function PublicSingleServicePage({
     where: { providerId: service.provider.id },
   });
 
+  const canWriteServiceReview =
+    user?.role === "SEEKER"
+      ? Boolean(
+          await prisma.serviceRequest.findFirst({
+            where: { serviceId: service.id, userId: user.id },
+            select: { id: true },
+          })
+        )
+      : false;
+
   const bundle = parseServiceIncludesBundle(service.customIncludesJson);
 
   return (
@@ -116,6 +126,8 @@ export default async function PublicSingleServicePage({
         }}
         siblingServicesCount={siblingServicesCount}
         seekerLoggedIn={user?.role === "SEEKER"}
+        currentUserId={user?.id ?? null}
+        canWriteServiceReview={canWriteServiceReview}
       />
     </div>
   );

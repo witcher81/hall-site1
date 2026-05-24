@@ -7,9 +7,11 @@ import * as Sentry from "@sentry/nextjs";
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { assertNoSecretExposedAsPublicEnv } = await import("./lib/env.server");
-    const { warnIfProductionMissingUpstash } = await import("./lib/rateLimit");
+    const { warnIfProductionMissingCronSecret, warnIfProductionMissingUpstash } =
+      await import("./lib/rateLimit");
     assertNoSecretExposedAsPublicEnv();
     warnIfProductionMissingUpstash();
+    warnIfProductionMissingCronSecret();
     if (process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) {
       await import("./sentry.server.config");
     }
