@@ -24,7 +24,13 @@ type Venue = {
   boostExpiresAt?: string | null;
 };
 
-export default function VenueDetailsClient({ initialVenue }: { initialVenue: Venue }) {
+export default function VenueDetailsClient({
+  initialVenue,
+  boostPurchaseEnabled,
+}: {
+  initialVenue: Venue;
+  boostPurchaseEnabled: boolean;
+}) {
   const router = useRouter();
   const [venue] = useState(initialVenue);
   const [boostExpiresAt, setBoostExpiresAt] = useState<string | null>(
@@ -347,8 +353,18 @@ export default function VenueDetailsClient({ initialVenue }: { initialVenue: Ven
         <div className="mb-2 h-1 w-12 rounded-full bg-[#C9A227]" aria-hidden />
         <h2 className="text-lg font-semibold text-[#0F3B2E]">קידום בחיפוש</h2>
         <p className="text-xs leading-relaxed text-[#5C564C]">
-          הקפצת האולם לראש רשימת תוצאות החיפוש למשך {VENUE_BOOST_DAYS} ימים. התשלום כאן הוא{" "}
-          <span className="font-medium text-[#0F3B2E]">דמו בלבד</span> (ללא סליקה אמיתית).
+          הקפצת האולם לראש רשימת תוצאות החיפוש למשך {VENUE_BOOST_DAYS} ימים
+          {boostPurchaseEnabled ? (
+            <>
+              . התשלום כאן הוא{" "}
+              <span className="font-medium text-[#0F3B2E]">דמו בלבד</span> (ללא סליקה אמיתית).
+            </>
+          ) : (
+            <>
+              . <span className="font-medium text-[#0F3B2E]">רכישת קידום באתר החי תיפתח בקרוב</span>{" "}
+              (תשלום מאובטח).
+            </>
+          )}
         </p>
         {boostActive && boostExpiresAt && (
           <p className="text-xs font-medium text-[#0F3B2E]">
@@ -359,18 +375,24 @@ export default function VenueDetailsClient({ initialVenue }: { initialVenue: Ven
             })}
           </p>
         )}
-        <button
-          type="button"
-          onClick={handleBoost}
-          disabled={boosting}
-          className="mt-1 inline-flex items-center justify-center rounded-full bg-[#C9A227] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E5C96B] disabled:opacity-60"
-        >
-          {boosting
-            ? "מעבד..."
-            : boostActive
-              ? `הארך קידום — ₪${VENUE_BOOST_PRICE_NIS} (דמו)`
-              : `קדם את האולם — ₪${VENUE_BOOST_PRICE_NIS} (דמו)`}
-        </button>
+        {boostPurchaseEnabled ? (
+          <button
+            type="button"
+            onClick={handleBoost}
+            disabled={boosting}
+            className="mt-1 inline-flex items-center justify-center rounded-full bg-[#C9A227] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E5C96B] disabled:opacity-60"
+          >
+            {boosting
+              ? "מעבד..."
+              : boostActive
+                ? `הארך קידום — ₪${VENUE_BOOST_PRICE_NIS} (דמו)`
+                : `קדם את האולם — ₪${VENUE_BOOST_PRICE_NIS} (דמו)`}
+          </button>
+        ) : (
+          <p className="mt-1 text-xs text-[#6B6560]">
+            כשהקידום יהיה זמין תוכלו לרכוש כאן. קידום קיים (אם יש) ימשיך עד תאריך הסיום.
+          </p>
+        )}
         {boostError && (
           <p className="text-xs text-red-600" role="alert">
             {boostError}

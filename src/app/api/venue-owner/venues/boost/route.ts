@@ -1,17 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { VENUE_BOOST_DAYS, VENUE_BOOST_PRICE_NIS } from "@/lib/venueBoost";
+import {
+  isVenueBoostDemoPurchaseEnabled,
+  VENUE_BOOST_DAYS,
+  VENUE_BOOST_PRICE_NIS,
+} from "@/lib/venueBoost";
 
 export const runtime = "nodejs";
 
 /**
- * קידום אולם לראש רשימת החיפוש ל־7 ימים (תשלום מדומה — ללא סליקה).
+ * קידום אולם לראש רשימת החיפוש — רק כשדמו מותר (פיתוח / VENUE_BOOST_ALLOW_DEMO).
+ * בפרוד ללא סליקה אמיתית — 503 עד שיופעל תשלום.
  */
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user || user.role !== "VENUE_OWNER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isVenueBoostDemoPurchaseEnabled()) {
+    return NextResponse.json(
+      {
+        error:
+          "קידום בתשלום עדיין לא זמין באתר החי. נשמור עליכם מעודכנים כשיופעל.",
+        boostPurchaseEnabled: false,
+      },
+      { status: 503 }
+    );
   }
 
   const body = await req.json().catch(() => ({}));
