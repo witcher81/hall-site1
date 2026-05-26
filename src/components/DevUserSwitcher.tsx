@@ -31,6 +31,8 @@ export default function DevUserSwitcher() {
     role: "VENUE_OWNER" as string,
   });
   const [canCreateManagedUsers, setCanCreateManagedUsers] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
 
   const fetchUsers = useCallback(() => {
     fetch("/api/dev/users")
@@ -65,6 +67,28 @@ export default function DevUserSwitcher() {
       router.refresh();
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleRestoreUsers() {
+    setRestoreLoading(true);
+    setRestoreMessage(null);
+    try {
+      const res = await fetch("/api/dev/users/restore", { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setRestoreMessage(data?.error || "שגיאה בשחזור");
+        return;
+      }
+      const n = Number(data?.restoredCount ?? 0);
+      setRestoreMessage(
+        n > 0 ? `שוחזרו ${n} משתמשים לרשימה` : "לא נמצאו משתמשים לשחזור במסד"
+      );
+      fetchUsers();
+    } catch {
+      setRestoreMessage("שגיאה בלתי צפויה");
+    } finally {
+      setRestoreLoading(false);
     }
   }
 
@@ -142,16 +166,34 @@ export default function DevUserSwitcher() {
               </button>
             ))}
 
+            {restoreMessage ? (
+              <p className="px-3 py-1 text-xs text-[#0F3B2E]">{restoreMessage}</p>
+            ) : null}
+
             {!addFormOpen ? (
-              canCreateManagedUsers ? (
-                <button
-                  type="button"
-                  onClick={() => setAddFormOpen(true)}
-                  className="mt-2 w-full border-t border-[#E0D4C3] py-2 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
-                >
-                  + הוסף משתמש
-                </button>
-              ) : null
+              <div className="mt-2 border-t border-[#E0D4C3]">
+                {canCreateManagedUsers ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleRestoreUsers}
+                      disabled={restoreLoading}
+                      className="w-full py-2 text-xs font-medium text-[#6B6560] hover:bg-[#EFE6D5] disabled:opacity-50"
+                    >
+                      {restoreLoading
+                        ? "משחזר..."
+                        : "שחזר משתמשים שנעלמו מהרשימה"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddFormOpen(true)}
+                      className="w-full py-2 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+                    >
+                      + הוסף משתמש
+                    </button>
+                  </>
+                ) : null}
+              </div>
             ) : (
               <form
                 onSubmit={handleAddUser}

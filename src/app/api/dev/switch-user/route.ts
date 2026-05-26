@@ -52,9 +52,7 @@ export async function POST(req: NextRequest) {
       },
       select: { id: true },
     });
-    const isDevManagedUser = user.phone == null;
-    canSwitch =
-      userId === session.id || (Boolean(allowedForAdmin) && isDevManagedUser);
+    canSwitch = userId === session.id || Boolean(allowedForAdmin);
   } else if (userId === session.id) {
     canSwitch = true;
   } else if (userId === adminId) {
@@ -64,8 +62,7 @@ export async function POST(req: NextRequest) {
       where: { adminUserId: adminId, managedUserId: userId },
       select: { id: true },
     });
-    const isTargetDevManaged = user.phone == null;
-    canSwitch = Boolean(allowedSibling) && isTargetDevManaged;
+    canSwitch = Boolean(allowedSibling);
   }
 
   if (!canSwitch) {
