@@ -2,6 +2,7 @@ import "server-only";
 
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import type { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 
@@ -13,6 +14,32 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 export const SESSION_COOKIE_NAME = IS_PRODUCTION
   ? "__Host-hall_session"
   : "hall_session";
+
+/** שמות עוגייה ישנים — מנקים בהתנתקות */
+const SESSION_COOKIE_NAMES_TO_CLEAR = [
+  SESSION_COOKIE_NAME,
+  "__Host-hall_session",
+  "hall_session",
+] as const;
+
+function sessionCookieClearOptions() {
+  return {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  };
+}
+
+/** מחיקת סשן על תגובת Route Handler (מבטיח Set-Cookie בדפדפן) */
+export function clearSessionCookiesOnResponse(res: NextResponse) {
+  const opts = sessionCookieClearOptions();
+  for (const name of SESSION_COOKIE_NAMES_TO_CLEAR) {
+    res.cookies.set(name, "", opts);
+  }
+}
 
 const LEGACY_PENDING_VERIFY_COOKIE = IS_PRODUCTION
   ? "__Host-hall_verify_pending"
@@ -100,13 +127,15 @@ export async function setSessionCookie(token: string) {
 
 export async function clearSessionCookie() {
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, "", {
-    httpOnly: true,
-    secure: IS_PRODUCTION,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
+  const opts = sessionCookieClearOptions();
+  for (const name of SESSION_COOKIE_NAMES_TO_CLEAR) {
+    try {
+      cookieStore.delete(name);
+    } catch {
+      /* ignore */
+    }
+    cookieStore.set(name, "", opts);
+  }
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {

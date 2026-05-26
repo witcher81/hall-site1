@@ -20,6 +20,7 @@ let limiters: Cached | undefined;
 const AUTH_PATHS = new Set([
   "/api/auth/login",
   "/api/auth/register",
+  "/api/auth/logout",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
 ]);
@@ -109,10 +110,14 @@ const RATE_LIMIT_UNAVAILABLE_HE =
  * Rate limit לפי IP (Edge). בפרוד — דורש Upstash; בלי משתני סביבה מחזיר 503.
  * בפיתוח מקומי — עובר הלאה בלי הגבלה אם Upstash לא מוגדר.
  */
+function isAuthApiPath(pathname: string): boolean {
+  return pathname.startsWith("/api/auth/");
+}
+
 export async function applyRateLimit(request: NextRequest): Promise<NextResponse> {
   const pair = getLimiters();
   if (!pair) {
-    if (isProductionRuntime()) {
+    if (isProductionRuntime() && !isAuthApiPath(request.nextUrl.pathname)) {
       return NextResponse.json({ error: RATE_LIMIT_UNAVAILABLE_HE }, { status: 503 });
     }
     return NextResponse.next();

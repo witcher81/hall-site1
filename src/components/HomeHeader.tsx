@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import DevUserSwitcher from "./DevUserSwitcher";
 import MessagesUnreadBadge from "./MessagesUnreadBadge";
 import NotificationsUnreadBadge from "./NotificationsUnreadBadge";
@@ -92,7 +92,6 @@ export default function HomeHeader({
   /** רק כשהמשתמש הוא אדמין (ADMIN_EMAILS) — מועבר מהשרת */
   canUseDevUserSwitcher?: boolean;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
@@ -113,9 +112,21 @@ export default function HomeHeader({
   const canUseNotifications = Boolean(user);
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
-    router.refresh();
+    setMenuOpen(false);
+    setPersonalOpen(false);
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        console.error("logout failed", res.status);
+      }
+    } catch (e) {
+      console.error("logout error", e);
+    }
+    window.location.assign("/");
   }
 
   useEffect(() => {
@@ -491,7 +502,7 @@ export default function HomeHeader({
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-red-300 hover:bg-red-500/10"
+                    className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-red-700 hover:bg-red-500/10"
                   >
                     <span>התנתקות</span>
                   </button>
