@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
-/* פלטה אחידה — עמוד הבית + שאר האתר */
+/* פלטה אחידה — שמנת כהה + כרטיסים בהירים */
 :root {
-  --background: #fafafa;
-  --background-soft: #f5f5f4;
-  --card: rgba(255, 255, 255, 0.92);
-  --card-muted: #f5f5f4;
-  --border-soft: #e5e5e5;
+  --background: #e5ddd0;
+  --background-soft: #efe6d5;
+  --card: rgba(255, 255, 255, 0.94);
+  --card-muted: #f5efe3;
+  --border-soft: #d9cfc0;
   --foreground: #171717;
   --muted: #525252;
   --brand: #022c22;
@@ -18,7 +18,7 @@
 html,
 html[data-theme="light"],
 html[data-theme="dark"] {
-  --background: #fafafa;
+  --background: #e5ddd0;
   --foreground: #171717;
 }
 
@@ -31,7 +31,7 @@ body {
 /* מעטפת דף ציבורי */
 .site-page {
   min-height: 100vh;
-  background-color: #fafafa;
+  background-color: var(--background);
   color: #171717;
 }
 
@@ -269,7 +269,7 @@ header.site-header .personal-menu p {
 
 /* כרטיסים שהיו slate כהה – עכשיו שמנת/לבן, לא כחול כהה */
 .bg-slate-950 {
-  background-color: #f5f5f4 !important;
+  background-color: var(--card-muted) !important;
 }
 
 .bg-slate-900,
@@ -277,12 +277,12 @@ header.site-header .personal-menu p {
 .bg-slate-900\/40,
 .bg-slate-900\/50,
 .bg-slate-900\/60 {
-  background-color: #ffffff !important;
+  background-color: var(--background-soft) !important;
 }
 
 .bg-slate-800,
 .bg-slate-800\/60 {
-  background-color: #f5f5f4 !important;
+  background-color: var(--background-soft) !important;
 }
 
 /* גבולות עדינים במקום אפור כהה */
