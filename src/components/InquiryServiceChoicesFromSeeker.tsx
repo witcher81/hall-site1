@@ -27,10 +27,10 @@ export default function InquiryServiceChoicesFromSeeker({
     }[];
     if (!Array.isArray(arr) || arr.length === 0) return null;
     return (
-      <div className="mt-4 overflow-hidden rounded-2xl border border-[#E0D4C3] bg-gradient-to-b from-[#FFFCF7] to-[#F5EFE3] shadow-[0_4px_24px_rgba(15,59,46,0.07)]">
-        <div className="border-b border-[#C9A227]/25 bg-[#0F3B2E]/[0.05] px-4 py-3 sm:px-5">
+      <div className="mt-4 overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-b from-[#FFFCF7] to-[#F5EFE3] shadow-[0_4px_24px_rgba(15,59,46,0.07)]">
+        <div className="border-b border-[#C9A227]/25 bg-emerald-950/[0.05] px-4 py-3 sm:px-5">
           <p className="font-serif text-base font-semibold text-[#1A1612]">שירותים שהמבקש ציין</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
+          <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
             לפי ההגדרות באולם שלך (כולל שירותים מותאמים אישית).
           </p>
         </div>
@@ -50,11 +50,11 @@ export default function InquiryServiceChoicesFromSeeker({
             const venueOnly =
               typeof row.id === "string" && !inquiryServiceAllowsExternalSource({ id: row.id });
             const via = venueOnly ? (
-              <span className="inline-flex shrink-0 rounded-full border border-[#0F3B2E]/20 bg-[#0F3B2E]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#0F3B2E]">
+              <span className="inline-flex shrink-0 rounded-full border border-emerald-950/20 bg-emerald-950/[0.08] px-2.5 py-1 text-[11px] font-semibold text-emerald-950">
                 חלק מהאולם
               </span>
             ) : row.source === "venue" ? (
-              <span className="inline-flex shrink-0 rounded-full border border-[#0F3B2E]/20 bg-[#0F3B2E]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#0F3B2E]">
+              <span className="inline-flex shrink-0 rounded-full border border-emerald-950/20 bg-emerald-950/[0.08] px-2.5 py-1 text-[11px] font-semibold text-emerald-950">
                 {INQUIRY_EXTERNAL_SOURCE_COPY.venueRadio}
               </span>
             ) : (
@@ -69,7 +69,7 @@ export default function InquiryServiceChoicesFromSeeker({
               >
                 <span className="min-w-0 flex-1 text-sm font-medium text-[#1A1612]">
                   {label}
-                  <span className="mt-0.5 block text-[11px] font-normal text-[#6B6560]">
+                  <span className="mt-0.5 block text-[11px] font-normal text-neutral-600">
                     {priceHint}
                   </span>
                 </span>
@@ -108,11 +108,11 @@ export function InquiryFreeTextFromSeeker({
   const text = stripEmbeddedServiceChoicesFromInquiryMessage(message);
   if (!text) return null;
   return (
-    <div className="mt-4 overflow-hidden rounded-2xl border border-[#E0D4C3] bg-gradient-to-b from-[#FFFCF7] to-[#F7F0E6] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_20px_rgba(15,59,46,0.06)]">
-      <div className="border-b border-[#C9A227]/20 bg-[#0F3B2E]/[0.04] px-4 py-2.5 sm:px-5">
-        <p className="font-serif text-sm font-semibold text-[#2A261F]">הערות מהמבקש</p>
+    <div className="mt-4 overflow-hidden rounded-2xl border border-neutral-200 bg-gradient-to-b from-[#FFFCF7] to-[#F7F0E6] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_20px_rgba(15,59,46,0.06)]">
+      <div className="border-b border-[#C9A227]/20 bg-emerald-950/[0.04] px-4 py-2.5 sm:px-5">
+        <p className="font-serif text-sm font-semibold text-neutral-800">הערות מהמבקש</p>
       </div>
-      <p className="px-4 py-4 text-sm leading-[1.7] text-[#2A261F] whitespace-pre-wrap sm:px-5">
+      <p className="px-4 py-4 text-sm leading-[1.7] text-neutral-800 whitespace-pre-wrap sm:px-5">
         {text}
       </p>
     </div>

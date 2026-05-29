@@ -63,7 +63,7 @@ const VenueLocationPicker = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="flex h-64 w-full items-center justify-center rounded-2xl bg-[#E8E4DC] text-[11px] text-[#6B6560]"
+        className="flex h-64 w-full items-center justify-center rounded-2xl bg-[#E8E4DC] text-[11px] text-neutral-600"
         aria-hidden
       >
         טוען מפה…
@@ -819,23 +819,23 @@ export default function VenueEditForm({
   }
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">
+        <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
           <div className="text-right">
-            <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
+            <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
               HALLS HUB
             </p>
-            <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">
+            <h1 className="mt-1 text-xl font-semibold text-emerald-950">
               עריכת אולם
             </h1>
-            <p className="mt-1 text-xs text-[#6B6560]">
+            <p className="mt-1 text-xs text-neutral-600">
               עדכן את פרטי האולם. שדות ריקים בתמונות – נשארות התמונות הקיימות.
             </p>
           </div>
           <a
             href={`/dashboard/venue-owner/venues/${venueId}`}
-            className="text-sm font-medium text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
           >
             חזרה לאולם
           </a>
@@ -843,10 +843,10 @@ export default function VenueEditForm({
 
         <form
           onSubmit={handleSubmit}
-          className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white shadow-[0_12px_40px_rgba(15,59,46,0.08)] p-6 text-right text-sm"
+          className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white shadow-[0_12px_40px_rgba(15,59,46,0.08)] p-6 text-right text-sm"
         >
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               שם האולם *
             </label>
             <input
@@ -854,14 +854,14 @@ export default function VenueEditForm({
               required
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               placeholder="לדוגמה: אחוזת האירועים"
             />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 עיר *
               </label>
               <CityAutocompleteInput
@@ -877,11 +877,11 @@ export default function VenueEditForm({
                 }
                 extraCities={cityAutocompleteExtras}
                 placeholder="הקלד עיר או בחר מהרשימה"
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 כתובת *
               </label>
               <AddressStreetSuggest
@@ -897,17 +897,17 @@ export default function VenueEditForm({
                     setSyncMapFromAddressNonce((n) => n + 1);
                   }
                 }}
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
                 placeholder="רחוב ומספר בית, למשל יוני נתניהו 30"
               />
-              <p className="mt-1 text-[10px] text-[#6B6560]">
+              <p className="mt-1 text-[10px] text-neutral-600">
                 הקלידו ולבחרו מהרשימה לדיוק מקסימלי, או צאו מהשדה לעדכון אוטומטי.
               </p>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               סוג המקום *
             </label>
             <select
@@ -916,7 +916,7 @@ export default function VenueEditForm({
               onChange={(e) =>
                 setForm((f) => ({ ...f, venueType: e.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             >
               {VENUE_TYPE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -926,8 +926,8 @@ export default function VenueEditForm({
             </select>
           </div>
 
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <p className="mb-2 text-xs font-semibold text-neutral-600">
               מיקום האולם על המפה (אולם + חניה)
             </p>
             <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C]">
@@ -936,10 +936,10 @@ export default function VenueEditForm({
               סוג שדורש סימון במפה).
             </p>
             <div className="mb-3 rounded-lg border border-[#E8D5C4] bg-white/80 px-3 py-2">
-              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+              <p className="mb-2 text-xs font-semibold text-neutral-600">
                 חניה באזור האולם *
               </p>
-              <div className="flex flex-col gap-2.5 text-xs text-[#2A261F]">
+              <div className="flex flex-col gap-2.5 text-xs text-neutral-800">
                 {PARKING_KINDS.map((k) => (
                   <label key={k} className="flex cursor-pointer items-start gap-2">
                     <input
@@ -947,7 +947,7 @@ export default function VenueEditForm({
                       name="parkingKindEdit"
                       checked={parkingKind === k}
                       onChange={() => setParkingKind(k)}
-                      className="mt-0.5 h-4 w-4 shrink-0 accent-[#0F3B2E]"
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-950"
                     />
                     <span>{PARKING_KIND_LABELS[k]}</span>
                   </label>
@@ -955,12 +955,12 @@ export default function VenueEditForm({
               </div>
             </div>
             {hasSavedVenueCoords ? (
-              <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+              <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
                 הסיכות נטענות מהמיקום השמור. שינוי כתובת (עם מספר בית) מעדכן את סיכת
                 האולם; אפשר גם לגרור את הסיכות לדיוק.
               </p>
             ) : (
-              <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+              <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
                 הזינו עיר וכתובת עם מספר בית — הסיכה תתעדכן לפי המיקום המדויק.
               </p>
             )}
@@ -986,7 +986,7 @@ export default function VenueEditForm({
               />
             ) : (
               <div
-                className="flex h-64 w-full items-center justify-center rounded-2xl bg-[#E8E4DC] text-[11px] text-[#6B6560]"
+                className="flex h-64 w-full items-center justify-center rounded-2xl bg-[#E8E4DC] text-[11px] text-neutral-600"
                 aria-hidden
               >
                 טוען מפה…
@@ -994,13 +994,13 @@ export default function VenueEditForm({
             )}
           </div>
 
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <p className="mb-2 text-xs font-semibold text-neutral-600">
               סוגי אירועים שהאולם מתאים אליהם
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               {PRESET_EVENT_TYPES.map((et) => (
-                <label key={et} className="flex items-center gap-2 text-xs text-[#2A261F]">
+                <label key={et} className="flex items-center gap-2 text-xs text-neutral-800">
                   <input
                     type="checkbox"
                     checked={eventTypes.includes(et)}
@@ -1017,7 +1017,7 @@ export default function VenueEditForm({
               {customEventLabels.map((label) => (
                 <div
                   key={label}
-                  className="flex min-w-0 items-center gap-2 text-xs text-[#2A261F]"
+                  className="flex min-w-0 items-center gap-2 text-xs text-neutral-800"
                 >
                   <label className="flex min-w-0 flex-1 items-center gap-2">
                     <input
@@ -1038,7 +1038,7 @@ export default function VenueEditForm({
                   </label>
                   <button
                     type="button"
-                    className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+                    className="shrink-0 text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
                     onClick={() => {
                       setCustomEventLabels((prev) => prev.filter((l) => l !== label));
                       setEventTypes((prev) => prev.filter((x) => x !== label));
@@ -1053,7 +1053,7 @@ export default function VenueEditForm({
                   type="text"
                   value={eventTypeInput}
                   onChange={(e) => setEventTypeInput(e.target.value)}
-                  className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                  className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400"
                   placeholder="הוסף סוג אירוע משלך…"
                   maxLength={80}
                 />
@@ -1081,7 +1081,7 @@ export default function VenueEditForm({
                     );
                     setEventTypeInput("");
                   }}
-                  className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
+                  className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-neutral-800 hover:bg-neutral-50"
                 >
                   הוסף
                 </button>
@@ -1089,7 +1089,7 @@ export default function VenueEditForm({
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
             <VenueHallSoftAttributesSection
               presetValues={{
                 seaView: form.seaView,
@@ -1106,11 +1106,11 @@ export default function VenueEditForm({
             />
           </div>
 
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <p className="mb-1 text-xs font-semibold text-[#5F5F5F]">
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <p className="mb-1 text-xs font-semibold text-neutral-600">
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
-            <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+            <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
               הוסיפו פריטים שהמחפש מקבל מהאולם — הם נכנסים לטבלת המיון (לא פעיל / כלול /
               בתוספת תשלום). אוכל, שולחנות והגברה — גרירה; רחבת ריקודים מסומנת ב«מה האולם
               מציע» למעלה.
@@ -1136,8 +1136,8 @@ export default function VenueEditForm({
           </div>
 
           {eventTypes.length > 0 && (
-            <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="mb-2 text-xs font-semibold text-neutral-600">
                 טווחים לפי סוג אירוע (נפרד לכל סוג)
               </p>
               <div className="space-y-3">
@@ -1165,8 +1165,8 @@ export default function VenueEditForm({
                   const showMealPrices =
                     isWeddingEt || profile.hasFoodAtEvent === true;
                   return (
-                    <div key={`profile-${et}`} className="rounded-lg border border-[#E0D4C3] bg-white p-3">
-                      <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">{et}</p>
+                    <div key={`profile-${et}`} className="rounded-lg border border-neutral-200 bg-white p-3">
+                      <p className="mb-2 text-xs font-semibold text-emerald-950">{et}</p>
                       <div className="grid gap-2 sm:grid-cols-2">
                         <input
                           type="number"
@@ -1178,7 +1178,7 @@ export default function VenueEditForm({
                               [et]: { ...profile, minGuests: e.target.value },
                             }))
                           }
-                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                          className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400"
                           placeholder="מינימום אורחים"
                         />
                         <input
@@ -1191,11 +1191,11 @@ export default function VenueEditForm({
                               [et]: { ...profile, maxGuests: e.target.value },
                             }))
                           }
-                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                          className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400"
                           placeholder="מקסימום אורחים"
                         />
                         {!isWeddingEt && (
-                          <label className="flex items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
+                          <label className="flex items-center gap-2 text-xs text-neutral-800 sm:col-span-2">
                             <input
                               type="checkbox"
                               checked={profile.hasFoodAtEvent}
@@ -1244,8 +1244,8 @@ export default function VenueEditForm({
                           />
                         )}
                         {showMealPrices && (
-                          <div className="mt-1 space-y-2 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
-                            <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                          <div className="mt-1 space-y-2 border-t border-neutral-200/70 pt-2 sm:col-span-2">
+                            <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-800">
                               <input
                                 type="checkbox"
                                 checked={profile.hasVeganFood}
@@ -1268,7 +1268,7 @@ export default function VenueEditForm({
                             </label>
                             {profile.hasVeganFood && (
                               <>
-                                <label className="flex cursor-pointer items-center gap-2 text-[11px] text-[#2A261F] sm:pe-8">
+                                <label className="flex cursor-pointer items-center gap-2 text-[11px] text-neutral-800 sm:pe-8">
                                   <input
                                     type="checkbox"
                                     checked={profile.veganSameAsMealPrice}
@@ -1334,7 +1334,7 @@ export default function VenueEditForm({
                         />
                         {isWeddingEt && (
                           <>
-                            <p className="mb-1 text-xs font-semibold text-[#0F3B2E] sm:col-span-2">
+                            <p className="mb-1 text-xs font-semibold text-emerald-950 sm:col-span-2">
                               פרטי חתונה
                             </p>
                             <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
@@ -1356,7 +1356,7 @@ export default function VenueEditForm({
                               return (
                                 <div
                                   key={opt.key}
-                                  className="flex items-center justify-between rounded-full bg-[#FAF8F4] px-3 py-1 text-xs text-[#0F3B2E]"
+                                  className="flex items-center justify-between rounded-full bg-neutral-50 px-3 py-1 text-xs text-emerald-950"
                                 >
                                   <span>{opt.label}</span>
                                   <button
@@ -1369,8 +1369,8 @@ export default function VenueEditForm({
                                     }
                                     className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
                                       checked
-                                        ? "border-[#0F3B2E] bg-[#0F3B2E] text-white"
-                                        : "border-[#D4C9BC] bg-white text-[#2A261F]"
+                                        ? "border-emerald-950 bg-emerald-950 text-white"
+                                        : "border-[#D4C9BC] bg-white text-neutral-800"
                                     }`}
                                   >
                                     {checked ? "מסומן" : "לא מסומן"}
@@ -1379,13 +1379,13 @@ export default function VenueEditForm({
                               );
                             })}
                             <div className="sm:col-span-2">
-                              <label className="block text-xs text-[#2A261F]">כשרות אוכל</label>
+                              <label className="block text-xs text-neutral-800">כשרות אוכל</label>
                               <select
                                 value={form.foodKashrut}
                                 onChange={(e) =>
                                   setForm((f) => ({ ...f, foodKashrut: e.target.value }))
                                 }
-                                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400"
                               >
                                 <option value="">לא נבחר</option>
                                 <option value="ללא">ללא</option>
@@ -1404,7 +1404,7 @@ export default function VenueEditForm({
           )}
 
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               תיאור על האולם
             </label>
             <textarea
@@ -1413,7 +1413,7 @@ export default function VenueEditForm({
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               placeholder="אולם מודרני, כשרות, חניה..."
             />
 
@@ -1421,16 +1421,16 @@ export default function VenueEditForm({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 תמונת שער
               </label>
               {initial.coverImageUrl && !coverImage && (
-                <p className="mb-1 text-[11px] text-[#6B6560]">
+                <p className="mb-1 text-[11px] text-neutral-600">
                   תמונה נוכחית:
                 </p>
               )}
               {initial.coverImageUrl && !coverImage && (
-                <div className="mb-2 overflow-hidden rounded-lg border border-[#E0D4C3]">
+                <div className="mb-2 overflow-hidden rounded-lg border border-neutral-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={initial.coverImageUrl}
@@ -1444,14 +1444,14 @@ export default function VenueEditForm({
                 type="file"
                 accept="image/*"
                 onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
-                className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#C9A227] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
+                className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
               />
-              <p className="mt-1 text-[11px] text-[#6B6560]">
+              <p className="mt-1 text-[11px] text-neutral-600">
                 להחליף: בחר תמונה חדשה. לא בוחרים – נשארת התמונה הקיימת.
               </p>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 תמונות לפי קטגוריות (אולם/חופה/רחבה/אוכל)
               </label>
 
@@ -1460,7 +1460,7 @@ export default function VenueEditForm({
                 galleryChuppaImages.length === 0 &&
                 galleryDanceImages.length === 0 &&
                 galleryFoodImages.length === 0 && (
-                  <p className="mt-1 text-[11px] text-[#6B6560]">
+                  <p className="mt-1 text-[11px] text-neutral-600">
                     {initial.galleryImageUrls.length} תמונות קיימות — יוצגו בתצוגה המקדימה למטה
                     (קטגוריית אולם).
                   </p>
@@ -1468,7 +1468,7 @@ export default function VenueEditForm({
 
               <div className="mt-3 space-y-4">
                 <div>
-                  <label className="block text-[11px] font-medium text-[#5F5F5F]">
+                  <label className="block text-[11px] font-medium text-neutral-600">
                     תמונות אולם
                   </label>
                   <input
@@ -1484,13 +1484,13 @@ export default function VenueEditForm({
                         ...Array.from(files),
                       ]);
                     }}
-                    className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+                    className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
                   />
                 </div>
 
                 {isWeddingSelected && (
                   <div>
-                    <label className="block text-[11px] font-medium text-[#5F5F5F]">
+                    <label className="block text-[11px] font-medium text-neutral-600">
                       תמונות חופה
                     </label>
                     <input
@@ -1506,13 +1506,13 @@ export default function VenueEditForm({
                           ...Array.from(files),
                         ]);
                       }}
-                      className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+                      className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-[11px] font-medium text-[#5F5F5F]">
+                  <label className="block text-[11px] font-medium text-neutral-600">
                     תמונות רחבה
                   </label>
                   <input
@@ -1529,13 +1529,13 @@ export default function VenueEditForm({
                         ...Array.from(files),
                       ]);
                     }}
-                    className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
 
                 {showFoodPhotoUpload && (
                   <div>
-                    <label className="block text-[11px] font-medium text-[#5F5F5F]">
+                    <label className="block text-[11px] font-medium text-neutral-600">
                       תמונות אוכל
                     </label>
                     <input
@@ -1551,7 +1551,7 @@ export default function VenueEditForm({
                           ...Array.from(files),
                         ]);
                       }}
-                      className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+                      className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
                     />
                   </div>
                 )}
@@ -1566,14 +1566,14 @@ export default function VenueEditForm({
             galleryDancePreviews.length > 0 ||
             (showFoodPhotoUpload && galleryFoodPreviews.length > 0) ||
             initial.galleryImageUrls.length > 0) && (
-            <div className="rounded-2xl border border-[#E0D4C3] bg-white/60 p-4">
-              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+            <div className="rounded-2xl border border-neutral-200 bg-white/60 p-4">
+              <p className="mb-2 text-xs font-semibold text-neutral-600">
                 תצוגה מקדימה (יתעדכנו בשמירה):
               </p>
               <div className="grid gap-3 sm:grid-cols-4">
                 {coverPreview && (
                   <div className="relative">
-                    <p className="mb-1 text-[11px] text-[#0F3B2E]">תמונת שער (חדשה)</p>
+                    <p className="mb-1 text-[11px] text-emerald-950">תמונת שער (חדשה)</p>
                     <div className="relative overflow-hidden rounded-lg border border-[#C9A227]">
                       <button
                         type="button"
@@ -1596,8 +1596,8 @@ export default function VenueEditForm({
                 )}
                 {!coverPreview && initial.coverImageUrl && (
                   <div className="relative">
-                    <p className="mb-1 text-[11px] text-[#6B6560]">תמונת שער (קיימת)</p>
-                    <div className="overflow-hidden rounded-lg border border-[#E0D4C3]">
+                    <p className="mb-1 text-[11px] text-neutral-600">תמונת שער (קיימת)</p>
+                    <div className="overflow-hidden rounded-lg border border-neutral-200">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={initial.coverImageUrl}
@@ -1614,20 +1614,20 @@ export default function VenueEditForm({
                   galleryFoodImages.length === 0 &&
                   initial.galleryImageUrls.map((url, idx) => (
                     <div key={`existing-hall-${idx}`} className="relative">
-                      <p className="mb-1 text-[11px] text-[#6B6560]">
+                      <p className="mb-1 text-[11px] text-neutral-600">
                         אולם (קיים) #{idx + 1}
                       </p>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={url}
                         alt=""
-                        className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                        className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                       />
                     </div>
                   ))}
                 {galleryHallPreviews.map(({ file, url }, idx) => (
                   <div key={`hall-${file.name}-${file.size}-${idx}`} className="relative">
-                    <p className="mb-1 text-[11px] text-[#6B6560]">
+                    <p className="mb-1 text-[11px] text-neutral-600">
                       אולם #{idx + 1}
                     </p>
                     <div className="relative">
@@ -1645,7 +1645,7 @@ export default function VenueEditForm({
                       <img
                         src={url}
                         alt=""
-                        className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                        className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                       />
                     </div>
                   </div>
@@ -1654,7 +1654,7 @@ export default function VenueEditForm({
                 {isWeddingSelected &&
                   galleryChuppaPreviews.map(({ file, url }, idx) => (
                     <div key={`chuppa-${file.name}-${file.size}-${idx}`} className="relative">
-                      <p className="mb-1 text-[11px] text-[#6B6560]">
+                      <p className="mb-1 text-[11px] text-neutral-600">
                         חופה #{idx + 1}
                       </p>
                       <div className="relative">
@@ -1672,7 +1672,7 @@ export default function VenueEditForm({
                         <img
                           src={url}
                           alt=""
-                          className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                          className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                         />
                       </div>
                     </div>
@@ -1680,7 +1680,7 @@ export default function VenueEditForm({
 
                 {galleryDancePreviews.map(({ file, url }, idx) => (
                   <div key={`dance-${file.name}-${file.size}-${idx}`} className="relative">
-                    <p className="mb-1 text-[11px] text-[#6B6560]">
+                    <p className="mb-1 text-[11px] text-neutral-600">
                       רחבה #{idx + 1}
                     </p>
                     <div className="relative">
@@ -1698,7 +1698,7 @@ export default function VenueEditForm({
                       <img
                         src={url}
                         alt=""
-                        className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                        className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                       />
                     </div>
                   </div>
@@ -1707,7 +1707,7 @@ export default function VenueEditForm({
                 {showFoodPhotoUpload &&
                   galleryFoodPreviews.map(({ file, url }, idx) => (
                     <div key={`food-${file.name}-${file.size}-${idx}`} className="relative">
-                      <p className="mb-1 text-[11px] text-[#6B6560]">
+                      <p className="mb-1 text-[11px] text-neutral-600">
                         אוכל #{idx + 1}
                       </p>
                       <div className="relative">
@@ -1725,7 +1725,7 @@ export default function VenueEditForm({
                         <img
                           src={url}
                           alt=""
-                          className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                          className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                         />
                       </div>
                     </div>
@@ -1743,14 +1743,14 @@ export default function VenueEditForm({
           <div className="flex justify-end gap-3 pt-2">
             <a
               href={`/dashboard/venue-owner/venues/${venueId}`}
-              className="rounded-xl border border-[#D4C9BC] px-5 py-2 text-xs font-medium text-[#2A261F] hover:bg-[#EFE6D5]"
+              className="rounded-xl border border-[#D4C9BC] px-5 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
             >
               ביטול
             </a>
             <button
               type="submit"
               disabled={saving}
-              className="rounded-full bg-[#C9A227] px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
+              className="rounded-full bg-amber-400 px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
             >
               {saving ? "שומר..." : "שמירת שינויים"}
             </button>

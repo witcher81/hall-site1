@@ -111,7 +111,7 @@ const VenueLocationPicker = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="flex h-64 w-full items-center justify-center rounded-2xl bg-[#E8E4DC] text-[11px] text-[#6B6560]"
+        className="flex h-64 w-full items-center justify-center rounded-2xl bg-[#E8E4DC] text-[11px] text-neutral-600"
         aria-hidden
       >
         טוען מפה…
@@ -750,12 +750,12 @@ export default function NewVenuePage() {
 
   if (creating) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-          <section className="w-full rounded-2xl border border-[#E0D4C3] bg-white p-7 text-center shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+          <section className="w-full rounded-2xl border border-neutral-200 bg-white p-7 text-center shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[#C9A227]/35 border-t-[#0F3B2E]" />
-            <h2 className="text-xl font-semibold text-[#0F3B2E]">בונים את האולם שלך…</h2>
-            <p className="mt-2 text-sm text-[#6B6560]">
+            <h2 className="text-xl font-semibold text-emerald-950">בונים את האולם שלך…</h2>
+            <p className="mt-2 text-sm text-neutral-600">
               מעלה תמונות, שומר פרטים ומכין את הדף לפרסום.
             </p>
             <p className="mt-1 text-xs text-[#8A8278]">
@@ -768,20 +768,20 @@ export default function NewVenuePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">
+        <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
           <div className="text-right">
-            <h1 className="text-xl font-semibold text-[#0F3B2E]">
+            <h1 className="text-xl font-semibold text-emerald-950">
               יצירת אולם חדש
             </h1>
-            <p className="mt-1 text-xs text-[#6B6560]">
+            <p className="mt-1 text-xs text-neutral-600">
               מלא/י את פרטי האולם. לאחר השמירה תועבר/י חזרה לרשימת האולמות שלך.
             </p>
           </div>
           <a
             href="/dashboard/venue-owner"
-            className="text-sm text-[#0F3B2E] underline-offset-4 hover:text-[#174D3B] hover:underline"
+            className="text-sm text-emerald-950 underline-offset-4 hover:text-[#174D3B] hover:underline"
           >
             חזרה לאולמות שלי
           </a>
@@ -789,10 +789,10 @@ export default function NewVenuePage() {
 
         <form
           onSubmit={handleSubmit}
-          className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white shadow-[0_12px_40px_rgba(15,59,46,0.08)] p-6 text-right text-sm"
+          className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white shadow-[0_12px_40px_rgba(15,59,46,0.08)] p-6 text-right text-sm"
         >
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               שם האולם *
             </label>
             <input
@@ -800,14 +800,14 @@ export default function NewVenuePage() {
               required
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               placeholder="לדוגמה: אחוזת האירועים"
             />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 עיר *
               </label>
               <CityAutocompleteInput
@@ -818,11 +818,11 @@ export default function NewVenuePage() {
                 }
                 onCommit={() => setFormFieldsSyncNonce((n) => n + 1)}
                 placeholder="הקלד עיר או בחר מהרשימה"
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 כתובת *
               </label>
               <AddressStreetSuggest
@@ -840,17 +840,17 @@ export default function NewVenuePage() {
                   setForm((f) => ({ ...f, address: addressValue }));
                 }}
                 onBlur={() => setFormFieldsSyncNonce((n) => n + 1)}
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
                 placeholder="רחוב ומספר בית, למשל יוני נתניהו 30"
               />
-              <p className="mt-1 text-[10px] text-[#6B6560]">
+              <p className="mt-1 text-[10px] text-neutral-600">
                 הקלידו ולבחרו מהרשימה לדיוק מקסימלי, או צאו מהשדה לעדכון אוטומטי.
               </p>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               סוג המקום *
             </label>
             <select
@@ -859,7 +859,7 @@ export default function NewVenuePage() {
               onChange={(e) =>
                 setForm((f) => ({ ...f, venueType: e.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             >
               {VENUE_TYPE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -871,12 +871,12 @@ export default function NewVenuePage() {
 
           <div
             ref={mapSectionRef}
-            className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3"
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
           >
-            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+            <p className="mb-2 text-xs font-semibold text-neutral-600">
               מיקום האולם על המפה
               {form.city.trim() ? (
-                <span className="mr-1.5 font-normal text-[#6B6560]">
+                <span className="mr-1.5 font-normal text-neutral-600">
                   {" "}
                   — {form.city.trim()}
                 </span>
@@ -888,10 +888,10 @@ export default function NewVenuePage() {
               סוג שדורש סימון במפה).
             </p>
             <div className="mb-3 rounded-lg border border-[#E8D5C4] bg-white/80 px-3 py-2">
-              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+              <p className="mb-2 text-xs font-semibold text-neutral-600">
                 חניה באזור האולם *
               </p>
-              <div className="flex flex-col gap-2.5 text-xs text-[#2A261F]">
+              <div className="flex flex-col gap-2.5 text-xs text-neutral-800">
                 {PARKING_KINDS.map((k) => (
                   <label key={k} className="flex cursor-pointer items-start gap-2">
                     <input
@@ -899,7 +899,7 @@ export default function NewVenuePage() {
                       name="parkingKind"
                       checked={parkingKind === k}
                       onChange={() => setParkingKind(k)}
-                      className="mt-0.5 h-4 w-4 shrink-0 accent-[#0F3B2E]"
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-emerald-950"
                     />
                     <span>{PARKING_KIND_LABELS[k]}</span>
                   </label>
@@ -962,8 +962,8 @@ export default function NewVenuePage() {
             )}
           </div>
 
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <p className="mb-2 text-xs font-semibold text-neutral-600">
               סוגי אירועים שהאולם מתאים אליהם
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -972,7 +972,7 @@ export default function NewVenuePage() {
                 return (
                   <div
                     key={et}
-                    className="flex items-center justify-between gap-2 text-xs text-[#2A261F]"
+                    className="flex items-center justify-between gap-2 text-xs text-neutral-800"
                   >
                     <span className="truncate">{et}</span>
                     <button
@@ -984,8 +984,8 @@ export default function NewVenuePage() {
                       }
                       className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
                         checked
-                          ? "border-[#0F3B2E] bg-[#0F3B2E] text-white"
-                          : "border-[#D4C9BC] bg-white text-[#2A261F]"
+                          ? "border-emerald-950 bg-emerald-950 text-white"
+                          : "border-[#D4C9BC] bg-white text-neutral-800"
                       }`}
                     >
                       {checked ? "מסומן" : "לא מסומן"}
@@ -998,7 +998,7 @@ export default function NewVenuePage() {
                 return (
                   <div
                     key={label}
-                    className="flex min-w-0 items-center gap-2 text-xs text-[#2A261F]"
+                    className="flex min-w-0 items-center gap-2 text-xs text-neutral-800"
                   >
                     <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
                       <span className="truncate">{label}</span>
@@ -1014,8 +1014,8 @@ export default function NewVenuePage() {
                         }}
                         className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
                           checked
-                            ? "border-[#0F3B2E] bg-[#0F3B2E] text-white"
-                            : "border-[#D4C9BC] bg-white text-[#2A261F]"
+                            ? "border-emerald-950 bg-emerald-950 text-white"
+                            : "border-[#D4C9BC] bg-white text-neutral-800"
                         }`}
                       >
                         {checked ? "מסומן" : "לא מסומן"}
@@ -1029,7 +1029,7 @@ export default function NewVenuePage() {
                   type="text"
                   value={eventTypeInput}
                   onChange={(e) => setEventTypeInput(e.target.value)}
-                  className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                  className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400"
                   placeholder="הוסף סוג אירוע משלך…"
                   maxLength={80}
                 />
@@ -1057,7 +1057,7 @@ export default function NewVenuePage() {
                     );
                     setEventTypeInput("");
                   }}
-                  className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
+                  className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-neutral-800 hover:bg-neutral-50"
                 >
                   הוסף
                 </button>
@@ -1065,7 +1065,7 @@ export default function NewVenuePage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
             <VenueHallSoftAttributesSection
               presetValues={{
                 seaView: form.seaView,
@@ -1082,11 +1082,11 @@ export default function NewVenuePage() {
             />
           </div>
 
-          <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-            <p className="mb-1 text-xs font-semibold text-[#5F5F5F]">
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <p className="mb-1 text-xs font-semibold text-neutral-600">
               מה יש באולם? (כללי — לכל סוגי האירועים)
             </p>
-            <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+            <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
               הוסיפו פריטים שהמחפש מקבל מהאולם — הם נכנסים לטבלת המיון (לא פעיל / כלול /
               בתוספת תשלום). אוכל, שולחנות והגברה — גרירה; רחבת ריקודים מסומנת ב«מה האולם
               מציע» למעלה.
@@ -1114,8 +1114,8 @@ export default function NewVenuePage() {
           </div>
 
           {eventTypes.length > 0 && (
-            <div className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-              <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="mb-2 text-xs font-semibold text-neutral-600">
                 טווחים לפי סוג אירוע (נפרד לכל סוג)
               </p>
               <div className="space-y-3">
@@ -1137,8 +1137,8 @@ export default function NewVenuePage() {
           const showMealPrices =
                     isWeddingEt || profile.hasFoodAtEvent === true;
                   return (
-                    <div key={`profile-${et}`} className="rounded-lg border border-[#E0D4C3] bg-white p-3">
-                      <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">{et}</p>
+                    <div key={`profile-${et}`} className="rounded-lg border border-neutral-200 bg-white p-3">
+                      <p className="mb-2 text-xs font-semibold text-emerald-950">{et}</p>
                       <div className="grid gap-2 sm:grid-cols-2">
                         <input
                           type="number"
@@ -1150,7 +1150,7 @@ export default function NewVenuePage() {
                               [et]: { ...profile, minGuests: e.target.value },
                             }))
                           }
-                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                          className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400"
                           placeholder="מינימום אורחים"
                         />
                         <input
@@ -1163,11 +1163,11 @@ export default function NewVenuePage() {
                               [et]: { ...profile, maxGuests: e.target.value },
                             }))
                           }
-                          className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                          className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400"
                           placeholder="מקסימום אורחים"
                         />
                         {!isWeddingEt && (
-                          <label className="flex items-center gap-2 text-xs text-[#2A261F] sm:col-span-2">
+                          <label className="flex items-center gap-2 text-xs text-neutral-800 sm:col-span-2">
                             <input
                               type="checkbox"
                               checked={profile.hasFoodAtEvent}
@@ -1216,8 +1216,8 @@ export default function NewVenuePage() {
                           />
                         )}
                         {showMealPrices && (
-                          <div className="mt-1 space-y-2 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
-                            <label className="flex cursor-pointer items-center gap-2 text-xs text-[#2A261F]">
+                          <div className="mt-1 space-y-2 border-t border-neutral-200/70 pt-2 sm:col-span-2">
+                            <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-800">
                               <input
                                 type="checkbox"
                                 checked={profile.hasVeganFood}
@@ -1240,7 +1240,7 @@ export default function NewVenuePage() {
                             </label>
                             {profile.hasVeganFood && (
                               <>
-                                <label className="flex cursor-pointer items-center gap-2 text-[11px] text-[#2A261F] sm:pe-8">
+                                <label className="flex cursor-pointer items-center gap-2 text-[11px] text-neutral-800 sm:pe-8">
                                   <input
                                     type="checkbox"
                                     checked={profile.veganSameAsMealPrice}
@@ -1306,7 +1306,7 @@ export default function NewVenuePage() {
                         />
                         {isWeddingEt && (
                           <>
-                            <p className="mb-1 text-xs font-semibold text-[#0F3B2E] sm:col-span-2">
+                            <p className="mb-1 text-xs font-semibold text-emerald-950 sm:col-span-2">
                               פרטי חתונה
                             </p>
                             <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
@@ -1328,7 +1328,7 @@ export default function NewVenuePage() {
                               return (
                                 <div
                                   key={opt.key}
-                                  className="flex items-center justify-between rounded-full bg-[#FAF8F4] px-3 py-1 text-xs text-[#0F3B2E]"
+                                  className="flex items-center justify-between rounded-full bg-neutral-50 px-3 py-1 text-xs text-emerald-950"
                                 >
                                   <span>{opt.label}</span>
                                   <button
@@ -1341,8 +1341,8 @@ export default function NewVenuePage() {
                                     }
                                     className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
                                       checked
-                                        ? "border-[#0F3B2E] bg-[#0F3B2E] text-white"
-                                        : "border-[#D4C9BC] bg-white text-[#2A261F]"
+                                        ? "border-emerald-950 bg-emerald-950 text-white"
+                                        : "border-[#D4C9BC] bg-white text-neutral-800"
                                     }`}
                                   >
                                     {checked ? "מסומן" : "לא מסומן"}
@@ -1351,13 +1351,13 @@ export default function NewVenuePage() {
                               );
                             })}
                             <div className="sm:col-span-2">
-                              <label className="block text-xs text-[#2A261F]">כשרות אוכל</label>
+                              <label className="block text-xs text-neutral-800">כשרות אוכל</label>
                               <select
                                 value={form.foodKashrut}
                                 onChange={(e) =>
                                   setForm((f) => ({ ...f, foodKashrut: e.target.value }))
                                 }
-                                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400"
                               >
                                 <option value="">לא נבחר</option>
                                 <option value="ללא">ללא</option>
@@ -1376,7 +1376,7 @@ export default function NewVenuePage() {
           )}
 
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               תיאור על האולם
             </label>
             <textarea
@@ -1385,14 +1385,14 @@ export default function NewVenuePage() {
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               placeholder="אולם מודרני, כשרות, חניה..."
             />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 תמונת שער
               </label>
               <input
@@ -1400,15 +1400,15 @@ export default function NewVenuePage() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
-                className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#C9A227] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
+                className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
               />
-              <p className="mt-1 text-[11px] text-[#6B6560]">
+              <p className="mt-1 text-[11px] text-neutral-600">
                 בחר תמונה מהמחשב שתשמש כתמונת שער לאולם.
               </p>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[#5F5F5F]">
+                <label className="block text-xs font-medium text-neutral-600">
                   תמונות אולם
                 </label>
                 <input
@@ -1421,12 +1421,12 @@ export default function NewVenuePage() {
                     if (!files) return;
                     setGalleryHallImages((prev) => [...prev, ...Array.from(files)]);
                   }}
-                  className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+                  className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
                 />
               </div>
               {isWeddingSelected && (
                 <div>
-                  <label className="block text-xs font-medium text-[#5F5F5F]">
+                  <label className="block text-xs font-medium text-neutral-600">
                     תמונות חופה
                   </label>
                   <input
@@ -1439,12 +1439,12 @@ export default function NewVenuePage() {
                       if (!files) return;
                       setGalleryChuppaImages((prev) => [...prev, ...Array.from(files)]);
                     }}
-                    className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+                    className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
                   />
                 </div>
               )}
               <div>
-                <label className="block text-xs font-medium text-[#5F5F5F]">
+                <label className="block text-xs font-medium text-neutral-600">
                   תמונות רחבה
                 </label>
                 <input
@@ -1458,12 +1458,12 @@ export default function NewVenuePage() {
                     if (!files) return;
                     setGalleryDanceImages((prev) => [...prev, ...Array.from(files)]);
                   }}
-                  className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               {showFoodPhotoUpload && (
                 <div>
-                  <label className="block text-xs font-medium text-[#5F5F5F]">
+                  <label className="block text-xs font-medium text-neutral-600">
                     תמונות אוכל
                   </label>
                   <input
@@ -1476,7 +1476,7 @@ export default function NewVenuePage() {
                       if (!files) return;
                       setGalleryFoodImages((prev) => [...prev, ...Array.from(files)]);
                     }}
-                    className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+                    className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
                   />
                 </div>
               )}
@@ -1488,14 +1488,14 @@ export default function NewVenuePage() {
             (isWeddingSelected && galleryChuppaPreviews.length > 0) ||
             galleryDancePreviews.length > 0 ||
             (showFoodPhotoUpload && galleryFoodPreviews.length > 0)) && (
-            <div className="rounded-2xl border border-[#E0D4C3] bg-[#FAF8F4] p-4">
-              <p className="mb-3 text-xs font-semibold text-[#5F5F5F]">
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="mb-3 text-xs font-semibold text-neutral-600">
                 תצוגה מקדימה לתמונות:
               </p>
 
               {coverPreview && (
                 <div className="mb-4">
-                  <p className="mb-1 text-[11px] font-semibold text-[#0F3B2E]">תמונת שער</p>
+                  <p className="mb-1 text-[11px] font-semibold text-emerald-950">תמונת שער</p>
                   <div className="relative overflow-hidden rounded-lg border border-[#C9A227]/70">
                     <button
                       type="button"
@@ -1515,7 +1515,7 @@ export default function NewVenuePage() {
 
               {galleryHallPreviews.length > 0 && (
                 <div>
-                  <p className="mb-1 text-[11px] font-semibold text-[#5F5F5F]">תמונות אולם</p>
+                  <p className="mb-1 text-[11px] font-semibold text-neutral-600">תמונות אולם</p>
                   <div className="grid gap-3 sm:grid-cols-4">
                     {galleryHallPreviews.map(({ file, url }, idx) => (
                       <div key={`${file.name}-${file.size}-${idx}`} className="relative">
@@ -1533,7 +1533,7 @@ export default function NewVenuePage() {
                         <img
                           src={url}
                           alt={`תמונת אולם ${idx + 1}`}
-                          className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                          className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                         />
                       </div>
                     ))}
@@ -1543,7 +1543,7 @@ export default function NewVenuePage() {
 
               {isWeddingSelected && galleryChuppaPreviews.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-1 text-[11px] font-semibold text-[#5F5F5F]">תמונות חופה</p>
+                  <p className="mb-1 text-[11px] font-semibold text-neutral-600">תמונות חופה</p>
                   <div className="grid gap-3 sm:grid-cols-4">
                     {galleryChuppaPreviews.map(({ file, url }, idx) => (
                       <div key={`${file.name}-${file.size}-${idx}`} className="relative">
@@ -1561,7 +1561,7 @@ export default function NewVenuePage() {
                         <img
                           src={url}
                           alt={`תמונת חופה ${idx + 1}`}
-                          className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                          className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                         />
                       </div>
                     ))}
@@ -1571,7 +1571,7 @@ export default function NewVenuePage() {
 
               {galleryDancePreviews.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-1 text-[11px] font-semibold text-[#5F5F5F]">תמונות רחבה</p>
+                  <p className="mb-1 text-[11px] font-semibold text-neutral-600">תמונות רחבה</p>
                   <div className="grid gap-3 sm:grid-cols-4">
                     {galleryDancePreviews.map(({ file, url }, idx) => (
                       <div key={`${file.name}-${file.size}-${idx}`} className="relative">
@@ -1589,7 +1589,7 @@ export default function NewVenuePage() {
                         <img
                           src={url}
                           alt={`תמונת רחבה ${idx + 1}`}
-                          className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                          className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                         />
                       </div>
                     ))}
@@ -1599,7 +1599,7 @@ export default function NewVenuePage() {
 
               {showFoodPhotoUpload && galleryFoodPreviews.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-1 text-[11px] font-semibold text-[#5F5F5F]">תמונות אוכל</p>
+                  <p className="mb-1 text-[11px] font-semibold text-neutral-600">תמונות אוכל</p>
                   <div className="grid gap-3 sm:grid-cols-4">
                     {galleryFoodPreviews.map(({ file, url }, idx) => (
                       <div key={`${file.name}-${file.size}-${idx}`} className="relative">
@@ -1617,7 +1617,7 @@ export default function NewVenuePage() {
                         <img
                           src={url}
                           alt={`תמונת אוכל ${idx + 1}`}
-                          className="h-20 w-full rounded-lg border border-[#E0D4C3] object-cover"
+                          className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                         />
                       </div>
                     ))}
@@ -1637,14 +1637,14 @@ export default function NewVenuePage() {
             <button
               type="button"
               onClick={() => router.push("/dashboard/venue-owner")}
-              className="rounded-xl border border-[#D4C9BC] px-5 py-2 text-xs font-medium text-[#2A261F] hover:bg-[#EFE6D5]"
+              className="rounded-xl border border-[#D4C9BC] px-5 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
             >
               ביטול
             </button>
             <button
               type="submit"
               disabled={creating}
-              className="rounded-full bg-[#C9A227] px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
+              className="rounded-full bg-amber-400 px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
             >
               {creating ? "יוצר אולם..." : "שמירת אולם חדש"}
             </button>

@@ -91,9 +91,9 @@ export default function CityAutocompleteInput({
         aria-invalid={ariaInvalid}
       />
       {!disabled && menuOpen && (
-        <div className="mt-2 max-h-52 overflow-auto rounded-xl border border-[#E7E0CF] bg-white shadow-[0_10px_24px_rgba(15,59,46,0.12)]">
+        <div className="mt-2 max-h-52 overflow-auto rounded-xl border border-neutral-200 bg-white shadow-[0_10px_24px_rgba(15,59,46,0.12)]">
           {filteredCityOptions.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-[#8A837A]">
+            <p className="px-3 py-2 text-xs text-neutral-500">
               לא נמצאו ערים תואמות.
             </p>
           ) : (
@@ -103,7 +103,7 @@ export default function CityAutocompleteInput({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => pickCity(city)}
-                className="block w-full border-b border-[#F0E9DB] px-3 py-2 text-right text-sm text-[#1A1A1A] hover:bg-[#FAF8F4] last:border-b-0"
+                className="block w-full border-b border-[#F0E9DB] px-3 py-2 text-right text-sm text-neutral-900 hover:bg-neutral-50 last:border-b-0"
               >
                 {city}
               </button>

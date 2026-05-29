@@ -9,8 +9,8 @@ export default function InquiryServicePriceBadge({ opt }: { opt: InquiryServiceO
     <span
       className={`inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
         isExtra
-          ? "border border-[#C9A227]/40 bg-[#FFFBF0] text-[#8B6914]"
-          : "border border-[#0F3B2E]/15 bg-[#0F3B2E]/[0.06] text-[#0F3B2E]"
+          ? "border border-[#C9A227]/40 bg-amber-50 text-[#8B6914]"
+          : "border border-emerald-950/15 bg-emerald-950/[0.06] text-emerald-950"
       }`}
     >
       {hint}

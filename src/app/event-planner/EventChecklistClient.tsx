@@ -111,16 +111,16 @@ export default function EventChecklistClient() {
 
   if (!hydrated) {
     return (
-      <div className="mt-8 h-64 animate-pulse rounded-2xl border border-[#E0D4C3] bg-white/60" />
+      <div className="mt-8 h-64 animate-pulse rounded-2xl border border-neutral-200 bg-white/60" />
     );
   }
 
   return (
     <div className="mt-8 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E0D4C3] bg-white px-4 py-3 text-right shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-right shadow-sm">
         <div>
-          <p className="text-sm font-semibold text-[#0F3B2E]">התקדמות</p>
-          <p className="text-xs text-[#6B6560]">
+          <p className="text-sm font-semibold text-emerald-950">התקדמות</p>
+          <p className="text-xs text-neutral-600">
             {total === 0
               ? "עדיין אין שלבים — הוסיפו מהרשימה למטה"
               : `${doneCount} מתוך ${total} סומנו כהושלמו`}
@@ -128,7 +128,7 @@ export default function EventChecklistClient() {
         </div>
         <div className="h-2 min-w-[120px] flex-1 overflow-hidden rounded-full bg-[#E8E0D4] sm:max-w-xs">
           <div
-            className="h-full rounded-full bg-[#C9A227] transition-all duration-300"
+            className="h-full rounded-full bg-amber-400 transition-all duration-300"
             style={{ width: total ? `${(doneCount / total) * 100}%` : "0%" }}
           />
         </div>
@@ -136,8 +136,8 @@ export default function EventChecklistClient() {
 
       <ul className="space-y-2" aria-label="רשימת משימות לאירוע">
         {total === 0 && (
-          <li className="rounded-2xl border-2 border-dashed border-[#C9A227]/40 bg-[#FFFBF0] px-4 py-8 text-center text-sm text-[#6B6560]">
-            <p className="font-medium text-[#0F3B2E]">הרשימה שלך ריקה</p>
+          <li className="rounded-2xl border-2 border-dashed border-[#C9A227]/40 bg-amber-50 px-4 py-8 text-center text-sm text-neutral-600">
+            <p className="font-medium text-emerald-950">הרשימה שלך ריקה</p>
             <p className="mt-2 text-xs leading-relaxed">
               בחרו שלבים מהרשימה המוצעת למטה, או כתבו שלב משלכם בשדה החופשי.
             </p>
@@ -149,13 +149,13 @@ export default function EventChecklistClient() {
             className={`flex items-center gap-3 rounded-2xl border-2 px-3 py-3 text-right transition sm:px-4 ${
               row.done
                 ? "border-emerald-500/40 bg-emerald-50/80"
-                : "border-[#E0D4C3] bg-[#FDFBF7]"
+                : "border-neutral-200 bg-white"
             }`}
           >
             <button
               type="button"
               onClick={() => toggle(row.id)}
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] ${
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                 row.done
                   ? "bg-emerald-600 text-white shadow-sm"
                   : "border-2 border-rose-400 bg-white text-rose-600"
@@ -168,7 +168,7 @@ export default function EventChecklistClient() {
             <div className="min-w-0 flex-1">
               <p
                 className={`text-base font-semibold ${
-                  row.done ? "text-emerald-900 line-through opacity-80" : "text-[#0F3B2E]"
+                  row.done ? "text-emerald-900 line-through opacity-80" : "text-emerald-950"
                 }`}
               >
                 {row.label}
@@ -189,9 +189,9 @@ export default function EventChecklistClient() {
         ))}
       </ul>
 
-      <div className="rounded-2xl border border-[#E0D4C3] bg-white p-4 text-right shadow-sm">
-        <p className="text-sm font-semibold text-[#0F3B2E]">הוספה מהירה — רעיונות נפוצים</p>
-        <p className="mt-1 text-xs text-[#6B6560]">לחיצה מוסיפה שלב לרשימה (לא יוסיף כפול מאותו שם).</p>
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-sm">
+        <p className="text-sm font-semibold text-emerald-950">הוספה מהירה — רעיונות נפוצים</p>
+        <p className="mt-1 text-xs text-neutral-600">לחיצה מוסיפה שלב לרשימה (לא יוסיף כפול מאותו שם).</p>
         <div className="mt-3 flex flex-wrap justify-end gap-2">
           {QUICK_ADD_SUGGESTIONS.map((s) => {
             const taken = labelExists(s);
@@ -203,8 +203,8 @@ export default function EventChecklistClient() {
                 onClick={() => addQuickLabel(s)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                   taken
-                    ? "cursor-not-allowed border-[#E0D4C3] bg-[#F0EBE3] text-[#A8A098]"
-                    : "border-[#0F3B2E]/25 bg-[#FAF8F4] text-[#0F3B2E] hover:border-[#C9A227] hover:bg-[#FFFBF0]"
+                    ? "cursor-not-allowed border-neutral-200 bg-[#F0EBE3] text-[#A8A098]"
+                    : "border-emerald-950/25 bg-neutral-50 text-emerald-950 hover:border-amber-400 hover:bg-amber-50"
                 }`}
               >
                 {taken ? `${s} ✓` : `+ ${s}`}
@@ -214,8 +214,8 @@ export default function EventChecklistClient() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#E0D4C3] bg-white p-4 text-right shadow-sm">
-        <p className="text-sm font-semibold text-[#0F3B2E]">שלב משלכם (טקסט חופשי)</p>
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-sm">
+        <p className="text-sm font-semibold text-emerald-950">שלב משלכם (טקסט חופשי)</p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-stretch">
           <input
             type="text"
@@ -224,12 +224,12 @@ export default function EventChecklistClient() {
             onChange={(e) => setNewLabel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addItem()}
             placeholder="למשל: עיצוב פרחים, תסרוקת…"
-            className="min-h-[48px] flex-1 rounded-xl border-2 border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2 text-sm outline-none focus:border-[#C9A227]"
+            className="min-h-[48px] flex-1 rounded-xl border-2 border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-amber-400"
           />
           <button
             type="button"
             onClick={addItem}
-            className="min-h-[48px] rounded-xl bg-[#0F3B2E] px-5 text-sm font-bold text-white hover:bg-[#174D3B]"
+            className="min-h-[48px] rounded-xl bg-emerald-950 px-5 text-sm font-bold text-white hover:bg-emerald-900"
           >
             הוסף
           </button>

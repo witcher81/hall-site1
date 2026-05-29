@@ -1,8 +1,8 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import HomeHeader from "@/components/HomeHeader";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
+import SitePageHeader from "@/components/layout/SitePageHeader";
+import SitePageShell from "@/components/layout/SitePageShell";
 import MyInquiriesClient from "./MyInquiriesClient";
 
 export default async function MyInquiriesPage() {
@@ -45,23 +45,12 @@ export default async function MyInquiriesPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
-      <HomeHeader
-        user={user}
-        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
+    <SitePageShell mainWidth="narrow">
+      <SitePageHeader
+        title="הפניות שלי"
+        description="פניות ששלחת לאולמות. תוכל לראות כאן אם בעל האולם צפה או ענה."
       />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="border-b border-[#E0D4C3] pb-6 text-right">
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
-            HALLS HUB
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-[#0F3B2E]">הפניות שלי</h1>
-          <p className="mt-1 text-sm text-[#6B6560]">
-            פניות ששלחת לאולמות. תוכל לראות כאן אם בעל האולם צפה או ענה.
-          </p>
-        </header>
-        <MyInquiriesClient initialInquiries={list} />
-      </main>
-    </div>
+      <MyInquiriesClient initialInquiries={list} />
+    </SitePageShell>
   );
 }

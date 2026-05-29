@@ -25,13 +25,13 @@ export default async function VenueOwnerProfilePage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-10">
-      <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
+      <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
         HALLS HUB
       </p>
-      <h1 className="mt-1 text-2xl font-bold text-[#0F3B2E]">
+      <h1 className="mt-1 text-2xl font-bold text-emerald-950">
           השלם את פרטי העסק שלך
         </h1>
-        <p className="mt-2 text-sm text-[#6B6560]">
+        <p className="mt-2 text-sm text-neutral-600">
           לפני שניצור אולמות, נצטרך כמה פרטים בסיסיים עליך ועל העסק. אפשר
           לעדכן אותם גם אחר כך.
         </p>

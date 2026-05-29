@@ -15,28 +15,28 @@ export default class VenueEditErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+        <div className="site-page">
           <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-            <h1 className="text-lg font-semibold text-[#0F3B2E]">
+            <h1 className="text-lg font-semibold text-emerald-950">
               לא הצלחנו לטעון את טופס העריכה
             </h1>
-            <p className="mt-2 text-sm text-[#2A261F]">
+            <p className="mt-2 text-sm text-neutral-800">
               אירעה שגיאה בדפדפן. נסו לרענן את הדף; אם הבעיה נמשכת, פנו לתמיכה.
             </p>
-            <p className="mt-4 rounded-lg border border-[#E0D4C3] bg-white/80 px-3 py-2 font-mono text-[11px] text-[#6B6560]">
+            <p className="mt-4 rounded-lg border border-neutral-200 bg-white/80 px-3 py-2 font-mono text-[11px] text-neutral-600">
               {this.state.error.message}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="rounded-full bg-[#0F3B2E] px-4 py-2 text-sm font-semibold text-white"
+                className="rounded-full bg-emerald-950 px-4 py-2 text-sm font-semibold text-white"
               >
                 רענון הדף
               </button>
               <a
                 href={`/dashboard/venue-owner/venues/${this.props.venueId}`}
-                className="rounded-full border border-[#0F3B2E] px-4 py-2 text-sm font-semibold text-[#0F3B2E]"
+                className="rounded-full border border-emerald-950 px-4 py-2 text-sm font-semibold text-emerald-950"
               >
                 חזרה לאולם
               </a>

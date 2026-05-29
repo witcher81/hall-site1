@@ -171,7 +171,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+      className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
     >
       <div>
         <FreelancerCategoryTreePicker
@@ -189,7 +189,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
+        <label className="block text-xs font-medium text-neutral-600">
           שם השירות *
         </label>
         <input
@@ -197,12 +197,12 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           required
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
+        <label className="block text-xs font-medium text-neutral-600">
           ספרו קצת עליכם ומה אתם עושים
         </label>
         <textarea
@@ -211,14 +211,14 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           onChange={(e) =>
             setForm((f) => ({ ...f, description: e.target.value }))
           }
-          className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
           placeholder="למשל: מי אתם, מה הניסיון שלכם, באילו סוגי אירועים אתם מתמחים והסבר קצר על השירות שאתם נותנים..."
         />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
+          <label className="block text-xs font-medium text-neutral-600">
             אזור שירות
           </label>
           <ServiceAreaTagsField
@@ -228,7 +228,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
+          <label className="block text-xs font-medium text-neutral-600">
             שנות ניסיון בתחום
           </label>
           <input
@@ -236,13 +236,13 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
             min={0}
             value={form.experienceYears}
             onChange={(e) => setForm((f) => ({ ...f, experienceYears: e.target.value }))}
-            className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+            className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
+        <label className="block text-xs font-medium text-neutral-600">
           שפות עבודה
         </label>
         <ServiceLanguagesTagsField
@@ -273,7 +273,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         onPaidExtrasChange={setPaidExtras}
       />
 
-      <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/50 p-4">
+      <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-4">
         <OptionalPriceRangeFields
           useRange={form.priceUseRange}
           onUseRangeChange={(useRange) =>
@@ -314,22 +314,22 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           singlePlaceholder="למשל 2500"
           expandRangeLabel="אין לי מחיר מדויק — אציג טווח מחירים"
           collapseRangeLabel="יש לי מחיר קבוע לשירות"
-          inputClassName="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+          inputClassName="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
+        <label className="block text-xs font-medium text-neutral-600">
           תמונה ראשית
         </label>
-        <p className="mt-0.5 text-[11px] text-[#6B6560]">
+        <p className="mt-0.5 text-[11px] text-neutral-600">
           זו תמונת השער של השירות — היא תוצג ראשונה בכרטיס ובדף השירות.
         </p>
         <input
           type="file"
           accept="image/*"
           onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
-          className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#C9A227] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
+          className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
         />
         {coverPreview && (
           <img src={coverPreview} alt="cover" className="mt-2 h-28 w-28 rounded-xl object-cover" />
@@ -337,12 +337,12 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">גלריה קיימת</label>
-        <p className="mt-0.5 text-[11px] text-[#6B6560]">
+        <label className="block text-xs font-medium text-neutral-600">גלריה קיימת</label>
+        <p className="mt-0.5 text-[11px] text-neutral-600">
           הגלריה מיועדת לדוגמאות של עבודות, תוצרים או דברים שאתה נותן במסגרת השירות.
         </p>
         {existingGallery.length === 0 ? (
-          <p className="mt-1 text-xs text-[#6B6560]">אין תמונות גלריה.</p>
+          <p className="mt-1 text-xs text-neutral-600">אין תמונות גלריה.</p>
         ) : (
           <div className="mt-2 flex flex-wrap gap-2">
             {existingGallery.map((url) => (
@@ -362,8 +362,8 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">הוספת תמונות גלריה חדשות</label>
-        <p className="mt-0.5 text-[11px] text-[#6B6560]">
+        <label className="block text-xs font-medium text-neutral-600">הוספת תמונות גלריה חדשות</label>
+        <p className="mt-0.5 text-[11px] text-neutral-600">
           ניתן להוסיף תמונות נוספות כדוגמאות לשירותים ולעבודות שלך.
         </p>
         <input
@@ -375,7 +375,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
             if (!files) return;
             setNewGalleryImages((prev) => [...prev, ...Array.from(files)]);
           }}
-          className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+          className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
         />
         {newGalleryImages.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-3">
@@ -387,7 +387,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
                 <img
                   src={newGalleryPreviewUrls[idx]}
                   alt={f.name}
-                  className="h-20 w-20 rounded-xl border border-[#E0D4C3] object-cover shadow-sm"
+                  className="h-20 w-20 rounded-xl border border-neutral-200 object-cover shadow-sm"
                 />
                 <button
                   type="button"
@@ -399,7 +399,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
                 >
                   ×
                 </button>
-                <p className="mt-1 max-w-[5.5rem] truncate text-center text-[10px] text-[#6B6560]">
+                <p className="mt-1 max-w-[5.5rem] truncate text-center text-[10px] text-neutral-600">
                   {f.name}
                 </p>
               </div>
@@ -422,14 +422,14 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       <div className="flex justify-end gap-3 pt-2">
         <a
           href={`/dashboard/freelancer/services/${serviceId}`}
-          className="rounded-full border border-[#E0D4C3] bg-[#FAF8F4] px-5 py-2 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+          className="rounded-full border border-neutral-200 bg-neutral-50 px-5 py-2 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
         >
           ביטול
         </a>
         <button
           type="submit"
           disabled={loading || hasInvalidSocialLinks}
-          className="rounded-full bg-[#C9A227] px-6 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
+          className="rounded-full bg-amber-400 px-6 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
         >
           {loading ? "שומר..." : "שמירה"}
         </button>

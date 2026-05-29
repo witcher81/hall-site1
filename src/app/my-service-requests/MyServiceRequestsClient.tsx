@@ -37,7 +37,7 @@ export default function MyServiceRequestsClient() {
 
   if (loading) {
     return (
-      <div className="mt-6 rounded-2xl border border-dashed border-[#E0D4C3] bg-[#FAF8F4] p-8 text-center text-sm text-[#6B6560]">
+      <div className="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
         טוען...
       </div>
     );
@@ -45,9 +45,9 @@ export default function MyServiceRequestsClient() {
 
   if (requests.length === 0) {
     return (
-      <div className="mt-6 rounded-2xl border border-dashed border-[#E0D4C3] bg-[#FAF8F4] p-8 text-center text-sm text-[#6B6560]">
+      <div className="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
         עדיין לא שלחת בקשות לספקים.{" "}
-        <a href="/providers" className="font-semibold text-[#0F3B2E] hover:underline">
+        <a href="/providers" className="font-semibold text-emerald-950 hover:underline">
           חפש ספקים
         </a>
       </div>
@@ -67,22 +67,22 @@ export default function MyServiceRequestsClient() {
                 ? "border-[#C9A227]/40 bg-[#FFF9E6]"
                 : r.status === "REPLIED"
                   ? "border-emerald-200/80 bg-emerald-50/90"
-                  : "border-[#E0D4C3] bg-white"
+                  : "border-neutral-200 bg-white"
             }`}
           >
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <p className="font-semibold text-[#0F3B2E]">
+              <p className="font-semibold text-emerald-950">
                 {r.service.name}
-                <span className="mr-2 text-[#6B6560]">·</span>
-                <span className="text-[#2A261F]">{providerName}</span>
+                <span className="mr-2 text-neutral-600">·</span>
+                <span className="text-neutral-800">{providerName}</span>
               </p>
               <span
                 className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                   r.status === "NEW"
-                    ? "bg-[#FFF9E6] text-[#0F3B2E]"
+                    ? "bg-[#FFF9E6] text-emerald-950"
                     : r.status === "REPLIED"
                       ? "bg-emerald-100 text-emerald-900"
-                      : "bg-[#FAF8F4] text-[#5F5F5F]"
+                      : "bg-neutral-50 text-neutral-600"
                 }`}
               >
                 {r.status === "NEW"
@@ -93,30 +93,30 @@ export default function MyServiceRequestsClient() {
               </span>
             </div>
             {(r.eventType || r.preferredDate) && (
-              <p className="mt-1 text-xs text-[#6B6560]">
+              <p className="mt-1 text-xs text-neutral-600">
                 {r.eventType && <span>סוג אירוע: {r.eventType}</span>}
                 {r.preferredDate && (
                   <span className="mr-3">תאריך: {r.preferredDate}</span>
                 )}
               </p>
             )}
-            <p className="mt-2 text-[#1A1A1A]">{r.message}</p>
+            <p className="mt-2 text-neutral-900">{r.message}</p>
             {r.status === "REPLIED" && (r.providerNote || r.repliedAt) && (
               <div className="mt-3 rounded-lg border border-emerald-200/80 bg-white/90 p-3 text-xs">
                 {r.providerNote && (
-                  <p className="text-[#2A261F]">
+                  <p className="text-neutral-800">
                     <span className="font-medium text-emerald-800">תשובת הספק: </span>
                     {r.providerNote}
                   </p>
                 )}
                 {r.repliedAt && (
-                  <p className="mt-1 text-[#6B6560]">
+                  <p className="mt-1 text-neutral-600">
                     נענה ב־{new Date(r.repliedAt).toLocaleString("he-IL")}
                   </p>
                 )}
               </div>
             )}
-            <p className="mt-1 text-xs text-[#6B6560]">
+            <p className="mt-1 text-xs text-neutral-600">
               נשלח ב־{new Date(r.createdAt).toLocaleDateString("he-IL")}
             </p>
           </article>

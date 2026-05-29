@@ -31,11 +31,11 @@ export default function FavoritesClient({
 
   if (venues.length === 0) {
     return (
-      <div className="mt-8 rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-10 text-center text-sm text-[#6B6560] shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
-        <p className="font-medium text-[#0F3B2E]">עדיין לא שמרת אולמות למועדפים.</p>
+      <div className="mt-8 rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-10 text-center text-sm text-neutral-600 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
+        <p className="font-medium text-emerald-950">עדיין לא שמרת אולמות למועדפים.</p>
         <a
           href="/halls"
-          className="mt-4 inline-block font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+          className="mt-4 inline-block font-semibold text-emerald-950 underline-offset-4 hover:underline"
         >
           חיפוש אולמות →
         </a>
@@ -48,7 +48,7 @@ export default function FavoritesClient({
       {venues.map((v) => (
         <div
           key={v.id}
-          className="relative overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white shadow-[0_12px_40px_rgba(15,59,46,0.07)] transition hover:border-[#C9A227]/50 hover:shadow-md"
+          className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_12px_40px_rgba(15,59,46,0.07)] transition hover:border-amber-400/50 hover:shadow-md"
         >
           <a href={`/halls/${v.id}`} className="block">
             <div className="aspect-[16/10] w-full overflow-hidden border-b border-[#E8E0D4] bg-[#F5EFE3]">
@@ -66,15 +66,15 @@ export default function FavoritesClient({
               )}
             </div>
             <div className="p-4 text-right">
-              <h2 className="font-semibold text-[#0F3B2E]">{v.name}</h2>
-              <p className="mt-0.5 text-xs text-[#6B6560]">{v.city}</p>
+              <h2 className="font-semibold text-emerald-950">{v.name}</h2>
+              <p className="mt-0.5 text-xs text-neutral-600">{v.city}</p>
               {(v.minPrice != null || v.maxPrice != null) && (
-                <p className="mt-1 text-xs font-medium text-[#0F3B2E]">
+                <p className="mt-1 text-xs font-medium text-emerald-950">
                   ₪ {v.minPrice ?? "?"}–{v.maxPrice ?? "?"} למנה
                 </p>
               )}
               {(v.hallRentalMin != null || v.hallRentalMax != null) && (
-                <p className="mt-0.5 text-xs text-[#6B6560]">
+                <p className="mt-0.5 text-xs text-neutral-600">
                   השכרת אולם: ₪ {v.hallRentalMin ?? "?"}–{v.hallRentalMax ?? "?"}
                 </p>
               )}

@@ -117,12 +117,12 @@ export default function ProvidersSearchClient() {
     <div className="mt-6 space-y-6">
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl border border-[#E0D4C3] bg-white p-5 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+        className="site-card-padded text-right text-sm"
       >
-        <p className="mb-3 text-xs font-semibold text-[#0F3B2E]">סינון חיפוש</p>
+        <p className="mb-3 text-xs font-semibold text-emerald-950">סינון חיפוש</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">קטגוריה ראשית</label>
+            <label className="block text-xs font-medium text-neutral-600">קטגוריה ראשית</label>
             <select
               value={form.category}
               onChange={(e) =>
@@ -132,7 +132,7 @@ export default function ProvidersSearchClient() {
                   secondary: "",
                 }))
               }
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             >
               <option value="">הכל</option>
               {FREELANCER_SERVICE_CATEGORIES.map((c) => (
@@ -141,12 +141,12 @@ export default function ProvidersSearchClient() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">שירות (משני)</label>
+            <label className="block text-xs font-medium text-neutral-600">שירות (משני)</label>
             <select
               value={form.secondary}
               disabled={!form.category || secondaryOptions.length === 0}
               onChange={(e) => setForm((f) => ({ ...f, secondary: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40 disabled:opacity-50"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40 disabled:opacity-50"
             >
               <option value="">כל השירותים בקטגוריה</option>
               {secondaryOptions.map((s) => (
@@ -167,13 +167,13 @@ export default function ProvidersSearchClient() {
               maxLabel="מחיר מקסימלי (₪)"
               expandRangeLabel="אין לי מחיר מדויק — חפש לפי טווח"
               collapseRangeLabel="יש לי מחיר מדויק"
-              inputClassName="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              inputClassName="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             />
           </div>
           <div className="flex items-end">
             <button
               type="submit"
-              className="w-full rounded-full bg-[#C9A227] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#E5C96B]"
+              className="w-full rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-300"
             >
               חפש
             </button>
@@ -184,9 +184,9 @@ export default function ProvidersSearchClient() {
       <RecentlyViewedBar variant="providers" />
 
       {loading ? (
-        <p className="py-8 text-center text-sm text-[#6B6560]">טוען תוצאות…</p>
+        <p className="py-8 text-center text-sm text-neutral-600">טוען תוצאות…</p>
       ) : services.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#E0D4C3] bg-[#FAF8F4] p-8 text-center text-sm text-[#6B6560]">
+        <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
           לא נמצאו שירותים לפי הסינון. נסה לשנות פרמטרים.
         </div>
       ) : (
@@ -204,7 +204,7 @@ export default function ProvidersSearchClient() {
             return (
               <div
                 key={s.id}
-                className="overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)] transition hover:border-[#C9A227]/50 hover:shadow-md"
+                className="site-card overflow-hidden text-right transition hover:border-amber-400/50 hover:shadow-lg"
               >
                 <a
                   href={`/services/${s.id}`}
@@ -228,20 +228,20 @@ export default function ProvidersSearchClient() {
                       </div>
                     )
                   )}
-                  <h2 className="font-semibold text-[#0F3B2E]">{s.name}</h2>
+                  <h2 className="font-semibold text-emerald-950">{s.name}</h2>
                   {s.category && (
-                    <p className="mt-0.5 text-xs text-[#6B6560]">{s.category}</p>
+                    <p className="mt-0.5 text-xs text-neutral-600">{s.category}</p>
                   )}
                   {blurb ? (
-                    <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs text-[#5F5F5F]">
+                    <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs text-neutral-600">
                       {blurb}
                     </p>
                   ) : null}
                   {s.serviceArea && (
-                    <p className="mt-1 text-xs text-[#6B6560]">אזור שירות: {s.serviceArea}</p>
+                    <p className="mt-1 text-xs text-neutral-600">אזור שירות: {s.serviceArea}</p>
                   )}
                   {(s.experienceYears != null || s.languages) && (
-                    <p className="mt-1 text-xs text-[#6B6560]">
+                    <p className="mt-1 text-xs text-neutral-600">
                       {[
                         s.experienceYears != null ? `ניסיון: ${s.experienceYears} שנים` : null,
                         s.languages ? `שפות: ${s.languages}` : null,
@@ -250,15 +250,15 @@ export default function ProvidersSearchClient() {
                         .join(" · ")}
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-[#6B6560]">
+                  <p className="mt-1 text-xs text-neutral-600">
                     {s.provider.businessName || s.provider.name || "ספק"}
                   </p>
                   {priceLine != null && (
-                    <p className="mt-1 text-xs text-[#2A261F]">{priceLine}</p>
+                    <p className="mt-1 text-xs text-neutral-800">{priceLine}</p>
                   )}
                 </a>
                 {socialLinks.length > 0 && (
-                  <div className="border-t border-[#E0D4C3]/80 bg-[#141414] px-3 py-2.5">
+                  <div className="border-t border-neutral-200/80 bg-[#141414] px-3 py-2.5">
                     <SocialLinksRow links={socialLinks} compact dark />
                   </div>
                 )}

@@ -162,15 +162,15 @@ export default function AddressStreetSuggest({
         <ul
           id={listboxId}
           role="listbox"
-          className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#E0D4C3] bg-white py-1 text-sm shadow-lg"
+          className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 text-sm shadow-lg"
         >
           {options.map((s, i) => (
             <li
               key={`${s.lat.toFixed(5)}-${s.lng.toFixed(5)}-${s.value}`}
               role="option"
               aria-selected={i === activeIndex}
-              className={`cursor-pointer px-3 py-2 text-[#1A1A1A] hover:bg-[#FAF8F4] ${
-                i === activeIndex ? "bg-[#FAF8F4]" : ""
+              className={`cursor-pointer px-3 py-2 text-neutral-900 hover:bg-neutral-50 ${
+                i === activeIndex ? "bg-neutral-50" : ""
               }`}
               onMouseDown={(e) => {
                 e.preventDefault();

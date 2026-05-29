@@ -18,7 +18,7 @@ export default async function VenueOwnerLayout({
   });
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <DashboardNav user={{ name: dbUser?.name ?? null, email: dbUser?.email ?? "" }} />
       {children}
     </div>

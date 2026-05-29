@@ -27,18 +27,18 @@ export default async function ServiceEditPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">
+      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
         <div className="text-right">
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
+          <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
             HALLS HUB
           </p>
-          <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">
+          <h1 className="mt-1 text-xl font-semibold text-emerald-950">
             עריכת שירות: {service.name}
           </h1>
         </div>
         <a
           href={`/dashboard/freelancer/services/${service.id}`}
-          className="text-sm text-[#6B6560] underline-offset-4 hover:text-[#0F3B2E] hover:underline"
+          className="text-sm text-neutral-600 underline-offset-4 hover:text-emerald-950 hover:underline"
         >
           חזרה לשירות
         </a>

@@ -14,7 +14,7 @@ export default function SeekerExternalSourceToggle({
 }) {
   return (
     <label
-      className={`flex max-w-full cursor-pointer items-start gap-2 text-[#2A261F] ${
+      className={`flex max-w-full cursor-pointer items-start gap-2 text-neutral-800 ${
         disabled ? "cursor-not-allowed opacity-60" : ""
       } ${compact ? "text-[10px]" : "text-[11px]"}`}
       onClick={(e) => e.stopPropagation()}
@@ -39,7 +39,7 @@ export default function SeekerExternalSourceToggle({
 export function SeekerExternalVenueOnlyHint({ compact = false }: { compact?: boolean }) {
   return (
     <p
-      className={`text-[#6B6560] ${compact ? "text-[10px]" : "text-[11px]"}`}
+      className={`text-neutral-600 ${compact ? "text-[10px]" : "text-[11px]"}`}
       onClick={(e) => e.stopPropagation()}
     >
       חלק מהאולם — ללא אפשרות לספק חיצוני בפנייה.

@@ -215,7 +215,7 @@ function HallsResultsSkeleton() {
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="animate-pulse overflow-hidden rounded-2xl border border-[#E7E0CF] bg-white"
+          className="animate-pulse overflow-hidden rounded-2xl border border-neutral-200 bg-white"
         >
           <div className="aspect-[16/10] bg-gradient-to-br from-[#E7E0CF]/80 to-[#EFE6D5]">
             <div className="h-full w-full bg-[#E7E0CF]/40" />
@@ -278,15 +278,15 @@ function VenueResultCard({
   return (
     <a
       href={`/halls/${v.id}`}
-      className={`relative block overflow-hidden rounded-2xl border bg-white text-[#1A1A1A] shadow-sm transition hover:shadow-md ${
+      className={`relative block overflow-hidden rounded-2xl border bg-white text-neutral-900 shadow-sm transition hover:shadow-md ${
         highlight
-          ? "border-[#C9A227]/60 ring-1 ring-[#C9A227]/20"
-          : "border-[#E7E0CF]"
+          ? "border-[#C9A227]/60 ring-1 ring-amber-400/20"
+          : "border-neutral-200"
       }`}
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F5EFE3]">
         {v.isBoosted && (
-          <span className="absolute bottom-2 left-2 z-10 rounded-full bg-[#0F3B2E] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#E5C96B] shadow-sm">
+          <span className="absolute bottom-2 left-2 z-10 rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-400 shadow-sm">
             מקודם
           </span>
         )}
@@ -350,16 +350,16 @@ function VenueResultCard({
       <div className="p-4 text-right">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h2 className="font-semibold text-[#1A1A1A]">{v.name}</h2>
-            <p className="mt-0.5 text-xs text-[#5F5F5F]">{v.city}</p>
+            <h2 className="font-semibold text-neutral-900">{v.name}</h2>
+            <p className="mt-0.5 text-xs text-neutral-600">{v.city}</p>
           </div>
           <label
-            className="flex cursor-pointer items-center gap-1 text-[11px] text-[#5F5F5F]"
+            className="flex cursor-pointer items-center gap-1 text-[11px] text-neutral-600"
             onClick={(e) => e.stopPropagation()}
           >
             <input
               type="checkbox"
-              className="h-3.5 w-3.5 cursor-pointer rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]"
+              className="h-3.5 w-3.5 cursor-pointer rounded border-[#C9A227] text-amber-600 focus:ring-amber-400"
               checked={compareIds.includes(v.id)}
               onChange={(e) => {
                 setCompareIds((prev) =>
@@ -378,7 +378,7 @@ function VenueResultCard({
             {tags.map((t) => (
               <span
                 key={t.key}
-                className="inline-flex items-center gap-0.5 rounded-full bg-[#FAF8F4] px-2 py-0.5 text-[10px] font-semibold text-[#2A261F] ring-1 ring-[#E7E0CF]/80"
+                className="inline-flex items-center gap-0.5 rounded-full bg-neutral-50 px-2 py-0.5 text-[10px] font-semibold text-neutral-800 ring-1 ring-neutral-200/80"
               >
                 <span aria-hidden>{t.emoji}</span>
                 {t.text}
@@ -388,8 +388,8 @@ function VenueResultCard({
         )}
 
         {why.length > 0 && (
-          <div className="mt-3 rounded-xl border border-[#E7E0CF]/80 bg-[#FAF8F4]/80 px-3 py-2 text-[11px] leading-relaxed text-[#3D3830]">
-            <p className="font-semibold text-[#0F3B2E]">למה זה מתאים לך</p>
+          <div className="mt-3 rounded-xl border border-neutral-200/80 bg-neutral-50/80 px-3 py-2 text-[11px] leading-relaxed text-[#3D3830]">
+            <p className="font-semibold text-emerald-950">למה זה מתאים לך</p>
             <ul className="mt-1 list-inside list-disc space-y-0.5 pr-0.5">
               {why.map((line) => (
                 <li key={line}>{line}</li>
@@ -399,17 +399,17 @@ function VenueResultCard({
         )}
 
         {(v.minPrice != null || v.maxPrice != null) && (
-          <p className="mt-2 text-xs font-medium text-[#0F3B2E]">
+          <p className="mt-2 text-xs font-medium text-emerald-950">
             ₪ {v.minPrice ?? "?"}–{v.maxPrice ?? "?"} למנה
           </p>
         )}
         {(v.hallRentalMin != null || v.hallRentalMax != null) && (
-          <p className="mt-0.5 text-xs text-[#5F5F5F]">
+          <p className="mt-0.5 text-xs text-neutral-600">
             השכרת אולם: ₪ {v.hallRentalMin ?? "?"}–{v.hallRentalMax ?? "?"}
           </p>
         )}
         {(v.minGuests != null || v.maxGuests != null) && (
-          <p className="mt-0.5 text-xs text-[#5F5F5F]">
+          <p className="mt-0.5 text-xs text-neutral-600">
             עד {v.maxGuests ?? "?"} אורחים
           </p>
         )}
@@ -418,7 +418,7 @@ function VenueResultCard({
             {v.eventTypes.slice(0, 3).map((et) => (
               <span
                 key={et}
-                className="rounded-full bg-[#C9A227]/20 px-2 py-0.5 text-[10px] text-[#8A6B08]"
+                className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] text-[#8A6B08]"
               >
                 {et}
               </span>
@@ -433,27 +433,27 @@ function VenueResultCard({
           (v.customAmenities?.some((a) => a.checked) ?? false)) && (
           <div className="mt-2 flex flex-wrap gap-1">
             {v.hasChuppa && (
-              <span className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[10px] text-[#0F3B2E]">
+              <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] text-emerald-950">
                 חופה
               </span>
             )}
             {showFoodAmenityChip && (
-              <span className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[10px] text-[#0F3B2E]">
+              <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] text-emerald-950">
                 אוכל
               </span>
             )}
             {v.hasTableSetup && (
-              <span className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[10px] text-[#0F3B2E]">
+              <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] text-emerald-950">
                 סידור שולחנות
               </span>
             )}
             {v.hasDanceFloor && (
-              <span className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[10px] text-[#0F3B2E]">
+              <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] text-emerald-950">
                 רחבה
               </span>
             )}
             {v.hasSoundSystem && (
-              <span className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[10px] text-[#0F3B2E]">
+              <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] text-emerald-950">
                 הגברה
               </span>
             )}
@@ -462,7 +462,7 @@ function VenueResultCard({
               .map((a, idx) => (
                 <span
                   key={`${a.label}-${idx}`}
-                  className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[10px] text-[#0F3B2E]"
+                  className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] text-emerald-950"
                 >
                   {a.label}
                 </span>
@@ -664,8 +664,8 @@ export default function HallsSearchClient({
   );
 
   const fieldClass =
-    "mt-2 w-full min-h-[46px] rounded-xl border border-[#E7E0CF] bg-white px-4 py-2.5 text-base text-[#1A1A1A] outline-none transition focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/25";
-  const labelClass = "block text-sm font-medium text-[#0F3B2E]";
+    "mt-2 w-full min-h-[46px] rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-base text-neutral-900 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-400/25";
+  const labelClass = "block text-sm font-medium text-emerald-950";
   const searchExtraCities = useMemo(
     () =>
       venues
@@ -678,19 +678,19 @@ export default function HallsSearchClient({
     <div className="mt-6 space-y-8">
       <form
         onSubmit={handleSubmit}
-        className="rounded-3xl border border-[#E7E0CF] bg-white p-6 text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] sm:p-8 md:p-10"
+        className="rounded-3xl border border-neutral-200 bg-white p-6 text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] sm:p-8 md:p-10"
       >
-        <div className="mb-6 flex flex-col gap-1 border-b border-[#E7E0CF]/80 pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-1 border-b border-neutral-200/80 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-lg font-bold text-[#0F3B2E]">סינון חיפוש</p>
-            <p className="mt-1 text-sm text-[#5F5F5F]">
+            <p className="text-lg font-bold text-emerald-950">סינון חיפוש</p>
+            <p className="mt-1 text-sm text-neutral-600">
               אפשר למלא או לשנות כל שדה בכל סדר — אין שלבים חובה. במסכים צרים השדות מתחלקים לעמודות.
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <div className="min-w-0 rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4">
+          <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
             <label className={labelClass}>סוג אירוע</label>
             <select
               value={form.eventType}
@@ -711,7 +711,7 @@ export default function HallsSearchClient({
             </select>
           </div>
 
-          <div className="min-w-0 rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4">
+          <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
             <label className={labelClass}>עיר</label>
             <CityAutocompleteInput
               value={form.city}
@@ -729,7 +729,7 @@ export default function HallsSearchClient({
         </div>
 
         <div className="mt-6 space-y-6">
-          <div className="rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4 sm:p-5">
+          <div className="rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4 sm:p-5">
             {!form.guestsUseRange ? (
               <div className="min-w-0">
                 <label className={labelClass}>מספר אורחים</label>
@@ -774,7 +774,7 @@ export default function HallsSearchClient({
                 </div>
               </div>
             )}
-            <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-[#0F3B2E]">
+            <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-emerald-950">
               <input
                 type="checkbox"
                 checked={form.guestsUseRange}
@@ -804,13 +804,13 @@ export default function HallsSearchClient({
                     };
                   });
                 }}
-                className="h-4 w-4 shrink-0 rounded border-[#E7E0CF] text-[#C9A227] focus:ring-[#C9A227]/40"
+                className="h-4 w-4 shrink-0 rounded border-neutral-200 text-amber-600 focus:ring-amber-400/40"
               />
               אין לי מספר אורחים מדויק — חיפוש לפי טווח (בערך)
             </label>
           </div>
 
-          <div className="rounded-2xl border border-[#E7E0CF]/90 bg-[#FAF8F4]/70 p-4 sm:p-5">
+          <div className="rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4 sm:p-5">
             <OptionalPriceRangeFields
               useRange={form.priceUseRange}
               onUseRangeChange={(useRange) =>
@@ -858,7 +858,7 @@ export default function HallsSearchClient({
           </div>
         </div>
 
-        <p className="mb-2 mt-6 text-xs font-medium text-[#5F5F5F]">
+        <p className="mb-2 mt-6 text-xs font-medium text-neutral-600">
           השכרת אולם (לאירוע, ₪) — סינון לפי טווח מחיר
         </p>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:max-w-2xl">
@@ -891,8 +891,8 @@ export default function HallsSearchClient({
         </div>
 
         {/* פילטרים מתקדמים */}
-        <div className="mt-8 rounded-2xl bg-[#FAF8F4] p-5 md:p-6">
-          <p className="mb-4 text-sm font-semibold text-[#0F3B2E]">
+        <div className="mt-8 rounded-2xl bg-neutral-50 p-5 md:p-6">
+          <p className="mb-4 text-sm font-semibold text-emerald-950">
             פילטרים נוספים
           </p>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -966,13 +966,13 @@ export default function HallsSearchClient({
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-stretch gap-3 border-t border-[#E7E0CF]/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-center text-sm text-[#5F5F5F] sm:text-right">
+        <div className="mt-8 flex flex-col items-stretch gap-3 border-t border-neutral-200/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-center text-sm text-neutral-600 sm:text-right">
             החיפוש מתעדכן אוטומטית כשמשנים סינון (אפשר גם ללחוץ לעדכון מיידי).
           </p>
           <button
             type="submit"
-            className="min-h-[50px] rounded-2xl bg-[#C9A227] px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
+            className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
           >
             עדכן עכשיו
           </button>
@@ -984,7 +984,7 @@ export default function HallsSearchClient({
       {loading ? (
         <HallsResultsSkeleton />
       ) : venues.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-8 text-center text-sm text-[#6B6560] shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
+        <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-8 text-center text-sm text-neutral-600 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
           לא נמצאו אולמות לפי הסינון. נסה לשנות פרמטרים או להשאיר שדות ריקים.
         </div>
       ) : (
@@ -992,13 +992,13 @@ export default function HallsSearchClient({
           {topPicks.length > 0 && (
             <section className="space-y-3">
               <div className="text-right">
-                <h2 className="text-lg font-bold text-[#0F3B2E]">
+                <h2 className="text-lg font-bold text-emerald-950">
                   Top Picks — {topPicks.length}{" "}
                   {topPicks.length === 1
                     ? "האולם שמתאים לך ביותר לפי החיפוש"
                     : "האולמות הכי מתאימים לך לפי החיפוש"}
                 </h2>
-                <p className="mt-1 text-xs text-[#5F5F5F]">
+                <p className="mt-1 text-xs text-neutral-600">
                   לפי הסינון שלך, קיבולת, תקציב ופופולריות — כדי לחסוך בלבול.
                 </p>
               </div>
@@ -1025,7 +1025,7 @@ export default function HallsSearchClient({
           {restVenues.length > 0 && (
             <section className={topPicks.length > 0 ? "mt-10 space-y-3" : "space-y-3"}>
               {topPicks.length > 0 && (
-                <h2 className="text-right text-base font-semibold text-[#0F3B2E]">
+                <h2 className="text-right text-base font-semibold text-emerald-950">
                   כל שאר התוצאות ({restVenues.length})
                 </h2>
               )}
@@ -1049,11 +1049,11 @@ export default function HallsSearchClient({
           )}
 
           {/* מחשבון עלות אירוע */}
-          <section className="mt-10 rounded-2xl border border-[#E7E0CF] bg-white p-6 text-right text-sm shadow-md">
-            <h2 className="text-base font-semibold text-[#0F3B2E]">
+          <section className="mt-10 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-md">
+            <h2 className="text-base font-semibold text-emerald-950">
               מחשבון עלות אירוע (הערכה מהירה)
             </h2>
-            <p className="mt-1 text-xs text-[#5F5F5F]">
+            <p className="mt-1 text-xs text-neutral-600">
               הזן מספר אורחים, טווח מחיר למנה, השכרת אולם משוערת ועלות ספקים – ונחשב עבורך את העלות הכוללת.
             </p>
             <EventCostCalculator />
@@ -1062,7 +1062,7 @@ export default function HallsSearchClient({
       )}
       {compareIds.length > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4">
-          <div className="flex w-full max-w-xl items-center justify-between gap-3 rounded-2xl bg-[#0F3B2E] px-4 py-3 text-xs text-white shadow-[0_18px_45px_rgba(0,0,0,0.5)]">
+          <div className="flex w-full max-w-xl items-center justify-between gap-3 rounded-2xl bg-emerald-950 px-4 py-3 text-xs text-white shadow-[0_18px_45px_rgba(0,0,0,0.5)]">
             <div>
               <p className="font-semibold">
                 {compareIds.length} אולמות נבחרו להשוואה
@@ -1085,7 +1085,7 @@ export default function HallsSearchClient({
                   const ids = compareIds.join(",");
                   router.push(`/halls/compare?ids=${ids}`);
                 }}
-                className="rounded-full bg-[#C9A227] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#E5C96B]"
+                className="rounded-full bg-amber-400 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-amber-300"
               >
                 השווה אולמות
               </button>
@@ -1115,7 +1115,7 @@ function EventCostCalculator() {
   return (
     <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
+        <label className="block text-xs font-medium text-neutral-600">
           מספר אורחים
         </label>
         <input
@@ -1123,12 +1123,12 @@ function EventCostCalculator() {
           min={0}
           value={guests}
           onChange={(e) => setGuests(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-[#E7E0CF] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400"
           placeholder="לדוגמה 250"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
+        <label className="block text-xs font-medium text-neutral-600">
           מחיר משוער למנה (₪)
         </label>
         <input
@@ -1136,12 +1136,12 @@ function EventCostCalculator() {
           min={0}
           value={pricePerGuest}
           onChange={(e) => setPricePerGuest(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-[#E7E0CF] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400"
           placeholder="לדוגמה 320"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
+        <label className="block text-xs font-medium text-neutral-600">
           השכרת אולם משוערת (₪)
         </label>
         <input
@@ -1149,12 +1149,12 @@ function EventCostCalculator() {
           min={0}
           value={hallRental}
           onChange={(e) => setHallRental(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-[#E7E0CF] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400"
           placeholder="לדוגמה 15000"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-[#5F5F5F]">
+        <label className="block text-xs font-medium text-neutral-600">
           עלות ספקים נוספת (DJ, צילום...) (₪)
         </label>
         <input
@@ -1162,11 +1162,11 @@ function EventCostCalculator() {
           min={0}
           value={suppliers}
           onChange={(e) => setSuppliers(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-[#E7E0CF] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400"
           placeholder="לדוגמה 25000"
         />
       </div>
-      <div className="flex flex-col items-end justify-center rounded-xl bg-[#0F3B2E] px-4 py-3 text-right text-white sm:col-span-2 xl:col-span-1">
+      <div className="flex flex-col items-end justify-center rounded-xl bg-emerald-950 px-4 py-3 text-right text-white sm:col-span-2 xl:col-span-1">
         <span className="text-[11px] text-white/90">עלות משוערת כוללת</span>
         <span className="mt-1 text-lg font-semibold">
           ₪ {total.toLocaleString("he-IL")}

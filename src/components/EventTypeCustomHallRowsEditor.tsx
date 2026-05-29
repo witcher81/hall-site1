@@ -6,7 +6,7 @@ import { defaultSeekerExternalForCustomRow } from "@/lib/venueAmenitySeekerExter
 import type { VenueEditCustomHallRow } from "@/lib/venueEditFormParse";
 
 const compactPriceInputClass =
-  "w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px] outline-none focus:border-[#C9A227]";
+  "w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-amber-400";
 
 type Props = {
   eventType: string;
@@ -47,12 +47,12 @@ export default function EventTypeCustomHallRowsEditor({
   };
 
   return (
-    <div className="mt-1 border-t border-[#E0D4C3]/70 pt-2 sm:col-span-2">
-      <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+    <div className="mt-1 border-t border-neutral-200/70 pt-2 sm:col-span-2">
+      <p className="mb-2 text-xs font-semibold text-neutral-600">
         מה יש באולם לסוג &quot;{eventType}&quot;? (אופציונלי)
       </p>
-      <div className="mb-3 rounded-xl border border-[#E0D4C3]/90 bg-white/70 p-3">
-        <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+      <div className="mb-3 rounded-xl border border-neutral-200/90 bg-white/70 p-3">
+        <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
           פריטים שמופיעים בפנייה רק כשהמחפש בוחר את סוג האירוע הזה. הוסיפו למטה — אפשר לסמן אם מותר
           להביא ספק חיצוני (* אופציונלי).
         </p>
@@ -67,14 +67,14 @@ export default function EventTypeCustomHallRowsEditor({
                 addRow();
               }
             }}
-            className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+            className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400"
             placeholder="הוסף פרט משלך לאולם…"
             maxLength={80}
           />
           <button
             type="button"
             onClick={addRow}
-            className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
+            className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-neutral-800 hover:bg-neutral-50"
           >
             הוסף
           </button>
@@ -85,7 +85,7 @@ export default function EventTypeCustomHallRowsEditor({
           {rows.map((row, idx) => (
             <div
               key={`hall-${eventType}-${row.label}-${idx}`}
-              className="flex min-w-0 flex-col gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-[#2A261F]"
+              className="flex min-w-0 flex-col gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/60 px-2 py-2 text-xs text-neutral-800"
             >
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <label className="flex min-w-0 flex-1 items-center gap-2">
@@ -104,14 +104,14 @@ export default function EventTypeCustomHallRowsEditor({
                       priceMode: e.target.value === "extra" ? "extra" : "included",
                     })
                   }
-                  className="rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px]"
+                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px]"
                 >
                   <option value="included">כלול</option>
                   <option value="extra">בתוספת תשלום</option>
                 </select>
                 <button
                   type="button"
-                  className="shrink-0 text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+                  className="shrink-0 text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
                   onClick={() => onRowsChange(rows.filter((_, i) => i !== idx))}
                 >
                   הסר

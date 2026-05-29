@@ -566,12 +566,12 @@ export default function VenueInquiryClient({
         onDaySelect={handleDayFromCalendar}
         disallowBookedPick
         calendarSelectNote="ממלאים את תאריך האירוע בטופס למטה. תאריכים אדומים — תפוסים ולא ניתן לבחור אותם."
-        sectionClassName="rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-sm"
+        sectionClassName="rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-sm"
       />
 
-      <section className="rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-        <h2 className="text-base font-semibold text-[#0F3B2E]">הזמנת אולם — {venueName}</h2>
-        <p className="mt-1 text-xs text-[#6B6560]">
+      <section className="rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+        <h2 className="text-base font-semibold text-emerald-950">הזמנת אולם — {venueName}</h2>
+        <p className="mt-1 text-xs text-neutral-600">
           מלאו בשלבים: פרטי האירוע, מה האולם מציע (כלול / בתוספת תשלום), בחירות מקור ספקים, ושליחה.
         </p>
 
@@ -596,8 +596,8 @@ export default function VenueInquiryClient({
           <div className="space-y-5">
           {requiresEventType ? (
             <div>
-              <label className="block text-xs font-semibold text-[#0F3B2E]">סוג אירוע *</label>
-              <p className="mt-0.5 text-[11px] text-[#6B6560]">
+              <label className="block text-xs font-semibold text-emerald-950">סוג אירוע *</label>
+              <p className="mt-0.5 text-[11px] text-neutral-600">
                 בחרו סוג אירוע תחילה — אחר כך יוצג טווח האורחים והשירותים המתאימים (חופה רק
                 בחתונה).
               </p>
@@ -607,17 +607,17 @@ export default function VenueInquiryClient({
                   onClick={() => setEventTypeMenuOpen((v) => !v)}
                   className={`min-h-[50px] w-full rounded-2xl border-2 bg-gradient-to-b from-white to-[#FAF8F4] px-3 py-2 text-right text-sm font-medium shadow-[0_2px_10px_rgba(15,59,46,0.06)] outline-none transition ${
                     eventTypeMenuOpen
-                      ? "border-[#C9A227] ring-2 ring-[#C9A227]/25"
-                      : "border-[#E0D4C3] hover:border-[#C9A227]/60"
+                      ? "border-[#C9A227] ring-2 ring-amber-400/25"
+                      : "border-neutral-200 hover:border-amber-400/60"
                   }`}
                   aria-haspopup="listbox"
                   aria-expanded={eventTypeMenuOpen}
                 >
-                  <span className="block truncate text-[#1A1A1A]">
+                  <span className="block truncate text-neutral-900">
                     {form.eventType || "בחרו מהרשימה"}
                   </span>
                   <span
-                    className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#0F3B2E]/75 transition ${
+                    className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-950/75 transition ${
                       eventTypeMenuOpen ? "rotate-180" : ""
                     }`}
                     aria-hidden
@@ -632,7 +632,7 @@ export default function VenueInquiryClient({
                   </span>
                 </button>
                 {eventTypeMenuOpen && (
-                  <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white shadow-[0_16px_40px_rgba(15,59,46,0.16)]">
+                  <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_16px_40px_rgba(15,59,46,0.16)]">
                     <div className="max-h-56 overflow-y-auto py-1">
                       {eventTypes.map((t) => {
                         const active = form.eventType === t;
@@ -646,12 +646,12 @@ export default function VenueInquiryClient({
                             }}
                             className={`flex w-full items-center justify-between px-3 py-2 text-right text-sm transition ${
                               active
-                                ? "bg-[#E8F0EC] font-semibold text-[#0F3B2E]"
-                                : "text-[#2A261F] hover:bg-[#FAF8F4]"
+                                ? "bg-emerald-50 font-semibold text-emerald-950"
+                                : "text-neutral-800 hover:bg-neutral-50"
                             }`}
                           >
                             <span className="truncate">{t}</span>
-                            {active && <span className="text-[11px] text-[#0F3B2E]">נבחר</span>}
+                            {active && <span className="text-[11px] text-emerald-950">נבחר</span>}
                           </button>
                         );
                       })}
@@ -661,7 +661,7 @@ export default function VenueInquiryClient({
               </div>
               {guestBoundsReady &&
               (guestBounds.min != null || guestBounds.max != null) ? (
-                <p className="mt-2 rounded-lg border border-[#0F3B2E]/15 bg-[#E8F0EC]/50 px-3 py-2 text-[11px] text-[#0F3B2E]">
+                <p className="mt-2 rounded-lg border border-emerald-950/15 bg-emerald-50/50 px-3 py-2 text-[11px] text-emerald-950">
                   לאירוע «{eventTypeTrimmed}»:{" "}
                   {guestBounds.min != null ? (
                     <strong>מינימום {guestBounds.min} אורחים</strong>
@@ -677,7 +677,7 @@ export default function VenueInquiryClient({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-semibold text-[#0F3B2E]">תאריך האירוע *</label>
+              <label className="block text-xs font-semibold text-emerald-950">תאריך האירוע *</label>
               <div className="mt-1 flex gap-2">
                 <input
                   ref={dateInputRef}
@@ -686,12 +686,12 @@ export default function VenueInquiryClient({
                   min={today}
                   value={form.preferredDate}
                   onChange={(e) => setForm((f) => ({ ...f, preferredDate: e.target.value }))}
-                  className="min-h-[48px] flex-1 rounded-xl border-2 border-[#E0D4C3] bg-white px-3 py-2 outline-none focus:border-[#C9A227]"
+                  className="min-h-[48px] flex-1 rounded-xl border-2 border-neutral-200 bg-white px-3 py-2 outline-none focus:border-amber-400"
                 />
                 <button
                   type="button"
                   onClick={() => dateInputRef.current?.showPicker?.()}
-                  className="rounded-xl border-2 border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2"
+                  className="rounded-xl border-2 border-neutral-200 bg-neutral-50 px-3 py-2"
                   aria-label="לוח שנה"
                 >
                   📅
@@ -699,13 +699,13 @@ export default function VenueInquiryClient({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#0F3B2E]">כמות אורחים *</label>
+              <label className="block text-xs font-semibold text-emerald-950">כמות אורחים *</label>
               {!guestBoundsReady ? (
-                <p className="mt-1 text-[11px] text-[#6B6560]">
+                <p className="mt-1 text-[11px] text-neutral-600">
                   בחרו סוג אירוע כדי לראות מינימום ומקסימום.
                 </p>
               ) : guestBounds.min != null || guestBounds.max != null ? (
-                <p className="mt-1 text-[11px] font-medium text-[#0F3B2E]">
+                <p className="mt-1 text-[11px] font-medium text-emerald-950">
                   {guestBounds.min != null ? `מינימום ${guestBounds.min}` : ""}
                   {guestBounds.min != null && guestBounds.max != null ? " · " : ""}
                   {guestBounds.max != null ? `מקסימום ${guestBounds.max}` : ""} אורחים
@@ -729,7 +729,7 @@ export default function VenueInquiryClient({
                 className={`mt-1 min-h-[48px] w-full rounded-xl border-2 bg-white px-3 py-2 text-lg font-semibold outline-none disabled:cursor-not-allowed disabled:bg-[#F5F2ED] disabled:text-[#9A928A] ${
                   guestCountFieldError
                     ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200"
-                    : "border-[#E0D4C3] focus:border-[#C9A227]"
+                    : "border-neutral-200 focus:border-amber-400"
                 }`}
                 placeholder={guestBoundsReady ? "250" : "בחרו סוג אירוע תחילה"}
               />
@@ -751,7 +751,7 @@ export default function VenueInquiryClient({
           {stepId === "offers" ? (
             <div className="space-y-4">
               {!eventTypeTrimmed && eventTypes.length > 0 && (
-                <p className="rounded-lg border border-[#C9A227]/25 bg-[#FFFBF0] px-3 py-2 text-[11px] text-[#5C564C]">
+                <p className="rounded-lg border border-[#C9A227]/25 bg-amber-50 px-3 py-2 text-[11px] text-[#5C564C]">
                   טיפ: חזרו לשלב «פרטי האירוע» ובחרו סוג אירוע.
                 </p>
               )}
@@ -760,7 +760,7 @@ export default function VenueInquiryClient({
               !(presetLabels?.length) &&
               !(parkingKind && parkingKind !== "none") &&
               !hasChuppahSection ? (
-                <p className="rounded-xl border border-[#E8E0D4] bg-[#FAF8F4] px-4 py-6 text-center text-sm text-[#6B6560]">
+                <p className="rounded-xl border border-[#E8E0D4] bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
                   האולם עדיין לא הגדיר שירותים לסוג האירוע שנבחר.
                 </p>
               ) : (
@@ -793,9 +793,9 @@ export default function VenueInquiryClient({
 
           {stepId === "send" ? (
             <div className="space-y-4">
-              <div className="rounded-xl border border-[#E8E0D4] bg-[#FAF8F4] p-4 text-sm">
-                <p className="font-semibold text-[#0F3B2E]">סיכום לפני שליחה</p>
-                <ul className="mt-2 space-y-1 text-xs text-[#5F5F5F]">
+              <div className="rounded-xl border border-[#E8E0D4] bg-neutral-50 p-4 text-sm">
+                <p className="font-semibold text-emerald-950">סיכום לפני שליחה</p>
+                <ul className="mt-2 space-y-1 text-xs text-neutral-600">
                   <li>תאריך: <strong>{form.preferredDate || "—"}</strong></li>
                   <li>אורחים: <strong>{form.guestCount || "—"}</strong></li>
                   {form.eventType ? <li>סוג: <strong>{form.eventType}</strong></li> : null}
@@ -834,12 +834,12 @@ export default function VenueInquiryClient({
                 </ul>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#0F3B2E]">הערות (אופציונלי)</label>
+                <label className="block text-xs font-semibold text-emerald-950">הערות (אופציונלי)</label>
                 <textarea
                   rows={3}
                   value={form.message}
                   onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border-2 border-[#E0D4C3] px-3 py-2 outline-none focus:border-[#C9A227]"
+                  className="mt-1 w-full rounded-xl border-2 border-neutral-200 px-3 py-2 outline-none focus:border-amber-400"
                   placeholder="דגשים מיוחדים..."
                 />
               </div>
@@ -859,7 +859,7 @@ export default function VenueInquiryClient({
                 type="button"
                 onClick={goBack}
                 disabled={loading}
-                className="min-h-[48px] rounded-2xl border-2 border-[#E0D4C3] bg-white px-6 font-semibold text-[#0F3B2E] hover:border-[#C9A227]/60 disabled:opacity-60"
+                className="min-h-[48px] rounded-2xl border-2 border-neutral-200 bg-white px-6 font-semibold text-emerald-950 hover:border-amber-400/60 disabled:opacity-60"
               >
                 חזרה
               </button>
@@ -870,7 +870,7 @@ export default function VenueInquiryClient({
               <button
                 type="button"
                 onClick={goNext}
-                className="min-h-[48px] flex-1 rounded-2xl bg-[#0F3B2E] px-6 font-bold text-white shadow-md hover:bg-[#164d3d] sm:max-w-xs sm:ml-auto"
+                className="min-h-[48px] flex-1 rounded-2xl bg-emerald-950 px-6 font-bold text-white shadow-md hover:bg-[#164d3d] sm:max-w-xs sm:ml-auto"
               >
                 המשך
               </button>
@@ -878,7 +878,7 @@ export default function VenueInquiryClient({
               <button
                 type="submit"
                 disabled={loading}
-                className="min-h-[52px] flex-1 rounded-2xl bg-[#C9A227] px-6 text-base font-bold text-white shadow-lg hover:bg-[#E5C96B] disabled:opacity-60 sm:max-w-xs sm:ml-auto"
+                className="min-h-[52px] flex-1 rounded-2xl bg-amber-400 px-6 text-base font-bold text-white shadow-lg hover:bg-amber-300 disabled:opacity-60 sm:max-w-xs sm:ml-auto"
               >
                 {loading ? "שולח..." : "שלח בקשה לאולם"}
               </button>

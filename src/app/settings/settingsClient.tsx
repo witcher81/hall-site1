@@ -87,42 +87,42 @@ export default function SettingsClient({ user }: Props) {
 
   return (
     <div className="mt-6 space-y-8 text-right text-sm">
-      <section className="rounded-2xl border border-[#E0D4C3] bg-white p-6 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-        <h2 className="text-base font-semibold text-[#0F3B2E]">פרטי פרופיל</h2>
-        <p className="mt-1 text-xs text-[#6B6560]">
+      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+        <h2 className="text-base font-semibold text-emerald-950">פרטי פרופיל</h2>
+        <p className="mt-1 text-xs text-neutral-600">
           השם והטלפון שלך עשויים להופיע בפניות ובבקשות כדי שיוכלו לחזור אליך.
         </p>
         <form onSubmit={handleProfileSave} className="mt-4 space-y-3">
           <div>
-            <label className="block text-xs text-[#5F5F5F]">שם מלא</label>
+            <label className="block text-xs text-neutral-600">שם מלא</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             />
           </div>
           <div>
-            <label className="block text-xs text-[#5F5F5F]">טלפון</label>
+            <label className="block text-xs text-neutral-600">טלפון</label>
             <IsraeliMobilePhoneInput
               value={phone}
               onChange={setPhone}
               forceMobile={false}
-              selectClassName="shrink-0 rounded-xl border border-[#E0D4C3] bg-white px-2 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-              inputClassName="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
-              legacyInputClassName="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              selectClassName="shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+              inputClassName="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+              legacyInputClassName="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             />
-            <p className="mt-1 text-xs text-[#6B6560]">
+            <p className="mt-1 text-xs text-neutral-600">
               מספר נייד: קידומת ואז 7 ספרות. קווי: הזנה ידנית מלאה.
             </p>
           </div>
           <div>
-            <label className="block text-xs text-[#5F5F5F]">אימייל (לא ניתן לשינוי)</label>
+            <label className="block text-xs text-neutral-600">אימייל (לא ניתן לשינוי)</label>
             <input
               type="email"
               value={user.email}
               disabled
-              className="mt-1 w-full cursor-not-allowed rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2 text-sm text-[#6B6560]"
+              className="mt-1 w-full cursor-not-allowed rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-600"
             />
           </div>
           {profileMessage && (
@@ -139,46 +139,46 @@ export default function SettingsClient({ user }: Props) {
           <button
             type="submit"
             disabled={savingProfile}
-            className="rounded-full bg-[#C9A227] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
+            className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
           >
             {savingProfile ? "שומר..." : "שמירת פרופיל"}
           </button>
         </form>
       </section>
 
-      <section className="rounded-2xl border border-[#E0D4C3] bg-white p-6 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-        <h2 className="text-base font-semibold text-[#0F3B2E]">שינוי סיסמה</h2>
-        <p className="mt-1 text-xs text-[#6B6560]">
+      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+        <h2 className="text-base font-semibold text-emerald-950">שינוי סיסמה</h2>
+        <p className="mt-1 text-xs text-neutral-600">
           בחר סיסמה חזקה שקל לך לזכור. מינימום 6 תווים.
         </p>
         <form onSubmit={handlePasswordSave} className="mt-4 space-y-3">
           <div>
-            <label className="block text-xs text-[#5F5F5F]">סיסמה נוכחית</label>
+            <label className="block text-xs text-neutral-600">סיסמה נוכחית</label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               required
             />
           </div>
           <div>
-            <label className="block text-xs text-[#5F5F5F]">סיסמה חדשה</label>
+            <label className="block text-xs text-neutral-600">סיסמה חדשה</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               required
             />
           </div>
           <div>
-            <label className="block text-xs text-[#5F5F5F]">אישור סיסמה חדשה</label>
+            <label className="block text-xs text-neutral-600">אישור סיסמה חדשה</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               required
             />
           </div>
@@ -196,7 +196,7 @@ export default function SettingsClient({ user }: Props) {
           <button
             type="submit"
             disabled={savingPassword}
-            className="rounded-full border border-[#E0D4C3] bg-[#FAF8F4] px-5 py-2 text-sm font-semibold text-[#0F3B2E] hover:bg-[#EFE6D5] disabled:opacity-60"
+            className="rounded-full border border-neutral-200 bg-neutral-50 px-5 py-2 text-sm font-semibold text-emerald-950 hover:bg-neutral-50 disabled:opacity-60"
           >
             {savingPassword ? "מעדכן..." : "עדכון סיסמה"}
           </button>

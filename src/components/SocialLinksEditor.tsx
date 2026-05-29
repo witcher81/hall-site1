@@ -27,7 +27,7 @@ export default function SocialLinksEditor({
   addButtonText = "+ הוסף רשת / קישור",
 }: Props) {
   const input =
-    "mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40";
+    "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
 
   function addRow() {
     onChange([...value, emptyLink()]);
@@ -47,7 +47,7 @@ export default function SocialLinksEditor({
   return (
     <div>
       {title ? (
-        <label className="block text-xs font-medium text-[#5F5F5F]">{title}</label>
+        <label className="block text-xs font-medium text-neutral-600">{title}</label>
       ) : null}
       <div className="mt-3 space-y-3">
         {value.map((row, index) => {
@@ -56,10 +56,10 @@ export default function SocialLinksEditor({
           return (
             <div
               key={`social-row-${index}`}
-              className="flex flex-col gap-2 rounded-xl border border-[#E8E0D4] bg-[#FAF8F4] p-3 sm:flex-row sm:items-end"
+              className="flex flex-col gap-2 rounded-xl border border-[#E8E0D4] bg-neutral-50 p-3 sm:flex-row sm:items-end"
             >
               <div className="min-w-0 flex-1">
-              <span className="block text-xs font-medium text-[#5F5F5F]">רשת</span>
+              <span className="block text-xs font-medium text-neutral-600">רשת</span>
               <select
                 value={row.platform}
                 onChange={(e) =>
@@ -77,7 +77,7 @@ export default function SocialLinksEditor({
               </select>
               </div>
               <div className="min-w-0 flex-[2]">
-                <span className="block text-xs font-medium text-[#5F5F5F]">
+                <span className="block text-xs font-medium text-neutral-600">
                   קישור מלא
                 </span>
                 <input
@@ -108,7 +108,7 @@ export default function SocialLinksEditor({
       <button
         type="button"
         onClick={addRow}
-        className="mt-3 rounded-xl border border-[#0F3B2E]/35 bg-white px-5 py-2.5 text-sm font-semibold text-[#0F3B2E] shadow-sm hover:bg-[#EFE6D5]"
+        className="mt-3 rounded-xl border border-emerald-950/35 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm hover:bg-neutral-50"
       >
         {addButtonText}
       </button>

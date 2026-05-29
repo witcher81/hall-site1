@@ -12,7 +12,7 @@ export default function InquiryDealInsightBadge({ insight }: Props) {
   }
 
   return (
-    <span className="inline-flex items-center rounded-full border border-[#0F3B2E]/30 bg-[#E8F0EC] px-2 py-0.5 text-[10px] font-semibold text-[#0F3B2E]">
+    <span className="inline-flex items-center rounded-full border border-emerald-950/30 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-950">
       חיסכון אפשרי ~₪{insight.savingsAmount}
     </span>
   );

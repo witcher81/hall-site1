@@ -91,27 +91,27 @@ export default async function VenueInquiryPage({
   if (venue.accessible === true) presetLabels.push("נגישות לנכים");
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <HomeHeader
         user={user}
         canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <p className="text-right text-xs text-[#6B6560]">
-          <a href={`/halls/${venue.id}`} className="font-medium text-[#0F3B2E] hover:underline">
+        <p className="text-right text-xs text-neutral-600">
+          <a href={`/halls/${venue.id}`} className="font-medium text-emerald-950 hover:underline">
             ← חזרה לדף האולם
           </a>
         </p>
-        <h1 className="mt-2 text-right text-xl font-semibold text-[#1A1A1A]">
+        <h1 className="mt-2 text-right text-xl font-semibold text-neutral-900">
           בקשה להצעת מחיר — {venue.name}
         </h1>
-        <p className="mt-1 text-right text-sm text-[#5F5F5F]">
+        <p className="mt-1 text-right text-sm text-neutral-600">
           {INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} ההזמנה בשלבים: פרטי האירוע, מה האולם
           מציע (כלול / בתוספת, בחירת מקור ספקים, וחופה בחתונה), ושליחה.
         </p>
         <Suspense
           fallback={
-            <p className="mt-8 text-center text-sm text-[#6B6560]">טוען טופס...</p>
+            <p className="mt-8 text-center text-sm text-neutral-600">טוען טופס...</p>
           }
         >
           <VenueInquiryClient

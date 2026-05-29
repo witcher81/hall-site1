@@ -191,7 +191,7 @@ export default async function AfterVenuePage({
     : eventTypes[0] ?? "חתונה";
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <HomeHeader
         user={user}
         canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}

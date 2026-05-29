@@ -14,14 +14,14 @@ export default async function ProviderPage({
 
   if (!Number.isInteger(providerId) || providerId <= 0) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <HomeHeader
           user={user}
           canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">ספק לא נמצא.</p>
-          <a href="/providers" className="mt-4 inline-block text-sm font-semibold text-[#0F3B2E] hover:underline">
+          <p className="text-sm text-neutral-800">ספק לא נמצא.</p>
+          <a href="/providers" className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline">
             חזרה לחיפוש ספקים
           </a>
         </main>
@@ -43,14 +43,14 @@ export default async function ProviderPage({
 
   if (!provider) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <HomeHeader
           user={user}
           canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">ספק לא נמצא.</p>
-          <a href="/providers" className="mt-4 inline-block text-sm font-semibold text-[#0F3B2E] hover:underline">
+          <p className="text-sm text-neutral-800">ספק לא נמצא.</p>
+          <a href="/providers" className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline">
             חזרה לחיפוש ספקים
           </a>
         </main>
@@ -64,7 +64,7 @@ export default async function ProviderPage({
   });
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <HomeHeader
           user={user}
           canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}

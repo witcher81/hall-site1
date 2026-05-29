@@ -106,16 +106,16 @@ export default async function HallPublicPage({
 
   if (!Number.isInteger(venueId) || venueId <= 0) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <HomeHeader
           user={user}
           canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">מזהה אולם לא תקין.</p>
+          <p className="text-sm text-neutral-800">מזהה אולם לא תקין.</p>
           <a
             href="/halls"
-            className="mt-4 inline-block text-sm font-medium text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
           >
             חזרה לחיפוש אולמות
           </a>
@@ -166,16 +166,16 @@ export default async function HallPublicPage({
 
   if (!venue) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <HomeHeader
           user={user}
           canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
         />
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">האולם לא נמצא.</p>
+          <p className="text-sm text-neutral-800">האולם לא נמצא.</p>
           <a
             href="/halls"
-            className="mt-4 inline-block text-sm font-medium text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
           >
             חזרה לחיפוש אולמות
           </a>
@@ -276,7 +276,7 @@ export default async function HallPublicPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <HomeHeader
         user={user}
         canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}

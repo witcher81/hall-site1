@@ -84,8 +84,8 @@ export default function SocialLinksRow({
   const iconSize = compact ? "h-3.5 w-3.5" : "h-4 w-4";
   const base = dark
     ? "text-white hover:text-white/90"
-    : "text-[#0F3B2E] hover:text-[#174D3B]";
-  const labelCls = dark ? "font-semibold text-white" : "font-semibold text-[#1A1A1A]";
+    : "text-emerald-950 hover:text-[#174D3B]";
+  const labelCls = dark ? "font-semibold text-white" : "font-semibold text-neutral-900";
 
   return (
     <div

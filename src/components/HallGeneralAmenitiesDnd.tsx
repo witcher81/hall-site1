@@ -95,7 +95,7 @@ export function newHallGeneralCustomRow(label: string): HallGeneralCustomRow {
 }
 
 const compactPriceInputClass =
-  "w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1 text-[11px] outline-none focus:border-[#C9A227]";
+  "w-full rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-amber-400";
 
 const EXPAND_EXTRA_PRICE_RANGE_LABEL = "אין לך מחיר מדויק? הכנס טווח מחירים";
 
@@ -265,7 +265,7 @@ export default function HallGeneralAmenitiesDnd({
   };
 
   const zoneDropClass = (zone: DropZone) =>
-    dragOver === zone ? "bg-[#0F3B2E]/[0.06]" : "";
+    dragOver === zone ? "bg-emerald-950/[0.06]" : "";
 
   const SortColumn = ({
     title,
@@ -279,13 +279,13 @@ export default function HallGeneralAmenitiesDnd({
     <div
       className={`flex min-h-[120px] flex-col overflow-hidden rounded-xl border-2 border-dashed transition-colors sm:min-h-[160px] ${
         dragOver === zone
-          ? "border-[#0F3B2E] bg-[#0F3B2E]/[0.04]"
+          ? "border-emerald-950 bg-emerald-950/[0.04]"
           : "border-[#D4C9BC] bg-white/40"
       }`}
       onDragOver={(e) => onDragOverZone(zone, e)}
       onDrop={(e) => onDropZone(zone, e)}
     >
-      <div className="border-b border-[#D4C9BC]/90 bg-[#0F3B2E]/[0.08] px-2 py-2 text-center text-xs font-semibold text-[#0F3B2E]">
+      <div className="border-b border-[#D4C9BC]/90 bg-emerald-950/[0.08] px-2 py-2 text-center text-xs font-semibold text-emerald-950">
         {title}
       </div>
       <div className={`flex flex-1 flex-col gap-2 p-2 ${zoneDropClass(zone)}`}>{children}</div>
@@ -300,7 +300,7 @@ export default function HallGeneralAmenitiesDnd({
       <DraggableAmenityRow
         key={`${zone}-b-${key}`}
         payload={payload}
-        className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-[#2A261F]"
+        className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-neutral-800"
       >
         <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden title="גרור לעמודה אחרת">
           ⠿
@@ -361,7 +361,7 @@ export default function HallGeneralAmenitiesDnd({
       <DraggableAmenityRow
         key={`${zone}-c-${row.id}`}
         payload={payload}
-        className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-[#2A261F]"
+        className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-neutral-800"
       >
         <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden title="גרור לעמודה אחרת">
           ⠿
@@ -407,7 +407,7 @@ export default function HallGeneralAmenitiesDnd({
           : null}
         <button
           type="button"
-          className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+          className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
           draggable={false}
           onDragStart={stopDragFromControl}
           onClick={(ev) => {
@@ -474,7 +474,7 @@ export default function HallGeneralAmenitiesDnd({
           <span className="font-medium">{label}</span>
         </label>
         {unplaced ? (
-          <span className="text-[10px] text-[#6B6560]">גררו ל«כלול» או «בתוספת»</span>
+          <span className="text-[10px] text-neutral-600">גררו ל«כלול» או «בתוספת»</span>
         ) : null}
       </DraggableAmenityRow>
     );
@@ -520,11 +520,11 @@ export default function HallGeneralAmenitiesDnd({
           <span className="truncate">{row.label}</span>
         </label>
         {unplaced ? (
-          <span className="text-[10px] text-[#6B6560]">גררו ל«כלול» או «בתוספת»</span>
+          <span className="text-[10px] text-neutral-600">גררו ל«כלול» או «בתוספת»</span>
         ) : null}
         <button
           type="button"
-          className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+          className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
           draggable={false}
           onDragStart={stopDragFromControl}
           onClick={(ev) => {
@@ -557,11 +557,11 @@ export default function HallGeneralAmenitiesDnd({
 
   return (
     <>
-      <div className="mb-4 rounded-xl border border-[#E0D4C3]/80 bg-white/70 p-3">
-        <p className="mb-1 text-xs font-semibold text-[#5F5F5F]">
+      <div className="mb-4 rounded-xl border border-neutral-200/80 bg-white/70 p-3">
+        <p className="mb-1 text-xs font-semibold text-neutral-600">
           מה המחפש מקבל מהאולם
         </p>
-        <p className="mb-2 text-[11px] leading-relaxed text-[#6B6560]">
+        <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
           הוסיפו פריטים משלכם — הם ייכנסו ל«לא פעיל». סמנו וי או גררו ל«כלול במחיר» / «בתוספת
           תשלום». סימון וי בלבד משאיר את הפריט ב«לא פעיל» עד שתגררו אותו לעמודה.
         </p>
@@ -570,7 +570,7 @@ export default function HallGeneralAmenitiesDnd({
             type="text"
             value={customHallGeneralInput}
             onChange={(e) => setCustomHallGeneralInput(e.target.value)}
-            className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+            className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400"
             placeholder="הוסף פריט משלך…"
             maxLength={80}
           />
@@ -588,14 +588,14 @@ export default function HallGeneralAmenitiesDnd({
               setCustomAmenityRows((prev) => [...prev, newHallGeneralCustomRow(value)]);
               setCustomHallGeneralInput("");
             }}
-            className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-[#2A261F] hover:bg-[#EFE6D5]"
+            className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-neutral-800 hover:bg-neutral-50"
           >
             הוסף
           </button>
         </div>
       </div>
 
-      <p className="mb-3 text-[11px] leading-relaxed text-[#6B6560]">
+      <p className="mb-3 text-[11px] leading-relaxed text-neutral-600">
         גררו את כל השורה (או את הסמל ⠿) בין העמודות. לכל פריט פעיל בעמודה אפשר לסמן אם מותר להביא
         ספק חיצוני. פריטים ללא סימון לא יופיעו בחיפוש.
       </p>

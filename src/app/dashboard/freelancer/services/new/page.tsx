@@ -134,25 +134,25 @@ export default function NewServicePage() {
   }
 
   const input =
-    "mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40";
+    "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">
+      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
         <div className="text-right">
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
+          <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
             HALLS HUB
           </p>
-          <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">
+          <h1 className="mt-1 text-xl font-semibold text-emerald-950">
             הוספת שירות חדש
           </h1>
-          <p className="mt-1 text-xs text-[#6B6560]">
+          <p className="mt-1 text-xs text-neutral-600">
             מלא/י את פרטי השירות. לאחר השמירה תועבר/י לרשימת השירותים.
           </p>
         </div>
         <a
           href="/dashboard/freelancer"
-          className="text-sm text-[#6B6560] underline-offset-4 hover:text-[#0F3B2E] hover:underline"
+          className="text-sm text-neutral-600 underline-offset-4 hover:text-emerald-950 hover:underline"
         >
           חזרה לשירותים שלי
         </a>
@@ -160,7 +160,7 @@ export default function NewServicePage() {
 
       <form
         onSubmit={handleSubmit}
-        className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+        className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
       >
         <div>
           <FreelancerCategoryTreePicker
@@ -178,7 +178,7 @@ export default function NewServicePage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
+          <label className="block text-xs font-medium text-neutral-600">
             שם השירות *
           </label>
           <input
@@ -192,7 +192,7 @@ export default function NewServicePage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
+          <label className="block text-xs font-medium text-neutral-600">
             ספרו קצת עליכם ומה אתם עושים
           </label>
           <textarea
@@ -208,7 +208,7 @@ export default function NewServicePage() {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               אזור שירות
             </label>
             <ServiceAreaTagsField
@@ -220,7 +220,7 @@ export default function NewServicePage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               שנות ניסיון בתחום
             </label>
             <input
@@ -235,7 +235,7 @@ export default function NewServicePage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
+          <label className="block text-xs font-medium text-neutral-600">
             שפות עבודה
           </label>
           <ServiceLanguagesTagsField
@@ -266,7 +266,7 @@ export default function NewServicePage() {
           onPaidExtrasChange={setPaidExtras}
         />
 
-        <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/50 p-4">
+        <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-4">
           <OptionalPriceRangeFields
             useRange={form.priceUseRange}
             onUseRangeChange={(useRange) =>
@@ -312,17 +312,17 @@ export default function NewServicePage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
+          <label className="block text-xs font-medium text-neutral-600">
             תמונת שירות ראשית
           </label>
-          <p className="mt-0.5 text-[11px] text-[#6B6560]">
+          <p className="mt-0.5 text-[11px] text-neutral-600">
             זו תמונת השער של השירות — היא תוצג ראשונה בכרטיס ובדף השירות.
           </p>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
-            className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#C9A227] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
+            className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
           />
           {coverPreview && (
             <img src={coverPreview} alt="preview" className="mt-2 h-28 w-28 rounded-xl object-cover" />
@@ -330,10 +330,10 @@ export default function NewServicePage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[#5F5F5F]">
+          <label className="block text-xs font-medium text-neutral-600">
             גלריית תמונות (ניתן לבחור כמה)
           </label>
-          <p className="mt-0.5 text-[11px] text-[#6B6560]">
+          <p className="mt-0.5 text-[11px] text-neutral-600">
             כאן מעלים דוגמאות של עבודות, תוצרים או דברים שאתה נותן במסגרת השירות.
           </p>
           <input
@@ -345,7 +345,7 @@ export default function NewServicePage() {
               if (!files) return;
               setGalleryImages((prev) => [...prev, ...Array.from(files)]);
             }}
-            className="mt-1 w-full text-xs text-[#2A261F] file:mr-3 file:rounded-full file:border-0 file:bg-[#0F3B2E] file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#174D3B]"
+            className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
           />
           {galleryImages.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-3">
@@ -357,7 +357,7 @@ export default function NewServicePage() {
                   <img
                     src={galleryPreviewUrls[idx]}
                     alt={f.name}
-                    className="h-20 w-20 rounded-xl border border-[#E0D4C3] object-cover shadow-sm"
+                    className="h-20 w-20 rounded-xl border border-neutral-200 object-cover shadow-sm"
                   />
                   <button
                     type="button"
@@ -369,7 +369,7 @@ export default function NewServicePage() {
                   >
                     ×
                   </button>
-                  <p className="mt-1 max-w-[5.5rem] truncate text-center text-[10px] text-[#6B6560]">
+                  <p className="mt-1 max-w-[5.5rem] truncate text-center text-[10px] text-neutral-600">
                     {f.name}
                   </p>
                 </div>
@@ -393,14 +393,14 @@ export default function NewServicePage() {
           <button
             type="button"
             onClick={() => router.push("/dashboard/freelancer")}
-            className="rounded-full border border-[#E0D4C3] bg-[#FAF8F4] px-5 py-2 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+            className="rounded-full border border-neutral-200 bg-neutral-50 px-5 py-2 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
           >
             ביטול
           </button>
           <button
             type="submit"
             disabled={creating || hasInvalidSocialLinks}
-            className="rounded-full bg-[#C9A227] px-6 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
+            className="rounded-full bg-amber-400 px-6 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
           >
             {creating ? "שומר..." : "שמירת שירות"}
           </button>

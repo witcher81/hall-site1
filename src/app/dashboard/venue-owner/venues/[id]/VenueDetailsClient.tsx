@@ -299,13 +299,13 @@ export default function VenueDetailsClient({
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 pb-16 text-[#1A1A1A] sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-4xl px-4 py-8 pb-16 text-neutral-900 sm:px-6 lg:px-8">
       {/* הירו במותג – כמו דף הבית */}
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-b from-[#0F3B2E] to-[#174D3B] text-white shadow-[0_20px_50px_rgba(15,59,46,0.28)]">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-b from-emerald-950 to-emerald-900 text-white shadow-[0_20px_50px_rgba(15,59,46,0.28)]">
         <div className="p-6 sm:p-8">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 flex-1 text-right">
-              <p className="text-[11px] font-semibold tracking-[0.28em] text-[#C9A227]">
+              <p className="text-[11px] font-semibold tracking-[0.28em] text-amber-600">
                 ניהול אולם
               </p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{venue.name}</h1>
@@ -316,7 +316,7 @@ export default function VenueDetailsClient({
                 href={`/halls/${venue.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-[#E5C96B] transition hover:text-white"
+                className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-amber-400 transition hover:text-white"
               >
                 צפייה בדף הציבורי (כמו שמחפשים רואים)
                 <span aria-hidden className="text-lg leading-none">
@@ -327,7 +327,7 @@ export default function VenueDetailsClient({
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end lg:shrink-0">
               <a
                 href={`/dashboard/venue-owner/venues/${venue.id}/edit`}
-                className="inline-flex justify-center rounded-full bg-[#C9A227] px-6 py-2.5 text-center text-sm font-semibold text-white shadow-[0_10px_28px_rgba(0,0,0,0.25)] transition hover:bg-[#E5C96B]"
+                className="inline-flex justify-center rounded-full bg-amber-400 px-6 py-2.5 text-center text-sm font-semibold text-white shadow-[0_10px_28px_rgba(0,0,0,0.25)] transition hover:bg-amber-300"
               >
                 עריכת אולם
               </a>
@@ -350,24 +350,24 @@ export default function VenueDetailsClient({
       </div>
 
       <section className="mt-8 space-y-3 rounded-2xl border border-[#C9A227]/35 bg-gradient-to-br from-[#FFF9E6] to-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-        <div className="mb-2 h-1 w-12 rounded-full bg-[#C9A227]" aria-hidden />
-        <h2 className="text-lg font-semibold text-[#0F3B2E]">קידום בחיפוש</h2>
+        <div className="mb-2 h-1 w-12 rounded-full bg-amber-400" aria-hidden />
+        <h2 className="text-lg font-semibold text-emerald-950">קידום בחיפוש</h2>
         <p className="text-xs leading-relaxed text-[#5C564C]">
           הקפצת האולם לראש רשימת תוצאות החיפוש למשך {VENUE_BOOST_DAYS} ימים
           {boostPurchaseEnabled ? (
             <>
               . התשלום כאן הוא{" "}
-              <span className="font-medium text-[#0F3B2E]">דמו בלבד</span> (ללא סליקה אמיתית).
+              <span className="font-medium text-emerald-950">דמו בלבד</span> (ללא סליקה אמיתית).
             </>
           ) : (
             <>
-              . <span className="font-medium text-[#0F3B2E]">רכישת קידום באתר החי תיפתח בקרוב</span>{" "}
+              . <span className="font-medium text-emerald-950">רכישת קידום באתר החי תיפתח בקרוב</span>{" "}
               (תשלום מאובטח).
             </>
           )}
         </p>
         {boostActive && boostExpiresAt && (
-          <p className="text-xs font-medium text-[#0F3B2E]">
+          <p className="text-xs font-medium text-emerald-950">
             קידום פעיל עד:{" "}
             {new Date(boostExpiresAt).toLocaleString("he-IL", {
               dateStyle: "medium",
@@ -380,7 +380,7 @@ export default function VenueDetailsClient({
             type="button"
             onClick={handleBoost}
             disabled={boosting}
-            className="mt-1 inline-flex items-center justify-center rounded-full bg-[#C9A227] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#E5C96B] disabled:opacity-60"
+            className="mt-1 inline-flex items-center justify-center rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-300 disabled:opacity-60"
           >
             {boosting
               ? "מעבד..."
@@ -389,7 +389,7 @@ export default function VenueDetailsClient({
                 : `קדם את האולם — ₪${VENUE_BOOST_PRICE_NIS} (דמו)`}
           </button>
         ) : (
-          <p className="mt-1 text-xs text-[#6B6560]">
+          <p className="mt-1 text-xs text-neutral-600">
             כשהקידום יהיה זמין תוכלו לרכוש כאן. קידום קיים (אם יש) ימשיך עד תאריך הסיום.
           </p>
         )}
@@ -400,12 +400,12 @@ export default function VenueDetailsClient({
         )}
       </section>
 
-      <section className="mt-8 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+      <section className="mt-8 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
           {venue.coverImageUrl && (
             <button
               type="button"
               onClick={() => openLightbox(0)}
-              className="mb-2 block w-full overflow-hidden rounded-xl border border-[#E0D4C3] text-right focus:outline-none focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mb-2 block w-full overflow-hidden rounded-xl border border-neutral-200 text-right focus:outline-none focus:ring-2 focus:ring-amber-400/40"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -417,30 +417,30 @@ export default function VenueDetailsClient({
           )}
 
           {(venue.minGuests != null || venue.maxGuests != null) && (
-            <p className="text-[#2A261F]">
-              <span className="font-semibold text-[#0F3B2E]">קיבולת אורחים: </span>
+            <p className="text-neutral-800">
+              <span className="font-semibold text-emerald-950">קיבולת אורחים: </span>
               {venue.minGuests ?? "?"}–{venue.maxGuests ?? "?"} אורחים
             </p>
           )}
 
           {(venue.minPrice != null || venue.maxPrice != null) && (
-            <p className="text-[#2A261F]">
-              <span className="font-semibold text-[#0F3B2E]">טווח מחירים למנה: </span>
+            <p className="text-neutral-800">
+              <span className="font-semibold text-emerald-950">טווח מחירים למנה: </span>
               {venue.minPrice ?? "?"}–{venue.maxPrice ?? "?"} ₪
             </p>
           )}
 
           {(venue.hallRentalMin != null || venue.hallRentalMax != null) && (
-            <p className="text-[#2A261F]">
-              <span className="font-semibold text-[#0F3B2E]">השכרת אולם (לאירוע): </span>
+            <p className="text-neutral-800">
+              <span className="font-semibold text-emerald-950">השכרת אולם (לאירוע): </span>
               {venue.hallRentalMin ?? "?"}–{venue.hallRentalMax ?? "?"} ₪
             </p>
           )}
 
           {venue.description && (
-            <p className="text-[#2A261F]">
-              <span className="font-semibold text-[#0F3B2E]">תיאור על האולם: </span>
-              <span className="text-[#5F5F5F]">{venue.description}</span>
+            <p className="text-neutral-800">
+              <span className="font-semibold text-emerald-950">תיאור על האולם: </span>
+              <span className="text-neutral-600">{venue.description}</span>
             </p>
           )}
 
@@ -451,14 +451,14 @@ export default function VenueDetailsClient({
             venue.maxPrice == null &&
             venue.hallRentalMin == null &&
             venue.hallRentalMax == null && (
-              <p className="text-xs text-[#6B6560]">
+              <p className="text-xs text-neutral-600">
                 עדיין לא הזנת פרטים מורחבים על האולם.
               </p>
             )}
 
           {venue.galleryImageUrls && venue.galleryImageUrls.length > 0 && (
             <div className="pt-3">
-              <p className="mb-2 text-xs font-semibold text-[#0F3B2E]">
+              <p className="mb-2 text-xs font-semibold text-emerald-950">
                 גלריית תמונות (לחץ לצפייה):
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -469,7 +469,7 @@ export default function VenueDetailsClient({
                       key={idx}
                       type="button"
                       onClick={() => openLightbox(imageIndex)}
-                      className="overflow-hidden rounded-lg border border-[#E0D4C3] text-right focus:outline-none focus:ring-2 focus:ring-[#C9A227]/40"
+                      className="overflow-hidden rounded-lg border border-neutral-200 text-right focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -491,15 +491,15 @@ export default function VenueDetailsClient({
           )}
         </section>
 
-        <section className="mt-8 space-y-5 rounded-2xl border border-[#E0D4C3] bg-[#FDFBF7] p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.06)] ring-1 ring-[#0F3B2E]/[0.06]">
+        <section className="mt-8 space-y-5 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.06)] ring-1 ring-[#0F3B2E]/[0.06]">
           <div className="flex flex-col gap-4 border-b border-[#E8E0D4] pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="text-right">
-              <div className="mb-2 h-1 w-12 rounded-full bg-[#C9A227]" aria-hidden />
-              <h2 className="text-lg font-semibold text-[#0F3B2E]">לוח זמינות ופניות</h2>
+              <div className="mb-2 h-1 w-12 rounded-full bg-amber-400" aria-hidden />
+              <h2 className="text-lg font-semibold text-emerald-950">לוח זמינות ופניות</h2>
               <p className="mt-2 max-w-xl text-xs leading-relaxed text-[#5C564C]">
-                ימים ללא עדכון נחשבים <strong className="text-[#0F3B2E]">פנויים</strong>.{" "}
-                <strong className="text-[#0F3B2E]">סימון תפוס</strong> זמין רק ביום שמוצג כפנוי;{" "}
-                <strong className="text-[#0F3B2E]">סימון פנוי</strong> רק כשהיום מסומן כתפוס. מספר הפניות
+                ימים ללא עדכון נחשבים <strong className="text-emerald-950">פנויים</strong>.{" "}
+                <strong className="text-emerald-950">סימון תפוס</strong> זמין רק ביום שמוצג כפנוי;{" "}
+                <strong className="text-emerald-950">סימון פנוי</strong> רק כשהיום מסומן כתפוס. מספר הפניות
                 מוצג לכל יום שבו הגיעו בקשות.
               </p>
             </div>
@@ -514,11 +514,11 @@ export default function VenueDetailsClient({
                   })
                 }
                 disabled={!canGoToPreviousMonth}
-                className="rounded-lg border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-1.5 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5] disabled:opacity-50"
+                className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-emerald-950 hover:bg-neutral-50 disabled:opacity-50"
               >
                 חודש קודם
               </button>
-              <span className="min-w-[10rem] text-center text-xs font-semibold text-[#0F3B2E]">
+              <span className="min-w-[10rem] text-center text-xs font-semibold text-emerald-950">
                 {new Date(visibleMonth.year, visibleMonth.month, 1).toLocaleDateString("he-IL", {
                   month: "long",
                   year: "numeric",
@@ -533,7 +533,7 @@ export default function VenueDetailsClient({
                     return { year: nextYear, month: nextMonth };
                   })
                 }
-                className="rounded-lg border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-1.5 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+                className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
               >
                 חודש הבא
               </button>
@@ -542,7 +542,7 @@ export default function VenueDetailsClient({
 
           <div className="overflow-x-auto" dir="ltr">
             <div className="min-w-[280px]">
-              <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-[#6B6560] sm:gap-2">
+              <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-neutral-600 sm:gap-2">
                 {["א", "ב", "ג", "ד", "ה", "ו", "ש"].map((d) => (
                   <div key={d} className="py-1">
                     {d}
@@ -586,13 +586,13 @@ export default function VenueDetailsClient({
                         setSelectedDate(cell.date);
                         setSelectedDateInput(formatYmdToDmy(cell.date));
                       }}
-                      className={`flex min-h-[5.25rem] flex-col rounded-xl border-2 p-1.5 text-right shadow-sm transition hover:border-[#C9A227] hover:shadow-md sm:min-h-[5.5rem] sm:p-2 ${tone} ${isSelected ? "ring-2 ring-[#C9A227] ring-offset-2" : ""}`}
+                      className={`flex min-h-[5.25rem] flex-col rounded-xl border-2 p-1.5 text-right shadow-sm transition hover:border-amber-400 hover:shadow-md sm:min-h-[5.5rem] sm:p-2 ${tone} ${isSelected ? "ring-2 ring-amber-400 ring-offset-2" : ""}`}
                     >
                       <div className="flex w-full items-start justify-between gap-1">
-                        <span className="text-base font-bold tabular-nums text-[#1A1A1A]">{cell.day}</span>
+                        <span className="text-base font-bold tabular-nums text-neutral-900">{cell.day}</span>
                         {count > 0 && (
                           <span
-                            className="shrink-0 rounded-full bg-[#0F3B2E] px-1.5 py-0.5 text-[10px] font-bold leading-none text-white shadow-sm sm:text-[11px]"
+                            className="shrink-0 rounded-full bg-emerald-950 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white shadow-sm sm:text-[11px]"
                             title={`${count} פניות`}
                           >
                             {count}
@@ -603,7 +603,7 @@ export default function VenueDetailsClient({
                         {status === "BOOKED" ? (
                           <span className="text-xs font-bold tracking-wide text-[#9B1C1C]">תפוס</span>
                         ) : (
-                          <span className="text-xs font-bold tracking-wide text-[#0F3B2E]">פנוי</span>
+                          <span className="text-xs font-bold tracking-wide text-emerald-950">פנוי</span>
                         )}
                       </div>
                     </button>
@@ -613,7 +613,7 @@ export default function VenueDetailsClient({
             </div>
           </div>
 
-          <div className="grid gap-2 rounded-xl border border-[#E0D4C3] bg-white p-4 sm:grid-cols-[1fr_auto_auto]">
+          <div className="grid gap-2 rounded-xl border border-neutral-200 bg-white p-4 sm:grid-cols-[1fr_auto_auto]">
             <input
               type="text"
               dir="ltr"
@@ -656,7 +656,7 @@ export default function VenueDetailsClient({
                   el?.select();
                 });
               }}
-              className="rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+              className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400"
             />
             <button
               type="button"
@@ -672,7 +672,7 @@ export default function VenueDetailsClient({
                     ? "מסמן את היום כפנוי"
                     : "בחרו תאריך עתידי בלוח"
               }
-              className="rounded-full bg-[#0F3B2E] px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#174D3B] disabled:pointer-events-none disabled:opacity-40"
+              className="rounded-full bg-emerald-950 px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-900 disabled:pointer-events-none disabled:opacity-40"
             >
               סימון פנוי
             </button>
@@ -697,18 +697,18 @@ export default function VenueDetailsClient({
           </div>
 
           {availabilityError && <p className="text-xs text-red-700">{availabilityError}</p>}
-          {availabilityLoading && <p className="text-xs text-[#6B6560]">טוען זמינות...</p>}
+          {availabilityLoading && <p className="text-xs text-neutral-600">טוען זמינות...</p>}
         </section>
 
         {confirmingDelete && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-            <div className="w-full max-w-sm rounded-2xl border border-[#E0D4C3] bg-white p-5 text-right text-sm shadow-xl">
-              <h2 className="text-base font-semibold text-[#0F3B2E]">
+            <div className="w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-5 text-right text-sm shadow-xl">
+              <h2 className="text-base font-semibold text-emerald-950">
                 למחוק את האולם?
               </h2>
-              <p className="mt-1 text-xs text-[#6B6560]">
+              <p className="mt-1 text-xs text-neutral-600">
                 פעולה זו תמחק לצמיתות את האולם
-                <span className="font-semibold text-[#1A1A1A]"> "{venue.name}" </span>
+                <span className="font-semibold text-neutral-900"> "{venue.name}" </span>
                 מהרשימה שלך. לא ניתן לבטל לאחר המחיקה.
               </p>
 
@@ -716,7 +716,7 @@ export default function VenueDetailsClient({
                 <button
                   type="button"
                   onClick={() => setConfirmingDelete(false)}
-                  className="flex-1 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] px-4 py-2 text-xs font-medium text-[#2A261F] hover:bg-[#EFE6D5]"
+                  className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
                   disabled={deleting}
                 >
                   ביטול

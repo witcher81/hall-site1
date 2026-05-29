@@ -16,7 +16,7 @@ export default function HomePage({
   topServices: HomeTopService[];
 }) {
   return (
-    <div className="home-page bg-neutral-50 text-neutral-900">
+    <div className="home-page site-page">
       <HomeHero />
 
       <div className="space-y-20 py-16 sm:py-20">

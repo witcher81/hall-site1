@@ -394,7 +394,7 @@ export default function MessagesClient({
   function renderConversationList(list: ConvRow[]) {
     if (list.length === 0) {
       return (
-        <p className="px-2 py-6 text-center text-[11px] text-[#6B6560]">
+        <p className="px-2 py-6 text-center text-[11px] text-neutral-600">
           אין שיחות בקבוצה זו.
         </p>
       );
@@ -407,15 +407,15 @@ export default function MessagesClient({
             <button
               type="button"
               onClick={() => setSelectedId(c.id)}
-              className={`w-full border-b border-[#E7E0CF] px-2 py-2 text-right text-xs transition last:border-b-0 ${
+              className={`w-full border-b border-neutral-200 px-2 py-2 text-right text-xs transition last:border-b-0 ${
                 selectedId === c.id
-                  ? "bg-[#0F3B2E]/10 text-[#0F3B2E]"
-                  : "bg-transparent text-[#1A1A1A] hover:bg-[#E7E0CF]/40"
+                  ? "bg-emerald-950/10 text-emerald-950"
+                  : "bg-transparent text-neutral-900 hover:bg-[#E7E0CF]/40"
               }`}
             >
               <span className="font-medium">{titleFor(c)}</span>
               {c.unreadCount > 0 && (
-                <span className="mr-2 inline-flex rounded-full bg-[#C9A227] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                   {c.unreadCount}
                 </span>
               )}
@@ -437,24 +437,24 @@ export default function MessagesClient({
             type="button"
             onClick={() => setAutoReplyPanelOpen((o) => !o)}
             aria-expanded={autoReplyPanelOpen}
-            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#C9A227]/40 bg-gradient-to-br from-[#FFFBF0] to-white px-4 py-3 text-right shadow-[0_8px_28px_rgba(15,59,46,0.06)] transition hover:border-[#C9A227]/70 focus:outline-none focus:ring-2 focus:ring-[#C9A227]/40"
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#C9A227]/40 bg-gradient-to-br from-[#FFFBF0] to-white px-4 py-3 text-right shadow-[0_8px_28px_rgba(15,59,46,0.06)] transition hover:border-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-400/40"
           >
             <span className="flex min-w-0 flex-1 flex-col items-start gap-1">
-              <span className="text-sm font-semibold text-[#0F3B2E]">
+              <span className="text-sm font-semibold text-emerald-950">
                 מענה אוטומטי לפניות
               </span>
-              <span className="text-[11px] text-[#6B6560]">
+              <span className="text-[11px] text-neutral-600">
                 {autoReplyPanelOpen ? "לחץ לסגירה" : "לחץ להגדרת מענה לפנייה מטופס האולם"}
               </span>
             </span>
             <span className="flex shrink-0 items-center gap-2">
               {!autoReplyPanelOpen && autoReplyConfiguredCount > 0 && (
-                <span className="rounded-full bg-[#0F3B2E] px-2 py-0.5 text-[10px] font-semibold text-[#E5C96B]">
+                <span className="rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
                   {autoReplyConfiguredCount} מוגדרים
                 </span>
               )}
               <span
-                className="text-lg leading-none text-[#0F3B2E]"
+                className="text-lg leading-none text-emerald-950"
                 aria-hidden
               >
                 {autoReplyPanelOpen ? "▲" : "▼"}
@@ -464,20 +464,20 @@ export default function MessagesClient({
 
           {autoReplyPanelOpen && (
             <section className="rounded-2xl border border-[#C9A227]/30 bg-gradient-to-br from-[#FFFBF0] to-white p-5 text-right shadow-[0_8px_28px_rgba(15,59,46,0.06)]">
-              <div className="mb-1 h-1 w-10 rounded-full bg-[#C9A227]" aria-hidden />
+              <div className="mb-1 h-1 w-10 rounded-full bg-amber-400" aria-hidden />
               <p className="text-xs leading-relaxed text-[#5C564C]">
                 זה נפרד מהצ&apos;אט כאן למטה. כש<strong>מחפש</strong> שולח{" "}
                 <strong>פנייה</strong> דרך טופס הפנייה בעמוד האולם, הטקסט שתגדיר/י כאן יישלח
                 אליו אוטומטית כתשובה ראשונית (ויתעדכן גם אצלך בלוח הפניות).
               </p>
               {loadingAutoVenues ? (
-                <p className="mt-3 text-xs text-[#5F5F5F]">טוען אולמות...</p>
+                <p className="mt-3 text-xs text-neutral-600">טוען אולמות...</p>
               ) : venueAutoRows.length === 0 ? (
-                <p className="mt-3 text-xs text-[#6B6560]">
+                <p className="mt-3 text-xs text-neutral-600">
                   אין אולמות בחשבון.{" "}
                   <Link
                     href="/dashboard/venue-owner/venues/new"
-                    className="font-medium text-[#0F3B2E] underline underline-offset-2"
+                    className="font-medium text-emerald-950 underline underline-offset-2"
                   >
                     צור אולם
                   </Link>
@@ -487,11 +487,11 @@ export default function MessagesClient({
                   {venueAutoRows.map((v) => (
                     <li
                       key={v.id}
-                      className="rounded-xl border border-[#E7E0CF] bg-white/90 p-3"
+                      className="rounded-xl border border-neutral-200 bg-white/90 p-3"
                     >
-                      <p className="text-sm font-medium text-[#0F3B2E]">
+                      <p className="text-sm font-medium text-emerald-950">
                         {v.name}
-                        <span className="mr-1 text-xs font-normal text-[#6B6560]">
+                        <span className="mr-1 text-xs font-normal text-neutral-600">
                           · {v.city}
                         </span>
                       </p>
@@ -506,14 +506,14 @@ export default function MessagesClient({
                           }))
                         }
                         placeholder="למשל: תודה על הפנייה! נחזור אליך בקרוב עם זמינות ומחירים."
-                        className="mt-2 w-full resize-none rounded-xl border border-[#E7E0CF] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/30"
+                        className="mt-2 w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30"
                       />
                       <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => saveAutoReply(v.id)}
                           disabled={savingAutoVenueId === v.id}
-                          className="rounded-full bg-[#0F3B2E] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-[#174D3B] disabled:opacity-60"
+                          className="rounded-full bg-emerald-950 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-900 disabled:opacity-60"
                         >
                           {savingAutoVenueId === v.id ? "שומר..." : "שמירה"}
                         </button>
@@ -538,27 +538,27 @@ export default function MessagesClient({
       )}
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,320px)_1fr]">
-      <aside className="h-fit rounded-2xl border border-[#E7E0CF] bg-white p-3 shadow-sm">
-        <h2 className="mb-2 flex items-center justify-between text-sm font-semibold text-[#0F3B2E]">
+      <aside className="h-fit rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+        <h2 className="mb-2 flex items-center justify-between text-sm font-semibold text-emerald-950">
           <span>שיחות</span>
           {totalUnread > 0 && (
-            <span className="rounded-full bg-[#C9A227] px-2 py-0.5 text-[11px] text-white">
+            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] text-white">
               {totalUnread}
             </span>
           )}
         </h2>
         {loadingList ? (
-          <p className="text-xs text-[#5F5F5F]">טוען...</p>
+          <p className="text-xs text-neutral-600">טוען...</p>
         ) : conversations.length === 0 ? (
-          <div className="space-y-2 text-xs leading-relaxed text-[#5F5F5F]">
-            <p className="font-medium text-[#0F3B2E]">אין שיחות עדיין</p>
+          <div className="space-y-2 text-xs leading-relaxed text-neutral-600">
+            <p className="font-medium text-emerald-950">אין שיחות עדיין</p>
             {userRole === "SEEKER" ? (
               <>
                 <p>כדי להתחיל צ&apos;אט:</p>
                 <ul className="list-inside list-disc space-y-1 pr-1">
                   <li>
                     <strong>עם בעל אולם:</strong>{" "}
-                    <Link href="/halls" className="text-[#0F3B2E] underline underline-offset-2">
+                    <Link href="/halls" className="text-emerald-950 underline underline-offset-2">
                       חיפוש אולם
                     </Link>
                     , נכנסים לעמוד האולם ולוחצים{" "}
@@ -566,7 +566,7 @@ export default function MessagesClient({
                   </li>
                   <li>
                     <strong>עם ספק (פרילנסר):</strong>{" "}
-                    <Link href="/providers" className="text-[#0F3B2E] underline underline-offset-2">
+                    <Link href="/providers" className="text-emerald-950 underline underline-offset-2">
                       חיפוש ספק
                     </Link>
                     , בוחרים ספק → ברשימת השירותים לוחצים{" "}
@@ -581,21 +581,21 @@ export default function MessagesClient({
             )}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-[#E7E0CF] bg-[#FCFBF8]">
+          <div className="overflow-hidden rounded-xl border border-neutral-200 bg-[#FCFBF8]">
             {userRole === "SEEKER" && (
-              <div className="grid grid-cols-2 border-b border-[#E7E0CF] bg-[#F6F1E7] p-1.5">
+              <div className="grid grid-cols-2 border-b border-neutral-200 bg-[#F6F1E7] p-1.5">
                 <button
                   type="button"
                   onClick={() => setActiveCategoryWithUrl("VENUE_OWNER")}
                   className={`rounded-lg px-2 py-2 text-xs font-semibold transition ${
                     activeCategory === "VENUE_OWNER"
-                      ? "bg-[#0F3B2E] text-white"
-                      : "bg-transparent text-[#0F3B2E] hover:bg-[#E7E0CF]/60"
+                      ? "bg-emerald-950 text-white"
+                      : "bg-transparent text-emerald-950 hover:bg-[#E7E0CF]/60"
                   }`}
                 >
                   בעלי אולמות
                   {venueOwnerUnread > 0 && (
-                    <span className="mr-2 inline-flex rounded-full bg-[#C9A227] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                       {venueOwnerUnread}
                     </span>
                   )}
@@ -605,13 +605,13 @@ export default function MessagesClient({
                   onClick={() => setActiveCategoryWithUrl("FREELANCER")}
                   className={`rounded-lg px-2 py-2 text-xs font-semibold transition ${
                     activeCategory === "FREELANCER"
-                      ? "bg-[#0F3B2E] text-white"
-                      : "bg-transparent text-[#0F3B2E] hover:bg-[#E7E0CF]/60"
+                      ? "bg-emerald-950 text-white"
+                      : "bg-transparent text-emerald-950 hover:bg-[#E7E0CF]/60"
                   }`}
                 >
                   פרילנסרים
                   {freelancerUnread > 0 && (
-                    <span className="mr-2 inline-flex rounded-full bg-[#C9A227] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                       {freelancerUnread}
                     </span>
                   )}
@@ -625,18 +625,18 @@ export default function MessagesClient({
         )}
       </aside>
 
-      <section className="flex min-h-[420px] flex-col rounded-2xl border border-[#E7E0CF] bg-white shadow-sm">
+      <section className="flex min-h-[420px] flex-col rounded-2xl border border-neutral-200 bg-white shadow-sm">
         {!selectedId ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center text-sm text-[#5F5F5F]">
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center text-sm text-neutral-600">
             <p>בחרו שיחה מרשימת השיחות.</p>
             {userRole === "SEEKER" && (
               <p className="max-w-md text-xs leading-relaxed">
                 שיחה חדשה נפתחת רק מעמוד <strong>אולם</strong> או <strong>ספק</strong> (לא מכאן). אם אין לכם שיחות — עברו ל־
-                <Link href="/halls" className="text-[#0F3B2E] underline">
+                <Link href="/halls" className="text-emerald-950 underline">
                   חיפוש אולמות
                 </Link>{" "}
                 או{" "}
-                <Link href="/providers" className="text-[#0F3B2E] underline">
+                <Link href="/providers" className="text-emerald-950 underline">
                   חיפוש ספקים
                 </Link>
                 .
@@ -645,12 +645,12 @@ export default function MessagesClient({
           </div>
         ) : (
           <>
-            <header className="border-b border-[#E7E0CF] px-4 py-3 text-right">
-              <h3 className="font-semibold text-[#0F3B2E]">
+            <header className="border-b border-neutral-200 px-4 py-3 text-right">
+              <h3 className="font-semibold text-emerald-950">
                 {selected ? titleFor(selected) : "שיחה"}
               </h3>
               {selected && (
-                <p className="text-[11px] text-[#5F5F5F]">
+                <p className="text-[11px] text-neutral-600">
                   {selected.otherUser.name || selected.otherUser.email}
                 </p>
               )}
@@ -660,7 +660,7 @@ export default function MessagesClient({
               className="flex-1 space-y-2 overflow-y-auto p-4 text-right"
             >
               {loadingMsgs ? (
-                <p className="text-xs text-[#5F5F5F]">טוען הודעות...</p>
+                <p className="text-xs text-neutral-600">טוען הודעות...</p>
               ) : (
                 messages.map((m) => {
                   const mine = m.senderId === currentUserId;
@@ -672,12 +672,12 @@ export default function MessagesClient({
                       <div
                         className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs ${
                           mine
-                            ? "bg-[#C9A227]/25 text-[#1A1A1A]"
-                            : "bg-[#0F3B2E]/10 text-[#1A1A1A]"
+                            ? "bg-amber-400/25 text-neutral-900"
+                            : "bg-emerald-950/10 text-neutral-900"
                         }`}
                       >
                         <p className="whitespace-pre-wrap">{m.body}</p>
-                        <p className="mt-1 text-[10px] text-[#5F5F5F]">
+                        <p className="mt-1 text-[10px] text-neutral-600">
                           {new Date(m.createdAt).toLocaleString("he-IL")}
                         </p>
                       </div>
@@ -687,7 +687,7 @@ export default function MessagesClient({
               )}
               <div ref={bottomRef} />
             </div>
-            <div className="border-t border-[#E7E0CF] p-3">
+            <div className="border-t border-neutral-200 p-3">
               {error && <p className="mb-2 text-xs text-red-600">{error}</p>}
               <div className="flex gap-2">
                 <textarea
@@ -703,13 +703,13 @@ export default function MessagesClient({
                     }
                   }}
                   placeholder="כתוב הודעה..."
-                  className="min-h-[44px] flex-1 resize-none rounded-xl border border-[#E7E0CF] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+                  className="min-h-[44px] flex-1 resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400"
                 />
                 <button
                   type="button"
                   onClick={sendMessage}
                   disabled={sending || !draft.trim()}
-                  className="self-end rounded-xl bg-[#0F3B2E] px-4 py-2 text-sm font-semibold text-white hover:bg-[#174D3B] disabled:opacity-50"
+                  className="self-end rounded-xl bg-emerald-950 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-50"
                 >
                   {sending ? "..." : "שלח"}
                 </button>

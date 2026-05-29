@@ -42,9 +42,9 @@ export default function MyInquiriesClient({
 }) {
   if (initialInquiries.length === 0) {
     return (
-      <div className="mt-6 rounded-2xl border border-dashed border-[#E0D4C3] bg-[#FAF8F4] p-8 text-center text-sm text-[#6B6560]">
+      <div className="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
         <p>עדיין לא שלחת פניות לאולמות.</p>
-        <a href="/halls" className="mt-3 inline-block font-semibold text-[#0F3B2E] hover:underline">
+        <a href="/halls" className="mt-3 inline-block font-semibold text-emerald-950 hover:underline">
           חיפוש אולמות →
         </a>
       </div>
@@ -59,7 +59,7 @@ export default function MyInquiriesClient({
           className={`overflow-hidden rounded-2xl border shadow-[0_12px_48px_rgba(15,59,46,0.08)] ${
             q.status === "REPLIED"
               ? "border-emerald-200/90 bg-gradient-to-b from-emerald-50/95 to-white"
-              : "border-[#E0D4C3] bg-[#FDFBF7]"
+              : "border-neutral-200 bg-white"
           }`}
         >
           <div className="h-1 bg-gradient-to-l from-[#C9A227]/90 via-[#E8D5A3] to-[#C9A227]/30" aria-hidden />
@@ -68,17 +68,17 @@ export default function MyInquiriesClient({
               <div className="min-w-0">
                 <a
                   href={`/halls/${q.venue.id}`}
-                  className="font-serif text-lg font-semibold text-[#0F3B2E] transition hover:underline"
+                  className="font-serif text-lg font-semibold text-emerald-950 transition hover:underline"
                 >
                   {q.venue.name}
                 </a>
                 <span
                   className={`mr-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                     q.status === "NEW"
-                      ? "bg-[#FFF9E6] text-[#0F3B2E]"
+                      ? "bg-[#FFF9E6] text-emerald-950"
                       : q.status === "REPLIED"
                         ? "bg-emerald-100 text-emerald-900"
-                        : "bg-[#FAF8F4] text-[#5F5F5F]"
+                        : "bg-neutral-50 text-neutral-600"
                   }`}
                 >
                   {STATUS_LABEL[q.status] ?? q.status}
@@ -99,7 +99,7 @@ export default function MyInquiriesClient({
               </div>
               <a
                 href={`/halls/${q.venue.id}`}
-                className="inline-flex shrink-0 items-center justify-center rounded-full border-2 border-[#0F3B2E]/20 bg-white px-4 py-2 text-xs font-semibold text-[#0F3B2E] shadow-sm transition hover:border-[#0F3B2E]/40 hover:bg-[#0F3B2E]/[0.04] sm:self-start"
+                className="inline-flex shrink-0 items-center justify-center rounded-full border-2 border-emerald-950/20 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm transition hover:border-emerald-950/40 hover:bg-emerald-950/[0.04] sm:self-start"
               >
                 צפייה באולם
               </a>
@@ -122,9 +122,9 @@ export default function MyInquiriesClient({
             {q.status === "REPLIED" && q.ownerNote && (
               <div className="mt-5 rounded-2xl border border-emerald-200/90 bg-white/95 p-4 text-xs shadow-sm">
                 <p className="font-serif text-sm font-semibold text-emerald-900">תשובה מבעל האולם</p>
-                <p className="mt-2 leading-relaxed text-[#2A261F]">{q.ownerNote}</p>
+                <p className="mt-2 leading-relaxed text-neutral-800">{q.ownerNote}</p>
                 {q.repliedAt && (
-                  <p className="mt-2 text-[#6B6560]">
+                  <p className="mt-2 text-neutral-600">
                     {new Date(q.repliedAt).toLocaleString("he-IL")}
                   </p>
                 )}

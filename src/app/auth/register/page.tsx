@@ -73,15 +73,15 @@ function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
+        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
           HALLS HUB
         </p>
-        <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">הרשמה</h1>
+        <h1 className="mt-1 text-xl font-semibold text-emerald-950">הרשמה</h1>
         <a
           href="/"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-[#D8C7AF] bg-white px-3 py-2 text-sm font-semibold text-[#0F3B2E] shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-[#C9A227] hover:bg-[#FFF9E6]"
+          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"
         >
           <span aria-hidden>←</span>
           <span>חזרה לדף הבית</span>
@@ -89,43 +89,43 @@ function RegisterForm() {
 
         <form
           onSubmit={handleSubmit}
-          className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+          className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
         >
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               שם מלא
             </label>
             <input
               name="name"
               type="text"
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               placeholder="איך לפנות אליך"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               אימייל
             </label>
             <input
               name="email"
               type="email"
               required
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               placeholder="name@example.com"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               טלפון נייד
             </label>
-            <p className="mt-0.5 text-[11px] text-[#8A837A]">
+            <p className="mt-0.5 text-[11px] text-neutral-500">
               קידומת נייד (050–059) ואז 7 ספרות.
             </p>
             <div className="mt-1.5 flex flex-row-reverse items-stretch gap-2">
               <select
                 name="phonePrefix"
                 required
-                className="w-[5.75rem] shrink-0 rounded-xl border border-[#E0D4C3] bg-white px-2 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                className="w-[5.75rem] shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
                 defaultValue=""
               >
                 <option value="" disabled>
@@ -147,7 +147,7 @@ function RegisterForm() {
                 maxLength={7}
                 pattern="[0-9]{7}"
                 placeholder="7 ספרות"
-                className="min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
                 onInput={(e) => {
                   const el = e.currentTarget;
                   el.value = el.value.replace(/\D/g, "").slice(0, 7);
@@ -156,7 +156,7 @@ function RegisterForm() {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#5F5F5F]">
+            <label className="block text-xs font-medium text-neutral-600">
               סיסמה (לפחות 6 תווים)
             </label>
             <input
@@ -164,12 +164,12 @@ function RegisterForm() {
               type="password"
               required
               minLength={6}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             />
           </div>
 
           <div>
-            <p className="block text-xs font-medium text-[#5F5F5F]">
+            <p className="block text-xs font-medium text-neutral-600">
               סוג משתמש
             </p>
             <div className="mt-2 grid grid-cols-3 gap-2">
@@ -181,8 +181,8 @@ function RegisterForm() {
                     onClick={() => setRole(r)}
                     className={`w-full rounded-full border px-3 py-1.5 text-center text-xs transition ${
                       role === r
-                        ? "border-[#C9A227] bg-[#FFF9E6] font-semibold text-[#0F3B2E]"
-                        : "border-[#E0D4C3] bg-white text-[#5F5F5F] hover:border-[#C9A227]/50"
+                        ? "border-[#C9A227] bg-[#FFF9E6] font-semibold text-emerald-950"
+                        : "border-neutral-200 bg-white text-neutral-600 hover:border-amber-400/50"
                     }`}
                   >
                     {r === "SEEKER" && "מחפש אולמות"}
@@ -198,13 +198,13 @@ function RegisterForm() {
           <button
             type="submit"
             disabled={loading || !role}
-            className="w-full rounded-full bg-[#C9A227] py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
+            className="w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
           >
             {loading ? "נרשם..." : "הרשמה"}
           </button>
-          <p className="text-xs text-[#6B6560]">
+          <p className="text-xs text-neutral-600">
             כבר יש לך משתמש?{" "}
-            <a href="/auth/login" className="font-semibold text-[#0F3B2E] hover:underline">
+            <a href="/auth/login" className="font-semibold text-emerald-950 hover:underline">
               התחברות
             </a>
           </p>
@@ -218,7 +218,7 @@ export default function RegisterPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#EFE6D5] px-4 py-12 text-center text-sm text-[#6B6560]">
+        <div className="site-page px-4 py-12 text-center text-sm text-neutral-600">
           טוען...
         </div>
       }

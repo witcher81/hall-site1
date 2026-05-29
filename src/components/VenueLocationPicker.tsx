@@ -759,9 +759,9 @@ export default function VenueLocationPicker({
       <div
         ref={containerRef}
         dir="ltr"
-        className="h-64 w-full rounded-2xl bg-[#FAF8F4]"
+        className="h-64 w-full rounded-2xl bg-neutral-50"
       />
-      <p className="text-[11px] text-[#6B6560]">
+      <p className="text-[11px] text-neutral-600">
         {mapInitError
           ? mapInitError
           : loading
@@ -777,7 +777,7 @@ export default function VenueLocationPicker({
             שדורש סימון במפה).
           </p>
           {!picked ? (
-            <p className="text-[11px] text-[#6B6560]">
+            <p className="text-[11px] text-neutral-600">
               קבעו קודם את מיקום האולם על המפה, ואז אפשר לסמן חניה.
             </p>
           ) : (
@@ -806,7 +806,7 @@ export default function VenueLocationPicker({
                   <button
                     type="button"
                     onClick={() => setPlacingParking(false)}
-                    className="rounded-lg border border-[#D4C9BC] px-2 py-1.5 text-[11px] text-[#6B6560] hover:bg-white"
+                    className="rounded-lg border border-[#D4C9BC] px-2 py-1.5 text-[11px] text-neutral-600 hover:bg-white"
                   >
                     ביטול
                   </button>
@@ -828,7 +828,7 @@ export default function VenueLocationPicker({
                           href={googleMapsExplorerUrl(pLat, pLng)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[11px] font-medium text-[#0F3B2E] underline underline-offset-2 hover:opacity-90"
+                          className="text-[11px] font-medium text-emerald-950 underline underline-offset-2 hover:opacity-90"
                         >
                           פתח את מיקום החניה ב-Google Maps (מפת סייר)
                         </a>
@@ -843,7 +843,7 @@ export default function VenueLocationPicker({
                             setPlacingParking(false);
                             parkingOnSameMap.onClear();
                           }}
-                          className="text-[11px] text-[#6B6560] underline-offset-2 hover:text-[#1A1A1A] hover:underline"
+                          className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
                         >
                           נקה סימון חניה
                         </button>
@@ -862,7 +862,7 @@ export default function VenueLocationPicker({
             href={googleMapsExplorerUrl(picked.lat, picked.lng)}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-[#0F3B2E] underline underline-offset-2 hover:opacity-90"
+            className="font-medium text-emerald-950 underline underline-offset-2 hover:opacity-90"
           >
             פתח את מיקום האולם ב-Google Maps (מפת סייר)
           </a>
@@ -870,14 +870,14 @@ export default function VenueLocationPicker({
             href={googleStreetViewOpenUrl(picked.lat, picked.lng)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#0F3B2E] underline underline-offset-2 hover:opacity-90"
+            className="text-emerald-950 underline underline-offset-2 hover:opacity-90"
           >
             תצוגת רחוב ב-Google (חיצים וניווט)
           </a>
           <button
             type="button"
             onClick={clearPin}
-            className="rounded-lg border border-[#C9A227]/60 bg-white px-2 py-1 text-[#5F5F5F] hover:bg-[#FAF8F4]"
+            className="rounded-lg border border-[#C9A227]/60 bg-white px-2 py-1 text-neutral-600 hover:bg-neutral-50"
           >
             הסר סיכה
           </button>

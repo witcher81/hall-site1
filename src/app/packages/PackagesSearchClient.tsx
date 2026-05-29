@@ -88,7 +88,7 @@ function PackagesResultsSkeleton() {
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="animate-pulse overflow-hidden rounded-2xl border border-[#E7E0CF] bg-white"
+          className="animate-pulse overflow-hidden rounded-2xl border border-neutral-200 bg-white"
         >
           <div className="aspect-[16/10] bg-gradient-to-br from-[#E7E0CF]/80 to-[#EFE6D5]" />
           <div className="space-y-3 p-4 text-right">
@@ -109,11 +109,11 @@ function PackageResultCard({ pkg }: { pkg: PackageRow }) {
   return (
     <Link
       href={`/packages/${pkg.id}`}
-      className="block overflow-hidden rounded-2xl border border-[#E7E0CF] bg-white text-right shadow-sm transition hover:shadow-md"
+      className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white text-right shadow-sm transition hover:shadow-md"
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F5EFE3]">
         {pkg.badgeLabel && (
-          <span className="absolute right-2 top-2 z-10 rounded-full bg-[#0F3B2E] px-2 py-0.5 text-[10px] font-bold text-[#E5C96B] shadow-sm">
+          <span className="absolute right-2 top-2 z-10 rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-amber-400 shadow-sm">
             {pkg.badgeLabel}
           </span>
         )}
@@ -121,26 +121,26 @@ function PackageResultCard({ pkg }: { pkg: PackageRow }) {
         <img src={img} alt="" className="h-full w-full object-cover" />
       </div>
       <div className="p-4">
-        <h2 className="font-semibold text-[#1A1A1A]">{pkg.title}</h2>
+        <h2 className="font-semibold text-neutral-900">{pkg.title}</h2>
         {pkg.subtitle && (
-          <p className="mt-0.5 text-xs text-[#6B6560]">{pkg.subtitle}</p>
+          <p className="mt-0.5 text-xs text-neutral-600">{pkg.subtitle}</p>
         )}
-        <p className="mt-2 text-xs text-[#5F5F5F]">
-          <span className="font-semibold text-[#0F3B2E]">{pkg.venue.city}</span>
+        <p className="mt-2 text-xs text-neutral-600">
+          <span className="font-semibold text-emerald-950">{pkg.venue.city}</span>
           {" · "}
           {parts.slice(0, 3).join(" · ")}
           {parts.length > 3 ? "…" : ""}
         </p>
         {(pkg.venue.minGuests != null || pkg.venue.maxGuests != null) && (
-          <p className="mt-1 text-[11px] text-[#5F5F5F]">
+          <p className="mt-1 text-[11px] text-neutral-600">
             קיבולת אולם: עד {pkg.venue.maxGuests ?? "?"} אורחים
             {pkg.venue.minGuests != null ? ` (מינ׳ ${pkg.venue.minGuests})` : ""}
           </p>
         )}
-        <p className="mt-2 text-sm font-semibold text-[#C9A227]">
+        <p className="mt-2 text-sm font-semibold text-amber-600">
           {formatBundlePrice(pkg.bundlePriceFrom, pkg.bundlePriceTo)}
         </p>
-        <span className="mt-3 inline-block text-sm font-medium text-[#0F3B2E]">
+        <span className="mt-3 inline-block text-sm font-medium text-emerald-950">
           לפרטים והזמנה ←
         </span>
       </div>
@@ -240,8 +240,8 @@ export default function PackagesSearchClient() {
   }
 
   const fieldClass =
-    "mt-2 w-full min-h-[46px] rounded-xl border border-[#E7E0CF] bg-white px-4 py-2.5 text-base text-[#1A1A1A] outline-none transition focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/25";
-  const labelClass = "block text-sm font-medium text-[#0F3B2E]";
+    "mt-2 w-full min-h-[46px] rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-base text-neutral-900 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-400/25";
+  const labelClass = "block text-sm font-medium text-emerald-950";
 
   const active = hasActiveFilters(searchParams);
 
@@ -249,12 +249,12 @@ export default function PackagesSearchClient() {
     <div className="mt-6 space-y-8">
       <form
         onSubmit={handleSubmit}
-        className="rounded-3xl border border-[#E7E0CF] bg-white p-6 text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] sm:p-8 md:p-10"
+        className="rounded-3xl border border-neutral-200 bg-white p-6 text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] sm:p-8 md:p-10"
       >
-        <div className="mb-6 flex flex-col gap-1 border-b border-[#E7E0CF]/80 pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-1 border-b border-neutral-200/80 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-lg font-bold text-[#0F3B2E]">סינון חיפוש חבילות</p>
-            <p className="mt-1 text-sm text-[#5F5F5F]">
+            <p className="text-lg font-bold text-emerald-950">סינון חיפוש חבילות</p>
+            <p className="mt-1 text-sm text-neutral-600">
               כמו בחיפוש אולמות: העיר עם השלמה מהרשימה, אורחים וטווח מחיר לחבילה.
               החיפוש מתעדכן אוטומטית כשמשנים ערכים.
             </p>
@@ -346,8 +346,8 @@ export default function PackagesSearchClient() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-stretch gap-3 border-t border-[#E7E0CF]/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-center text-sm text-[#5F5F5F] sm:text-right">
+        <div className="mt-8 flex flex-col items-stretch gap-3 border-t border-neutral-200/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-center text-sm text-neutral-600 sm:text-right">
             החיפוש מתעדכן אוטומטית כשמשנים סינון (אפשר גם ללחוץ לעדכון מיידי).
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:justify-end">
@@ -358,13 +358,13 @@ export default function PackagesSearchClient() {
                 lastPushedQsRef.current = "";
                 router.replace("/packages", { scroll: false });
               }}
-              className="min-h-[50px] rounded-2xl border-2 border-[#0F3B2E]/20 px-6 text-sm font-semibold text-[#0F3B2E] transition hover:bg-[#E8F0EC]"
+              className="min-h-[50px] rounded-2xl border-2 border-emerald-950/20 px-6 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-50"
             >
               נקה הכל
             </button>
             <button
               type="submit"
-              className="min-h-[50px] rounded-2xl bg-[#C9A227] px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
+              className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
             >
               עדכן עכשיו
             </button>
@@ -378,26 +378,26 @@ export default function PackagesSearchClient() {
       {loading ? (
         <PackagesResultsSkeleton />
       ) : packages.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-8 text-center text-sm text-[#6B6560] shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
+        <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-8 text-center text-sm text-neutral-600 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
           {active ? (
             <>
-              <p className="font-medium text-[#0F3B2E]">לא נמצאו חבילות לפי הסינון</p>
+              <p className="font-medium text-emerald-950">לא נמצאו חבילות לפי הסינון</p>
               <p className="mt-2">
                 נסו להרחיב חיפוש, לשנות עיר או טווח מחיר, או ללחוץ &quot;נקה הכל&quot;.
               </p>
             </>
           ) : (
             <>
-              <p className="font-medium text-[#0F3B2E]">עדיין אין חבילות פעילות</p>
+              <p className="font-medium text-emerald-950">עדיין אין חבילות פעילות</p>
               <p className="mt-2">
                 אפשר להוסיף דוגמה עם{" "}
-                <code className="rounded bg-[#EFE6D5] px-1">npm run seed:packages</code>.
+                <code className="rounded bg-neutral-50 px-1">npm run seed:packages</code>.
               </p>
             </>
           )}
           <Link
             href="/halls"
-            className="mt-5 inline-block text-sm font-semibold text-[#C9A227] hover:underline"
+            className="mt-5 inline-block text-sm font-semibold text-amber-600 hover:underline"
           >
             חיפוש אולמות →
           </Link>
@@ -405,10 +405,10 @@ export default function PackagesSearchClient() {
       ) : (
         <section className="space-y-3">
           <div className="text-right">
-            <h2 className="text-lg font-bold text-[#0F3B2E]">
+            <h2 className="text-lg font-bold text-emerald-950">
               תוצאות ({packages.length})
             </h2>
-            <p className="mt-1 text-xs text-[#5F5F5F]">
+            <p className="mt-1 text-xs text-neutral-600">
               חבילות שמתאימות לסינון שלך — לחיצה לפרטים מלאים ופנייה לאולם.
             </p>
           </div>

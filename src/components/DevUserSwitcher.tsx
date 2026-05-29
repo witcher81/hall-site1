@@ -149,8 +149,8 @@ export default function DevUserSwitcher() {
               setAddFormOpen(false);
             }}
           />
-          <div className="dev-switcher-menu absolute left-0 top-full z-20 mt-1 min-w-[260px] rounded-xl border border-[#E0D4C3] bg-[#FDFBF7] py-2 shadow-xl">
-            <p className="px-3 py-1 text-xs text-[#6B6560]">
+          <div className="dev-switcher-menu absolute left-0 top-full z-20 mt-1 min-w-[260px] rounded-xl border border-neutral-200 bg-white py-2 shadow-xl">
+            <p className="px-3 py-1 text-xs text-neutral-600">
               התחבר כ (אדמין + משתמשי דיבאג שיצרת):
             </p>
             {users.map((u) => (
@@ -159,26 +159,26 @@ export default function DevUserSwitcher() {
                 type="button"
                 disabled={loading}
                 onClick={() => switchTo(u.id)}
-                className="w-full px-3 py-2 text-right text-sm text-[#1A1A1A] hover:bg-[#EFE6D5] disabled:opacity-50"
+                className="w-full px-3 py-2 text-right text-sm text-neutral-900 hover:bg-neutral-50 disabled:opacity-50"
               >
                 {u.name || u.email}
-                <span className="mr-2 text-xs text-[#6B6560]">({u.role})</span>
+                <span className="mr-2 text-xs text-neutral-600">({u.role})</span>
               </button>
             ))}
 
             {restoreMessage ? (
-              <p className="px-3 py-1 text-xs text-[#0F3B2E]">{restoreMessage}</p>
+              <p className="px-3 py-1 text-xs text-emerald-950">{restoreMessage}</p>
             ) : null}
 
             {!addFormOpen ? (
-              <div className="mt-2 border-t border-[#E0D4C3]">
+              <div className="mt-2 border-t border-neutral-200">
                 {canCreateManagedUsers ? (
                   <>
                     <button
                       type="button"
                       onClick={handleRestoreUsers}
                       disabled={restoreLoading}
-                      className="w-full py-2 text-xs font-medium text-[#6B6560] hover:bg-[#EFE6D5] disabled:opacity-50"
+                      className="w-full py-2 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
                     >
                       {restoreLoading
                         ? "משחזר..."
@@ -187,7 +187,7 @@ export default function DevUserSwitcher() {
                     <button
                       type="button"
                       onClick={() => setAddFormOpen(true)}
-                      className="w-full py-2 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+                      className="w-full py-2 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
                     >
                       + הוסף משתמש
                     </button>
@@ -197,10 +197,10 @@ export default function DevUserSwitcher() {
             ) : (
               <form
                 onSubmit={handleAddUser}
-                className="mt-2 border-t border-[#E0D4C3] px-3 py-3"
+                className="mt-2 border-t border-neutral-200 px-3 py-3"
                 onClick={(e) => e.stopPropagation()}
               >
-                <p className="mb-2 text-xs font-medium text-[#6B6560]">
+                <p className="mb-2 text-xs font-medium text-neutral-600">
                   משתמש חדש:
                 </p>
                 <input
@@ -210,9 +210,9 @@ export default function DevUserSwitcher() {
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, name: e.target.value }))
                   }
-                  className="mb-1.5 w-full rounded border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] placeholder:text-[#8A837A]"
+                  className="mb-1.5 w-full rounded border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-500"
                 />
-                <p className="mb-1 text-[11px] leading-snug text-[#6B6560]">
+                <p className="mb-1 text-[11px] leading-snug text-neutral-600">
                   אימייל (אופציונלי): אם תשאיר ריק, תיווצר כתובת טכנית ייחודית על
                   בסיס אימייל האדמין שלך (+תג) — כדי שלא תאבד את מתג ההחלפה.
                 </p>
@@ -223,7 +223,7 @@ export default function DevUserSwitcher() {
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, email: e.target.value }))
                   }
-                  className="mb-1.5 w-full rounded border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] placeholder:text-[#8A837A]"
+                  className="mb-1.5 w-full rounded border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-500"
                 />
                 <input
                   type="password"
@@ -234,14 +234,14 @@ export default function DevUserSwitcher() {
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, password: e.target.value }))
                   }
-                  className="mb-1.5 w-full rounded border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] placeholder:text-[#8A837A]"
+                  className="mb-1.5 w-full rounded border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-500"
                 />
                 <select
                   value={addForm.role}
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, role: e.target.value }))
                   }
-                  className="mb-2 w-full rounded border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A]"
+                  className="mb-2 w-full rounded border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900"
                 >
                   {ROLES.map((r) => (
                     <option key={r.value} value={r.value}>
@@ -256,7 +256,7 @@ export default function DevUserSwitcher() {
                   <button
                     type="submit"
                     disabled={addLoading}
-                    className="flex-1 rounded bg-[#C9A227] px-2 py-1.5 text-xs font-medium text-white hover:bg-[#E5C96B] disabled:opacity-50"
+                    className="flex-1 rounded bg-amber-400 px-2 py-1.5 text-xs font-medium text-white hover:bg-amber-300 disabled:opacity-50"
                   >
                     {addLoading ? "..." : "הוסף והתחבר"}
                   </button>
@@ -266,7 +266,7 @@ export default function DevUserSwitcher() {
                       setAddFormOpen(false);
                       setAddError(null);
                     }}
-                    className="rounded border border-[#E0D4C3] px-2 py-1.5 text-xs text-[#5F5F5F] hover:bg-[#EFE6D5]"
+                    className="rounded border border-neutral-200 px-2 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50"
                   >
                     ביטול
                   </button>

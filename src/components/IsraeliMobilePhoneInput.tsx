@@ -30,9 +30,9 @@ export default function IsraeliMobilePhoneInput({
   const useMobileUi = forceMobile || !digits || digits.startsWith("05");
 
   const defaultSelect =
-    "shrink-0 rounded-xl border border-[#E0D4C3] bg-white px-2 py-2.5 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40";
+    "shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2.5 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
   const defaultInput =
-    "min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2.5 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40";
+    "min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
 
   if (!useMobileUi) {
     return (
@@ -44,7 +44,7 @@ export default function IsraeliMobilePhoneInput({
         onChange={(e) => onChange(normalizePhoneInput(e.target.value))}
         className={
           legacyInputClassName ??
-          "mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2.5 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+          "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
         }
         placeholder="03-xxxxxxx או 05xxxxxxxx"
       />

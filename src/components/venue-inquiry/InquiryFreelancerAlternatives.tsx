@@ -104,7 +104,7 @@ export default function InquiryFreelancerAlternatives({
 
   if (loading) {
     return (
-      <p className="mt-2 text-[11px] text-[#6B6560]">
+      <p className="mt-2 text-[11px] text-neutral-600">
         מחשבים מה הכי משתלם לפי מחיר, דירוג וביקורות…
       </p>
     );
@@ -127,30 +127,30 @@ export default function InquiryFreelancerAlternatives({
     s.provider.businessName?.trim() || s.provider.name?.trim() || "ספק";
 
   return (
-    <div className="mt-3 rounded-lg border border-[#0F3B2E]/20 bg-[#E8F0EC]/60 px-3 py-2.5">
-      <p className="text-[11px] font-semibold text-[#0F3B2E]">
+    <div className="mt-3 rounded-lg border border-emerald-950/20 bg-emerald-50/60 px-3 py-2.5">
+      <p className="text-[11px] font-semibold text-emerald-950">
         המלצת ערך — {opt.label}
       </p>
-      <p className="mt-0.5 text-[10px] text-[#6B6560]">
+      <p className="mt-0.5 text-[10px] text-neutral-600">
         משווים מחיר מול דירוג (ביקורות אמיתיות או הערכה לפי ניסיון וביקוש) — לא רק הרשימה הזולה ביותר.
       </p>
 
       {data.recommendation ? (
-        <div className="mt-2 rounded-md border border-[#C9A227]/35 bg-[#FFFBF0] px-2.5 py-2">
-          <p className="text-xs font-semibold text-[#0F3B2E]">{data.recommendation.headline}</p>
-          <p className="mt-1 text-[10px] leading-relaxed text-[#2A261F]">
+        <div className="mt-2 rounded-md border border-[#C9A227]/35 bg-amber-50 px-2.5 py-2">
+          <p className="text-xs font-semibold text-emerald-950">{data.recommendation.headline}</p>
+          <p className="mt-1 text-[10px] leading-relaxed text-neutral-800">
             {data.recommendation.detail}
           </p>
         </div>
       ) : null}
 
       {data.cheaperThanHall && data.hallPrice != null && data.marketFrom != null ? (
-        <p className="mt-2 text-[11px] text-[#2A261F]">
+        <p className="mt-2 text-[11px] text-neutral-800">
           מחיר מינימום במאגר: <strong className="tabular-nums">₪{data.marketFrom}</strong> — נמוך
           מתוספת באולם (<strong className="tabular-nums">₪{data.hallPrice}</strong>).
         </p>
       ) : data.marketFrom != null ? (
-        <p className="mt-2 text-[11px] text-[#6B6560]">
+        <p className="mt-2 text-[11px] text-neutral-600">
           מחיר מינימום במאגר:{" "}
           <span className="tabular-nums font-medium">₪{data.marketFrom}</span>
           {data.hallPrice != null ? (
@@ -171,23 +171,23 @@ export default function InquiryFreelancerAlternatives({
                 key={s.id}
                 className={`rounded-md border bg-white px-2.5 py-2 ${
                   s.valueBadge === "best_value"
-                    ? "border-[#C9A227]/50 ring-1 ring-[#C9A227]/20"
-                    : "border-[#E0D4C3]/80"
+                    ? "border-[#C9A227]/50 ring-1 ring-amber-400/20"
+                    : "border-neutral-200/80"
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0 flex-1 text-right">
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
                       {badge ? (
-                        <span className="rounded-full bg-[#0F3B2E]/10 px-2 py-0.5 text-[9px] font-bold text-[#0F3B2E]">
+                        <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[9px] font-bold text-emerald-950">
                           {badge}
                         </span>
                       ) : null}
-                      <p className="truncate text-xs font-medium text-[#1A1A1A]">{s.name}</p>
+                      <p className="truncate text-xs font-medium text-neutral-900">{s.name}</p>
                     </div>
-                    <p className="text-[10px] text-[#6B6560]">{providerName(s)}</p>
+                    <p className="text-[10px] text-neutral-600">{providerName(s)}</p>
                     {s.rating != null ? (
-                      <p className="mt-0.5 flex flex-wrap items-center justify-end gap-1 text-[10px] text-[#5F5F5F]">
+                      <p className="mt-0.5 flex flex-wrap items-center justify-end gap-1 text-[10px] text-neutral-600">
                         <InquiryValueStars rating={s.rating} estimated={s.ratingIsEstimated} />
                         <span>
                           {s.ratingIsEstimated
@@ -197,20 +197,20 @@ export default function InquiryFreelancerAlternatives({
                       </p>
                     ) : null}
                     {s.compareNote ? (
-                      <p className="mt-1 text-[10px] leading-snug text-[#6B6560]">{s.compareNote}</p>
+                      <p className="mt-1 text-[10px] leading-snug text-neutral-600">{s.compareNote}</p>
                     ) : null}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     {s.minPrice != null ? (
-                      <span className="text-[10px] font-semibold tabular-nums text-[#0F3B2E]">
+                      <span className="text-[10px] font-semibold tabular-nums text-emerald-950">
                         {formatFreelancerServicePriceShekelCompact(s.minPrice, s.maxPrice)}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-[#6B6560]">צרו קשר למחיר</span>
+                      <span className="text-[10px] text-neutral-600">צרו קשר למחיר</span>
                     )}
                     <Link
                       href={`/services/${s.id}`}
-                      className="text-[10px] font-semibold text-[#0F3B2E] underline-offset-2 hover:underline"
+                      className="text-[10px] font-semibold text-emerald-950 underline-offset-2 hover:underline"
                     >
                       פרטים →
                     </Link>
@@ -221,18 +221,18 @@ export default function InquiryFreelancerAlternatives({
           })}
         </ul>
       ) : data.totalCount > 0 ? (
-        <p className="mt-2 text-[11px] text-[#6B6560]">
+        <p className="mt-2 text-[11px] text-neutral-600">
           יש ספקים במאגר — עיינו ברשימה המלאה.
         </p>
       ) : (
-        <p className="mt-2 text-[11px] text-[#6B6560]">
+        <p className="mt-2 text-[11px] text-neutral-600">
           לא נמצאו שירותים תואמים במאגר לפריט זה.
         </p>
       )}
 
       <Link
         href={browseHref}
-        className="mt-2 inline-block text-[11px] font-semibold text-[#0F3B2E] underline-offset-2 hover:underline"
+        className="mt-2 inline-block text-[11px] font-semibold text-emerald-950 underline-offset-2 hover:underline"
       >
         כל הספקים ב{browseLabel} →
       </Link>

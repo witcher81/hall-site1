@@ -56,19 +56,19 @@ export default function VenueOwnerProfileForm({ initial }: Props) {
   }
 
   const input =
-    "mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2.5 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40";
+    "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
   const mobileSelect =
-    "shrink-0 rounded-xl border border-[#E0D4C3] bg-white px-2 py-2.5 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40";
+    "shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
   const mobileRest =
-    "min-w-0 flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2.5 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40";
+    "min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-8 space-y-5 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+      className="mt-8 space-y-5 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
     >
       <div>
-        <label className="block text-sm font-medium text-[#5F5F5F]">
+        <label className="block text-sm font-medium text-neutral-600">
           שם מלא (איש קשר)
         </label>
         <input
@@ -81,7 +81,7 @@ export default function VenueOwnerProfileForm({ initial }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[#5F5F5F]">
+        <label className="block text-sm font-medium text-neutral-600">
           טלפון אישי (נייד)
         </label>
         <IsraeliMobilePhoneInput
@@ -91,15 +91,15 @@ export default function VenueOwnerProfileForm({ initial }: Props) {
           selectClassName={mobileSelect}
           inputClassName={mobileRest}
         />
-        <p className="mt-1 text-xs text-[#6B6560]">
+        <p className="mt-1 text-xs text-neutral-600">
           בחרו קידומת והזינו 7 ספרות (סה״כ 10 ספרות כולל 0)
         </p>
       </div>
 
-      <hr className="border-[#E0D4C3]" />
+      <hr className="border-neutral-200" />
 
       <div>
-        <label className="block text-sm font-medium text-[#5F5F5F]">
+        <label className="block text-sm font-medium text-neutral-600">
           שם העסק / האולם
         </label>
         <input
@@ -114,7 +114,7 @@ export default function VenueOwnerProfileForm({ initial }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[#5F5F5F]">
+        <label className="block text-sm font-medium text-neutral-600">
           טלפון עסקי
         </label>
         <input
@@ -131,13 +131,13 @@ export default function VenueOwnerProfileForm({ initial }: Props) {
           className={input}
           placeholder="03-xxxxxxx או 05xxxxxxxx"
         />
-        <p className="mt-1 text-xs text-[#6B6560]">
+        <p className="mt-1 text-xs text-neutral-600">
           מספר שיוצג ללקוחות (קו נפרד מאישי אם רלוונטי)
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[#5F5F5F]">
+        <label className="block text-sm font-medium text-neutral-600">
           כתובת העסק (כללית)
         </label>
         <input
@@ -166,13 +166,13 @@ export default function VenueOwnerProfileForm({ initial }: Props) {
         <button
           type="submit"
           disabled={loading || hasInvalidPhone}
-          className="rounded-full bg-[#C9A227] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
+          className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
         >
           {loading ? "שומר..." : "שמירה והמשך לאזור האולמות"}
         </button>
         <a
           href="/dashboard/venue-owner"
-          className="rounded-full border border-[#E0D4C3] bg-[#FAF8F4] px-6 py-2.5 text-center text-sm font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+          className="rounded-full border border-neutral-200 bg-neutral-50 px-6 py-2.5 text-center text-sm font-medium text-emerald-950 hover:bg-neutral-50"
         >
           דלג לעכשיו
         </a>

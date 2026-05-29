@@ -13,7 +13,7 @@ type Props = {
 
 export default function InquiryWizardNav({ steps, currentIndex, onGoTo }: Props) {
   return (
-    <nav aria-label="שלבי ההזמנה" className="rounded-2xl border border-[#E0D4C3] bg-white p-3 shadow-sm">
+    <nav aria-label="שלבי ההזמנה" className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
       <ol className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
         {steps.map((step, i) => {
           const done = i < currentIndex;
@@ -27,26 +27,26 @@ export default function InquiryWizardNav({ steps, currentIndex, onGoTo }: Props)
                 onClick={() => clickable && onGoTo(i)}
                 className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-right transition ${
                   active
-                    ? "border-[#C9A227] bg-[#FFFBF0] shadow-sm"
+                    ? "border-[#C9A227] bg-amber-50 shadow-sm"
                     : done
-                      ? "border-[#0F3B2E]/25 bg-[#0F3B2E]/[0.05]"
-                      : "border-[#E8E0D4] bg-[#FAF8F4]/80 opacity-70"
-                } ${clickable ? "cursor-pointer hover:border-[#C9A227]/50" : "cursor-default"}`}
+                      ? "border-emerald-950/25 bg-emerald-950/[0.05]"
+                      : "border-[#E8E0D4] bg-neutral-50/80 opacity-70"
+                } ${clickable ? "cursor-pointer hover:border-amber-400/50" : "cursor-default"}`}
               >
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                     active
-                      ? "bg-[#C9A227] text-white"
+                      ? "bg-amber-400 text-white"
                       : done
-                        ? "bg-[#0F3B2E] text-white"
-                        : "bg-[#E8E0D4] text-[#6B6560]"
+                        ? "bg-emerald-950 text-white"
+                        : "bg-[#E8E0D4] text-neutral-600"
                   }`}
                 >
                   {done ? "✓" : i + 1}
                 </span>
                 <span
                   className={`min-w-0 truncate text-xs font-semibold ${
-                    active ? "text-[#0F3B2E]" : "text-[#5F5F5F]"
+                    active ? "text-emerald-950" : "text-neutral-600"
                   }`}
                 >
                   {step.title}

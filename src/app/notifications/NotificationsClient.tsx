@@ -53,23 +53,23 @@ export default function NotificationsClient({
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-5 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+    <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm font-semibold text-[#0F3B2E]">
+        <p className="text-sm font-semibold text-emerald-950">
           {unreadCount > 0 ? `${unreadCount} התראות לא נקראו` : "כל ההתראות נקראו"}
         </p>
         <button
           type="button"
           onClick={markAll}
           disabled={unreadCount === 0}
-          className="rounded-full border border-[#E0D4C3] bg-[#FAF8F4] px-4 py-1.5 text-xs text-[#0F3B2E] hover:bg-[#EFE6D5] disabled:opacity-50"
+          className="rounded-full border border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-emerald-950 hover:bg-neutral-50 disabled:opacity-50"
         >
           סמן הכל כנקרא
         </button>
       </div>
 
       {items.length === 0 ? (
-        <p className="text-sm text-[#6B6560]">אין התראות עדיין.</p>
+        <p className="text-sm text-neutral-600">אין התראות עדיין.</p>
       ) : (
         <div className="space-y-2">
           {items.map((n) => {
@@ -78,18 +78,18 @@ export default function NotificationsClient({
               <div
                 className={`rounded-xl border p-4 text-right transition ${
                   n.isRead
-                    ? "border-[#E0D4C3] bg-[#FAF8F4]"
+                    ? "border-neutral-200 bg-neutral-50"
                     : "border-[#C9A227]/60 bg-[#FFF9E8]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-[#0F3B2E]">{n.title}</p>
-                    {n.body && <p className="mt-1 text-sm text-[#2A261F]">{n.body}</p>}
-                    <p className="mt-1 text-[11px] text-[#6B6560]">{timeLabel(n.createdAt)}</p>
+                    <p className="font-semibold text-emerald-950">{n.title}</p>
+                    {n.body && <p className="mt-1 text-sm text-neutral-800">{n.body}</p>}
+                    <p className="mt-1 text-[11px] text-neutral-600">{timeLabel(n.createdAt)}</p>
                   </div>
                   {!n.isRead && (
-                    <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#C9A227]" />
+                    <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-amber-400" />
                   )}
                 </div>
               </div>

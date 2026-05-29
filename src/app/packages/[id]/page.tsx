@@ -76,26 +76,26 @@ export default async function PackageDetailPage({ params }: PageProps) {
   const vImg = pkg.venue.coverImageUrl || "/globe.svg";
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <HomeHeader
         user={user}
         canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
       />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <nav className="mb-4 text-right text-xs text-[#6B6560]">
-          <Link href="/packages" className="font-medium text-[#0F3B2E] hover:underline">
+        <nav className="mb-4 text-right text-xs text-neutral-600">
+          <Link href="/packages" className="font-medium text-emerald-950 hover:underline">
             חבילות אירוע
           </Link>
           <span className="mx-1">/</span>
           <span>{pkg.title}</span>
         </nav>
 
-        <div className="overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white shadow-lg">
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-lg">
           <div className="relative aspect-[21/9] max-h-56 w-full bg-[#E8E0D4] sm:aspect-[3/1]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={vImg} alt="" className="h-full w-full object-cover" />
             {pkg.badgeLabel && (
-              <span className="absolute right-4 top-4 rounded-full bg-[#0F3B2E] px-3 py-1 text-xs font-bold text-[#E5C96B]">
+              <span className="absolute right-4 top-4 rounded-full bg-emerald-950 px-3 py-1 text-xs font-bold text-amber-400">
                 {pkg.badgeLabel}
               </span>
             )}
@@ -103,11 +103,11 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
           <div className="space-y-4 p-6 text-right">
             <div>
-              <h1 className="text-2xl font-bold text-[#0F3B2E]">{pkg.title}</h1>
+              <h1 className="text-2xl font-bold text-emerald-950">{pkg.title}</h1>
               {pkg.subtitle && (
-                <p className="mt-1 text-sm text-[#6B6560]">{pkg.subtitle}</p>
+                <p className="mt-1 text-sm text-neutral-600">{pkg.subtitle}</p>
               )}
-              <p className="mt-3 text-lg font-semibold text-[#C9A227]">
+              <p className="mt-3 text-lg font-semibold text-amber-600">
                 {formatBundlePrice(pkg.bundlePriceFrom, pkg.bundlePriceTo)}
               </p>
             </div>
@@ -119,13 +119,13 @@ export default async function PackageDetailPage({ params }: PageProps) {
             )}
 
             <section className="rounded-xl border border-[#C9A227]/30 bg-gradient-to-br from-[#FFFBF0] to-[#FAF8F4] p-4">
-              <h2 className="text-sm font-bold text-[#0F3B2E]">מה בחבילה</h2>
+              <h2 className="text-sm font-bold text-emerald-950">מה בחבילה</h2>
               <ul className="mt-3 space-y-3 text-sm">
-                <li className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#E0D4C3]/60 pb-3">
-                  <span className="font-semibold text-[#0F3B2E]">אולם</span>
+                <li className="flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-200/60 pb-3">
+                  <span className="font-semibold text-emerald-950">אולם</span>
                   <Link
                     href={`/halls/${pkg.venue.id}`}
-                    className="text-[#C9A227] hover:underline"
+                    className="text-amber-600 hover:underline"
                   >
                     {pkg.venue.name} · {pkg.venue.city}
                   </Link>
@@ -140,22 +140,22 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   return (
                     <li
                       key={row.id}
-                      className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#E0D4C3]/60 pb-3 last:border-0 last:pb-0"
+                      className="flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-200/60 pb-3 last:border-0 last:pb-0"
                     >
                       <div>
-                        <span className="font-semibold text-[#0F3B2E]">{s.name}</span>
+                        <span className="font-semibold text-emerald-950">{s.name}</span>
                         {s.category && (
-                          <span className="mr-2 text-xs text-[#6B6560]">({s.category})</span>
+                          <span className="mr-2 text-xs text-neutral-600">({s.category})</span>
                         )}
                         {serviceBlurb ? (
-                          <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-[#5F5F5F]">
+                          <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-neutral-600">
                             {serviceBlurb}
                           </p>
                         ) : null}
                       </div>
                       <Link
                         href={`/providers/${s.providerId}`}
-                        className="shrink-0 text-sm font-medium text-[#C9A227] hover:underline"
+                        className="shrink-0 text-sm font-medium text-amber-600 hover:underline"
                       >
                         פרופיל {label} ←
                       </Link>
@@ -168,19 +168,19 @@ export default async function PackageDetailPage({ params }: PageProps) {
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
               <Link
                 href={`/halls/${pkg.venue.id}#venue-inquiry`}
-                className="inline-flex min-h-[52px] flex-1 items-center justify-center rounded-2xl bg-[#C9A227] px-6 text-base font-bold text-white shadow-lg transition hover:bg-[#E5C96B] sm:min-w-[200px]"
+                className="inline-flex min-h-[52px] flex-1 items-center justify-center rounded-2xl bg-amber-400 px-6 text-base font-bold text-white shadow-lg transition hover:bg-amber-300 sm:min-w-[200px]"
               >
                 שלחו בקשה לאולם
               </Link>
               <Link
                 href={`/halls/${pkg.venue.id}`}
-                className="inline-flex min-h-[52px] flex-1 items-center justify-center rounded-2xl border-2 border-[#0F3B2E] bg-white px-6 text-base font-semibold text-[#0F3B2E] transition hover:bg-[#E8F0EC] sm:min-w-[180px]"
+                className="inline-flex min-h-[52px] flex-1 items-center justify-center rounded-2xl border-2 border-emerald-950 bg-white px-6 text-base font-semibold text-emerald-950 transition hover:bg-emerald-50 sm:min-w-[180px]"
               >
                 עמוד האולם
               </Link>
             </div>
 
-            <p className="text-xs text-[#6B6560]">
+            <p className="text-xs text-neutral-600">
               מחיר החבילה להמחשה בלבד; פירוט וחוזה מול כל ספק בנפרד. אפשר לשלוח בקשה
               לאולם ואז לפנות לספקים דרך הפרופיל שלהם.
             </p>

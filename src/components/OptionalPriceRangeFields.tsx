@@ -8,7 +8,7 @@ import {
 } from "@/lib/freelancerServicePriceForm";
 
 const defaultInputClass =
-  "w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]";
+  "w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400";
 
 export type OptionalPriceRangeFieldsProps = {
   minPrice: string;
@@ -108,20 +108,20 @@ export default function OptionalPriceRangeFields({
   };
 
   const expandBtnClass = expandAsButton
-    ? "mt-2 rounded-lg border border-[#D4C9BC] bg-[#FAF7F2] px-2.5 py-1.5 text-[11px] font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
-    : "mt-2 text-[11px] font-medium text-[#0F3B2E] underline decoration-[#C9A227]/60 underline-offset-2 hover:text-[#174D3B]";
+    ? "mt-2 rounded-lg border border-[#D4C9BC] bg-[#FAF7F2] px-2.5 py-1.5 text-[11px] font-medium text-emerald-950 hover:bg-neutral-50"
+    : "mt-2 text-[11px] font-medium text-emerald-950 underline decoration-[#C9A227]/60 underline-offset-2 hover:text-[#174D3B]";
 
   const collapseBtnClass = expandAsButton
-    ? "rounded-lg border border-[#E0D4C3] bg-white px-2.5 py-1.5 text-[11px] font-medium text-[#5F5F5F] hover:bg-[#FAF7F2]"
-    : "text-[11px] font-medium text-[#5F5F5F] underline decoration-[#E0D4C3] underline-offset-2 hover:text-[#2A261F]";
+    ? "rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-neutral-600 hover:bg-[#FAF7F2]"
+    : "text-[11px] font-medium text-neutral-600 underline decoration-neutral-300 underline-offset-2 hover:text-neutral-800";
 
   const outerClass = grouped
-    ? `rounded-xl border border-[#E0D4C3]/90 bg-white/90 p-3 ${className}`
+    ? `rounded-xl border border-neutral-200/90 bg-white/90 p-3 ${className}`
     : className;
 
   const titleClass = grouped
-    ? "mb-2 block text-xs font-semibold text-[#0F3B2E]"
-    : "mb-1 block text-[11px] font-medium text-[#5F5F5F]";
+    ? "mb-2 block text-xs font-semibold text-emerald-950"
+    : "mb-1 block text-[11px] font-medium text-neutral-600";
 
   return (
     <div
@@ -151,11 +151,11 @@ export default function OptionalPriceRangeFields({
       ) : (
         <div className="space-y-2">
           {grouped ? (
-            <p className="mb-1 text-xs font-semibold text-[#0F3B2E]">טווח מחירים (₪)</p>
+            <p className="mb-1 text-xs font-semibold text-emerald-950">טווח מחירים (₪)</p>
           ) : null}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-[11px] font-medium text-[#5F5F5F]">
+              <label className="mb-1 block text-[11px] font-medium text-neutral-600">
                 {minLabel}
               </label>
               <input
@@ -168,7 +168,7 @@ export default function OptionalPriceRangeFields({
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-medium text-[#5F5F5F]">
+              <label className="mb-1 block text-[11px] font-medium text-neutral-600">
                 {maxLabel}
               </label>
               <input

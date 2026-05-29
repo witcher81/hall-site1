@@ -24,12 +24,12 @@ export default async function ServiceDetailsPage({
   if (!service) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-12 text-right">
-        <p className="text-sm text-[#2A261F]">
+        <p className="text-sm text-neutral-800">
           לא נמצא שירות עם מזהה זה השייך לחשבון שלך.
         </p>
         <a
           href="/dashboard/freelancer"
-          className="mt-4 inline-block text-sm font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+          className="mt-4 inline-block text-sm font-semibold text-emerald-950 underline-offset-4 hover:underline"
         >
           חזרה לשירותים שלי
         </a>

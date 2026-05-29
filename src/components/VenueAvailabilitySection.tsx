@@ -31,7 +31,7 @@ export default function VenueAvailabilitySection({
 
   const sectionCls =
     sectionClassName ??
-    "mt-8 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-sm";
+    "mt-8 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-sm";
 
   const availabilityMap = useMemo(() => {
     const map: Record<string, "FREE" | "BOOKED"> = {};
@@ -107,14 +107,14 @@ export default function VenueAvailabilitySection({
     <section className={sectionCls}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-[#0F3B2E]">לוח זמינות</h2>
-          <p className="mt-1 text-xs leading-relaxed text-[#6B6560]">
+          <h2 className="text-base font-semibold text-emerald-950">לוח זמינות</h2>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
             בעל האולם מעדכן תאריכים תפוסים; ימים ללא עדכון נחשבים{" "}
-            <strong className="text-[#0F3B2E]">פנויים</strong> — כמו בלוח הניהול.
+            <strong className="text-emerald-950">פנויים</strong> — כמו בלוח הניהול.
             {onDaySelect && (
               <>
                 {" "}
-                <strong className="text-[#0F3B2E]">לחיצה על יום עתידי</strong> {selectNote}
+                <strong className="text-emerald-950">לחיצה על יום עתידי</strong> {selectNote}
               </>
             )}
           </p>
@@ -129,11 +129,11 @@ export default function VenueAvailabilitySection({
                 return { year: prevYear, month: prevMonth };
               })
             }
-            className="rounded-lg border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-1.5 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+            className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
           >
             חודש קודם
           </button>
-          <span className="min-w-[10rem] text-center text-xs font-semibold text-[#0F3B2E]">
+          <span className="min-w-[10rem] text-center text-xs font-semibold text-emerald-950">
             {new Date(visibleMonth.year, visibleMonth.month, 1).toLocaleDateString("he-IL", {
               month: "long",
               year: "numeric",
@@ -148,14 +148,14 @@ export default function VenueAvailabilitySection({
                 return { year: nextYear, month: nextMonth };
               })
             }
-            className="rounded-lg border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-1.5 text-xs font-medium text-[#0F3B2E] hover:bg-[#EFE6D5]"
+            className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
           >
             חודש הבא
           </button>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-[#2A261F]">
+      <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-neutral-800">
         <span className="inline-flex items-center gap-1.5">
           <span className="h-3 w-3 rounded border border-emerald-400 bg-emerald-50" />
           פנוי
@@ -167,13 +167,13 @@ export default function VenueAvailabilitySection({
       </div>
 
       {loading ? (
-        <p className="mt-4 text-xs text-[#6B6560]">טוען זמינות...</p>
+        <p className="mt-4 text-xs text-neutral-600">טוען זמינות...</p>
       ) : error ? (
         <p className="mt-4 text-xs text-red-700">{error}</p>
       ) : (
         <div className="mt-4 overflow-x-auto" dir="ltr">
           <div className="min-w-[280px]">
-            <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-[#6B6560] sm:gap-2">
+            <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium text-neutral-600 sm:gap-2">
               {["א", "ב", "ג", "ד", "ה", "ו", "ש"].map((d) => (
                 <div key={d} className="py-1">
                   {d}
@@ -211,7 +211,7 @@ export default function VenueAvailabilitySection({
                     : "border-emerald-300 bg-emerald-50"
                 } ${
                   isSelected
-                    ? "z-[1] ring-2 ring-[#C9A227] ring-offset-2 ring-offset-[#FAF8F4] shadow-md"
+                    ? "z-[1] ring-2 ring-amber-400 ring-offset-2 ring-offset-[#FAF8F4] shadow-md"
                     : ""
                 }`;
                 const label = new Date(`${cell.date}T12:00:00`).toLocaleDateString("he-IL", {
@@ -230,15 +230,15 @@ export default function VenueAvailabilitySection({
                         onDaySelect?.(cell.date);
                       }}
                       disabled={disallowBookedPick && status === "BOOKED"}
-                      className={`${cellClass} w-full text-right transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] ${
+                      className={`${cellClass} w-full text-right transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                         disallowBookedPick && status === "BOOKED"
                           ? "cursor-not-allowed opacity-80"
-                          : "cursor-pointer hover:ring-2 hover:ring-[#C9A227]/50"
+                          : "cursor-pointer hover:ring-2 hover:ring-amber-400/50"
                       }`}
                       aria-label={`בחירת ${label} לבקשה`}
                       aria-pressed={isSelected}
                     >
-                      <span className="text-sm font-semibold text-[#1A1A1A]">{cell.day}</span>
+                      <span className="text-sm font-semibold text-neutral-900">{cell.day}</span>
                       <span className="text-[10px] font-medium leading-tight sm:text-[11px]">
                         {status === "BOOKED" ? (
                           <span className="text-red-800">תפוס</span>
@@ -251,7 +251,7 @@ export default function VenueAvailabilitySection({
                 }
                 return (
                   <div key={cell.date} className={cellClass}>
-                    <span className="text-sm font-semibold text-[#1A1A1A]">{cell.day}</span>
+                    <span className="text-sm font-semibold text-neutral-900">{cell.day}</span>
                     <span className="text-[10px] font-medium leading-tight sm:text-[11px]">
                       {status === "BOOKED" ? (
                         <span className="text-red-800">תפוס</span>
@@ -269,7 +269,7 @@ export default function VenueAvailabilitySection({
 
       {!loading && !error && availability.length > 0 && (
         <div className="mt-4 border-t border-[#E8E0D4] pt-3">
-          <p className="mb-2 text-[11px] font-semibold text-[#0F3B2E]">רשימה מהירה</p>
+          <p className="mb-2 text-[11px] font-semibold text-emerald-950">רשימה מהירה</p>
           <ul className="max-h-40 space-y-1.5 overflow-y-auto text-xs">
             {availability.map((row) => (
               <li key={row.date}>
@@ -282,17 +282,17 @@ export default function VenueAvailabilitySection({
                       onDaySelect(row.date);
                     }}
                     disabled={disallowBookedPick && row.status === "BOOKED"}
-                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-1.5 text-right transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227] ${
+                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-1.5 text-right transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                       disallowBookedPick && row.status === "BOOKED"
                         ? "cursor-not-allowed opacity-70"
                         : "hover:bg-[#EDE4D4]"
                     } ${
                       selectedYmd === row.date
-                        ? "border-[#C9A227] bg-[#FFF9E6] ring-2 ring-[#C9A227]/60"
-                        : "border-[#E0D4C3] bg-[#F5EFE3]"
+                        ? "border-[#C9A227] bg-[#FFF9E6] ring-2 ring-amber-400/60"
+                        : "border-neutral-200 bg-[#F5EFE3]"
                     }`}
                   >
-                    <span className="text-[#2A261F]">
+                    <span className="text-neutral-800">
                       {new Date(`${row.date}T00:00:00`).toLocaleDateString("he-IL")}
                     </span>
                     <span
@@ -306,8 +306,8 @@ export default function VenueAvailabilitySection({
                     </span>
                   </button>
                 ) : (
-                  <div className="flex items-center justify-between rounded-lg border border-[#E0D4C3] bg-[#F5EFE3] px-3 py-1.5">
-                    <span className="text-[#2A261F]">
+                  <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-[#F5EFE3] px-3 py-1.5">
+                    <span className="text-neutral-800">
                       {new Date(`${row.date}T00:00:00`).toLocaleDateString("he-IL")}
                     </span>
                     <span

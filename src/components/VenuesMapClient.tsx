@@ -115,13 +115,13 @@ export default function VenuesMapClient({
     <div className="space-y-2">
       <div
         ref={containerRef}
-        className="h-[min(70vh,560px)] w-full rounded-2xl bg-[#FAF8F4]"
+        className="h-[min(70vh,560px)] w-full rounded-2xl bg-neutral-50"
       />
-      <p className="text-[11px] leading-relaxed text-[#6B6560]">
+      <p className="text-[11px] leading-relaxed text-neutral-600">
         מפה רגילה: OpenStreetMap; לוויין: תצלום. הגלילה מוגבלת לישראל. בלחיצה על סיכה: &quot;תצוגת רחוב
         (Google)&quot; בלשונית חדשה.
       </p>
-      <p className="text-[11px] leading-relaxed text-[#6B6560]">
+      <p className="text-[11px] leading-relaxed text-neutral-600">
         השמות על גבי המפה הם חלק מאריחי התמונה (OSM) — לא ניתן לשנות אוטומטית עברית מול ערבית לפי סוג
         יישוב; זה דורש מפת וקטור ושפה ייעודית (מפתח/ספק).
       </p>

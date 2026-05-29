@@ -15,7 +15,7 @@ export default function GlobalError({
 
   return (
     <html lang="he" dir="rtl">
-      <body className="min-h-screen bg-[#EFE6D5] px-4 py-12 antialiased">
+      <body className="site-page px-4 py-12 antialiased">
         <NextError statusCode={0} />
       </body>
     </html>

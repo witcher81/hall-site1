@@ -95,23 +95,23 @@ export default function RecentlyViewedBar({ variant }: Props) {
 
   return (
     <section
-      className="rounded-2xl border border-[#E0D4C3] bg-[#FDFBF7] p-3 shadow-[0_8px_28px_rgba(15,59,46,0.06)]"
+      className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-[0_8px_28px_rgba(15,59,46,0.06)]"
       aria-label={label}
     >
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-[#E7E0CF]/90 pb-2">
-        <h2 className="text-sm font-bold text-[#0F3B2E]">{label}</h2>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200/90 pb-2">
+        <h2 className="text-sm font-bold text-emerald-950">{label}</h2>
         {!loading && items.length > 0 && (
           <button
             type="button"
             onClick={handleClear}
-            className="text-[11px] font-medium text-[#6B6560] underline-offset-2 hover:text-[#0F3B2E] hover:underline"
+            className="text-[11px] font-medium text-neutral-600 underline-offset-2 hover:text-emerald-950 hover:underline"
           >
             ניקוי
           </button>
         )}
       </div>
       {loading && items.length === 0 ? (
-        <p className="py-2 text-center text-xs text-[#6B6560]">טוען…</p>
+        <p className="py-2 text-center text-xs text-neutral-600">טוען…</p>
       ) : (
         <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:thin]">
           {variant === "venues"
@@ -119,7 +119,7 @@ export default function RecentlyViewedBar({ variant }: Props) {
                 <Link
                   key={v.id}
                   href={`/halls/${v.id}`}
-                  className="flex w-[7.5rem] shrink-0 flex-col overflow-hidden rounded-xl border border-[#E7E0CF] bg-white text-right shadow-sm transition hover:border-[#C9A227]/60 hover:shadow"
+                  className="flex w-[7.5rem] shrink-0 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white text-right shadow-sm transition hover:border-amber-400/60 hover:shadow"
                 >
                   <div className="relative aspect-[4/3] w-full bg-[#E7E0CF]">
                     {v.coverImageUrl ? (
@@ -136,10 +136,10 @@ export default function RecentlyViewedBar({ variant }: Props) {
                     )}
                   </div>
                   <div className="p-1.5">
-                    <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-[#0F3B2E]">
+                    <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-emerald-950">
                       {v.name}
                     </p>
-                    <p className="mt-0.5 line-clamp-1 text-[10px] text-[#6B6560]">
+                    <p className="mt-0.5 line-clamp-1 text-[10px] text-neutral-600">
                       {v.city}
                     </p>
                   </div>
@@ -153,7 +153,7 @@ export default function RecentlyViewedBar({ variant }: Props) {
                   <Link
                     key={p.id}
                     href={`/providers/${p.id}`}
-                    className="flex w-[7.5rem] shrink-0 flex-col overflow-hidden rounded-xl border border-[#E7E0CF] bg-white text-right shadow-sm transition hover:border-[#C9A227]/60 hover:shadow"
+                    className="flex w-[7.5rem] shrink-0 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white text-right shadow-sm transition hover:border-amber-400/60 hover:shadow"
                   >
                     <div className="relative aspect-[4/3] w-full bg-[#E7E0CF]">
                       {img ? (
@@ -170,11 +170,11 @@ export default function RecentlyViewedBar({ variant }: Props) {
                       )}
                     </div>
                     <div className="p-1.5">
-                      <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-[#0F3B2E]">
+                      <p className="line-clamp-2 text-[11px] font-semibold leading-tight text-emerald-950">
                         {title}
                       </p>
                       {p.services[0]?.category && (
-                        <p className="mt-0.5 line-clamp-1 text-[10px] text-[#6B6560]">
+                        <p className="mt-0.5 line-clamp-1 text-[10px] text-neutral-600">
                           {p.services[0].category}
                         </p>
                       )}

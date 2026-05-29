@@ -81,7 +81,7 @@ export default function FreelancerRequestsClient() {
 
   if (loading) {
     return (
-      <div className="mt-6 rounded-2xl border border-dashed border-[#E0D4C3] bg-[#FAF8F4] p-8 text-center text-sm text-[#6B6560]">
+      <div className="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
         טוען...
       </div>
     );
@@ -89,7 +89,7 @@ export default function FreelancerRequestsClient() {
 
   if (requests.length === 0) {
     return (
-      <div className="mt-6 rounded-2xl border border-dashed border-[#E0D4C3] bg-[#FAF8F4] p-8 text-center text-sm text-[#6B6560]">
+      <div className="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
         עדיין לא התקבלו בקשות. בקשות ממחפשי אולמות יופיעו כאן.
       </div>
     );
@@ -98,7 +98,7 @@ export default function FreelancerRequestsClient() {
   return (
     <div className="mt-6 space-y-6 text-right text-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-[#6B6560]">סנן לפי סטטוס:</span>
+        <span className="text-xs text-neutral-600">סנן לפי סטטוס:</span>
         {STATUS_FILTER.map(({ value, label }) => (
           <button
             key={value || "all"}
@@ -106,8 +106,8 @@ export default function FreelancerRequestsClient() {
             onClick={() => setFilter(value)}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
               filter === value
-                ? "bg-[#0F3B2E] text-white shadow-sm"
-                : "border border-[#E0D4C3] bg-white text-[#5F5F5F] hover:border-[#C9A227]/60 hover:bg-[#FAF8F4]"
+                ? "bg-emerald-950 text-white shadow-sm"
+                : "border border-neutral-200 bg-white text-neutral-600 hover:border-amber-400/60 hover:bg-neutral-50"
             }`}
           >
             {label}
@@ -124,33 +124,33 @@ export default function FreelancerRequestsClient() {
                 ? "border-[#C9A227]/40 bg-[#FFF9E6]"
                 : r.status === "REPLIED"
                   ? "border-emerald-200/80 bg-emerald-50/90"
-                  : "border-[#E0D4C3] bg-white"
+                  : "border-neutral-200 bg-white"
             }`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="font-semibold text-[#0F3B2E]">
+                <p className="font-semibold text-emerald-950">
                   {r.service.name}
-                  <span className="mr-2 text-[#6B6560]">·</span>
-                  <span className="text-[#2A261F]">{r.user.name || r.user.email}</span>
+                  <span className="mr-2 text-neutral-600">·</span>
+                  <span className="text-neutral-800">{r.user.name || r.user.email}</span>
                 </p>
                 <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs">
                   <a
                     href={`mailto:${r.user.email}`}
-                    className="text-[#0F3B2E] underline decoration-[#C9A227]/50 hover:text-[#174D3B]"
+                    className="text-emerald-950 underline decoration-[#C9A227]/50 hover:text-[#174D3B]"
                   >
                     {r.user.email}
                   </a>
                   {r.user.phone && (
                     <a
                       href={`tel:${r.user.phone}`}
-                      className="text-[#0F3B2E] underline decoration-[#C9A227]/50 hover:text-[#174D3B]"
+                      className="text-emerald-950 underline decoration-[#C9A227]/50 hover:text-[#174D3B]"
                     >
                       {r.user.phone}
                     </a>
                   )}
                 </div>
-                <p className="mt-0.5 text-xs text-[#6B6560]">
+                <p className="mt-0.5 text-xs text-neutral-600">
                   {new Date(r.createdAt).toLocaleDateString("he-IL")}
                 </p>
               </div>
@@ -160,14 +160,14 @@ export default function FreelancerRequestsClient() {
                     <button
                       type="button"
                       onClick={() => markAs(r.id, "READ")}
-                      className="rounded-full border border-[#E0D4C3] bg-white px-3 py-1.5 text-xs font-medium text-[#2A261F] hover:bg-[#FAF8F4]"
+                      className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
                     >
                       סמן כנקרא
                     </button>
                     <button
                       type="button"
                       onClick={() => setRepliedId(repliedId === r.id ? null : r.id)}
-                      className="rounded-full bg-[#174D3B] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0F3B2E]"
+                      className="rounded-full bg-emerald-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-950"
                     >
                       סמן כנענה
                     </button>
@@ -177,7 +177,7 @@ export default function FreelancerRequestsClient() {
                   <button
                     type="button"
                     onClick={() => setRepliedId(repliedId === r.id ? null : r.id)}
-                    className="rounded-full bg-[#174D3B] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0F3B2E]"
+                    className="rounded-full bg-emerald-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-950"
                   >
                     סמן כנענה
                   </button>
@@ -186,7 +186,7 @@ export default function FreelancerRequestsClient() {
             </div>
 
             {(r.eventType || r.preferredDate) && (
-              <p className="mt-2 text-xs text-[#6B6560]">
+              <p className="mt-2 text-xs text-neutral-600">
                 {r.eventType && <span>סוג אירוע: {r.eventType}</span>}
                 {r.preferredDate && (
                   <span className="mr-3">תאריך: {r.preferredDate}</span>
@@ -194,25 +194,25 @@ export default function FreelancerRequestsClient() {
               </p>
             )}
 
-            <p className="mt-2 text-[#1A1A1A]">{r.message}</p>
+            <p className="mt-2 text-neutral-900">{r.message}</p>
 
             {repliedId === r.id && (
-              <div className="mt-4 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3">
-                <label className="block text-xs text-[#6B6560]">
+              <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+                <label className="block text-xs text-neutral-600">
                   הערה (אופציונלי) – תישמר כסימון שנענית ללקוח
                 </label>
                 <textarea
                   rows={2}
                   value={repliedNote}
                   onChange={(e) => setRepliedNote(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                  className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
                   placeholder="למשל: יצרתי קשר, נקבע פגישה..."
                 />
                 <div className="mt-2 flex gap-2">
                   <button
                     type="button"
                     onClick={() => markAs(r.id, "REPLIED", repliedNote)}
-                    className="rounded-full bg-[#C9A227] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#E5C96B]"
+                    className="rounded-full bg-amber-400 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-300"
                   >
                     שמור וסמן כנענה
                   </button>
@@ -222,7 +222,7 @@ export default function FreelancerRequestsClient() {
                       setRepliedId(null);
                       setRepliedNote("");
                     }}
-                    className="rounded-full border border-[#E0D4C3] bg-white px-3 py-1.5 text-xs text-[#5F5F5F] hover:bg-[#FAF8F4]"
+                    className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50"
                   >
                     ביטול
                   </button>
@@ -233,13 +233,13 @@ export default function FreelancerRequestsClient() {
             {r.status === "REPLIED" && (r.providerNote || r.repliedAt) && (
               <div className="mt-3 rounded-lg border border-emerald-200/80 bg-white/80 p-3 text-xs">
                 {r.providerNote && (
-                  <p className="text-[#2A261F]">
+                  <p className="text-neutral-800">
                     <span className="font-medium text-emerald-800">הערה שלך: </span>
                     {r.providerNote}
                   </p>
                 )}
                 {r.repliedAt && (
-                  <p className="mt-1 text-[#6B6560]">
+                  <p className="mt-1 text-neutral-600">
                     סומן כנענה ב־{new Date(r.repliedAt).toLocaleString("he-IL")}
                   </p>
                 )}
@@ -250,7 +250,7 @@ export default function FreelancerRequestsClient() {
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-center text-sm text-[#6B6560]">אין בקשות בסטטוס זה.</p>
+        <p className="text-center text-sm text-neutral-600">אין בקשות בסטטוס זה.</p>
       )}
     </div>
   );

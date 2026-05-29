@@ -83,8 +83,8 @@ export default function InquiryEventSummaryLuxury({
       </p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {eventType && (
-          <div className="group flex gap-3 rounded-xl border border-[#E8DFD0] bg-gradient-to-br from-white to-[#FAF6EF] px-4 py-3.5 shadow-[0_2px_12px_rgba(15,59,46,0.06)] transition hover:border-[#C9A227]/35">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E]/[0.07] text-[#0F3B2E]">
+          <div className="group flex gap-3 rounded-xl border border-[#E8DFD0] bg-gradient-to-br from-white to-[#FAF6EF] px-4 py-3.5 shadow-[0_2px_12px_rgba(15,59,46,0.06)] transition hover:border-amber-400/35">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-950/[0.07] text-emerald-950">
               <IconEventType className="h-5 w-5" />
             </div>
             <div className="min-w-0 text-right">
@@ -96,8 +96,8 @@ export default function InquiryEventSummaryLuxury({
           </div>
         )}
         {dateLabel && (
-          <div className="group flex gap-3 rounded-xl border border-[#E8DFD0] bg-gradient-to-br from-white to-[#FAF6EF] px-4 py-3.5 shadow-[0_2px_12px_rgba(15,59,46,0.06)] transition hover:border-[#C9A227]/35">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#C9A227]/15 text-[#7A6228]">
+          <div className="group flex gap-3 rounded-xl border border-[#E8DFD0] bg-gradient-to-br from-white to-[#FAF6EF] px-4 py-3.5 shadow-[0_2px_12px_rgba(15,59,46,0.06)] transition hover:border-amber-400/35">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-[#7A6228]">
               <IconCalendar className="h-5 w-5" />
             </div>
             <div className="min-w-0 text-right">
@@ -111,8 +111,8 @@ export default function InquiryEventSummaryLuxury({
           </div>
         )}
         {guestCount != null && (
-          <div className="group flex gap-3 rounded-xl border border-[#E8DFD0] bg-gradient-to-br from-white to-[#FAF6EF] px-4 py-3.5 shadow-[0_2px_12px_rgba(15,59,46,0.06)] transition hover:border-[#C9A227]/35">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E]/[0.07] text-[#0F3B2E]">
+          <div className="group flex gap-3 rounded-xl border border-[#E8DFD0] bg-gradient-to-br from-white to-[#FAF6EF] px-4 py-3.5 shadow-[0_2px_12px_rgba(15,59,46,0.06)] transition hover:border-amber-400/35">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-950/[0.07] text-emerald-950">
               <IconUsers className="h-5 w-5" />
             </div>
             <div className="min-w-0 text-right">

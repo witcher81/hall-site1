@@ -116,10 +116,10 @@ function AmenityOfferPill({
       className={`inline-flex max-w-full flex-wrap items-baseline gap-x-2 gap-y-1 rounded-2xl border px-3 py-2 text-sm leading-snug sm:text-[15px] ${
         isExtra
           ? "border-slate-300/90 bg-gradient-to-br from-slate-50 to-slate-100/80 shadow-sm"
-          : "border-[#0F3B2E]/18 bg-gradient-to-br from-[#E8F0EC] to-[#E0EDE8] shadow-sm"
+          : "border-emerald-950/18 bg-gradient-to-br from-[#E8F0EC] to-[#E0EDE8] shadow-sm"
       }`}
     >
-      <span className="min-w-0 font-semibold text-[#0F3B2E]">{label}</span>
+      <span className="min-w-0 font-semibold text-emerald-950">{label}</span>
       <span
         className={`shrink-0 rounded-lg px-2 py-0.5 text-xs font-semibold sm:text-[13px] ${
           isExtra
@@ -149,20 +149,20 @@ function EventTypeProfilePanel({
 
   return (
     <div
-      className="mt-4 rounded-xl border border-[#0F3B2E]/20 bg-gradient-to-br from-white to-[#FAF8F4] p-4 text-right shadow-inner sm:p-5"
+      className="mt-4 rounded-xl border border-emerald-950/20 bg-gradient-to-br from-white to-[#FAF8F4] p-4 text-right shadow-inner sm:p-5"
       dir="rtl"
     >
-      <p className="text-sm font-bold text-[#0F3B2E] sm:text-base">
+      <p className="text-sm font-bold text-emerald-950 sm:text-base">
         פרטים לפי סוג: {eventLabel}
       </p>
       {profile.publicNotes ? (
-        <p className="mt-3 rounded-lg border border-[#0F3B2E]/12 bg-[#E8F0EC]/40 px-3 py-2.5 text-sm leading-relaxed text-[#2A261F] whitespace-pre-wrap">
+        <p className="mt-3 rounded-lg border border-emerald-950/12 bg-emerald-50/40 px-3 py-2.5 text-sm leading-relaxed text-neutral-800 whitespace-pre-wrap">
           {profile.publicNotes}
         </p>
       ) : null}
-      <dl className="mt-3 space-y-3 text-sm text-[#2A261F]">
+      <dl className="mt-3 space-y-3 text-sm text-neutral-800">
         <div>
-          <dt className="text-xs font-semibold text-[#6B6560]">טווח אורחים</dt>
+          <dt className="text-xs font-semibold text-neutral-600">טווח אורחים</dt>
           <dd className="mt-0.5 font-medium tabular-nums">
             {hasGuestRange
               ? `${profile.minGuests ?? "?"}–${profile.maxGuests ?? "?"} אורחים`
@@ -171,7 +171,7 @@ function EventTypeProfilePanel({
         </div>
         {profile.hasFoodAtEvent ? (
           <div>
-            <dt className="text-xs font-semibold text-[#6B6560]">מחיר למנה</dt>
+            <dt className="text-xs font-semibold text-neutral-600">מחיר למנה</dt>
             <dd className="mt-0.5 font-medium tabular-nums">
               {hasMealRange
                 ? `₪${profile.minPrice ?? "?"}–${profile.maxPrice ?? "?"}`
@@ -180,7 +180,7 @@ function EventTypeProfilePanel({
           </div>
         ) : (
           <div>
-            <dt className="text-xs font-semibold text-[#6B6560]">אוכל באירוע</dt>
+            <dt className="text-xs font-semibold text-neutral-600">אוכל באירוע</dt>
             <dd className="mt-0.5">
               לסוג זה לא מוגדרת ארוחה או מנה (מחיר למנה לא רלוונטי).
             </dd>
@@ -188,7 +188,7 @@ function EventTypeProfilePanel({
         )}
         {profile.hasFoodAtEvent && profile.hasVeganFood ? (
           <div>
-            <dt className="text-xs font-semibold text-[#6B6560]">אפשרות טבעונית</dt>
+            <dt className="text-xs font-semibold text-neutral-600">אפשרות טבעונית</dt>
             <dd className="mt-0.5">
               {profile.veganSameAsMealPrice
                 ? "כן — במחיר כמו המנה הרגילה."
@@ -201,17 +201,17 @@ function EventTypeProfilePanel({
       </dl>
       {checkedHall.length > 0 ? (
         <div className="mt-4 border-t border-[#E8E0D4] pt-3">
-          <p className="text-xs font-semibold text-[#6B6560]">
+          <p className="text-xs font-semibold text-neutral-600">
             מה מסומן לסוג זה באולם
           </p>
           <ul className="mt-2 space-y-1.5 text-sm">
             {checkedHall.map((item) => (
               <li
                 key={item.label}
-                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-[#E0D4C3]/90 bg-[#FFFBF7] px-3 py-2"
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-neutral-200/90 bg-[#FFFBF7] px-3 py-2"
               >
-                <span className="font-medium text-[#0F3B2E]">{item.label}</span>
-                <span className="shrink-0 text-xs text-[#5F5F5F]">
+                <span className="font-medium text-emerald-950">{item.label}</span>
+                <span className="shrink-0 text-xs text-neutral-600">
                   {item.priceMode === "extra"
                     ? item.extraPrice != null && item.extraPrice > 0
                       ? `בתוספת ₪${item.extraPrice}`
@@ -241,7 +241,7 @@ type AmenityOfferRow = {
 function CharacteristicPill({ label }: { label: string }) {
   return (
     <span
-      className={`${metaOfferPillClass} border-[#0F3B2E]/18 bg-gradient-to-br from-[#F5F1EA] to-[#EDE8DF] text-[#1A1A1A]`}
+      className={`${metaOfferPillClass} border-emerald-950/18 bg-gradient-to-br from-neutral-100 to-[#EDE8DF] text-neutral-900`}
     >
       {label}
     </span>
@@ -251,7 +251,7 @@ function CharacteristicPill({ label }: { label: string }) {
 function VenueMetaPill({ label }: { label: string }) {
   return (
     <span
-      className={`${metaOfferPillClass} border-[#D4C9BC] bg-[#F0EBE3] text-[#1A1A1A]`}
+      className={`${metaOfferPillClass} border-[#D4C9BC] bg-[#F0EBE3] text-neutral-900`}
     >
       {label}
     </span>
@@ -291,13 +291,13 @@ function OfferSectionCard({
     variant === "traits"
       ? "border-[#D4C9BC]/80 bg-gradient-to-br from-[#F8F4EC] to-[#F0EBE3]"
       : variant === "wedding"
-        ? "border-[#0F3B2E]/15 bg-gradient-to-br from-[#E8F0EC]/80 to-[#E0EDE8]/50"
+        ? "border-emerald-950/15 bg-gradient-to-br from-[#E8F0EC]/80 to-[#E0EDE8]/50"
         : "border-[#D4C9BC]/70 bg-white/80";
   return (
     <section className={`rounded-xl border p-3 sm:p-4 ${shell}`}>
       <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <p className="text-xs font-bold text-[#0F3B2E] sm:text-sm">{title}</p>
-        {hint ? <p className="text-[11px] text-[#6B6560]">{hint}</p> : null}
+        <p className="text-xs font-bold text-emerald-950 sm:text-sm">{title}</p>
+        {hint ? <p className="text-[11px] text-neutral-600">{hint}</p> : null}
       </div>
       {children}
     </section>
@@ -369,11 +369,11 @@ function VenueSocialProofStrip({
 
   if (layout === "horizontal") {
     return (
-      <ul className="mt-4 flex list-none flex-wrap gap-2 text-[10px] font-medium leading-snug text-[#2A261F] sm:text-[11px]">
+      <ul className="mt-4 flex list-none flex-wrap gap-2 text-[10px] font-medium leading-snug text-neutral-800 sm:text-[11px]">
         {lines.map((line) => (
           <li
             key={line}
-            className="list-none rounded-lg border border-[#E0D4C3]/70 bg-[#FAF8F4] px-2.5 py-1.5 shadow-sm"
+            className="list-none rounded-lg border border-neutral-200/70 bg-neutral-50 px-2.5 py-1.5 shadow-sm"
           >
             {line}
           </li>
@@ -383,7 +383,7 @@ function VenueSocialProofStrip({
   }
 
   return (
-    <ul className="mt-3 space-y-1.5 text-[11px] font-medium leading-snug text-[#2A261F] sm:text-xs">
+    <ul className="mt-3 space-y-1.5 text-[11px] font-medium leading-snug text-neutral-800 sm:text-xs">
       {lines.map((line) => (
         <li key={line}>{line}</li>
       ))}
@@ -563,7 +563,7 @@ export default function VenuePublicView({
 
   return (
     <main className="relative mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <section className="overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+      <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
         <div className="relative border-b border-[#E8E0D4] bg-gradient-to-br from-[#E8F0EC] via-[#F2EDE4] to-[#EDE6DB]">
           {venue.coverImageUrl ? (
             <button
@@ -573,7 +573,7 @@ export default function VenuePublicView({
                 const idx = visibleImages.findIndex((img) => img.url === venue.coverImageUrl);
                 openLightbox(idx >= 0 ? idx : 0);
               }}
-              className="group relative block aspect-[21/9] w-full overflow-hidden text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#C9A227]"
+              className="group relative block aspect-[21/9] w-full overflow-hidden text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -588,7 +588,7 @@ export default function VenuePublicView({
           ) : (
             <div className="flex aspect-[21/9] w-full flex-col items-center justify-center gap-2 p-6 text-center">
               <svg
-                className="h-14 w-14 text-[#0F3B2E]/25"
+                className="h-14 w-14 text-emerald-950/25"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -601,7 +601,7 @@ export default function VenuePublicView({
                   d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                 />
               </svg>
-              <p className="text-xs text-[#6B6560]">אין תמונת שער</p>
+              <p className="text-xs text-neutral-600">אין תמונת שער</p>
             </div>
           )}
         </div>
@@ -609,11 +609,11 @@ export default function VenuePublicView({
         <div className="flex flex-col justify-center p-5 sm:p-6 lg:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold tracking-wide text-[#C9A227]">דף אולם</p>
-                <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#0F3B2E] sm:text-3xl">
+                <p className="text-[11px] font-semibold tracking-wide text-amber-600">דף אולם</p>
+                <h1 className="mt-1 text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">
                   {venue.name}
                 </h1>
-                <p className="mt-2 text-sm text-[#6B6560]">
+                <p className="mt-2 text-sm text-neutral-600">
                   {[venue.city, venue.address].filter(Boolean).join(" · ")}
                 </p>
               </div>
@@ -621,7 +621,7 @@ export default function VenuePublicView({
                 {user?.role === "SEEKER" && (
                   <a
                     href={`/messages?venueId=${venue.id}`}
-                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#0F3B2E]/35 bg-[#0F3B2E]/08 px-4 py-2.5 text-sm font-semibold text-[#0F3B2E] shadow-sm transition hover:bg-[#0F3B2E]/12 sm:flex-initial"
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-emerald-950/35 bg-emerald-950/08 px-4 py-2.5 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-950/12 sm:flex-initial"
                   >
                     <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                       <path
@@ -653,7 +653,7 @@ export default function VenuePublicView({
                     className={`rounded-full border p-2.5 transition hover:bg-[#F8F6F2] ${
                       isFavorite
                         ? "border-red-200 text-red-600"
-                        : "border-transparent text-[#6B6560] hover:border-[#E0D4C3] hover:text-red-600"
+                        : "border-transparent text-neutral-600 hover:border-neutral-200 hover:text-red-600"
                     }`}
                     title={isFavorite ? "הסר ממועדפים" : "שמירה לרשימת המועדפים"}
                     aria-label={isFavorite ? "הסר ממועדפים" : "שמירה למועדפים"}
@@ -675,7 +675,7 @@ export default function VenuePublicView({
                 )}
                 <a
                   href="/halls"
-                  className="inline-flex flex-1 items-center justify-center rounded-full border border-[#E0D4C3] bg-white px-3 py-2 text-xs font-medium text-[#0F3B2E] transition hover:bg-[#FAF8F4] sm:flex-initial sm:text-sm"
+                  className="inline-flex flex-1 items-center justify-center rounded-full border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-emerald-950 transition hover:bg-neutral-50 sm:flex-initial sm:text-sm"
                 >
                   חזרה לחיפוש
                 </a>
@@ -685,11 +685,11 @@ export default function VenuePublicView({
             <VenueSocialProofStrip venueId={venue.id} city={venue.city} layout="horizontal" />
 
             {hasAmenityTags && (
-              <div className="mt-5 rounded-2xl border border-[#E0D4C3] bg-[#FAF8F4] p-4 shadow-sm sm:p-5">
-                <p className="mb-1 text-base font-bold text-[#0F3B2E] sm:text-lg">
+              <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm sm:p-5">
+                <p className="mb-1 text-base font-bold text-emerald-950 sm:text-lg">
                   מה מציע האולם
                 </p>
-                <p className="mb-4 text-xs text-[#6B6560] sm:text-sm">
+                <p className="mb-4 text-xs text-neutral-600 sm:text-sm">
                   מאפייני המקום, שירותים ותמחור — מופרדים לפי קטגוריה לקריאה נוחה.
                 </p>
                 <div className="space-y-3">
@@ -758,13 +758,13 @@ export default function VenuePublicView({
             )}
         </div>
 
-        <div className="space-y-5 border-t border-[#E8E0D4] bg-[#FDFBF7]/60 px-5 py-6 sm:px-6 lg:px-8">
+        <div className="space-y-5 border-t border-[#E8E0D4] bg-white/60 px-5 py-6 sm:px-6 lg:px-8">
         {venue.eventTypes && venue.eventTypes.length > 0 && (
-          <div className="rounded-2xl border border-[#E0D4C3] bg-[#FFFBF5] p-4 text-[#2A261F] shadow-sm sm:p-5">
-            <p className="text-base font-bold text-[#0F3B2E] sm:text-lg">
+          <div className="rounded-2xl border border-neutral-200 bg-[#FFFBF5] p-4 text-neutral-800 shadow-sm sm:p-5">
+            <p className="text-base font-bold text-emerald-950 sm:text-lg">
               סוגי אירועים מתאימים
             </p>
-            <p className="mt-1 text-xs text-[#6B6560] sm:text-sm">
+            <p className="mt-1 text-xs text-neutral-600 sm:text-sm">
               האולם מתאים לאירועים מהסוגים הבאים. לחצו על סוג כדי לראות טווח
               אורחים, מחירי מנה (כשהם רלוונטיים) ומה מסומן באולם לפי סוג.
             </p>
@@ -781,8 +781,8 @@ export default function VenuePublicView({
                     aria-expanded={open}
                     className={`rounded-2xl border px-3.5 py-2 text-sm font-semibold shadow-sm transition sm:px-4 sm:py-2.5 sm:text-[15px] ${
                       open
-                        ? "border-[#C9A227] bg-[#FFF9E6] text-[#0F3B2E] ring-2 ring-[#C9A227]/35"
-                        : "border-[#0F3B2E]/25 bg-[#E8F0EC] text-[#0F3B2E] hover:border-[#0F3B2E]/40 hover:bg-[#DFEAE4]"
+                        ? "border-[#C9A227] bg-[#FFF9E6] text-emerald-950 ring-2 ring-amber-400/35"
+                        : "border-emerald-950/25 bg-emerald-50 text-emerald-950 hover:border-emerald-950/40 hover:bg-[#DFEAE4]"
                     }`}
                   >
                     {et}
@@ -801,9 +801,9 @@ export default function VenuePublicView({
         )}
 
         {venue.description && (
-          <p className="text-[#2A261F]">
+          <p className="text-neutral-800">
             <span className="font-semibold">תיאור: </span>
-            <span className="text-[#5F5F5F]">{venue.description}</span>
+            <span className="text-neutral-600">{venue.description}</span>
           </p>
         )}
 
@@ -814,7 +814,7 @@ export default function VenuePublicView({
           venue.maxPrice == null &&
           venue.hallRentalMin == null &&
           venue.hallRentalMax == null && (
-            <p className="text-xs text-[#6B6560]">
+            <p className="text-xs text-neutral-600">
               פרטים מורחבים יופיעו בהמשך.
             </p>
           )}
@@ -843,15 +843,15 @@ export default function VenuePublicView({
                   }
                   className={`rounded-full px-3 py-1 ${
                     activeCategory === cat.id
-                      ? "bg-[#C9A227] text-white"
-                      : "bg-[#EDE6DB] text-[#1A1A1A] hover:bg-[#E0D4C3]"
+                      ? "bg-amber-400 text-white"
+                      : "bg-[#EDE6DB] text-neutral-900 hover:bg-[#E0D4C3]"
                   }`}
                 >
                   {cat.label}
                 </button>
               ))}
             </div>
-            <p className="mb-2 text-xs font-semibold text-[#5F5F5F]">
+            <p className="mb-2 text-xs font-semibold text-neutral-600">
               גלריית תמונות לפי קטגוריות – לחץ על תמונה להגדלה:
             </p>
             {visibleImages.length > 0 ? (
@@ -861,7 +861,7 @@ export default function VenuePublicView({
                     key={`${img.category}-${idx}`}
                     type="button"
                     onClick={() => openLightbox(idx)}
-                    className="overflow-hidden rounded-lg border border-[#E0D4C3] text-right focus:outline-none focus:ring-2 focus:ring-[#C9A227]/40"
+                    className="overflow-hidden rounded-lg border border-neutral-200 text-right focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -873,7 +873,7 @@ export default function VenuePublicView({
                 ))}
               </div>
             ) : (
-              <p className="rounded-lg border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2 text-xs text-[#6B6560]">
+              <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
                 אין תמונות בקטגוריה הזו כרגע.
               </p>
             )}
@@ -896,15 +896,15 @@ export default function VenuePublicView({
         id="venue-inquiry"
         className="mt-8 scroll-mt-24 rounded-2xl border-2 border-[#C9A227]/35 bg-gradient-to-br from-[#FFFBF0] to-[#FAF8F4] p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.1)]"
       >
-        <p className="text-[11px] font-semibold tracking-wide text-[#C9A227]">השלב הבא</p>
-        <h2 className="mt-1 text-lg font-bold text-[#0F3B2E]">שליחת בקשה לאולם</h2>
+        <p className="text-[11px] font-semibold tracking-wide text-amber-600">השלב הבא</p>
+        <h2 className="mt-1 text-lg font-bold text-emerald-950">שליחת בקשה לאולם</h2>
         <p className="mt-2 text-sm leading-relaxed text-[#5C564C]">
           {INQUIRY_EXTERNAL_SOURCE_COPY.publicHallIntro} כאן אפשר רק לבדוק זמינות בלוח.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-[#5C564C]">
           <a
             href={`/halls/${venue.id}/after-venue`}
-            className="font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="font-semibold text-emerald-950 underline-offset-4 hover:underline"
           >
             השוואת ספקים והשלמת האירוע
           </a>
@@ -915,26 +915,26 @@ export default function VenuePublicView({
           <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <a
               href={`/auth/login?redirect=${encodeURIComponent(`/halls/${venue.id}/inquiry`)}`}
-              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl bg-[#C9A227] px-5 text-base font-bold text-white shadow-lg transition hover:bg-[#E5C96B]"
+              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl bg-amber-400 px-5 text-base font-bold text-white shadow-lg transition hover:bg-amber-300"
             >
               התחברות ושליחת בקשה
             </a>
             <a
               href={`/auth/register?redirect=${encodeURIComponent(`/halls/${venue.id}/inquiry`)}`}
-              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border-2 border-[#0F3B2E]/25 bg-white px-5 text-base font-semibold text-[#0F3B2E] transition hover:bg-[#EFE6D5]"
+              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border-2 border-emerald-950/25 bg-white px-5 text-base font-semibold text-emerald-950 transition hover:bg-neutral-50"
             >
               הרשמה מהירה
             </a>
           </div>
         ) : user.role !== "SEEKER" ? (
-          <p className="mt-4 text-sm text-[#6B6560]">
+          <p className="mt-4 text-sm text-neutral-600">
             שליחת פנייה זמינה למחפשי אולמות (חשבון &quot;מחפש&quot;).
           </p>
         ) : (
           <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <a
               href={`/halls/${venue.id}/inquiry`}
-              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-[#C9A227] px-5 text-base font-bold text-white shadow-lg transition hover:bg-[#E5C96B]"
+              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-amber-400 px-5 text-base font-bold text-white shadow-lg transition hover:bg-amber-300"
             >
               מעבר לשליחת בקשה
             </a>
@@ -949,7 +949,7 @@ export default function VenuePublicView({
                   });
                 });
               }}
-              className="flex min-h-[56px] w-full items-center justify-center rounded-2xl border-2 border-[#0F3B2E] bg-white px-5 py-3 text-base font-bold text-[#0F3B2E] shadow-sm transition hover:bg-[#E8F0EC]"
+              className="flex min-h-[56px] w-full items-center justify-center rounded-2xl border-2 border-emerald-950 bg-white px-5 py-3 text-base font-bold text-emerald-950 shadow-sm transition hover:bg-emerald-50"
             >
               בדוק זמינות בלוח
             </button>
@@ -1054,7 +1054,7 @@ function StarGlyph({
     return <span className={`${size} text-[#D4C9BC] ${className ?? ""}`}>★</span>;
   }
   if (fill === 1) {
-    return <span className={`${size} text-[#C9A227] ${className ?? ""}`}>★</span>;
+    return <span className={`${size} text-amber-600 ${className ?? ""}`}>★</span>;
   }
   /* חצי כוכב — גרדיאנט על הגליף (יציב יותר מ־overflow על טקסט) */
   return (
@@ -1146,7 +1146,7 @@ function StarRatingInput({
               <button
                 type="button"
                 disabled={disabled}
-                className="absolute inset-y-0 left-0 z-10 w-1/2 cursor-pointer rounded-l border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]/50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="absolute inset-y-0 left-0 z-10 w-1/2 cursor-pointer rounded-l border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 disabled:cursor-not-allowed disabled:opacity-50"
                 onMouseEnter={() => !disabled && setHoverState(leftRating)}
                 onClick={() => !disabled && onChange(leftRating)}
                 aria-label={`דירוג ${formatRatingLabel(leftRating)} מתוך 5`}
@@ -1154,7 +1154,7 @@ function StarRatingInput({
               <button
                 type="button"
                 disabled={disabled}
-                className="absolute inset-y-0 right-0 z-10 w-1/2 cursor-pointer rounded-r border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]/50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="absolute inset-y-0 right-0 z-10 w-1/2 cursor-pointer rounded-r border-0 bg-transparent p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 disabled:cursor-not-allowed disabled:opacity-50"
                 onMouseEnter={() => !disabled && setHoverState(rightRating)}
                 onClick={() => !disabled && onChange(rightRating)}
                 aria-label={`דירוג ${formatRatingLabel(rightRating)} מתוך 5`}
@@ -1330,12 +1330,12 @@ function VenueReviewsSection({
   const showNewReviewForm = canReview && myReviewId == null;
 
   return (
-    <section className="mt-8 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-sm">
+    <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-sm">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-[#0F3B2E]">ביקורות ודירוגים</h2>
+          <h2 className="text-base font-semibold text-emerald-950">ביקורות ודירוגים</h2>
           {count > 0 && (
-            <p className="mt-1 text-xs text-[#5F5F5F]">
+            <p className="mt-1 text-xs text-neutral-600">
               ממוצע{" "}
               <span className="font-semibold">
                 {average.toFixed(1)} ⭐
@@ -1344,7 +1344,7 @@ function VenueReviewsSection({
             </p>
           )}
           {count === 0 && !loading && (
-            <p className="mt-1 text-xs text-[#6B6560]">עדיין אין ביקורות. היה הראשון לדרג.</p>
+            <p className="mt-1 text-xs text-neutral-600">עדיין אין ביקורות. היה הראשון לדרג.</p>
           )}
         </div>
       </header>
@@ -1358,22 +1358,22 @@ function VenueReviewsSection({
       {showNewReviewForm ? (
         <form
           onSubmit={handleCreateNew}
-          className="mt-4 space-y-3 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-4"
+          className="mt-4 space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4"
         >
-          <p className="text-xs font-medium text-[#0F3B2E]">הוספת ביקורת</p>
+          <p className="text-xs font-medium text-emerald-950">הוספת ביקורת</p>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] text-[#6B6560]">
+            <p className="text-[11px] text-neutral-600">
               בכל כוכב: צד שמאל = חצי כוכב (למשל 3.5), צד ימין = כוכב שלם. בכוכב הראשון שני הצדדים נחשבים 1. אפשר גם לכתוב על החוויה.
             </p>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <span className="text-xs font-medium text-[#2A261F]">דירוג:</span>
+              <span className="text-xs font-medium text-neutral-800">דירוג:</span>
               <StarRatingInput
                 value={newRating}
                 onChange={setNewRating}
                 onHoverChange={setNewRatingHover}
                 disabled={submitting || deletingId != null}
               />
-              <span className="text-[11px] font-medium text-[#0F3B2E] tabular-nums">
+              <span className="text-[11px] font-medium text-emerald-950 tabular-nums">
                 {formatRatingLabel(newRatingHover ?? newRating)}/5
               </span>
             </div>
@@ -1383,7 +1383,7 @@ function VenueReviewsSection({
               rows={3}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227]"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400"
               placeholder="איך היה השירות, האוכל, האווירה..."
             />
           </div>
@@ -1391,19 +1391,19 @@ function VenueReviewsSection({
             <button
               type="submit"
               disabled={submitting || deletingId != null}
-              className="rounded-full bg-[#C9A227] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#b89220] disabled:opacity-60"
+              className="rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#b89220] disabled:opacity-60"
             >
               {submitting ? "שולח..." : "שליחת ביקורת"}
             </button>
           </div>
         </form>
       ) : canReview && !loading ? (
-        <p className="mt-4 rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/80 px-3 py-2 text-[11px] text-[#5F5F5F]">
+        <p className="mt-4 rounded-xl border border-neutral-200/80 bg-neutral-50/80 px-3 py-2 text-[11px] text-neutral-600">
           הביקורת שלך מופיעה ברשימה למטה — לחץ &quot;עריכה&quot; או &quot;מחיקה&quot; על הכרטיס שלך.
         </p>
       ) : canReview ? null : (
-        <p className="mt-4 text-xs text-[#6B6560]">
-          <a href="/auth/login" className="text-[#0F3B2E] underline">
+        <p className="mt-4 text-xs text-neutral-600">
+          <a href="/auth/login" className="text-emerald-950 underline">
             התחברו
           </a>{" "}
           כדי לדרג את האולם.
@@ -1412,7 +1412,7 @@ function VenueReviewsSection({
 
       <div className="mt-4 space-y-3">
         {loading ? (
-          <p className="text-xs text-[#6B6560]">טוען ביקורות...</p>
+          <p className="text-xs text-neutral-600">טוען ביקורות...</p>
         ) : reviews.length === 0 ? null : (
           reviews.map((r) => {
             const isMine = currentUserId != null && r.userId === currentUserId;
@@ -1425,16 +1425,16 @@ function VenueReviewsSection({
                   onSubmit={handleSaveEdit}
                   className="rounded-xl border-2 border-[#C9A227]/50 bg-[#FFFBF3] p-3 text-xs shadow-sm"
                 >
-                  <p className="mb-2 text-[11px] font-semibold text-[#0F3B2E]">עריכת הביקורת שלך</p>
+                  <p className="mb-2 text-[11px] font-semibold text-emerald-950">עריכת הביקורת שלך</p>
                   <div className="mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
-                    <span className="text-xs font-medium text-[#2A261F]">דירוג:</span>
+                    <span className="text-xs font-medium text-neutral-800">דירוג:</span>
                     <StarRatingInput
                       value={editRating}
                       onChange={setEditRating}
                       onHoverChange={setEditRatingHover}
                       disabled={submitting}
                     />
-                    <span className="text-[11px] font-medium text-[#0F3B2E] tabular-nums">
+                    <span className="text-[11px] font-medium text-emerald-950 tabular-nums">
                       {formatRatingLabel(editRatingHover ?? editRating)}/5
                     </span>
                   </div>
@@ -1442,7 +1442,7 @@ function VenueReviewsSection({
                     rows={3}
                     value={editComment}
                     onChange={(e) => setEditComment(e.target.value)}
-                    className="w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-xs outline-none focus:border-[#C9A227]"
+                    className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400"
                     placeholder="עדכן את הביקורת..."
                   />
                   <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
@@ -1450,14 +1450,14 @@ function VenueReviewsSection({
                       type="button"
                       onClick={cancelEdit}
                       disabled={submitting}
-                      className="rounded-full border border-[#E0D4C3] bg-white px-4 py-1.5 text-xs font-semibold text-[#2A261F] hover:bg-[#FAF8F4] disabled:opacity-60"
+                      className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-800 hover:bg-neutral-50 disabled:opacity-60"
                     >
                       ביטול
                     </button>
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="rounded-full bg-[#C9A227] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#b89220] disabled:opacity-60"
+                      className="rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#b89220] disabled:opacity-60"
                     >
                       {submitting ? "שומר..." : "שמירה"}
                     </button>
@@ -1469,20 +1469,20 @@ function VenueReviewsSection({
             return (
               <div
                 key={r.id}
-                className="rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3 text-xs"
+                className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-xs"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-[#0F3B2E]">
+                    <p className="font-semibold text-emerald-950">
                       {r.userName}
                       {isMine && (
-                        <span className="mr-2 rounded bg-[#0F3B2E]/10 px-1.5 py-0.5 text-[10px] font-normal text-[#0F3B2E]">
+                        <span className="mr-2 rounded bg-emerald-950/10 px-1.5 py-0.5 text-[10px] font-normal text-emerald-950">
                           אתה
                         </span>
                       )}{" "}
                       · <RatingStarsDisplay rating={r.rating} />
                     </p>
-                    <p className="mt-0.5 text-[11px] text-[#6B6560]">
+                    <p className="mt-0.5 text-[11px] text-neutral-600">
                       {new Date(r.createdAt).toLocaleDateString("he-IL")}
                     </p>
                   </div>
@@ -1492,7 +1492,7 @@ function VenueReviewsSection({
                         type="button"
                         onClick={() => startEdit(r)}
                         disabled={deletingId != null || submitting}
-                        className="rounded-full border border-[#0F3B2E]/30 bg-white px-3 py-1 text-[11px] font-semibold text-[#0F3B2E] hover:bg-[#0F3B2E]/08 disabled:opacity-50"
+                        className="rounded-full border border-emerald-950/30 bg-white px-3 py-1 text-[11px] font-semibold text-emerald-950 hover:bg-emerald-950/08 disabled:opacity-50"
                       >
                         עריכה
                       </button>
@@ -1508,7 +1508,7 @@ function VenueReviewsSection({
                   )}
                 </div>
                 {r.comment && (
-                  <p className="mt-2 whitespace-pre-line text-[#2A261F]">{r.comment}</p>
+                  <p className="mt-2 whitespace-pre-line text-neutral-800">{r.comment}</p>
                 )}
               </div>
             );

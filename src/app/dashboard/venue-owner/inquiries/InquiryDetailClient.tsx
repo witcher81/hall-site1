@@ -180,7 +180,7 @@ export default function InquiryDetailClient({ initial }: Props) {
     <div className="mt-6 text-right text-sm">
       <Link
         href="/dashboard/venue-owner/inquiries"
-        className="text-xs font-medium text-[#0F3B2E] underline-offset-4 hover:underline"
+        className="text-xs font-medium text-emerald-950 underline-offset-4 hover:underline"
       >
         חזרה לרשימת הפניות
       </Link>
@@ -191,30 +191,30 @@ export default function InquiryDetailClient({ initial }: Props) {
             ? "border-[#C9A227]/45 bg-[#FFFCF5]"
             : q.status === "REPLIED"
               ? "border-emerald-200/90 bg-gradient-to-b from-emerald-50/95 to-white"
-              : "border-[#E0D4C3] bg-[#FDFBF7]"
+              : "border-neutral-200 bg-white"
         }`}
       >
         <div className="h-1 bg-gradient-to-l from-[#C9A227]/90 via-[#E8D5A3] to-[#C9A227]/30" aria-hidden />
         <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 flex-1">
-              <p className="font-serif text-lg font-semibold tracking-tight text-[#0F3B2E]">
+              <p className="font-serif text-lg font-semibold tracking-tight text-emerald-950">
                 {q.venue.name}
               </p>
-              <p className="mt-1 text-base font-medium text-[#2A261F]">
+              <p className="mt-1 text-base font-medium text-neutral-800">
                 {q.user.name || "לקוח"}
               </p>
               <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm">
                 <a
                   href={`mailto:${q.user.email}`}
-                  className="text-[#0F3B2E] underline decoration-[#C9A227]/40 underline-offset-2 transition hover:text-[#174D3B]"
+                  className="text-emerald-950 underline decoration-[#C9A227]/40 underline-offset-2 transition hover:text-[#174D3B]"
                 >
                   {q.user.email}
                 </a>
                 {q.user.phone && (
                   <a
                     href={`tel:${q.user.phone}`}
-                    className="text-[#0F3B2E] underline decoration-[#C9A227]/40 underline-offset-2 transition hover:text-[#174D3B]"
+                    className="text-emerald-950 underline decoration-[#C9A227]/40 underline-offset-2 transition hover:text-[#174D3B]"
                   >
                     {q.user.phone}
                   </a>
@@ -231,7 +231,7 @@ export default function InquiryDetailClient({ initial }: Props) {
                   })}
                 </span>
                 {q.autoReplyApplied && (
-                  <span className="inline-flex rounded-full border border-[#0F3B2E]/15 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-[#0F3B2E]">
+                  <span className="inline-flex rounded-full border border-emerald-950/15 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-emerald-950">
                     מענה אוטומטי
                   </span>
                 )}
@@ -248,7 +248,7 @@ export default function InquiryDetailClient({ initial }: Props) {
                   type="button"
                   onClick={openChat}
                   disabled={openingChat || pending !== null}
-                  className="rounded-full border-2 border-[#0F3B2E]/20 bg-white px-4 py-2 text-xs font-semibold text-[#0F3B2E] shadow-sm transition hover:border-[#0F3B2E]/40 hover:bg-[#0F3B2E]/[0.04] disabled:opacity-60"
+                  className="rounded-full border-2 border-emerald-950/20 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm transition hover:border-emerald-950/40 hover:bg-emerald-950/[0.04] disabled:opacity-60"
                 >
                   {openingChat ? "פותח..." : "צ'אט עם הלקוח"}
                 </button>
@@ -258,15 +258,15 @@ export default function InquiryDetailClient({ initial }: Props) {
                       type="button"
                       onClick={() => markAs("READ")}
                       disabled={pending !== null}
-                      className="rounded-full border border-[#D4C9BA] bg-white px-4 py-2 text-xs font-semibold text-[#3D3428] shadow-sm transition hover:bg-[#FAF8F4] disabled:opacity-60"
+                      className="rounded-full border border-[#D4C9BA] bg-white px-4 py-2 text-xs font-semibold text-[#3D3428] shadow-sm transition hover:bg-neutral-50 disabled:opacity-60"
                     >
                       {pending === "READ" ? "שומר..." : "סמן כנקרא"}
                     </button>
                   </>
                 )}
                 {(q.status === "NEW" || q.status === "READ") && (
-                  <div className="w-full space-y-2 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4]/80 p-3 lg:w-auto lg:min-w-[260px]">
-                    <label className="block text-[11px] font-medium text-[#6B6560]">
+                  <div className="w-full space-y-2 rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 lg:w-auto lg:min-w-[260px]">
+                    <label className="block text-[11px] font-medium text-neutral-600">
                       הערה ללקוח (אופציונלי) — לפני סימון כנענה
                     </label>
                     <textarea
@@ -274,14 +274,14 @@ export default function InquiryDetailClient({ initial }: Props) {
                       value={repliedNote}
                       onChange={(e) => setRepliedNote(e.target.value)}
                       disabled={pending !== null}
-                      className="w-full rounded-lg border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40 disabled:opacity-60"
+                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40 disabled:opacity-60"
                       placeholder="למשל: יצרתי קשר, נקבעה פגישה..."
                     />
                     <button
                       type="button"
                       onClick={() => markAs("REPLIED", repliedNote)}
                       disabled={pending !== null}
-                      className="w-full rounded-full bg-[#0F3B2E] px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0F3B2E]/25 transition hover:bg-[#174D3B] disabled:opacity-60"
+                      className="w-full rounded-full bg-emerald-950 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0F3B2E]/25 transition hover:bg-emerald-900 disabled:opacity-60"
                     >
                       {pending === "REPLIED" ? "שומר..." : "סמן כנענה"}
                     </button>
@@ -321,7 +321,7 @@ export default function InquiryDetailClient({ initial }: Props) {
                     value={ownerNoteDraft}
                     onChange={(e) => setOwnerNoteDraft(e.target.value)}
                     disabled={notePending}
-                    className="w-full rounded-lg border border-[#E0D4C3] bg-white px-3 py-2 text-sm text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40 disabled:opacity-60"
+                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40 disabled:opacity-60"
                     placeholder="הערה שתופיע אצל המבקש..."
                   />
                   {noteError && (
@@ -334,7 +334,7 @@ export default function InquiryDetailClient({ initial }: Props) {
                       type="button"
                       onClick={saveOwnerNoteEdit}
                       disabled={notePending}
-                      className="rounded-full bg-[#C9A227] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#E5C96B] disabled:opacity-60"
+                      className="rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-300 disabled:opacity-60"
                     >
                       {notePending ? "שומר..." : "שמור"}
                     </button>
@@ -345,7 +345,7 @@ export default function InquiryDetailClient({ initial }: Props) {
                         setNoteError(null);
                       }}
                       disabled={notePending}
-                      className="rounded-full border border-[#E0D4C3] bg-white px-4 py-1.5 text-xs text-[#5F5F5F] hover:bg-[#FAF8F4] disabled:opacity-60"
+                      className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50 disabled:opacity-60"
                     >
                       ביטול
                     </button>
@@ -354,12 +354,12 @@ export default function InquiryDetailClient({ initial }: Props) {
               ) : (
                 <>
                   {q.ownerNote ? (
-                    <p className="text-[#2A261F]">
+                    <p className="text-neutral-800">
                       <span className="font-medium text-emerald-800">הערה שלך: </span>
                       {q.ownerNote}
                     </p>
                   ) : (
-                    <p className="text-[#6B6560]">לא נוספה הערה ללקוח.</p>
+                    <p className="text-neutral-600">לא נוספה הערה ללקוח.</p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
@@ -389,7 +389,7 @@ export default function InquiryDetailClient({ initial }: Props) {
               )}
 
               {q.repliedAt && (
-                <p className={`text-[#6B6560] ${editingOwnerNote || q.ownerNote ? "mt-3 border-t border-emerald-100/80 pt-3" : "mt-1"}`}>
+                <p className={`text-neutral-600 ${editingOwnerNote || q.ownerNote ? "mt-3 border-t border-emerald-100/80 pt-3" : "mt-1"}`}>
                   סומן כנענה ב־{new Date(q.repliedAt).toLocaleString("he-IL")}
                 </p>
               )}

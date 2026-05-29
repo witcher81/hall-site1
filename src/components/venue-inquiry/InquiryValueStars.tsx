@@ -26,7 +26,7 @@ export default function InquiryValueStars({
           <span
             key={i}
             className={`text-[10px] leading-none ${
-              fill === "empty" ? "text-[#D4CCC0]" : "text-[#C9A227]"
+              fill === "empty" ? "text-[#D4CCC0]" : "text-amber-600"
             }`}
             aria-hidden
           >

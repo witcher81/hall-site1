@@ -14,14 +14,14 @@ export default async function VenueEditPage({
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">
+          <p className="text-sm text-neutral-800">
             כדי לערוך אולם יש להתחבר כבעל/ת אולם.
           </p>
           <a
             href="/auth/login"
-            className="mt-4 inline-block text-sm font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-semibold text-emerald-950 underline-offset-4 hover:underline"
           >
             התחברות
           </a>
@@ -33,12 +33,12 @@ export default async function VenueEditPage({
   const venueId = Number(id);
   if (!Number.isInteger(venueId) || venueId <= 0) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">מזהה אולם לא תקין.</p>
+          <p className="text-sm text-neutral-800">מזהה אולם לא תקין.</p>
           <a
             href="/dashboard/venue-owner"
-            className="mt-4 inline-block text-sm font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-semibold text-emerald-950 underline-offset-4 hover:underline"
           >
             חזרה לאולמות שלי
           </a>
@@ -53,14 +53,14 @@ export default async function VenueEditPage({
 
   if (!venue || venue.ownerId !== user.id) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">
+          <p className="text-sm text-neutral-800">
             לא נמצא אולם עם מזהה זה השייך לחשבון שלך.
           </p>
           <a
             href="/dashboard/venue-owner"
-            className="mt-4 inline-block text-sm font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-semibold text-emerald-950 underline-offset-4 hover:underline"
           >
             חזרה לאולמות שלי
           </a>

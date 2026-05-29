@@ -20,7 +20,7 @@ export default function DashboardNav({ user }: { user: User }) {
         href={href}
         className={
           isActive
-            ? "rounded-full bg-[#C9A227] px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
+            ? "rounded-full bg-amber-400 px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
             : "rounded-full border border-white/25 px-4 py-2 text-sm font-medium text-[#F8F6F0] transition hover:border-white/50 hover:bg-white/10"
         }
       >
@@ -30,17 +30,17 @@ export default function DashboardNav({ user }: { user: User }) {
   };
 
   return (
-    <header className="site-header border-b border-white/10 bg-[#0F3B2E] backdrop-blur-sm">
+    <header className="site-header border-b border-white/10 bg-emerald-950 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <nav className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Link
             href="/"
-            className="text-lg font-bold tracking-tight text-white hover:text-[#E5C96B]"
+            className="text-lg font-bold tracking-tight text-white hover:text-amber-400"
           >
             Halls Hub
           </Link>
           <span className="hidden text-white/35 sm:inline">|</span>
-          <span className="hidden text-[11px] font-semibold uppercase tracking-wider text-[#C9A227] sm:inline">
+          <span className="hidden text-[11px] font-semibold uppercase tracking-wider text-amber-600 sm:inline">
             אזור בעל אולם
           </span>
           {link(base, "האולמות שלי")}

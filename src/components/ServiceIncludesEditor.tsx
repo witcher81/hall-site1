@@ -96,23 +96,23 @@ export default function ServiceIncludesEditor({
   }
 
   const checkbox =
-    "rounded border-[#E0D4C3] text-[#0F3B2E] focus:ring-[#C9A227]/40";
+    "rounded border-neutral-200 text-emerald-950 focus:ring-amber-400/40";
   const input =
-    "w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1.5 text-xs text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40";
+    "w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
   const textarea =
-    "mt-1.5 w-full rounded-lg border border-[#E0D4C3] bg-white px-2 py-1.5 text-[11px] leading-relaxed text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40";
+    "mt-1.5 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] leading-relaxed text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
 
   return (
     <div className="space-y-4 text-right">
-      <div className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4]/60 p-4">
-        <h3 className="text-sm font-semibold text-[#0F3B2E]">
+      <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/60 p-4">
+        <h3 className="text-sm font-semibold text-emerald-950">
           מה כלול בשירות
         </h3>
-        <p className="mt-1 text-[11px] leading-relaxed text-[#6B6560]">
+        <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
           פירטו מה הלקוח מקבל במחיר שמוצג — אפשר להוסיף פריטים עם הסבר קצר לכל אחד.
         </p>
 
-        <div className="mt-3 space-y-2 text-xs text-[#2A261F]">
+        <div className="mt-3 space-y-2 text-xs text-neutral-800">
           <label className="flex flex-wrap items-start gap-2">
             <input
               type="checkbox"
@@ -122,7 +122,7 @@ export default function ServiceIncludesEditor({
             />
             <span>
               <span className="font-medium">כולל ציוד</span>
-              <span className="mr-1 text-[#6B6560]">
+              <span className="mr-1 text-neutral-600">
                 — ציוד בסיסי שאתה מספק במסגרת ההצעה (ללא עלות נוספת).
               </span>
             </span>
@@ -130,7 +130,7 @@ export default function ServiceIncludesEditor({
         </div>
 
         <div className="mt-3">
-          <label className="block text-[11px] font-medium text-[#5F5F5F]">
+          <label className="block text-[11px] font-medium text-neutral-600">
             הסבר קצר על מה שכלול
           </label>
           <textarea
@@ -142,15 +142,15 @@ export default function ServiceIncludesEditor({
               onIncludesNoteChange(e.target.value.slice(0, MAX_NOTE))
             }
             placeholder="למשל: החבילה כוללת צילום עד 6 שעות, גלריה מעובדת ועותק דיגיטלי."
-            className="mt-1 w-full rounded-lg border border-[#E0D4C3] bg-white px-3 py-2 text-xs text-[#1A1A1A] outline-none placeholder:text-[#9A948C] focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227]/40"
+            className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none placeholder:text-[#9A948C] focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40"
           />
           <p className="mt-0.5 text-[10px] text-[#9A948C]">
             {includesNote.length}/{MAX_NOTE} תווים — יוצג למחפשים מתחת לרשימת &quot;מה כלול&quot;.
           </p>
         </div>
 
-        <div className="mt-4 border-t border-[#E0D4C3]/60 pt-3">
-          <p className="text-[11px] font-medium text-[#5F5F5F]">
+        <div className="mt-4 border-t border-neutral-200/60 pt-3">
+          <p className="text-[11px] font-medium text-neutral-600">
             מה ניתן במחיר המוצג (ללא תוספת תשלום)
           </p>
           <p className="mt-0.5 text-[10px] text-[#9A948C]">
@@ -160,7 +160,7 @@ export default function ServiceIncludesEditor({
             {customIncludes.map((row, index) => (
               <li
                 key={index}
-                className="rounded-lg border border-[#E0D4C3]/50 bg-white/90 p-2.5"
+                className="rounded-lg border border-neutral-200/50 bg-white/90 p-2.5"
               >
                 <div className="flex flex-wrap items-start gap-2">
                   <input
@@ -206,7 +206,7 @@ export default function ServiceIncludesEditor({
             type="button"
             onClick={addFreeItem}
             disabled={customIncludes.length >= MAX_FREE}
-            className="mt-2 rounded-full border border-dashed border-[#0F3B2E]/35 bg-white px-3 py-1.5 text-[11px] font-medium text-[#0F3B2E] hover:bg-[#EFE6D5] disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 rounded-full border border-dashed border-emerald-950/35 bg-white px-3 py-1.5 text-[11px] font-medium text-emerald-950 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             + הוסף פריט ללא תוספת תשלום ({customIncludes.length}/{MAX_FREE})
           </button>

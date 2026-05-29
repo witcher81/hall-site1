@@ -14,12 +14,12 @@ export default async function VenueOwnerInquiriesPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-8 lg:px-10">
-      <header className="border-b border-[#E0D4C3] pb-4">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
+      <header className="border-b border-neutral-200 pb-4">
+        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
           HALLS HUB
         </p>
-        <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">פניות שהתקבלו</h1>
-        <p className="mt-1 text-xs text-[#6B6560]">
+        <h1 className="mt-1 text-xl font-semibold text-emerald-950">פניות שהתקבלו</h1>
+        <p className="mt-1 text-xs text-neutral-600">
           רשימת פניות מכל האולמות שלך — לחיצה על שורה פותחת את <strong className="font-semibold text-[#4A453C]">הפירוט המלא</strong> (כמו כניסה לאולם מהרשימה).
           ניתן לסנן לפי אולם או סטטוס.
         </p>

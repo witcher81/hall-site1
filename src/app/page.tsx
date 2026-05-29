@@ -16,7 +16,7 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="min-h-screen">
+    <div className="site-page">
       <HomeHeader
         user={user}
         canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}

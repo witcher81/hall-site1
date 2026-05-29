@@ -47,20 +47,20 @@ export default function ServiceIncludeBadges({
 
   const badge =
     size === "sm"
-      ? "rounded-full bg-[#EFE6D5] px-2 py-0.5 text-[11px] text-[#0F3B2E]"
-      : "rounded-full bg-[#EFE6D5] px-2 py-1 text-xs text-[#0F3B2E]";
+      ? "rounded-full bg-neutral-50 px-2 py-0.5 text-[11px] text-emerald-950"
+      : "rounded-full bg-neutral-50 px-2 py-1 text-xs text-emerald-950";
 
   const noteText =
     size === "sm"
-      ? "text-[11px] leading-relaxed text-[#5F5F5F]"
-      : "text-xs leading-relaxed text-[#5F5F5F]";
+      ? "text-[11px] leading-relaxed text-neutral-600"
+      : "text-xs leading-relaxed text-neutral-600";
 
   const itemTitle =
-    size === "sm" ? "text-[11px] font-semibold text-[#0F3B2E]" : "text-xs font-semibold text-[#0F3B2E]";
+    size === "sm" ? "text-[11px] font-semibold text-emerald-950" : "text-xs font-semibold text-emerald-950";
   const itemDesc =
     size === "sm"
-      ? "mt-0.5 text-[10px] leading-relaxed text-[#5F5F5F]"
-      : "mt-0.5 text-[11px] leading-relaxed text-[#5F5F5F]";
+      ? "mt-0.5 text-[10px] leading-relaxed text-neutral-600"
+      : "mt-0.5 text-[11px] leading-relaxed text-neutral-600";
 
   return (
     <div className={className}>
@@ -93,7 +93,7 @@ export default function ServiceIncludeBadges({
 
       {hasPaid && (
         <div
-          className={`${hasEquipment || hasFreeList || hasNote ? "mt-2.5 border-t border-[#E7E0CF]/80 pt-2" : ""}`}
+          className={`${hasEquipment || hasFreeList || hasNote ? "mt-2.5 border-t border-neutral-200/80 pt-2" : ""}`}
         >
           <p className={`${size === "sm" ? "text-[10px]" : "text-[11px]"} font-semibold text-amber-900/90`}>
             ניתן בתוספת תשלום

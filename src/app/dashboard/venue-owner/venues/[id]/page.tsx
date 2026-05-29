@@ -13,21 +13,21 @@ export default async function VenueDetailsPage({
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">
+          <p className="text-sm text-neutral-800">
             כדי לראות את פרטי האולם יש להתחבר כבעל/ת אולם.
           </p>
           <div className="mt-4 flex justify-end gap-2 text-sm">
             <a
               href="/auth/login"
-              className="rounded-full border border-[#0F3B2E] px-4 py-2 text-[#0F3B2E] hover:bg-[#FAF8F4]"
+              className="rounded-full border border-emerald-950 px-4 py-2 text-emerald-950 hover:bg-neutral-50"
             >
               התחברות
             </a>
             <a
               href="/auth/register"
-              className="rounded-full bg-[#C9A227] px-4 py-2 font-semibold text-white shadow-sm hover:bg-[#E5C96B]"
+              className="rounded-full bg-amber-400 px-4 py-2 font-semibold text-white shadow-sm hover:bg-amber-300"
             >
               הרשמה
             </a>
@@ -40,12 +40,12 @@ export default async function VenueDetailsPage({
   const venueId = Number(id);
   if (!Number.isInteger(venueId) || venueId <= 0) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">מזהה אולם לא תקין.</p>
+          <p className="text-sm text-neutral-800">מזהה אולם לא תקין.</p>
           <a
             href="/dashboard/venue-owner"
-            className="mt-4 inline-block text-sm font-medium text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
           >
             חזרה לאולמות שלי
           </a>
@@ -77,14 +77,14 @@ export default async function VenueDetailsPage({
 
   if (!venue || venue.ownerId !== user.id) {
     return (
-      <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+      <div className="site-page">
         <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-[#2A261F]">
+          <p className="text-sm text-neutral-800">
             לא נמצא אולם עם מזהה זה השייך לחשבון שלך.
           </p>
           <a
             href="/dashboard/venue-owner"
-            className="mt-4 inline-block text-sm font-medium text-[#0F3B2E] underline-offset-4 hover:underline"
+            className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
           >
             חזרה לאולמות שלי
           </a>

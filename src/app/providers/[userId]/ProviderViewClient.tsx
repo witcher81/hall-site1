@@ -45,16 +45,16 @@ export default function ProviderViewClient({
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">
+      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
         <div className="text-right">
-          <h1 className="text-xl font-semibold text-[#0F3B2E]">{providerName}</h1>
+          <h1 className="text-xl font-semibold text-emerald-950">{providerName}</h1>
           {provider.businessAddress && (
-            <p className="mt-1 text-xs text-[#6B6560]">{provider.businessAddress}</p>
+            <p className="mt-1 text-xs text-neutral-600">{provider.businessAddress}</p>
           )}
         </div>
         <a
           href="/providers"
-          className="text-sm text-[#0F3B2E] underline-offset-4 hover:text-[#174D3B] hover:underline"
+          className="text-sm text-emerald-950 underline-offset-4 hover:text-[#174D3B] hover:underline"
         >
           חזרה לחיפוש ספקים
         </a>
@@ -69,13 +69,13 @@ export default function ProviderViewClient({
         </div>
       )}
 
-      <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-sm">
-        <h2 className="text-base font-semibold text-[#0F3B2E]">השירותים של הספק</h2>
-        <p className="mt-1 text-xs text-[#6B6560]">
+      <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-sm">
+        <h2 className="text-base font-semibold text-emerald-950">השירותים של הספק</h2>
+        <p className="mt-1 text-xs text-neutral-600">
           לחיצה על שירות פותחת את עמוד השירות עם הפרטים המלאים וטופס שליחת בקשה.
         </p>
         {services.length === 0 ? (
-          <p className="mt-3 text-[#6B6560]">אין שירותים מוגדרים.</p>
+          <p className="mt-3 text-neutral-600">אין שירותים מוגדרים.</p>
         ) : (
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
             {services.map((s) => {
@@ -91,7 +91,7 @@ export default function ProviderViewClient({
                 <li key={s.id}>
                   <a
                     href={`/services/${s.id}`}
-                    className="flex h-full flex-col overflow-hidden rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] transition hover:border-[#C9A227]/60 hover:shadow"
+                    className="flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 transition hover:border-amber-400/60 hover:shadow"
                   >
                     {s.coverImageUrl && (
                       <img
@@ -101,21 +101,21 @@ export default function ProviderViewClient({
                       />
                     )}
                     <div className="p-3 text-right">
-                      <p className="font-medium text-[#1A1A1A]">{s.name}</p>
+                      <p className="font-medium text-neutral-900">{s.name}</p>
                       {s.category && (
-                        <p className="mt-0.5 text-xs text-[#0F3B2E]">{s.category}</p>
+                        <p className="mt-0.5 text-xs text-emerald-950">{s.category}</p>
                       )}
                       {blurb && (
-                        <p className="mt-1 line-clamp-2 text-xs text-[#5F5F5F]">
+                        <p className="mt-1 line-clamp-2 text-xs text-neutral-600">
                           {blurb}
                         </p>
                       )}
                       {priceLine != null && (
-                        <p className="mt-1 text-xs font-semibold text-[#0F3B2E]">
+                        <p className="mt-1 text-xs font-semibold text-emerald-950">
                           {priceLine}
                         </p>
                       )}
-                      <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-[#C9A227]">
+                      <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600">
                         לפרטים מלאים ←
                       </span>
                     </div>

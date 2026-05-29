@@ -69,20 +69,20 @@ export default function ServiceDetailsClient({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E0D4C3] pb-4">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-4">
         <div className="text-right">
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
+          <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
             HALLS HUB
           </p>
-          <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">{service.name}</h1>
+          <h1 className="mt-1 text-xl font-semibold text-emerald-950">{service.name}</h1>
           {service.category && (
-            <p className="mt-1 text-xs text-[#6B6560]">{service.category}</p>
+            <p className="mt-1 text-xs text-neutral-600">{service.category}</p>
           )}
         </div>
         <div className="flex gap-2">
           <a
             href={`/dashboard/freelancer/services/${service.id}/edit`}
-            className="rounded-full border border-[#E0D4C3] bg-white px-4 py-2 text-sm font-medium text-[#0F3B2E] hover:border-[#C9A227]/60"
+            className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-emerald-950 hover:border-amber-400/60"
           >
             עריכה
           </a>
@@ -96,7 +96,7 @@ export default function ServiceDetailsClient({
           </button>
           <a
             href="/dashboard/freelancer"
-            className="text-sm text-[#6B6560] underline-offset-4 hover:text-[#0F3B2E] hover:underline"
+            className="text-sm text-neutral-600 underline-offset-4 hover:text-emerald-950 hover:underline"
           >
             חזרה
           </a>
@@ -109,7 +109,7 @@ export default function ServiceDetailsClient({
         </p>
       )}
 
-      <section className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+      <section className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
         {service.coverImageUrl && (
           <img
             src={service.coverImageUrl}
@@ -118,56 +118,56 @@ export default function ServiceDetailsClient({
           />
         )}
         {(service.minPrice != null || service.maxPrice != null) && (
-          <p className="text-[#1A1A1A]">
+          <p className="text-neutral-900">
             {service.minPrice != null &&
             service.maxPrice != null &&
             service.minPrice === service.maxPrice ? (
               <>
-                <span className="font-semibold text-[#0F3B2E]">מחיר: </span>
+                <span className="font-semibold text-emerald-950">מחיר: </span>
                 {service.minPrice} ₪
               </>
             ) : (
               <>
-                <span className="font-semibold text-[#0F3B2E]">טווח מחירים: </span>
+                <span className="font-semibold text-emerald-950">טווח מחירים: </span>
                 {service.minPrice ?? "?"}–{service.maxPrice ?? "?"} ₪
               </>
             )}
           </p>
         )}
         {descriptionDisplay ? (
-          <p className="text-[#1A1A1A]">
-            <span className="font-semibold text-[#0F3B2E]">תיאור השירות: </span>
-            <span className="whitespace-pre-wrap text-[#2A261F]">{descriptionDisplay}</span>
+          <p className="text-neutral-900">
+            <span className="font-semibold text-emerald-950">תיאור השירות: </span>
+            <span className="whitespace-pre-wrap text-neutral-800">{descriptionDisplay}</span>
           </p>
         ) : (
-          <p className="text-xs text-[#6B6560]">אין תיאור.</p>
+          <p className="text-xs text-neutral-600">אין תיאור.</p>
         )}
         {(service.serviceArea ||
           service.experienceYears != null ||
           service.languages ||
           service.responseTimeHint) && (
-          <div className="space-y-2 text-[#1A1A1A]">
+          <div className="space-y-2 text-neutral-900">
             {service.serviceArea && (
               <p>
-                <span className="font-semibold text-[#0F3B2E]">אזור שירות: </span>
+                <span className="font-semibold text-emerald-950">אזור שירות: </span>
                 {service.serviceArea}
               </p>
             )}
             {service.experienceYears != null && (
               <p>
-                <span className="font-semibold text-[#0F3B2E]">שנות ניסיון: </span>
+                <span className="font-semibold text-emerald-950">שנות ניסיון: </span>
                 {service.experienceYears}
               </p>
             )}
             {service.languages && (
               <p>
-                <span className="font-semibold text-[#0F3B2E]">שפות: </span>
+                <span className="font-semibold text-emerald-950">שפות: </span>
                 {service.languages}
               </p>
             )}
             {service.responseTimeHint && (
               <p>
-                <span className="font-semibold text-[#0F3B2E]">זמן תגובה צפוי: </span>
+                <span className="font-semibold text-emerald-950">זמן תגובה צפוי: </span>
                 {service.responseTimeHint}
               </p>
             )}
@@ -175,7 +175,7 @@ export default function ServiceDetailsClient({
         )}
         {service.socialLinks.length > 0 && (
           <div>
-            <p className="font-semibold text-[#0F3B2E]">קישורים</p>
+            <p className="font-semibold text-emerald-950">קישורים</p>
             <SocialLinksRow links={service.socialLinks} className="mt-2" />
           </div>
         )}
@@ -186,7 +186,7 @@ export default function ServiceDetailsClient({
           service.paidExtras
         ) && (
           <div>
-            <p className="text-xs font-semibold text-[#0F3B2E]">
+            <p className="text-xs font-semibold text-emerald-950">
               מה כלול בשירות
             </p>
             <ServiceIncludeBadges

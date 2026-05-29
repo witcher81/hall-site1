@@ -58,17 +58,17 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
+    <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
+        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
           HALLS HUB
         </p>
-        <h1 className="mt-1 text-xl font-semibold text-[#0F3B2E]">
+        <h1 className="mt-1 text-xl font-semibold text-emerald-950">
           איפוס סיסמה
         </h1>
         <a
           href="/auth/login"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-[#D8C7AF] bg-white px-3 py-2 text-sm font-semibold text-[#0F3B2E] shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-[#C9A227] hover:bg-[#FFF9E6]"
+          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"
         >
           <span aria-hidden>←</span>
           <span>חזרה להתחברות</span>
@@ -89,21 +89,21 @@ function ResetPasswordForm() {
             </p>
           </div>
         ) : success ? (
-          <div className="mt-6 rounded-2xl border border-[#C9A227]/30 bg-[#FFF9E6] p-6 text-right text-sm text-[#0F3B2E] shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+          <div className="mt-6 rounded-2xl border border-[#C9A227]/30 bg-[#FFF9E6] p-6 text-right text-sm text-emerald-950 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
             <p className="font-semibold">הסיסמה עודכנה בהצלחה.</p>
             <p className="mt-2">מעבירים אותך לעמוד ההתחברות...</p>
           </div>
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="mt-6 space-y-4 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+            className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
           >
-            <p className="text-sm text-[#5F5F5F]">
+            <p className="text-sm text-neutral-600">
               בחרו סיסמה חדשה (לפחות 6 תווים).
             </p>
 
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 סיסמה חדשה
               </label>
               <input
@@ -111,13 +111,13 @@ function ResetPasswordForm() {
                 type="password"
                 required
                 minLength={6}
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
                 autoComplete="new-password"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">
+              <label className="block text-xs font-medium text-neutral-600">
                 אישור סיסמה
               </label>
               <input
@@ -125,7 +125,7 @@ function ResetPasswordForm() {
                 type="password"
                 required
                 minLength={6}
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/40"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
                 autoComplete="new-password"
               />
             </div>
@@ -135,7 +135,7 @@ function ResetPasswordForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-[#C9A227] py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#E5C96B] disabled:opacity-60"
+              className="w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
             >
               {loading ? "מעדכן..." : "עדכן סיסמה"}
             </button>
@@ -150,7 +150,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#EFE6D5] px-4 py-12 text-center text-sm text-[#6B6560]">
+        <div className="site-page px-4 py-12 text-center text-sm text-neutral-600">
           טוען...
         </div>
       }

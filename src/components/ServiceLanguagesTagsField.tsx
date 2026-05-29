@@ -133,20 +133,20 @@ export default function ServiceLanguagesTagsField({
     <div className={`space-y-1.5 ${className}`}>
       <div
         ref={wrapRef}
-        className="rounded-xl border border-[#E0D4C3] bg-white text-right shadow-sm focus-within:border-[#C9A227] focus-within:ring-2 focus-within:ring-[#C9A227]/40"
+        className="rounded-xl border border-neutral-200 bg-white text-right shadow-sm focus-within:border-[#C9A227] focus-within:ring-2 focus-within:ring-amber-400/40"
       >
         {tags.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5 border-b border-[#E0D4C3]/50 px-2 py-2">
+          <div className="flex flex-wrap gap-1.5 border-b border-neutral-200/50 px-2 py-2">
             {tags.map((tag, i) => (
               <span
                 key={`${tag}-${i}`}
-                className="inline-flex items-center gap-1 rounded-full border border-[#E0D4C3] bg-[#FAF8F4] px-2.5 py-0.5 text-xs text-[#0F3B2E]"
+                className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-0.5 text-xs text-emerald-950"
               >
                 <span>{tag}</span>
                 <button
                   type="button"
                   onClick={() => removeAt(i)}
-                  className="rounded-full px-0.5 text-[#6B6560] hover:bg-[#EFE6D5] hover:text-[#1A1A1A]"
+                  className="rounded-full px-0.5 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
                   aria-label={`הסרת ${tag}`}
                 >
                   ×
@@ -161,7 +161,7 @@ export default function ServiceLanguagesTagsField({
                 setListOpen(false);
                 setActiveIndex(-1);
               }}
-              className="mr-auto rounded-full border border-[#E0D4C3] bg-white px-2.5 py-0.5 text-[11px] text-[#5F5F5F] hover:bg-[#FAF8F4]"
+              className="mr-auto rounded-full border border-neutral-200 bg-white px-2.5 py-0.5 text-[11px] text-neutral-600 hover:bg-neutral-50"
             >
               נקה הכל
             </button>
@@ -181,7 +181,7 @@ export default function ServiceLanguagesTagsField({
             }}
             onFocus={() => setListOpen(true)}
             onKeyDown={handleKeyDown}
-            className="min-w-0 flex-1 border-0 bg-transparent py-2.5 text-sm text-[#1A1A1A] outline-none placeholder:text-[#9A9490]"
+            className="min-w-0 flex-1 border-0 bg-transparent py-2.5 text-sm text-neutral-900 outline-none placeholder:text-[#9A9490]"
             placeholder="הקלידו שפה או בחרו מהרשימה למטה…"
             maxLength={120}
             aria-expanded={listOpen}
@@ -197,7 +197,7 @@ export default function ServiceLanguagesTagsField({
                 setActiveIndex(-1);
                 inputRef.current?.focus();
               }}
-              className="shrink-0 self-center rounded-lg px-2 py-1 text-xs font-semibold text-[#0F3B2E] hover:bg-[#FAF8F4]"
+              className="shrink-0 self-center rounded-lg px-2 py-1 text-xs font-semibold text-emerald-950 hover:bg-neutral-50"
             >
               הוסף
             </button>
@@ -208,10 +208,10 @@ export default function ServiceLanguagesTagsField({
           <ul
             id="service-languages-suggestions"
             role="listbox"
-            className="max-h-44 overflow-y-auto border-t border-[#E0D4C3]/50 py-1"
+            className="max-h-44 overflow-y-auto border-t border-neutral-200/50 py-1"
           >
             {filteredPresets.length === 0 ? (
-              <li className="px-3 py-2 text-xs text-[#6B6560]">
+              <li className="px-3 py-2 text-xs text-neutral-600">
                 אין התאמה ברשימה — לחצו «הוסף» או Enter להוסיף את מה שהקלדתם
               </li>
             ) : (
@@ -219,8 +219,8 @@ export default function ServiceLanguagesTagsField({
                 <li key={lang} role="option" aria-selected={i === activeIndex}>
                   <button
                     type="button"
-                    className={`w-full px-3 py-2 text-right text-sm text-[#1A1A1A] hover:bg-[#FAF8F4] ${
-                      i === activeIndex ? "bg-[#FAF8F4]" : ""
+                    className={`w-full px-3 py-2 text-right text-sm text-neutral-900 hover:bg-neutral-50 ${
+                      i === activeIndex ? "bg-neutral-50" : ""
                     }`}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => pickPreset(lang)}

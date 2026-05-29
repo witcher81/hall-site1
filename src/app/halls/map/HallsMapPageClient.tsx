@@ -14,7 +14,7 @@ const VenuesMapClient = dynamic(
   {
     ssr: false,
     loading: () => (
-      <p className="py-12 text-center text-sm text-[#5F5F5F]">טוען מפה...</p>
+      <p className="py-12 text-center text-sm text-neutral-600">טוען מפה...</p>
     ),
   }
 );
@@ -66,24 +66,24 @@ export default function HallsMapPageClient() {
     return <p className="py-8 text-center text-sm text-red-600">{error}</p>;
   }
   if (!venues) {
-    return <p className="py-12 text-center text-sm text-[#5F5F5F]">טוען נתונים...</p>;
+    return <p className="py-12 text-center text-sm text-neutral-600">טוען נתונים...</p>;
   }
   if (venues.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-[#5F5F5F]">
+      <p className="py-8 text-center text-sm text-neutral-600">
         אין אולמות להצגה על המפה עדיין.
       </p>
     );
   }
 
   const fieldClass =
-    "mt-2 w-full min-h-[46px] rounded-xl border border-[#E7E0CF] bg-white px-4 py-2.5 text-base text-[#1A1A1A] outline-none transition focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/25";
+    "mt-2 w-full min-h-[46px] rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-base text-neutral-900 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-400/25";
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#E7E0CF] bg-white p-4 text-right shadow-sm sm:p-5">
-        <label className="block text-sm font-medium text-[#0F3B2E]">קפיצה לעיר וסינון סיכות</label>
-        <p className="mt-1 text-xs text-[#6B6560]">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-sm sm:p-5">
+        <label className="block text-sm font-medium text-emerald-950">קפיצה לעיר וסינון סיכות</label>
+        <p className="mt-1 text-xs text-neutral-600">
           בוחרים או מקלידים עיר — המפה תתמקד בה (אם יש במערכת מרכז משוער), והסיכות יוצגו רק לאולמות
           בעיר זו (התאמה גמישה לשם).
         </p>
@@ -99,13 +99,13 @@ export default function HallsMapPageClient() {
           <button
             type="button"
             onClick={() => setFilterCity("")}
-            className="mt-3 text-xs font-medium text-[#0F3B2E] underline-offset-2 hover:underline"
+            className="mt-3 text-xs font-medium text-emerald-950 underline-offset-2 hover:underline"
           >
             נקה סינון — הצג את כל האולמות
           </button>
         ) : null}
         {filterCity.trim().length > 0 && displayedVenues.length === 0 ? (
-          <p className="mt-3 rounded-xl bg-[#FAF8F4] px-3 py-2 text-xs text-[#6B6560]">
+          <p className="mt-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
             אין סיכות באולמות שמתאימים ל־«{filterCity.trim()}» ברשימה. המפה עדיין תתמקד בעיר אם יש לה
             מרכז במערכת.
           </p>

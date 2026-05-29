@@ -83,18 +83,18 @@ export default function ServiceReviewsSection({
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
-      <h2 className="text-lg font-semibold text-[#0F3B2E]">ביקורות על השירות</h2>
+    <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+      <h2 className="text-lg font-semibold text-emerald-950">ביקורות על השירות</h2>
       {!loading && reviews.length > 0 && (
-        <p className="mt-1 text-xs text-[#6B6560]">
+        <p className="mt-1 text-xs text-neutral-600">
           ממוצע {average} כוכבים · {reviews.length} ביקורות
         </p>
       )}
 
       {canWriteReview && !myReview && (
-        <div className="mt-4 rounded-xl border border-[#E8D5C4] bg-[#FAF8F4] p-4">
-          <p className="mb-2 text-xs font-medium text-[#0F3B2E]">הוספת ביקורת</p>
-          <label className="block text-xs text-[#5F5F5F]">
+        <div className="mt-4 rounded-xl border border-[#E8D5C4] bg-neutral-50 p-4">
+          <p className="mb-2 text-xs font-medium text-emerald-950">הוספת ביקורת</p>
+          <label className="block text-xs text-neutral-600">
             דירוג (1–5)
             <input
               type="number"
@@ -105,7 +105,7 @@ export default function ServiceReviewsSection({
               onChange={(e) =>
                 setDraftRating(normalizeHalfStarRating(Number(e.target.value)))
               }
-              className="mt-1 w-24 rounded-lg border border-[#E0D4C3] px-2 py-1"
+              className="mt-1 w-24 rounded-lg border border-neutral-200 px-2 py-1"
             />
           </label>
           <textarea
@@ -113,13 +113,13 @@ export default function ServiceReviewsSection({
             onChange={(e) => setDraftComment(e.target.value)}
             rows={3}
             placeholder="ספרו על החוויה..."
-            className="mt-2 w-full rounded-xl border border-[#E0D4C3] px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
           />
           <button
             type="button"
             disabled={submitting}
             onClick={() => void handleSubmit()}
-            className="mt-2 rounded-full bg-[#C9A227] px-5 py-2 text-xs font-semibold text-white disabled:opacity-60"
+            className="mt-2 rounded-full bg-amber-400 px-5 py-2 text-xs font-semibold text-white disabled:opacity-60"
           >
             {submitting ? "שולח..." : "שליחת ביקורת"}
           </button>
@@ -127,7 +127,7 @@ export default function ServiceReviewsSection({
       )}
 
       {canWriteReview && !myReview && (
-        <p className="mt-2 text-[10px] text-[#6B6560]">
+        <p className="mt-2 text-[10px] text-neutral-600">
           ביקורת זמינה רק למי ששלח בקשה לשירות זה דרך האתר.
         </p>
       )}
@@ -139,21 +139,21 @@ export default function ServiceReviewsSection({
       )}
 
       {loading ? (
-        <p className="mt-4 text-xs text-[#6B6560]">טוען ביקורות…</p>
+        <p className="mt-4 text-xs text-neutral-600">טוען ביקורות…</p>
       ) : reviews.length === 0 ? (
-        <p className="mt-4 text-xs text-[#6B6560]">עדיין אין ביקורות.</p>
+        <p className="mt-4 text-xs text-neutral-600">עדיין אין ביקורות.</p>
       ) : (
         <ul className="mt-4 space-y-3">
           {reviews.map((r) => (
             <li
               key={r.id}
-              className="rounded-xl border border-[#E0D4C3]/80 bg-[#FAF8F4] px-4 py-3"
+              className="rounded-xl border border-neutral-200/80 bg-neutral-50 px-4 py-3"
             >
-              <p className="text-xs font-semibold text-[#0F3B2E]">
+              <p className="text-xs font-semibold text-emerald-950">
                 {r.user.name || "משתמש"} · {r.rating} כוכבים
               </p>
               {r.comment && (
-                <p className="mt-1 whitespace-pre-wrap text-xs text-[#5F5F5F]">
+                <p className="mt-1 whitespace-pre-wrap text-xs text-neutral-600">
                   {r.comment}
                 </p>
               )}

@@ -1,56 +1,41 @@
 import { Suspense } from "react";
-import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
-import HomeHeader from "@/components/HomeHeader";
+import SitePageHeader from "@/components/layout/SitePageHeader";
+import SitePageShell from "@/components/layout/SitePageShell";
+import SiteFooter from "@/components/layout/SiteFooter";
 import PackagesSearchClient from "./PackagesSearchClient";
 
 export default async function PackagesPage() {
-  const user = await getCurrentUser();
-
   return (
-    <div className="min-h-screen bg-[#EFE6D5] text-[#1A1A1A]">
-      <HomeHeader
-        user={user}
-        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
+    <SitePageShell mainWidth="wide">
+      <SitePageHeader
+        title="חבילות אירוע"
+        description='אולם ושירותים במקום אחד — בדומה ל"טיסה + מלון": מסננים כמו בחיפוש אולמות (עיר, אורחים, מחיר), והתוצאות מתעדכנות אוטומטית.'
       />
-      <main className="mx-auto max-w-[92rem] px-4 py-8 sm:px-6 lg:px-10">
-        <header className="border-b border-[#E7E0CF] pb-6 text-right">
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-[#C9A227]">
-            HALLS HUB
-          </p>
-          <h1 className="mt-2 text-2xl font-bold text-[#0F3B2E] md:text-3xl">
-            חבילות אירוע
-          </h1>
-          <p className="mt-2 text-sm text-[#5F5F5F] md:text-base">
-            אולם ושירותים במקום אחד — בדומה ל&quot;טיסה + מלון&quot;: מסננים כמו בחיפוש
-            אולמות (עיר, אורחים, מחיר), והתוצאות מתעדכנות אוטומטית.
-          </p>
-          <p className="mt-2 text-xs text-[#6B6560]">
-            עריכת חבילות חדשות מתבצעת כרגע בצד השרת (מנהל מערכת). לפניות לעדכון חבילות —
-            דרך תמיכת האתר.
-          </p>
-        </header>
+      <p className="site-page-lead -mt-4 text-xs">
+        עריכת חבילות חדשות מתבצעת כרגע בצד השרת (מנהל מערכת). לפניות לעדכון חבילות — דרך
+        תמיכת האתר.
+      </p>
 
-        <div className="mt-4 rounded-2xl border border-[#C9A227]/40 bg-[#FFFBF0] px-4 py-3 text-right text-sm text-[#2A261F]">
-          <strong className="text-[#0F3B2E]">מסלול חדש (מומלץ):</strong> מתחילים מ־
-          <a href="/halls" className="font-semibold text-[#0F3B2E] underline">
-            חיפוש אולם
-          </a>
-          , ובוחרים אולם — אז נפתח דף &quot;אחרי שבחרתם אולם&quot; עם השוואת תוספות מול שירותי
-          ספקים והצעות השלמה לפי סוג אירוע. החבילות למטה נשארות זמינית לעיון.
-        </div>
+      <div className="mt-4 rounded-2xl border border-amber-300/50 bg-amber-50/80 px-4 py-3 text-right text-sm text-neutral-800 backdrop-blur-sm">
+        <strong className="text-emerald-950">מסלול חדש (מומלץ):</strong> מתחילים מ־
+        <a href="/halls" className="font-semibold text-emerald-950 underline">
+          חיפוש אולם
+        </a>
+        , ובוחרים אולם — אז נפתח דף &quot;אחרי שבחרתם אולם&quot; עם השוואת תוספות מול
+        שירותי ספקים. החבילות למטה נשארות זמינות לעיון.
+      </div>
 
-        <Suspense
-          fallback={
-            <div
-              className="mt-6 h-40 animate-pulse rounded-3xl border border-[#E7E0CF] bg-white/80"
-              aria-hidden
-            />
-          }
-        >
-          <PackagesSearchClient />
-        </Suspense>
-      </main>
-    </div>
+      <Suspense
+        fallback={
+          <div
+            className="mt-6 h-40 animate-pulse rounded-3xl border border-neutral-200 bg-white/80"
+            aria-hidden
+          />
+        }
+      >
+        <PackagesSearchClient />
+      </Suspense>
+      <SiteFooter />
+    </SitePageShell>
   );
 }

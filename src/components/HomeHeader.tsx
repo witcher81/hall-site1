@@ -58,18 +58,18 @@ function navKeyActive(pathname: string, key: NavKey): boolean {
 const navLinkDesktopBase =
   "shrink-0 rounded-full px-3 py-1.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227]";
 const navLinkDesktopActive =
-  "bg-[#C9A227]/25 font-semibold text-[#F5E6A8] ring-1 ring-[#C9A227]/70 shadow-[0_0_0_1px_rgba(201,162,39,0.15)]";
+  "bg-amber-400/25 font-semibold text-[#F5E6A8] ring-1 ring-amber-400/70 shadow-[0_0_0_1px_rgba(201,162,39,0.15)]";
 const navLinkDesktopIdle = "text-slate-200 hover:text-white";
 
 const navLinkMobileBase = "block rounded-xl px-3 py-2 transition";
 const navLinkMobileActive =
-  "bg-[#C9A227]/15 font-semibold text-[#0F3B2E] ring-1 ring-[#C9A227]/50";
-const navLinkMobileIdle = "text-[#1A1A1A] hover:bg-[#EFE6D5]";
+  "bg-amber-400/15 font-semibold text-emerald-950 ring-1 ring-amber-400/50";
+const navLinkMobileIdle = "text-neutral-900 hover:bg-neutral-50";
 
 const personalDropdownLinkBase = "block px-4 py-2.5 text-sm transition rounded-lg mx-1";
 const personalDropdownLinkActive =
-  "bg-[#C9A227]/15 font-semibold text-[#0F3B2E] ring-1 ring-[#C9A227]/50";
-const personalDropdownLinkIdle = "text-[#1A1A1A] hover:bg-[#EFE6D5]";
+  "bg-amber-400/15 font-semibold text-emerald-950 ring-1 ring-amber-400/50";
+const personalDropdownLinkIdle = "text-neutral-900 hover:bg-neutral-50";
 
 /** איזה קישור באזור האישי הכי ספציפי לנתיב הנוכחי (למשל פניות לפני דשבורד האולם) */
 function getActivePersonalHref(
@@ -162,7 +162,7 @@ export default function HomeHeader({
   }, [personalOpen]);
 
   return (
-    <header className="site-header relative z-50 border-b border-slate-800 bg-[#0F3B2E] backdrop-blur-sm">
+    <header className="site-header relative z-50 border-b border-slate-800 bg-emerald-950 backdrop-blur-sm">
       {user ? <RealtimeEventBridge /> : null}
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-3 justify-start sm:gap-4">
@@ -174,7 +174,7 @@ export default function HomeHeader({
             aria-current={navKeyActive(pathname, "hallsMap") ? "page" : undefined}
             className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] transition sm:hidden ${
               navKeyActive(pathname, "hallsMap")
-                ? "border-[#C9A227] bg-[#C9A227]/20 font-semibold text-[#F5E6A8]"
+                ? "border-[#C9A227] bg-amber-400/20 font-semibold text-[#F5E6A8]"
                 : "border-slate-600/80 text-slate-200 hover:border-slate-400 hover:text-white"
             }`}
           >
@@ -264,9 +264,9 @@ export default function HomeHeader({
                   onClick={() => setPersonalOpen((v) => !v)}
                   className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition ${
                     personalOpen
-                      ? "border-[#C9A227] bg-[#C9A227] text-white shadow-sm"
+                      ? "border-[#C9A227] bg-amber-400 text-white shadow-sm"
                       : activePersonalHref
-                        ? "border-[#C9A227]/80 bg-[#C9A227]/20 text-[#F5E6A8] ring-1 ring-[#C9A227]/50"
+                        ? "border-[#C9A227]/80 bg-amber-400/20 text-[#F5E6A8] ring-1 ring-amber-400/50"
                         : "border-white/35 bg-white/10 text-white hover:bg-white/20"
                   }`}
                   aria-expanded={personalOpen}
@@ -291,7 +291,7 @@ export default function HomeHeader({
                   </svg>
                 </button>
                 {personalOpen && (
-                  <div className="personal-menu absolute right-0 z-[60] mt-1 min-w-[200px] rounded-2xl border border-[#E0D4C3] bg-[#FDFBF7] py-1.5 text-right shadow-xl">
+                  <div className="personal-menu absolute right-0 z-[60] mt-1 min-w-[200px] rounded-2xl border border-neutral-200 bg-white py-1.5 text-right shadow-xl">
                     {personalLinks.map((item) => {
                       const active = item.href === activePersonalHref;
                       return (
@@ -347,10 +347,10 @@ export default function HomeHeader({
                 </svg>
               </button>
               {menuOpen && (
-                <div className="user-menu absolute left-0 z-[60] mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E0D4C3] bg-[#FDFBF7] p-2 text-right text-sm shadow-xl">
+                <div className="user-menu absolute left-0 z-[60] mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-2 text-right text-sm shadow-xl">
                   {/* במסכים צרים: הניווט המלא בתפריט המשתמש */}
-                  <div className="border-b border-[#E0D4C3]/80 pb-2 sm:hidden">
-                    <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[#6B6560]">
+                  <div className="border-b border-neutral-200/80 pb-2 sm:hidden">
+                    <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-600">
                       ניווט
                     </p>
                     <Link
@@ -445,8 +445,8 @@ export default function HomeHeader({
                     )}
                   </div>
                   {personalLinks.length > 0 && (
-                    <div className="border-b border-[#E0D4C3]/80 py-2 sm:hidden">
-                      <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[#6B6560]">
+                    <div className="border-b border-neutral-200/80 py-2 sm:hidden">
+                      <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-600">
                         אזור אישי
                       </p>
                       {personalLinks.map((item) => {
@@ -475,7 +475,7 @@ export default function HomeHeader({
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 ${
                       pathname.startsWith("/settings")
                         ? navLinkMobileActive
-                        : "text-[#1A1A1A] hover:bg-[#EFE6D5]"
+                        : "text-neutral-900 hover:bg-neutral-50"
                     }`}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -484,7 +484,7 @@ export default function HomeHeader({
                   <button
                     type="button"
                     onClick={toggleTheme}
-                    className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-[#1A1A1A] hover:bg-[#EFE6D5]"
+                    className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-neutral-900 hover:bg-neutral-50"
                   >
                     <span>מצב תצוגה</span>
                     <span
@@ -519,7 +519,7 @@ export default function HomeHeader({
               </a>
               <a
                 href="/auth/register"
-                className="rounded-full bg-[#C9A227] px-3 py-2 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:bg-[#E5C96B] sm:px-4"
+                className="rounded-full bg-amber-400 px-3 py-2 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:bg-amber-300 sm:px-4"
               >
                 הרשמה
               </a>

@@ -4,9 +4,9 @@
 export const VENUE_OFFER_PRODUCTS_HEADING = "מוצרים שהאולם מציעה";
 
 const offerCheckboxClass =
-  "flex cursor-pointer items-center gap-2.5 rounded-xl border border-[#E7E0CF]/80 bg-white px-3 py-2.5 text-sm font-medium text-[#1A1A1A] transition hover:border-[#C9A227]/50";
+  "flex cursor-pointer items-center gap-2.5 rounded-xl border border-neutral-200/80 bg-white px-3 py-2.5 text-sm font-medium text-neutral-900 transition hover:border-amber-400/50";
 const offerInputClass =
-  "h-4 w-4 shrink-0 rounded border-[#C9A227] text-[#C9A227] focus:ring-[#C9A227]";
+  "h-4 w-4 shrink-0 rounded border-[#C9A227] text-amber-600 focus:ring-amber-400";
 
 export type VenueOfferProductsSlice = {
   seaView: boolean;
@@ -40,15 +40,15 @@ export default function VenueOfferProductsSection({
   return (
     <div>
       <div className="mb-1">
-        <p className="text-xs font-medium text-[#5F5F5F]">
-          <span className="font-semibold text-[#0F3B2E]">
+        <p className="text-xs font-medium text-neutral-600">
+          <span className="font-semibold text-emerald-950">
             {VENUE_OFFER_PRODUCTS_HEADING}
           </span>
-          <span className="mr-0.5 text-[#C9A227]" aria-hidden>
+          <span className="mr-0.5 text-amber-600" aria-hidden>
             *
           </span>
         </p>
-        <p className="text-[11px] leading-relaxed text-[#6B6560]">
+        <p className="text-[11px] leading-relaxed text-neutral-600">
           * אופציונלי — אין חובה לסמן אף מאפיין; הסימון משמש לסינון ולתצוגה בלבד.
         </p>
       </div>
@@ -143,7 +143,7 @@ export default function VenueOfferProductsSection({
         </label>
       </div>
       {chuppaDetailLocked ? (
-        <p className="mt-2 text-[11px] text-[#6B6560]">
+        <p className="mt-2 text-[11px] text-neutral-600">
           לחתונה: סמנו למטה &quot;חופה בחוץ&quot; ו/או &quot;חופה מקורה&quot;.
         </p>
       ) : null}

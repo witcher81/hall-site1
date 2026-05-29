@@ -227,29 +227,29 @@ export default function SingleServiceView({
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
       {/* כרטיס עליון אחד: ניווט + תמונת שער + כותרת — לא "צף" על רקע האתר */}
-      <header className="overflow-hidden rounded-2xl border border-[#E0D4C3] bg-white text-right shadow-[0_12px_40px_rgba(15,59,46,0.1)]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E7E0CF] bg-[#FAF8F4] px-4 py-3 sm:px-6">
+      <header className="overflow-hidden rounded-2xl border border-neutral-200 bg-white text-right shadow-[0_12px_40px_rgba(15,59,46,0.1)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-3 sm:px-6">
           <a
             href="/providers"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#E0D4C3] bg-white px-3 py-1.5 text-xs font-semibold text-[#0F3B2E] shadow-sm transition hover:border-[#C9A227]/60 hover:bg-[#FFFCF6]"
+            className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950 shadow-sm transition hover:border-amber-400/60 hover:bg-[#FFFCF6]"
           >
             חזרה לחיפוש ספקים
           </a>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0F3B2E] px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950 px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
             <span aria-hidden>✦</span>
             עמוד שירות
           </span>
         </div>
 
         {service.coverImageUrl ? (
-          <div className="relative border-b border-[#E0D4C3]">
+          <div className="relative border-b border-neutral-200">
             <img
               src={service.coverImageUrl}
               alt={service.name}
               className="h-48 w-full object-cover sm:h-56"
             />
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0F3B2E]/35 via-transparent to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-emerald-950/35 via-transparent to-transparent"
               aria-hidden
             />
           </div>
@@ -263,30 +263,30 @@ export default function SingleServiceView({
         <div className="px-4 py-5 sm:px-6 sm:py-6">
           <a
             href={`/providers/${provider.id}`}
-            className="inline-flex max-w-full items-center gap-1 rounded-full border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-1 text-xs font-medium text-[#2A261F] transition hover:border-[#C9A227]/50 hover:text-[#0F3B2E]"
+            className="inline-flex max-w-full items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-800 transition hover:border-amber-400/50 hover:text-emerald-950"
           >
-            <span className="text-[#6B6560]">ספק:</span>
-            <span className="truncate font-semibold text-[#0F3B2E]">{providerName}</span>
+            <span className="text-neutral-600">ספק:</span>
+            <span className="truncate font-semibold text-emerald-950">{providerName}</span>
           </a>
 
-          <h1 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-[#0F3B2E] sm:text-3xl">
+          <h1 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
             {service.name}
           </h1>
 
           {categoryParsed.primary ? (
-            <div className="mt-4 rounded-2xl border border-[#E0D4C3] bg-gradient-to-br from-[#FFFCF6] to-[#FAF8F4] p-4 shadow-sm">
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-gradient-to-br from-[#FFFCF6] to-[#FAF8F4] p-4 shadow-sm">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-[#0F3B2E] px-3 py-1 text-sm font-semibold text-white">
+                <span className="rounded-full bg-emerald-950 px-3 py-1 text-sm font-semibold text-white">
                   {categoryParsed.primary}
                 </span>
                 {categoryParsed.secondary ? (
-                  <span className="rounded-full border border-[#C9A227]/50 bg-white px-3 py-1 text-sm font-semibold text-[#0F3B2E]">
+                  <span className="rounded-full border border-[#C9A227]/50 bg-white px-3 py-1 text-sm font-semibold text-emerald-950">
                     {categoryParsed.secondary}
                   </span>
                 ) : null}
               </div>
               {primaryCategoryDescription ? (
-                <p className="mt-2 text-xs leading-relaxed text-[#5F5F5F]">
+                <p className="mt-2 text-xs leading-relaxed text-neutral-600">
                   {primaryCategoryDescription}
                 </p>
               ) : null}
@@ -295,8 +295,8 @@ export default function SingleServiceView({
 
           {priceLine != null && (
             <div className="mt-4 inline-flex items-center rounded-xl border border-[#C9A227]/35 bg-gradient-to-br from-[#FFFCF6] to-[#FAF8F4] px-4 py-2.5">
-              <span className="text-[11px] font-medium text-[#6B6560]">מחיר</span>
-              <span className="mr-3 text-base font-bold text-[#0F3B2E]">{priceLine}</span>
+              <span className="text-[11px] font-medium text-neutral-600">מחיר</span>
+              <span className="mr-3 text-base font-bold text-emerald-950">{priceLine}</span>
             </div>
           )}
 
@@ -305,19 +305,19 @@ export default function SingleServiceView({
               {metaItems.map((item) => (
                 <li
                   key={`${item.label}-${item.value}`}
-                  className="flex items-start gap-3 rounded-xl border border-[#E0D4C3] bg-white p-3 text-right shadow-sm"
+                  className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-3 text-right shadow-sm"
                 >
                   <span
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FAF8F4] text-lg"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-neutral-50 text-lg"
                     aria-hidden
                   >
                     {item.icon}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <span className="block text-xs font-medium text-[#6B6560]">
+                    <span className="block text-xs font-medium text-neutral-600">
                       {item.label}
                     </span>
-                    <span className="mt-0.5 block break-words text-sm font-semibold text-[#1A1A1A]">
+                    <span className="mt-0.5 block break-words text-sm font-semibold text-neutral-900">
                       {item.value}
                     </span>
                   </div>
@@ -330,9 +330,9 @@ export default function SingleServiceView({
 
       {/* תיאור השירות */}
       {blurb ? (
-        <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
           <SectionHeading title="קצת על עצמי" />
-          <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-[#1A1A1A]">
+          <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-neutral-900">
             {blurb}
           </p>
         </section>
@@ -342,10 +342,10 @@ export default function SingleServiceView({
       {(service.includesEquipment ||
         freeIncludes.length > 0 ||
         (service.includesNote && service.includesNote.trim().length > 0)) && (
-        <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
           <div className="flex items-center justify-between gap-2">
             <SectionHeading title="מה כלול במחיר" tone="green" />
-            <span className="rounded-full bg-[#FAF8F4] px-2.5 py-1 text-[11px] font-medium text-[#6B6560]">
+            <span className="rounded-full bg-neutral-50 px-2.5 py-1 text-[11px] font-medium text-neutral-600">
               {includedItemsCount}{" "}
               {includedItemsCount === 1 ? "פריט" : "פריטים"}
             </span>
@@ -354,16 +354,16 @@ export default function SingleServiceView({
           <div className="mt-4">
             <ul className="space-y-2.5">
               {service.includesEquipment && (
-                <li className="flex items-start gap-3 rounded-xl border border-[#0F3B2E]/20 bg-[#0F3B2E]/5 p-3">
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
+                <li className="flex items-start gap-3 rounded-xl border border-emerald-950/20 bg-emerald-950/5 p-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-white shadow-sm">
                     <CheckIcon className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-[#0F3B2E]">
+                    <p className="text-sm font-semibold text-emerald-950">
                       כולל ציוד מקצועי לאירוע
                     </p>
                     {service.includesNote && service.includesNote.trim().length > 0 ? (
-                      <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-[#5F5F5F]">
+                      <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-neutral-600">
                         {service.includesNote.trim()}
                       </p>
                     ) : null}
@@ -374,17 +374,17 @@ export default function SingleServiceView({
               {freeIncludes.map((c, i) => (
                 <li
                   key={`free-${c.label}-${i}`}
-                  className="flex items-start gap-3 rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] p-3"
+                  className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3"
                 >
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#0F3B2E] text-white shadow-sm">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-white shadow-sm">
                     <CheckIcon className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-[#0F3B2E]">
+                    <p className="text-sm font-semibold text-emerald-950">
                       {c.label.trim()}
                     </p>
                     {c.description?.trim() ? (
-                      <p className="mt-1 text-xs leading-relaxed text-[#5F5F5F]">
+                      <p className="mt-1 text-xs leading-relaxed text-neutral-600">
                         {c.description.trim()}
                       </p>
                     ) : null}
@@ -397,7 +397,7 @@ export default function SingleServiceView({
           {!service.includesEquipment &&
             service.includesNote &&
             service.includesNote.trim().length > 0 && (
-              <p className="mt-4 whitespace-pre-wrap rounded-xl border border-[#E7E0CF] bg-[#FFFCF6] p-3 text-sm leading-relaxed text-[#2A261F]">
+              <p className="mt-4 whitespace-pre-wrap rounded-xl border border-neutral-200 bg-[#FFFCF6] p-3 text-sm leading-relaxed text-neutral-800">
                 {service.includesNote.trim()}
               </p>
             )}
@@ -409,7 +409,7 @@ export default function SingleServiceView({
         <section className="mt-6 rounded-2xl border border-[#C9A227]/35 bg-gradient-to-br from-[#FFFCF6] to-white p-6 text-right shadow-[0_12px_40px_rgba(201,162,39,0.08)]">
           <div className="flex items-center justify-between gap-2">
             <SectionHeading title="בתוספת תשלום" tone="gold" />
-            <span className="rounded-full bg-[#C9A227]/15 px-2.5 py-1 text-[11px] font-semibold text-[#8A6A12]">
+            <span className="rounded-full bg-amber-400/15 px-2.5 py-1 text-[11px] font-semibold text-[#8A6A12]">
               {paidExtras.length} {paidExtras.length === 1 ? "פריט" : "פריטים"}
             </span>
           </div>
@@ -420,24 +420,24 @@ export default function SingleServiceView({
               return (
                 <li
                   key={`paid-${p.label}-${i}`}
-                  className="flex items-start gap-3 rounded-xl border border-[#E0D4C3] bg-white p-3 shadow-sm"
+                  className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-sm"
                 >
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#C9A227]/15 text-[#8A6A12]">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-[#8A6A12]">
                     <PlusIcon className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="min-w-0 flex-1 text-sm font-semibold text-[#0F3B2E]">
+                      <p className="min-w-0 flex-1 text-sm font-semibold text-emerald-950">
                         {p.label.trim()}
                       </p>
                       {price ? (
-                        <span className="shrink-0 rounded-full bg-[#0F3B2E] px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+                        <span className="shrink-0 rounded-full bg-emerald-950 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
                           {price}
                         </span>
                       ) : null}
                     </div>
                     {p.description?.trim() ? (
-                      <p className="mt-1 text-xs leading-relaxed text-[#5F5F5F]">
+                      <p className="mt-1 text-xs leading-relaxed text-neutral-600">
                         {p.description.trim()}
                       </p>
                     ) : null}
@@ -466,10 +466,10 @@ export default function SingleServiceView({
 
       {/* גלריה */}
       {gallery.length > 0 && (
-        <section className="mt-6 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
           <div className="flex items-center justify-between gap-2">
             <SectionHeading title="גלריה" />
-            <span className="rounded-full bg-[#FAF8F4] px-2.5 py-1 text-[11px] font-medium text-[#6B6560]">
+            <span className="rounded-full bg-neutral-50 px-2.5 py-1 text-[11px] font-medium text-neutral-600">
               {gallery.length} {gallery.length === 1 ? "תמונה" : "תמונות"}
             </span>
           </div>
@@ -479,7 +479,7 @@ export default function SingleServiceView({
                 key={url}
                 type="button"
                 onClick={() => setGalleryLightboxIndex(idx)}
-                className="group relative block w-full overflow-hidden rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] text-right shadow-sm transition hover:border-[#C9A227]/60 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A227]"
+                className="group relative block w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 text-right shadow-sm transition hover:border-amber-400/60 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
               >
                 <img
                   src={url}
@@ -497,11 +497,11 @@ export default function SingleServiceView({
 
       {/* פס פעולות */}
       {(seekerLoggedIn || siblingServicesCount > 1) && (
-        <section className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E0D4C3] bg-white p-4 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)] sm:p-5">
+        <section className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)] sm:p-5">
           {siblingServicesCount > 1 ? (
             <a
               href={`/providers/${provider.id}`}
-              className="text-xs font-semibold text-[#0F3B2E] underline-offset-4 hover:underline"
+              className="text-xs font-semibold text-emerald-950 underline-offset-4 hover:underline"
             >
               עוד {siblingServicesCount - 1}{" "}
               {siblingServicesCount - 1 === 1 ? "שירות" : "שירותים"} של הספק →
@@ -512,7 +512,7 @@ export default function SingleServiceView({
           {seekerLoggedIn && (
             <a
               href={`/messages?serviceId=${service.id}`}
-              className="inline-flex items-center gap-2 rounded-full bg-[#0F3B2E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#174D3B]"
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -523,24 +523,24 @@ export default function SingleServiceView({
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border border-[#E0D4C3] bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
-        <div className="border-b border-[#E7E0CF] pb-3">
-          <h2 className="text-base font-semibold text-[#0F3B2E]">שליחת בקשה לשירות</h2>
-          <p className="mt-1 text-xs text-[#6B6560]">{service.name}</p>
+      <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        <div className="border-b border-neutral-200 pb-3">
+          <h2 className="text-base font-semibold text-emerald-950">שליחת בקשה לשירות</h2>
+          <p className="mt-1 text-xs text-neutral-600">{service.name}</p>
         </div>
         {!seekerLoggedIn ? (
-          <p className="mt-2 text-sm text-[#6B6560]">
-            <a href="/auth/login" className="text-[#0F3B2E] underline hover:text-[#174D3B]">התחבר</a>
+          <p className="mt-2 text-sm text-neutral-600">
+            <a href="/auth/login" className="text-emerald-950 underline hover:text-[#174D3B]">התחבר</a>
             {" "}או{" "}
-            <a href="/auth/register" className="text-[#0F3B2E] underline hover:text-[#174D3B]">הירשם</a>
+            <a href="/auth/register" className="text-emerald-950 underline hover:text-[#174D3B]">הירשם</a>
             {" "}כמחפש אולמות כדי לשלוח בקשה.
           </p>
         ) : requestSent ? (
-          <p className="mt-2 text-sm font-medium text-[#0F3B2E]">הבקשה נשלחה. הספק ייצור איתך קשר.</p>
+          <p className="mt-2 text-sm font-medium text-emerald-950">הבקשה נשלחה. הספק ייצור איתך קשר.</p>
         ) : (
           <form onSubmit={handleSubmit} className="mt-4 space-y-3 text-sm">
             <div>
-              <label className="block text-xs font-medium text-[#5F5F5F]">תאריך האירוע *</label>
+              <label className="block text-xs font-medium text-neutral-600">תאריך האירוע *</label>
               <div className="mt-1 flex gap-2">
                 <input
                   ref={dateInputRef}
@@ -549,12 +549,12 @@ export default function SingleServiceView({
                   min={today}
                   value={form.preferredDate}
                   onChange={(e) => setForm((f) => ({ ...f, preferredDate: e.target.value }))}
-                  className="flex-1 rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#0F3B2E]"
+                  className="flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-emerald-950"
                 />
                 <button
                   type="button"
                   onClick={() => dateInputRef.current?.showPicker?.()}
-                  className="rounded-xl border border-[#E0D4C3] bg-[#EFE6D5] px-3 py-2 text-[#1A1A1A]"
+                  className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-900"
                   aria-label="פתח לוח שנה"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -564,11 +564,11 @@ export default function SingleServiceView({
               </div>
             </div>
             <div>
-              <label className="block text-xs text-[#5F5F5F]">סוג אירוע</label>
+              <label className="block text-xs text-neutral-600">סוג אירוע</label>
               <select
                 value={form.eventType}
                 onChange={(e) => setForm((f) => ({ ...f, eventType: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-[#FAF8F4] px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#0F3B2E]"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-900 outline-none focus:border-emerald-950"
               >
                 <option value="">בחר</option>
                 {EVENT_TYPES.map((t) => (
@@ -577,14 +577,14 @@ export default function SingleServiceView({
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#5F5F5F]">הודעה * (לפחות 10 תווים)</label>
+              <label className="block text-xs text-neutral-600">הודעה * (לפחות 10 תווים)</label>
               <textarea
                 required
                 minLength={10}
                 rows={3}
                 value={form.message}
                 onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-[#E0D4C3] bg-white px-3 py-2 text-[#1A1A1A] outline-none focus:border-[#0F3B2E]"
+                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-emerald-950"
                 placeholder="ספר/י בקצרה על האירוע והמבוקש..."
               />
             </div>
@@ -592,7 +592,7 @@ export default function SingleServiceView({
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#0F3B2E] px-5 py-2 text-sm font-semibold text-white hover:bg-[#174D3B] disabled:opacity-60"
+              className="rounded-xl bg-emerald-950 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-60"
             >
               {loading ? "שולח..." : "שליחת בקשה"}
             </button>
@@ -698,16 +698,16 @@ function SectionHeading({
 }) {
   const barClass =
     tone === "green"
-      ? "bg-[#0F3B2E]"
+      ? "bg-emerald-950"
       : tone === "gold"
-      ? "bg-[#C9A227]"
-      : "bg-[#C9A227]";
+      ? "bg-amber-400"
+      : "bg-amber-400";
   const textClass =
     tone === "green"
-      ? "text-[#0F3B2E]"
+      ? "text-emerald-950"
       : tone === "gold"
       ? "text-[#8A6A12]"
-      : "text-[#0F3B2E]";
+      : "text-emerald-950";
   return (
     <div className="flex items-center justify-start gap-3">
       <span className={`h-5 w-1 rounded-full ${barClass}`} aria-hidden />
