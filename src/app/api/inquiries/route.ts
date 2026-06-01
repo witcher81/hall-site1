@@ -3,6 +3,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import {
+  notifySeekerInquiryReplied,
+  notifyVenueOwnerNewInquiry,
+} from "@/lib/transactionalEmails";
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
 import {
   getInquiryGuestBounds,
@@ -182,6 +186,22 @@ export async function POST(req: NextRequest) {
     href: `/dashboard/venue-owner/inquiries/${inquiry.id}`,
   });
 
+  const ownerUser = await prisma.user.findUnique({
+    where: { id: venue.ownerId },
+    select: { email: true, name: true },
+  });
+  if (ownerUser?.email) {
+    notifyVenueOwnerNewInquiry({
+      ownerEmail: ownerUser.email,
+      ownerName: ownerUser.name,
+      venueName: venue.name,
+      inquiryId: inquiry.id,
+      seekerName: user.name,
+      preferredDate,
+      eventType,
+    });
+  }
+
   const autoText = venue.autoReplyMessage?.trim();
   let resultInquiry = inquiry;
   if (autoText && autoText.length > 0) {
@@ -201,6 +221,14 @@ export async function POST(req: NextRequest) {
       body: `התקבלה תשובה אוטומטית לפנייה עבור "${venue.name}".`,
       href: "/my-inquiries",
     });
+    if (user.email) {
+      notifySeekerInquiryReplied({
+        seekerEmail: user.email,
+        seekerName: user.name,
+        venueName: venue.name,
+        autoReply: true,
+      });
+    }
     const updated = await prisma.inquiry.findUnique({ where: { id: inquiry.id } });
     if (updated) resultInquiry = updated;
   }

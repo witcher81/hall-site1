@@ -1,11 +1,11 @@
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
 import { prisma } from "@/lib/prisma";
 import { parseEventTypesList } from "@/lib/venueEditFormParse";
 import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import type { VenueInquiryAmenitiesInput } from "@/lib/venueInquiryAmenities";
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
-import HomeHeader from "@/components/HomeHeader";
+import SitePageHeader from "@/components/layout/SitePageHeader";
+import SitePageShell from "@/components/layout/SitePageShell";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import VenueInquiryClient from "../VenueInquiryClient";
@@ -91,41 +91,35 @@ export default async function VenueInquiryPage({
   if (venue.accessible === true) presetLabels.push("נגישות לנכים");
 
   return (
-    <div className="site-page">
-      <HomeHeader
-        user={user}
-        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-      />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <p className="text-right text-xs text-neutral-600">
-          <a href={`/halls/${venue.id}`} className="font-medium text-emerald-950 hover:underline">
-            ← חזרה לדף האולם
-          </a>
-        </p>
-        <h1 className="mt-2 text-right text-xl font-semibold text-neutral-900">
-          בקשה להצעת מחיר — {venue.name}
-        </h1>
-        <p className="mt-1 text-right text-sm text-neutral-600">
-          {INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} ההזמנה בשלבים: פרטי האירוע, מה האולם
-          מציע (כלול / בתוספת, בחירת מקור ספקים, וחופה בחתונה), ושליחה.
-        </p>
-        <Suspense
-          fallback={
-            <p className="mt-8 text-center text-sm text-neutral-600">טוען טופס...</p>
-          }
+    <SitePageShell mainWidth="narrow">
+      <SitePageHeader
+        kicker="בקשה להצעת מחיר"
+        title={venue.name}
+        description={`${INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} ההזמנה בשלבים: פרטי האירוע, מה האולם מציע, ושליחה.`}
+      >
+        <a
+          href={`/halls/${venue.id}`}
+          className="inline-block text-sm font-semibold text-emerald-950 underline-offset-4 hover:text-amber-700 hover:underline"
         >
-          <VenueInquiryClient
-            venueId={venue.id}
-            venueName={venue.name}
-            minGuests={venue.minGuests}
-            maxGuests={venue.maxGuests}
-            eventTypes={eventTypes}
-            venueAmenities={venueAmenities}
-            parkingKind={parkingKind}
-            presetLabels={presetLabels}
-          />
-        </Suspense>
-      </main>
-    </div>
+          ← חזרה לדף האולם
+        </a>
+      </SitePageHeader>
+      <Suspense
+        fallback={
+          <p className="mt-8 text-center text-sm text-neutral-600">טוען טופס...</p>
+        }
+      >
+        <VenueInquiryClient
+          venueId={venue.id}
+          venueName={venue.name}
+          minGuests={venue.minGuests}
+          maxGuests={venue.maxGuests}
+          eventTypes={eventTypes}
+          venueAmenities={venueAmenities}
+          parkingKind={parkingKind}
+          presetLabels={presetLabels}
+        />
+      </Suspense>
+    </SitePageShell>
   );
 }

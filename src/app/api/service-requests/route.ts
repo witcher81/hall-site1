@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { notifyFreelancerNewServiceRequest } from "@/lib/transactionalEmails";
 import { validatePreferredDateNotPast } from "@/lib/validatePreferredDate";
 import {
   USER_INPUT_MAX,
@@ -56,7 +57,12 @@ export async function POST(req: NextRequest) {
 
   const service = await prisma.service.findUnique({
     where: { id: serviceId },
-    select: { id: true, providerId: true, name: true },
+    select: {
+      id: true,
+      providerId: true,
+      name: true,
+      provider: { select: { email: true, name: true, businessName: true } },
+    },
   });
   if (!service) {
     return NextResponse.json({ error: "שירות לא נמצא" }, { status: 404 });
@@ -79,6 +85,16 @@ export async function POST(req: NextRequest) {
     body: `התקבלה בקשה חדשה עבור השירות "${service.name}".`,
     href: "/dashboard/freelancer/requests",
   });
+
+  const providerEmail = service.provider.email;
+  if (providerEmail) {
+    notifyFreelancerNewServiceRequest({
+      providerEmail,
+      providerName: service.provider.businessName ?? service.provider.name,
+      serviceName: service.name,
+      seekerName: user.name,
+    });
+  }
 
   return NextResponse.json({ request }, { status: 201 });
 }

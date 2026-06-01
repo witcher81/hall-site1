@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { notifySeekerServiceRequestReplied } from "@/lib/transactionalEmails";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -68,7 +69,10 @@ export async function PATCH(req: NextRequest) {
 
   const serviceRequest = await prisma.serviceRequest.findFirst({
     where: { id },
-    include: { service: { select: { providerId: true, name: true } } },
+    include: {
+      service: { select: { providerId: true, name: true } },
+      user: { select: { email: true, name: true } },
+    },
   });
   if (!serviceRequest || serviceRequest.service.providerId !== user.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -94,6 +98,13 @@ export async function PATCH(req: NextRequest) {
       body: `הספק ענה לבקשה שלך עבור "${serviceRequest.service.name}".`,
       href: "/my-service-requests",
     });
+    if (serviceRequest.user.email) {
+      notifySeekerServiceRequestReplied({
+        seekerEmail: serviceRequest.user.email,
+        seekerName: serviceRequest.user.name,
+        serviceName: serviceRequest.service.name,
+      });
+    }
   }
 
   return NextResponse.json({ ok: true });

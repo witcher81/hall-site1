@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { notifySeekerInquiryReplied } from "@/lib/transactionalEmails";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -55,7 +56,10 @@ export async function PATCH(req: NextRequest) {
 
   const inquiry = await prisma.inquiry.findFirst({
     where: { id },
-    include: { venue: { select: { ownerId: true, name: true } } },
+    include: {
+      venue: { select: { ownerId: true, name: true } },
+      user: { select: { email: true, name: true } },
+    },
   });
   if (!inquiry || inquiry.venue.ownerId !== user.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -131,6 +135,13 @@ export async function PATCH(req: NextRequest) {
       body: `בעל האולם ענה לפנייה שלך עבור "${inquiry.venue.name}".`,
       href: "/my-inquiries",
     });
+    if (inquiry.user.email) {
+      notifySeekerInquiryReplied({
+        seekerEmail: inquiry.user.email,
+        seekerName: inquiry.user.name,
+        venueName: inquiry.venue.name,
+      });
+    }
   }
 
   return NextResponse.json({ ok: true });

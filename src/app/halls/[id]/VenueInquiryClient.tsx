@@ -566,10 +566,10 @@ export default function VenueInquiryClient({
         onDaySelect={handleDayFromCalendar}
         disallowBookedPick
         calendarSelectNote="ממלאים את תאריך האירוע בטופס למטה. תאריכים אדומים — תפוסים ולא ניתן לבחור אותם."
-        sectionClassName="rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-sm"
+        sectionClassName="site-card-padded text-right text-sm"
       />
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+      <section className="site-card-padded text-right text-sm">
         <h2 className="text-base font-semibold text-emerald-950">הזמנת אולם — {venueName}</h2>
         <p className="mt-1 text-xs text-neutral-600">
           מלאו בשלבים: פרטי האירוע, מה האולם מציע (כלול / בתוספת תשלום), בחירות מקור ספקים, ושליחה.

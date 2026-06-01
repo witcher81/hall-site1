@@ -245,6 +245,16 @@ body {
   color: #d4d4d4;
 }
 
+/* פס עליון בדף אולם — שמנת + ירקרק עדין */
+.venue-hero-band {
+  background: linear-gradient(
+    135deg,
+    rgb(232 240 236 / 0.95) 0%,
+    var(--background-soft) 45%,
+    var(--background) 100%
+  );
+}
+
 /* רק כותרת האתר (HomeHeader) – לא כל <header> בעמוד, אחרת טקסט כהה על רקע ירוק */
 header.site-header {
   background-color: var(--brand) !important;

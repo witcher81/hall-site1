@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import HomeHeader from "@/components/HomeHeader";
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
+import SitePageShell from "@/components/layout/SitePageShell";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
 import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
@@ -106,21 +105,15 @@ export default async function HallPublicPage({
 
   if (!Number.isInteger(venueId) || venueId <= 0) {
     return (
-      <div className="site-page">
-        <HomeHeader
-          user={user}
-          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-        />
-        <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-neutral-800">מזהה אולם לא תקין.</p>
-          <a
-            href="/halls"
-            className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
-          >
-            חזרה לחיפוש אולמות
-          </a>
-        </main>
-      </div>
+      <SitePageShell mainWidth="narrow">
+        <p className="text-sm text-neutral-800">מזהה אולם לא תקין.</p>
+        <a
+          href="/halls"
+          className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
+        >
+          חזרה לחיפוש אולמות
+        </a>
+      </SitePageShell>
     );
   }
 
@@ -166,21 +159,15 @@ export default async function HallPublicPage({
 
   if (!venue) {
     return (
-      <div className="site-page">
-        <HomeHeader
-          user={user}
-          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-        />
-        <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-neutral-800">האולם לא נמצא.</p>
-          <a
-            href="/halls"
-            className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
-          >
-            חזרה לחיפוש אולמות
-          </a>
-        </main>
-      </div>
+      <SitePageShell mainWidth="narrow">
+        <p className="text-sm text-neutral-800">האולם לא נמצא.</p>
+        <a
+          href="/halls"
+          className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
+        >
+          חזרה לחיפוש אולמות
+        </a>
+      </SitePageShell>
     );
   }
 
@@ -276,11 +263,7 @@ export default async function HallPublicPage({
   }
 
   return (
-    <div className="site-page">
-      <HomeHeader
-        user={user}
-        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-      />
+    <SitePageShell mainWidth="narrow">
       <VenuePublicView
         user={user}
         isFavorite={isFavorite}
@@ -320,6 +303,6 @@ export default async function HallPublicPage({
           galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
         }}
       />
-    </div>
+    </SitePageShell>
   );
 }

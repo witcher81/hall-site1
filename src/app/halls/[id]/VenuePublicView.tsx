@@ -562,9 +562,18 @@ export default function VenuePublicView({
   };
 
   return (
-    <main className="relative mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-        <div className="relative border-b border-[#E8E0D4] bg-gradient-to-br from-[#E8F0EC] via-[#F2EDE4] to-[#EDE6DB]">
+    <div className="relative space-y-8">
+      <p className="text-right text-sm">
+        <a
+          href="/halls"
+          className="font-medium text-emerald-950 underline-offset-4 hover:text-amber-700 hover:underline"
+        >
+          ← חזרה לחיפוש אולמות
+        </a>
+      </p>
+
+      <section className="site-card overflow-hidden text-right text-sm">
+        <div className="venue-hero-band relative border-b border-neutral-200/80">
           {venue.coverImageUrl ? (
             <button
               type="button"
@@ -894,7 +903,7 @@ export default function VenuePublicView({
 
       <section
         id="venue-inquiry"
-        className="mt-8 scroll-mt-24 rounded-2xl border-2 border-[#C9A227]/35 bg-gradient-to-br from-[#FFFBF0] to-[#FAF8F4] p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.1)]"
+        className="site-card-padded scroll-mt-24 border-2 border-amber-400/40 bg-gradient-to-br from-amber-50/90 to-white/95 text-right"
       >
         <p className="text-[11px] font-semibold tracking-wide text-amber-600">השלב הבא</p>
         <h2 className="mt-1 text-lg font-bold text-emerald-950">שליחת בקשה לאולם</h2>
@@ -1021,7 +1030,7 @@ export default function VenuePublicView({
           </p>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 
@@ -1330,7 +1339,7 @@ function VenueReviewsSection({
   const showNewReviewForm = canReview && myReviewId == null;
 
   return (
-    <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-sm">
+    <section className="site-card-padded mt-8 text-right text-sm">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-emerald-950">ביקורות ודירוגים</h2>

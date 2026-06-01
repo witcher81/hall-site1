@@ -13,7 +13,7 @@ type Props = {
 
 export default function InquiryWizardNav({ steps, currentIndex, onGoTo }: Props) {
   return (
-    <nav aria-label="שלבי ההזמנה" className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+    <nav aria-label="שלבי ההזמנה" className="site-card p-3">
       <ol className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
         {steps.map((step, i) => {
           const done = i < currentIndex;
