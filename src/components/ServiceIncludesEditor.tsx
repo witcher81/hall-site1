@@ -8,6 +8,8 @@ import type {
 } from "@/lib/serviceIncludes";
 
 type Props = {
+  includesTravel: boolean;
+  onIncludesTravel: (v: boolean) => void;
   includesEquipment: boolean;
   onIncludesEquipment: (v: boolean) => void;
   includesNote: string;
@@ -27,6 +29,8 @@ const MAX_ITEM_DESC = 280;
 const MAX_NOTE = 500;
 
 export default function ServiceIncludesEditor({
+  includesTravel,
+  onIncludesTravel,
   includesEquipment,
   onIncludesEquipment,
   includesNote,
@@ -113,6 +117,20 @@ export default function ServiceIncludesEditor({
         </p>
 
         <div className="mt-3 space-y-2 text-xs text-neutral-800">
+          <label className="flex flex-wrap items-start gap-2">
+            <input
+              type="checkbox"
+              className={checkbox}
+              checked={includesTravel}
+              onChange={(e) => onIncludesTravel(e.target.checked)}
+            />
+            <span>
+              <span className="font-medium">כולל נסיעות</span>
+              <span className="mr-1 text-neutral-600">
+                — הגעה לאולם / לאזור השירות ללא תוספת תשלום (במסגרת המחיר).
+              </span>
+            </span>
+          </label>
           <label className="flex flex-wrap items-start gap-2">
             <input
               type="checkbox"

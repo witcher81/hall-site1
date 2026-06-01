@@ -57,6 +57,7 @@ export default async function ServiceEditPage({
           experienceYears: service.experienceYears ?? "",
           languages: service.languages ?? "",
           socialLinks: parseSocialLinksJson(service.socialLinksJson),
+          includesTravel: service.includesTravel,
           includesEquipment: service.includesEquipment,
           includesNote: service.includesNote ?? null,
           customIncludesJson: service.customIncludesJson ?? null,

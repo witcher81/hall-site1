@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
   const socialLinksJson = parseSocialLinksFormField(
     formData.get("socialLinks")
   );
-  const includesTravel = false;
+  const includesTravel = toBool(formData.get("includesTravel"));
   const includesEquipment = toBool(formData.get("includesEquipment"));
   const customIncludesJson = parseCustomIncludesFormField(
     formData.get("customIncludesJson")
@@ -304,7 +304,10 @@ export async function PUT(req: NextRequest) {
     maxPriceRaw !== null
       ? toIntOrNull((maxPriceRaw as string | null) ?? null)
       : existing.maxPrice;
-  const includesTravel = false;
+  const includesTravel =
+    formData.get("includesTravel") !== null
+      ? toBool(formData.get("includesTravel"))
+      : existing.includesTravel;
   const includesEquipment =
     formData.get("includesEquipment") !== null
       ? toBool(formData.get("includesEquipment"))

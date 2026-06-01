@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
-import HomeHeader from "@/components/HomeHeader";
+import SitePageShell from "@/components/layout/SitePageShell";
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import ProviderViewClient from "./ProviderViewClient";
 
@@ -9,23 +8,19 @@ export default async function ProviderPage({
   params,
 }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params;
-  const user = await getCurrentUser();
   const providerId = Number(userId);
 
   if (!Number.isInteger(providerId) || providerId <= 0) {
     return (
-      <div className="site-page">
-        <HomeHeader
-          user={user}
-          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-        />
-        <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-neutral-800">ספק לא נמצא.</p>
-          <a href="/providers" className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline">
-            חזרה לחיפוש ספקים
-          </a>
-        </main>
-      </div>
+      <SitePageShell mainWidth="narrow">
+        <p className="text-sm text-neutral-800">ספק לא נמצא.</p>
+        <a
+          href="/providers"
+          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
+        >
+          חזרה לחיפוש ספקים
+        </a>
+      </SitePageShell>
     );
   }
 
@@ -43,18 +38,15 @@ export default async function ProviderPage({
 
   if (!provider) {
     return (
-      <div className="site-page">
-        <HomeHeader
-          user={user}
-          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-        />
-        <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-neutral-800">ספק לא נמצא.</p>
-          <a href="/providers" className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline">
-            חזרה לחיפוש ספקים
-          </a>
-        </main>
-      </div>
+      <SitePageShell mainWidth="narrow">
+        <p className="text-sm text-neutral-800">ספק לא נמצא.</p>
+        <a
+          href="/providers"
+          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
+        >
+          חזרה לחיפוש ספקים
+        </a>
+      </SitePageShell>
     );
   }
 
@@ -63,12 +55,21 @@ export default async function ProviderPage({
     orderBy: { createdAt: "desc" },
   });
 
+  const providerName = provider.businessName || provider.name || "ספק";
+
   return (
-    <div className="site-page">
-      <HomeHeader
-          user={user}
-          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-        />
+    <SitePageShell mainWidth="narrow">
+      <SitePageHeader
+        title={providerName}
+        description={provider.businessAddress ?? undefined}
+      >
+        <a
+          href="/providers"
+          className="inline-block text-sm font-semibold text-emerald-950 underline-offset-4 hover:text-amber-700 hover:underline"
+        >
+          ← חזרה לחיפוש ספקים
+        </a>
+      </SitePageHeader>
       <ProviderViewClient
         provider={{
           id: provider.id,
@@ -89,6 +90,6 @@ export default async function ProviderPage({
           maxPrice: s.maxPrice,
         }))}
       />
-    </div>
+    </SitePageShell>
   );
 }

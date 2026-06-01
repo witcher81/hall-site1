@@ -190,6 +190,7 @@ export function sanitizeIncludesNote(
 }
 
 export function hasAnyServiceIncludes(
+  includesTravel: boolean,
   includesEquipment: boolean,
   included: ServiceCustomInclude[],
   includesNote?: string | null,
@@ -197,6 +198,7 @@ export function hasAnyServiceIncludes(
 ): boolean {
   const paid = paidExtras ?? [];
   return (
+    includesTravel ||
     includesEquipment ||
     included.some((c) => c.checked && c.label.trim().length > 0) ||
     paid.some((p) => p.label.trim().length > 0) ||

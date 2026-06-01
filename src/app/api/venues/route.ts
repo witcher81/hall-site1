@@ -10,6 +10,7 @@ import { VENUE_TYPE_VALUE_SET } from "@/lib/venueTypeOptions";
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const city = searchParams.get("city")?.trim();
+  const q = searchParams.get("q")?.trim();
   const minGuests = searchParams.get("minGuests");
   const maxGuests = searchParams.get("maxGuests");
   const minPrice = searchParams.get("minPrice");
@@ -103,6 +104,12 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  if (q && q.length >= 2) {
+    andParts.push({
+      OR: [{ name: { contains: q } }, { city: { contains: q } }],
+    });
+  }
+
   if (andParts.length > 0) {
     where.AND = andParts;
   }
@@ -163,6 +170,7 @@ export async function GET(req: NextRequest) {
 
   const venues = await prisma.venue.findMany({
     where,
+    take: q && q.length >= 2 ? 20 : undefined,
     select: {
       id: true,
       name: true,

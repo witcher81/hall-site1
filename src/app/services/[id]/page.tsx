@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
-import HomeHeader from "@/components/HomeHeader";
+import SitePageShell from "@/components/layout/SitePageShell";
 import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import SingleServiceView from "./SingleServiceView";
@@ -18,21 +17,15 @@ export default async function PublicSingleServicePage({
 
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
     return (
-      <div className="site-page">
-        <HomeHeader
-          user={user}
-          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-        />
-        <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-neutral-800">השירות לא נמצא.</p>
-          <a
-            href="/providers"
-            className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
-          >
-            חזרה לחיפוש ספקים
-          </a>
-        </main>
-      </div>
+      <SitePageShell mainWidth="narrow">
+        <p className="text-sm text-neutral-800">השירות לא נמצא.</p>
+        <a
+          href="/providers"
+          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
+        >
+          חזרה לחיפוש ספקים
+        </a>
+      </SitePageShell>
     );
   }
 
@@ -55,21 +48,15 @@ export default async function PublicSingleServicePage({
 
   if (!service || service.provider.role !== "FREELANCER") {
     return (
-      <div className="site-page">
-        <HomeHeader
-          user={user}
-          canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-        />
-        <main className="mx-auto max-w-3xl px-4 py-12 text-right">
-          <p className="text-sm text-neutral-800">השירות לא נמצא.</p>
-          <a
-            href="/providers"
-            className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
-          >
-            חזרה לחיפוש ספקים
-          </a>
-        </main>
-      </div>
+      <SitePageShell mainWidth="narrow">
+        <p className="text-sm text-neutral-800">השירות לא נמצא.</p>
+        <a
+          href="/providers"
+          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
+        >
+          חזרה לחיפוש ספקים
+        </a>
+      </SitePageShell>
     );
   }
 
@@ -90,11 +77,7 @@ export default async function PublicSingleServicePage({
   const bundle = parseServiceIncludesBundle(service.customIncludesJson);
 
   return (
-    <div className="site-page">
-      <HomeHeader
-        user={user}
-        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
-      />
+    <SitePageShell mainWidth="narrow">
       <SingleServiceView
         provider={{
           id: service.provider.id,
@@ -115,6 +98,7 @@ export default async function PublicSingleServicePage({
           languages: service.languages,
           responseTimeHint: service.responseTimeHint,
           socialLinksJson: service.socialLinksJson,
+          includesTravel: service.includesTravel,
           includesEquipment: service.includesEquipment,
           customIncludes: bundle.included,
           paidExtras: bundle.paidExtras,
@@ -129,6 +113,6 @@ export default async function PublicSingleServicePage({
         currentUserId={user?.id ?? null}
         canWriteServiceReview={canWriteServiceReview}
       />
-    </div>
+    </SitePageShell>
   );
 }

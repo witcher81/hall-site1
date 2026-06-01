@@ -38,19 +38,17 @@ export default function AfterVenueGuideClient({
 
   return (
     <div className="space-y-8 text-right">
-      <header className="border-b border-neutral-200 pb-6">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-          HALLS HUB
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-emerald-950">אחרי שבחרתם אולם</h1>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+      <header className="site-page-header">
+        <p className="site-kicker">המשך אחרי בחירת אולם</p>
+        <h1 className="site-page-title">אחרי שבחרתם אולם</h1>
+        <p className="site-page-lead">
           בחרתם ב־<strong className="text-neutral-800">{venueName}</strong>
           {venueCity ? ` · ${venueCity}` : ""}. כאן משווים תוספות בתשלום באולם מול ספקים
           במאגר, ואז אפשר לסמן מה עוד מעניין אתכם — בלי התחייבות. בכל שלב אפשר לחזור או לדלג.
         </p>
       </header>
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+      <section className="site-card-padded">
         <h2 className="text-base font-bold text-emerald-950">סוג האירוע שלכם</h2>
         <p className="mt-1 text-xs text-neutral-600">
           ההצעות למטה מותאמות לסוג — אפשר לשנות בכל רגע.
@@ -76,7 +74,7 @@ export default function AfterVenueGuideClient({
         </select>
       </section>
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+      <section className="site-card-padded">
         <h2 className="text-base font-bold text-emerald-950">השוואת תוספות (בתשלום באולם)</h2>
         <p className="mt-1 text-xs leading-relaxed text-neutral-600">
           כשהאולם מציין מחיר בתוספת לשירות, אנחנו מחפשים במאגר ספקים מאותה קטגוריה עם מחיר
@@ -135,7 +133,7 @@ export default function AfterVenueGuideClient({
         )}
       </section>
 
-      <section className="rounded-2xl border border-emerald-950/20 bg-gradient-to-br from-[#E8F0EC]/80 to-[#FAF8F4] p-5 shadow-sm">
+      <section className="site-card-padded border-amber-300/40 bg-gradient-to-br from-emerald-50/80 to-amber-50/50">
         <h2 className="text-base font-bold text-emerald-950">מה עוד מעניין אתכם?</h2>
         <p className="mt-1 text-xs leading-relaxed text-neutral-600">
           זה לא ניתוח &quot;מה חסר&quot; בפועל — רק הצעות נפוצות לפי סוג האירוע. סמנו כן אם

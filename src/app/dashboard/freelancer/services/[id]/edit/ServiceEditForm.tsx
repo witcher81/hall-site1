@@ -33,6 +33,7 @@ type Props = {
     experienceYears: string | number;
     languages: string;
     socialLinks: SocialLink[];
+    includesTravel: boolean;
     includesEquipment: boolean;
     includesNote: string | null;
     customIncludesJson: string | null;
@@ -60,6 +61,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     serviceArea: initial.serviceArea,
     experienceYears: String(initial.experienceYears ?? ""),
     languages: initial.languages ?? "",
+    includesTravel: initial.includesTravel,
     includesEquipment: initial.includesEquipment,
     includesNote: initial.includesNote ?? "",
     exactPrice: initialPrice.exactPrice,
@@ -126,6 +128,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         "socialLinks",
         JSON.stringify(socialLinks.filter((l) => l.url.trim()))
       );
+      fd.append("includesTravel", String(form.includesTravel));
       fd.append("includesEquipment", String(form.includesEquipment));
       fd.append("includesNote", form.includesNote.trim());
       fd.append(
@@ -259,6 +262,8 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       />
 
       <ServiceIncludesEditor
+        includesTravel={form.includesTravel}
+        onIncludesTravel={(v) => setForm((f) => ({ ...f, includesTravel: v }))}
         includesEquipment={form.includesEquipment}
         onIncludesEquipment={(v) =>
           setForm((f) => ({ ...f, includesEquipment: v }))

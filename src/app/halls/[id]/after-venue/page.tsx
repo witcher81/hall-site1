@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import HomeHeader from "@/components/HomeHeader";
-import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
+import SitePageShell from "@/components/layout/SitePageShell";
 import {
   HALL_BUILTIN_LABELS,
   type HallMoneyBuiltinKey,
@@ -105,8 +103,6 @@ export default async function AfterVenuePage({
   });
   if (!venue) notFound();
 
-  const user = await getCurrentUser();
-
   const { amenityExtraPrices, customExtras } = parseVenueMoneyRows(
     venue.customAmenitiesJson
   );
@@ -191,21 +187,15 @@ export default async function AfterVenuePage({
     : eventTypes[0] ?? "חתונה";
 
   return (
-    <div className="site-page">
-      <HomeHeader
-        user={user}
-        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
+    <SitePageShell mainWidth="narrow" mainClassName="max-w-2xl">
+      <AfterVenueGuideClient
+        venueId={venue.id}
+        venueName={venue.name}
+        venueCity={venue.city}
+        savingsOpportunities={savingsOpportunities}
+        defaultEventType={defaultEventType}
+        eventTypesOffered={eventTypes}
       />
-      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-        <AfterVenueGuideClient
-          venueId={venue.id}
-          venueName={venue.name}
-          venueCity={venue.city}
-          savingsOpportunities={savingsOpportunities}
-          defaultEventType={defaultEventType}
-          eventTypesOffered={eventTypes}
-        />
-      </main>
-    </div>
+    </SitePageShell>
   );
 }

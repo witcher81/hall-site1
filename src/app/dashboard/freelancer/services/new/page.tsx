@@ -30,6 +30,7 @@ export default function NewServicePage() {
     serviceArea: "",
     experienceYears: "",
     languages: "",
+    includesTravel: false,
     includesEquipment: false,
     includesNote: "",
     exactPrice: "",
@@ -90,6 +91,7 @@ export default function NewServicePage() {
         "socialLinks",
         JSON.stringify(socialLinks.filter((l) => l.url.trim()))
       );
+      fd.append("includesTravel", String(form.includesTravel));
       fd.append("includesEquipment", String(form.includesEquipment));
       fd.append("includesNote", form.includesNote.trim());
       fd.append(
@@ -252,6 +254,8 @@ export default function NewServicePage() {
         />
 
         <ServiceIncludesEditor
+          includesTravel={form.includesTravel}
+          onIncludesTravel={(v) => setForm((f) => ({ ...f, includesTravel: v }))}
           includesEquipment={form.includesEquipment}
           onIncludesEquipment={(v) =>
             setForm((f) => ({ ...f, includesEquipment: v }))

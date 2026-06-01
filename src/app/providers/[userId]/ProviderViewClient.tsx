@@ -41,35 +41,18 @@ export default function ProviderViewClient({
     recordProviderRecentlyViewed(provider.id);
   }, [provider.id]);
 
-  const providerName = provider.businessName || provider.name || "ספק";
-
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
-        <div className="text-right">
-          <h1 className="text-xl font-semibold text-emerald-950">{providerName}</h1>
-          {provider.businessAddress && (
-            <p className="mt-1 text-xs text-neutral-600">{provider.businessAddress}</p>
-          )}
-        </div>
-        <a
-          href="/providers"
-          className="text-sm text-emerald-950 underline-offset-4 hover:text-[#174D3B] hover:underline"
-        >
-          חזרה לחיפוש ספקים
-        </a>
-      </header>
-
+    <div className="space-y-6">
       {provider.socialLinks.length > 0 && (
-        <div className="mt-4 rounded-xl bg-[#141414] px-4 py-3 shadow-inner">
-          <p className="mb-2 text-right text-[11px] font-medium text-white/70">
+        <div className="site-card-padded">
+          <p className="mb-2 text-right text-xs font-medium text-neutral-600">
             רשתות וקישורים
           </p>
-          <SocialLinksRow links={provider.socialLinks} dark />
+          <SocialLinksRow links={provider.socialLinks} />
         </div>
       )}
 
-      <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-sm">
+      <section className="site-card-padded text-right text-sm">
         <h2 className="text-base font-semibold text-emerald-950">השירותים של הספק</h2>
         <p className="mt-1 text-xs text-neutral-600">
           לחיצה על שירות פותחת את עמוד השירות עם הפרטים המלאים וטופס שליחת בקשה.
@@ -77,7 +60,7 @@ export default function ProviderViewClient({
         {services.length === 0 ? (
           <p className="mt-3 text-neutral-600">אין שירותים מוגדרים.</p>
         ) : (
-          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
             {services.map((s) => {
               const blurb = mergeFreelancerServiceDescriptionForForm(
                 s.shortDescription,
@@ -91,17 +74,17 @@ export default function ProviderViewClient({
                 <li key={s.id}>
                   <a
                     href={`/services/${s.id}`}
-                    className="flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 transition hover:border-amber-400/60 hover:shadow"
+                    className="site-card flex h-full flex-col overflow-hidden transition hover:border-amber-400/50 hover:shadow-lg"
                   >
                     {s.coverImageUrl && (
                       <img
                         src={s.coverImageUrl}
                         alt={s.name}
-                        className="h-28 w-full object-cover"
+                        className="h-32 w-full object-cover"
                       />
                     )}
-                    <div className="p-3 text-right">
-                      <p className="font-medium text-neutral-900">{s.name}</p>
+                    <div className="p-4 text-right">
+                      <p className="font-semibold text-neutral-900">{s.name}</p>
                       {s.category && (
                         <p className="mt-0.5 text-xs text-emerald-950">{s.category}</p>
                       )}
@@ -111,11 +94,11 @@ export default function ProviderViewClient({
                         </p>
                       )}
                       {priceLine != null && (
-                        <p className="mt-1 text-xs font-semibold text-emerald-950">
+                        <p className="mt-2 text-xs font-semibold text-amber-700">
                           {priceLine}
                         </p>
                       )}
-                      <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600">
+                      <span className="mt-2 inline-flex text-[11px] font-semibold text-emerald-950">
                         לפרטים מלאים ←
                       </span>
                     </div>
@@ -126,6 +109,6 @@ export default function ProviderViewClient({
           </ul>
         )}
       </section>
-    </main>
+    </div>
   );
 }

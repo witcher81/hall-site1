@@ -1,45 +1,82 @@
-# רשימות שיחה – Halls Hub (להמשך עבודה)
+# Halls Hub — הקשר לעבודה (עדכון)
 
-**תאריך:** 15 מרץ 2025  
-**מטרה:** שמירת ההקשר כדי להמשיך אחרי סגירת Cursor.
-
----
-
-## מה נבנה עד עכשיו
-
-- **חיבור מחפש ↔ ספקים:**
-  - דף ספק `/providers/[userId]` – פרטי ספק, רשימת שירותים, טופס "שלח בקשה" (תאריך חובה, הודעה מינימום 10 תווים).
-  - דשבורד פרילנסר: **בקשות שהתקבלו** (`/dashboard/freelancer/requests`) – רשימה, סנן סטטוס, סמן כנקרא/נענה + הערה.
-  - מחפש: **הבקשות שלי לספקים** (`/my-service-requests`) – רשימת הבקשות ששלחת + תשובת הספק.
-  - קישורים: בהדר למחפש – "חיפוש ספקים", "הבקשות לספקים"; בדף הבית – "חיפוש ספקים"; בתפריט פרילנסר – "בקשות שהתקבלו".
-
-- **טכנולוגיה:** Next.js 16, Prisma (SQLite), client ב־`generated/prisma-client`. מודלים: User, Venue, Inquiry, Favorite, Service, ServiceRequest.
+**עדכון:** 19 מאי 2026  
+**מטרה:** להמשיך צ'אטים חדשים בלי לאבד את מצב הפרויקט.
 
 ---
 
-## איך להמשיך מחר
+## מה זה
 
-1. **אם הצ'אט נעלם:** פתח צ'אט חדש ב־Cursor והעתק לכאן (או צרף) את התוכן של הקובץ הזה, ואז כתוב למשל:  
-   "המשך מפרויקט Halls Hub – קרא את SESSION-NOTES.md והמשך משם."
-
-2. **שמירת צ'אטים ב־Cursor:**
-   - `Ctrl+Shift+P` → **Chat: Show History** – לראות שיחות קודמות.
-   - **הגדרות** → חיפוש "Chat" / "History" – ייתכן שיש אפשרות ל־Export או שמירת היסטוריה.
-   - ב־Windows ההיסטוריה נשמרת ב־  
-     `%APPDATA%\Cursor\User\workspaceStorage`  
-     (כל workspace יש לו תיקייה משלו – אם פותחים את אותו פרויקט מאותה תיקייה, לפעמים השיחה נשארת).
-
-3. **טיפ:** לפרויקט זה יש גם **Agent transcripts** בתיקייה של Cursor (agent-transcripts) – שם נשמרות שיחות בצורה מסודרת; אפשר להזכיר שם אם צריך.
+מארקטפלייס בעברית (RTL): **מחפשים (SEEKER)**, **בעלי אולמות (VENUE_OWNER)**, **פרילנסרים (FREELANCER)**.  
+חיפוש אולמות וספקים, פניות, הודעות, חבילות, בניית אירוע, מפות, מועדפים.
 
 ---
 
-## מה עוד אפשר לעשות (רעיונות להמשך)
+## טכנולוגיה (נוכחי)
 
-- שיפור עיצוב דפי ספקים ובקשות.
-- התראות/אימייל כשמתקבלת בקשה או תשובה.
-- חיפוש ספקים מתקדם (מיון, טקסט חופשי).
-- בדיקות (tests) ל־API ולדפים.
+| שכבה | בחירה |
+|------|--------|
+| אפליקציה | Next.js App Router, React |
+| DB | **PostgreSQL** (Neon) + **Prisma** — `prisma migrate deploy` ב-build |
+| פריסה | **Vercel** |
+| אימות | JWT ב-cookie `hall_session` (`src/lib/auth.ts`, server-only) |
+| Rate limit | Upstash Redis ב-middleware (`UPSTASH_REDIS_*`) |
+| תמונות | Vercel Blob בפרוד (`BLOB_READ_WRITE_TOKEN`), `public/uploads/` מקומי |
+| מיילים | Resend (`RESEND_API_KEY`, אופציונלי `EMAIL_FROM`) |
+| תור משימות | `BackgroundJob` + cron `GET /api/cron/process-jobs` + `CRON_SECRET` |
+
+**עיצוב:** רקע שמנת `#e5ddd0`, רכיבי `site-page` / `site-card` / `btn-primary` ב-`globals.css`, `SitePageShell` + `SiteFooter`.
 
 ---
 
-*קובץ זה נוצר כדי שההקשר יישאר בפרויקט גם אם צ'אט Cursor לא נשמר.*
+## בדיקה אחרי deploy (Vercel)
+
+1. **Settings → Environment Variables** (Production):
+
+| משתנה | חובה בפרוד? |
+|--------|-------------|
+| `DATABASE_URL` | כן |
+| `JWT_SECRET` (≥32 תווים) | כן |
+| `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | כן (בלי — כל `/api` → 503) |
+| `CRON_SECRET` | כן (תור מיילים / jobs) |
+| `BLOB_READ_WRITE_TOKEN` | כן להעלאת תמונות |
+| `RESEND_API_KEY` | מומלץ (איפוס סיסמה, מיילים טרנזקציוניים) |
+| `GOOGLE_GEOCODING_API_KEY` | אופציונלי (גיבוי גיאוקוד) |
+| `NEXT_PUBLIC_SENTRY_DSN` | אופציונלי |
+| `VENUE_BOOST_ALLOW_DEMO` | רק לבדיקות — קידום אולם דמו, לא סליקה אמיתית |
+
+2. פתח: `https://<הדומיין>/api/health`  
+   צריך `ok: true` ו-`warnings: []` (או אזהרות רק על אופציונליים).
+
+3. העתק משתנים מ-`.env.example` ל-`.env` מקומי — **אל תעלה `.env` ל-Git.**
+
+---
+
+## תכונות עיקריות (לא רשימה מלאה)
+
+- דף בית marketplace, חיפוש אולמות `/halls`, ספקים `/providers`, שירות `/services/[id]`
+- פנייה לאולם `/halls/[id]/inquiry` + תובנות חיסכון (deal-insights)
+- **בניית חבילה** `/event-builder` (ידני + חכם לפי אולם), צ'קליסט `/event-planner`
+- דשבורדים: בעל אולם, פרילנסר, מחפש; Dev user switcher (`ADMIN_EMAILS`, `ALLOW_DEV_USER_SWITCH`)
+- מיילים: איפוס סיסמה, פניות חדשות/תשובות (כש-Resend מוגדר)
+- קידום אולם: דמו רק עם `VENUE_BOOST_ALLOW_DEMO=true`
+
+---
+
+## איך להמשיך ב-Cursor
+
+1. צ'אט חדש +: «המשך מ-Halls Hub — קרא `SESSION-NOTES.md`»  
+2. `Ctrl+Shift+P` → **Chat: Show History** לשיחות קודמות  
+3. כללי פרויקט: `.cursor/rules/project-context.mdc`
+
+---
+
+## רעיונות / לא בוצע
+
+- סליקה אמיתית לקידום אולם (Stripe וכו')
+- OAuth (Google / Facebook)
+- סקריפטי בדיקה מקומיים ב-`scripts/test-*.mjs` — לא ב-git
+
+---
+
+*קובץ זה מחליף את הגרסה ממרץ 2025 (SQLite / ללא Neon).*

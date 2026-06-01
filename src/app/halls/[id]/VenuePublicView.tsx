@@ -919,6 +919,17 @@ export default function VenuePublicView({
           </a>
           {" — "}
           אחרי שבחרתם באולם: השוואת תוספות בתשלום מול המאגר, והצעות לפי סוג אירוע (בלי התחייבות).
+          {user?.role === "SEEKER" ? (
+            <>
+              {" "}
+              <a
+                href={`/event-builder?venueId=${venue.id}`}
+                className="font-semibold text-emerald-950 underline-offset-4 hover:underline"
+              >
+                בניית חבילת אירוע לפי אולם זה
+              </a>
+            </>
+          ) : null}
         </p>
         {!user ? (
           <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">

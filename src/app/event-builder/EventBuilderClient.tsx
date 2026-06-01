@@ -6,7 +6,9 @@ import {
   type SeekerBundleItem,
 } from "@/lib/seekerEventBundleTypes";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+type VenuePick = { id: number; name: string; city: string };
 
 type BundleJson = {
   id: number;
@@ -64,6 +66,11 @@ export default function EventBuilderClient() {
   const [autoBuilding, setAutoBuilding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addServiceId, setAddServiceId] = useState("");
+  const [addingService, setAddingService] = useState(false);
+  const [venueSearch, setVenueSearch] = useState("");
+  const [venueSuggestions, setVenueSuggestions] = useState<VenuePick[]>([]);
+  const [venueSearchLoading, setVenueSearchLoading] = useState(false);
+  const prefilledVenue = useRef(false);
 
   const totals = useMemo(() => estimateBundleTotal(items), [items]);
 
@@ -79,6 +86,44 @@ export default function EventBuilderClient() {
   useEffect(() => {
     loadBundles();
   }, [loadBundles]);
+
+  useEffect(() => {
+    if (prefilledVenue.current || typeof window === "undefined") return;
+    const vid = new URLSearchParams(window.location.search).get("venueId");
+    if (!vid || !/^\d+$/.test(vid)) return;
+    const id = Number(vid);
+    if (!Number.isInteger(id) || id <= 0) return;
+    prefilledVenue.current = true;
+    setVenueIdInput(vid);
+    void resolveVenueName(id);
+    setEditingId("new");
+  }, []);
+
+  useEffect(() => {
+    const query = venueSearch.trim();
+    if (query.length < 2) {
+      setVenueSuggestions([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setVenueSearchLoading(true);
+      fetch(`/api/venues?q=${encodeURIComponent(query)}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((json: { venues?: VenuePick[] }) => {
+          const list = json.venues ?? [];
+          setVenueSuggestions(
+            list.slice(0, 12).map((v) => ({
+              id: v.id,
+              name: v.name,
+              city: v.city,
+            }))
+          );
+        })
+        .catch(() => setVenueSuggestions([]))
+        .finally(() => setVenueSearchLoading(false));
+    }, 320);
+    return () => window.clearTimeout(timer);
+  }, [venueSearch]);
 
   function resetForm() {
     setTitle("");
@@ -111,6 +156,14 @@ export default function EventBuilderClient() {
     setItems(b.items);
     setBuildMode(b.buildMode === "auto" ? "auto" : "manual");
     setStatus(b.status === "ready" ? "ready" : "draft");
+    setError(null);
+  }
+
+  function pickVenue(v: VenuePick) {
+    setVenueIdInput(String(v.id));
+    setVenueName(v.name);
+    setVenueSearch("");
+    setVenueSuggestions([]);
     setError(null);
   }
 
@@ -161,28 +214,48 @@ export default function EventBuilderClient() {
     }
   }
 
-  function addMarketplaceService() {
+  async function addMarketplaceService() {
     const sid = Number(addServiceId);
     if (!Number.isInteger(sid) || sid <= 0) {
       setError("מזהה שירות לא תקין");
       return;
     }
-    setItems((prev) => [
-      ...prev,
-      {
-        id: newBundleItemId(),
-        slotKey: `service:${sid}`,
-        label: `שירות #${sid}`,
-        kind: "marketplace",
-        serviceId: sid,
-        source: "external",
-        priceFrom: null,
-        priceTo: null,
-        note: "עדכנו שם ומחיר אחרי טעינת דף השירות",
-      },
-    ]);
-    setAddServiceId("");
+    setAddingService(true);
     setError(null);
+    try {
+      const res = await fetch(`/api/services/summary?ids=${sid}`);
+      const data = await res.json().catch(() => null);
+      const svc = data?.services?.[0] as
+        | {
+            name?: string;
+            category?: string | null;
+            minPrice?: number | null;
+            maxPrice?: number | null;
+          }
+        | undefined;
+      setItems((prev) => [
+        ...prev,
+        {
+          id: newBundleItemId(),
+          slotKey: `service:${sid}`,
+          label: typeof svc?.name === "string" ? svc.name : `שירות #${sid}`,
+          kind: "marketplace",
+          serviceId: sid,
+          source: "external",
+          priceFrom: svc?.minPrice ?? null,
+          priceTo: svc?.maxPrice ?? null,
+          note:
+            typeof svc?.category === "string" && svc.category
+              ? svc.category
+              : undefined,
+        },
+      ]);
+      setAddServiceId("");
+    } catch {
+      setError("לא ניתן לטעון את השירות");
+    } finally {
+      setAddingService(false);
+    }
   }
 
   function removeItem(id: string) {
@@ -258,7 +331,7 @@ export default function EventBuilderClient() {
           </p>
         ) : null}
 
-        <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <section className="site-card-padded">
           <h2 className="text-sm font-bold text-emerald-950">פרטי האירוע</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="block text-xs font-semibold text-emerald-950 sm:col-span-2">
@@ -266,7 +339,7 @@ export default function EventBuilderClient() {
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+                className="site-input mt-1 text-sm"
               />
             </label>
             <label className="block text-xs font-semibold text-emerald-950">
@@ -274,7 +347,7 @@ export default function EventBuilderClient() {
               <select
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+                className="site-input mt-1 text-sm"
               >
                 {EVENT_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -289,7 +362,7 @@ export default function EventBuilderClient() {
                 type="date"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+                className="site-input mt-1 text-sm"
               />
             </label>
             <label className="block text-xs font-semibold text-emerald-950">
@@ -298,7 +371,7 @@ export default function EventBuilderClient() {
                 inputMode="numeric"
                 value={guestCount}
                 onChange={(e) => setGuestCount(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+                className="site-input mt-1 text-sm"
               />
             </label>
             <label className="block text-xs font-semibold text-emerald-950">
@@ -306,28 +379,55 @@ export default function EventBuilderClient() {
               <input
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+                className="site-input mt-1 text-sm"
               />
             </label>
           </div>
         </section>
 
-        <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <section className="site-card-padded">
           <h2 className="text-sm font-bold text-emerald-950">אולם</h2>
           <p className="mt-1 text-[11px] text-neutral-600">
-            הזינו מזהה אולם מהאתר, או{" "}
+            חפשו לפי שם או עיר, או{" "}
             <Link href="/halls" className="font-semibold text-emerald-950 underline">
-              בחרו מהחיפוש
+              עברו לחיפוש אולמות
             </Link>
             .
           </p>
+          <div className="relative mt-3">
+            <input
+              value={venueSearch}
+              onChange={(e) => setVenueSearch(e.target.value)}
+              placeholder="שם אולם או עיר (לפחות 2 תווים)"
+              className="site-input text-sm"
+            />
+            {venueSearchLoading ? (
+              <p className="mt-1 text-[11px] text-neutral-500">מחפש…</p>
+            ) : null}
+            {venueSuggestions.length > 0 ? (
+              <ul className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-lg">
+                {venueSuggestions.map((v) => (
+                  <li key={v.id}>
+                    <button
+                      type="button"
+                      onClick={() => pickVenue(v)}
+                      className="w-full px-3 py-2 text-right text-sm hover:bg-amber-50"
+                    >
+                      <span className="font-medium text-emerald-950">{v.name}</span>
+                      <span className="mr-2 text-neutral-600">· {v.city}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <input
               inputMode="numeric"
-              placeholder="מזהה אולם"
+              placeholder="מזהה אולם (מתקדם)"
               value={venueIdInput}
               onChange={(e) => setVenueIdInput(e.target.value)}
-              className="min-w-[120px] flex-1 rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+              className="site-input min-w-[120px] flex-1 text-sm"
             />
             <button
               type="button"
@@ -335,7 +435,7 @@ export default function EventBuilderClient() {
                 const id = Number(venueIdInput);
                 if (Number.isInteger(id) && id > 0) void resolveVenueName(id);
               }}
-              className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-semibold text-emerald-950"
+              className="btn-secondary shrink-0 px-4 py-2 text-sm"
             >
               טען שם
             </button>
@@ -343,7 +443,7 @@ export default function EventBuilderClient() {
               type="button"
               disabled={autoBuilding}
               onClick={() => void runAutoBuild()}
-              className="rounded-xl bg-amber-400 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+              className="btn-primary shrink-0 px-4 py-2 text-sm disabled:opacity-60"
             >
               {autoBuilding ? "בונה…" : "בנה חבילה חכמה מהאולם"}
             </button>
@@ -363,7 +463,7 @@ export default function EventBuilderClient() {
           ) : null}
         </section>
 
-        <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <section className="site-card-padded">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-bold text-emerald-950">פריטים בחבילה</h2>
             {totals.pricedCount > 0 ? (
@@ -386,7 +486,7 @@ export default function EventBuilderClient() {
               {items.map((it) => (
                 <li
                   key={it.id}
-                  className="rounded-xl border border-[#E8E0D6] bg-neutral-50 px-3 py-2.5"
+                  className="site-card rounded-xl px-3 py-2.5 bg-white/80"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -423,25 +523,23 @@ export default function EventBuilderClient() {
             </ul>
           )}
 
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-[#E8E0D6] pt-4">
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-neutral-200/80 pt-4">
             <input
               inputMode="numeric"
               placeholder="מזהה שירות במאגר"
               value={addServiceId}
               onChange={(e) => setAddServiceId(e.target.value)}
-              className="min-w-[140px] flex-1 rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+              className="site-input min-w-[140px] flex-1 text-sm"
             />
             <button
               type="button"
-              onClick={addMarketplaceService}
-              className="rounded-xl border-2 border-emerald-950 px-4 py-2 text-sm font-semibold text-emerald-950"
+              disabled={addingService}
+              onClick={() => void addMarketplaceService()}
+              className="btn-secondary shrink-0 px-4 py-2 text-sm disabled:opacity-60"
             >
-              הוסף שירות
+              {addingService ? "טוען…" : "הוסף שירות"}
             </button>
-            <Link
-              href="/providers"
-              className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-semibold text-emerald-950"
-            >
+            <Link href="/providers" className="btn-secondary shrink-0 px-4 py-2 text-sm">
               חפשו במאגר
             </Link>
           </div>
@@ -468,10 +566,7 @@ export default function EventBuilderClient() {
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
           {inquiryHref ? (
-            <Link
-              href={inquiryHref}
-              className="min-h-[48px] rounded-2xl border-2 border-emerald-950 px-6 text-center text-sm font-semibold leading-[48px] text-emerald-950"
-            >
+            <Link href={inquiryHref} className="btn-secondary min-h-[48px] px-6 text-center">
               שליחת פנייה לאולם
             </Link>
           ) : (
@@ -481,7 +576,7 @@ export default function EventBuilderClient() {
             type="button"
             disabled={saving}
             onClick={() => void saveBundle()}
-            className="min-h-[48px] rounded-2xl bg-emerald-950 px-8 font-bold text-white disabled:opacity-60"
+            className="btn-primary min-h-[48px] px-8 disabled:opacity-60"
           >
             {saving ? "שומר…" : "שמירת החבילה"}
           </button>
@@ -492,18 +587,14 @@ export default function EventBuilderClient() {
 
   return (
     <div className="mt-6 space-y-4 text-right">
-      <button
-        type="button"
-        onClick={openNew}
-        className="w-full rounded-2xl bg-emerald-950 py-3 text-sm font-bold text-white shadow-md"
-      >
+      <button type="button" onClick={openNew} className="btn-primary w-full py-3 text-sm">
         + חבילת אירוע חדשה
       </button>
 
       {loadingList ? (
         <p className="text-sm text-neutral-600">טוען חבילות…</p>
       ) : bundles.length === 0 ? (
-        <p className="rounded-xl border border-[#E8E0D4] bg-white px-4 py-8 text-center text-sm text-neutral-600">
+        <p className="site-card-padded text-center text-sm text-neutral-600">
           עדיין אין חבילות שמורות. התחילו בחבילה חדשה — ידנית או חכמה לפי אולם.
         </p>
       ) : (
@@ -511,10 +602,7 @@ export default function EventBuilderClient() {
           {bundles.map((b) => {
             const t = estimateBundleTotal(b.items);
             return (
-              <li
-                key={b.id}
-                className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"
-              >
+              <li key={b.id} className="site-card-padded">
                 <p className="font-semibold text-emerald-950">
                   {b.title || b.eventType}
                   {b.buildMode === "auto" ? (
@@ -531,7 +619,7 @@ export default function EventBuilderClient() {
                   <button
                     type="button"
                     onClick={() => openEdit(b)}
-                    className="rounded-lg bg-emerald-950/10 px-3 py-1.5 text-xs font-semibold text-emerald-950"
+                    className="btn-secondary px-3 py-1.5 text-xs"
                   >
                     עריכה
                   </button>

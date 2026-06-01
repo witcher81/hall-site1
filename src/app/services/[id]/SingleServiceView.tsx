@@ -37,6 +37,7 @@ type Service = {
   languages: string | null;
   responseTimeHint: string | null;
   socialLinksJson: string | null;
+  includesTravel: boolean;
   includesEquipment: boolean;
   customIncludes: ServiceCustomInclude[];
   paidExtras: ServicePaidExtraItem[];
@@ -189,9 +190,11 @@ export default function SingleServiceView({
 
   const includedItemsCount = useMemo(() => {
     let n = 0;
+    if (service.includesTravel) n += 1;
     if (service.includesEquipment) n += 1;
     n += freeIncludes.length;
     if (
+      !service.includesTravel &&
       !service.includesEquipment &&
       (service.includesNote?.trim()?.length ?? 0) > 0
     ) {
@@ -199,6 +202,7 @@ export default function SingleServiceView({
     }
     return n;
   }, [
+    service.includesTravel,
     service.includesEquipment,
     service.includesNote,
     freeIncludes.length,
@@ -225,9 +229,8 @@ export default function SingleServiceView({
     : null;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* כרטיס עליון אחד: ניווט + תמונת שער + כותרת — לא "צף" על רקע האתר */}
-      <header className="overflow-hidden rounded-2xl border border-neutral-200 bg-white text-right shadow-[0_12px_40px_rgba(15,59,46,0.1)]">
+    <div className="space-y-6">
+      <header className="site-card overflow-hidden text-right">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-3 sm:px-6">
           <a
             href="/providers"
@@ -330,7 +333,7 @@ export default function SingleServiceView({
 
       {/* תיאור השירות */}
       {blurb ? (
-        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        <section className="site-card-padded text-right">
           <SectionHeading title="קצת על עצמי" />
           <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-neutral-900">
             {blurb}
@@ -339,10 +342,11 @@ export default function SingleServiceView({
       ) : null}
 
       {/* כלול במחיר */}
-      {(service.includesEquipment ||
+      {(service.includesTravel ||
+        service.includesEquipment ||
         freeIncludes.length > 0 ||
         (service.includesNote && service.includesNote.trim().length > 0)) && (
-        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        <section className="site-card-padded text-right">
           <div className="flex items-center justify-between gap-2">
             <SectionHeading title="מה כלול במחיר" tone="green" />
             <span className="rounded-full bg-neutral-50 px-2.5 py-1 text-[11px] font-medium text-neutral-600">
@@ -353,6 +357,19 @@ export default function SingleServiceView({
 
           <div className="mt-4">
             <ul className="space-y-2.5">
+              {service.includesTravel && (
+                <li className="flex items-start gap-3 rounded-xl border border-emerald-950/20 bg-emerald-950/5 p-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-white shadow-sm">
+                    <CheckIcon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-emerald-950">
+                      כולל נסיעות לאירוע
+                    </p>
+                  </div>
+                </li>
+              )}
+
               {service.includesEquipment && (
                 <li className="flex items-start gap-3 rounded-xl border border-emerald-950/20 bg-emerald-950/5 p-3">
                   <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-white shadow-sm">
@@ -362,7 +379,9 @@ export default function SingleServiceView({
                     <p className="text-sm font-semibold text-emerald-950">
                       כולל ציוד מקצועי לאירוע
                     </p>
-                    {service.includesNote && service.includesNote.trim().length > 0 ? (
+                    {service.includesNote &&
+                    service.includesNote.trim().length > 0 &&
+                    !service.includesTravel ? (
                       <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-neutral-600">
                         {service.includesNote.trim()}
                       </p>
@@ -394,7 +413,8 @@ export default function SingleServiceView({
             </ul>
           </div>
 
-          {!service.includesEquipment &&
+          {!service.includesTravel &&
+            !service.includesEquipment &&
             service.includesNote &&
             service.includesNote.trim().length > 0 && (
               <p className="mt-4 whitespace-pre-wrap rounded-xl border border-neutral-200 bg-[#FFFCF6] p-3 text-sm leading-relaxed text-neutral-800">
@@ -406,7 +426,7 @@ export default function SingleServiceView({
 
       {/* תוספות בתשלום */}
       {paidExtras.length > 0 && (
-        <section className="mt-6 rounded-2xl border border-[#C9A227]/35 bg-gradient-to-br from-[#FFFCF6] to-white p-6 text-right shadow-[0_12px_40px_rgba(201,162,39,0.08)]">
+        <section className="site-card-padded border-amber-300/40 bg-gradient-to-br from-amber-50/80 to-white text-right">
           <div className="flex items-center justify-between gap-2">
             <SectionHeading title="בתוספת תשלום" tone="gold" />
             <span className="rounded-full bg-amber-400/15 px-2.5 py-1 text-[11px] font-semibold text-[#8A6A12]">
@@ -451,22 +471,20 @@ export default function SingleServiceView({
 
       {/* קישורים לשירות */}
       {serviceSocialLinks.length > 0 && (
-        <section className="mt-6 rounded-2xl border border-[#1F1F1F] bg-[#141414] p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.18)]">
-          <h2 className="text-sm font-semibold text-white">
-            קישורים לשירות
-          </h2>
-          <p className="mt-1 text-xs text-white/60">
+        <section className="site-card-padded text-right">
+          <h2 className="text-sm font-semibold text-emerald-950">קישורים לשירות</h2>
+          <p className="mt-1 text-xs text-neutral-600">
             פורטפוליו, אתר ורשתות חברתיות של השירות
           </p>
           <div className="mt-4">
-            <SocialLinksRow links={serviceSocialLinks} dark />
+            <SocialLinksRow links={serviceSocialLinks} />
           </div>
         </section>
       )}
 
       {/* גלריה */}
       {gallery.length > 0 && (
-        <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+        <section className="site-card-padded text-right">
           <div className="flex items-center justify-between gap-2">
             <SectionHeading title="גלריה" />
             <span className="rounded-full bg-neutral-50 px-2.5 py-1 text-[11px] font-medium text-neutral-600">
@@ -497,7 +515,7 @@ export default function SingleServiceView({
 
       {/* פס פעולות */}
       {(seekerLoggedIn || siblingServicesCount > 1) && (
-        <section className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)] sm:p-5">
+        <section className="site-card flex flex-wrap items-center justify-between gap-3 p-4 text-right sm:p-5">
           {siblingServicesCount > 1 ? (
             <a
               href={`/providers/${provider.id}`}
@@ -523,7 +541,7 @@ export default function SingleServiceView({
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.06)]">
+      <section className="site-card-padded text-right">
         <div className="border-b border-neutral-200 pb-3">
           <h2 className="text-base font-semibold text-emerald-950">שליחת בקשה לשירות</h2>
           <p className="mt-1 text-xs text-neutral-600">{service.name}</p>
@@ -674,7 +692,7 @@ export default function SingleServiceView({
         currentUserId={currentUserId}
         canWriteReview={seekerLoggedIn && canWriteServiceReview}
       />
-    </main>
+    </div>
   );
 }
 

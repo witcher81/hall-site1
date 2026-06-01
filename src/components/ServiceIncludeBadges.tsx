@@ -4,6 +4,7 @@ import type {
 } from "@/lib/serviceIncludes";
 
 type Props = {
+  includesTravel?: boolean;
   includesEquipment: boolean;
   customIncludes: ServiceCustomInclude[];
   paidExtras?: ServicePaidExtraItem[];
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default function ServiceIncludeBadges({
+  includesTravel = false,
   includesEquipment,
   customIncludes,
   paidExtras = [],
@@ -38,12 +40,13 @@ export default function ServiceIncludeBadges({
   );
   const paidList = paidExtras.filter((p) => p.label.trim());
   const noteTrim = includesNote?.trim() ?? "";
+  const hasTravel = includesTravel;
   const hasEquipment = includesEquipment;
   const hasFreeList = checkedCustom.length > 0;
   const hasPaid = paidList.length > 0;
   const hasNote = noteTrim.length > 0;
 
-  if (!hasEquipment && !hasFreeList && !hasPaid && !hasNote) return null;
+  if (!hasTravel && !hasEquipment && !hasFreeList && !hasPaid && !hasNote) return null;
 
   const badge =
     size === "sm"
@@ -64,9 +67,10 @@ export default function ServiceIncludeBadges({
 
   return (
     <div className={className}>
-      {hasEquipment && (
+      {(hasTravel || hasEquipment) && (
         <div className="mb-1.5 flex flex-wrap gap-1">
-          <span className={badge}>כולל ציוד</span>
+          {hasTravel ? <span className={badge}>כולל נסיעות</span> : null}
+          {hasEquipment ? <span className={badge}>כולל ציוד</span> : null}
         </div>
       )}
 
@@ -85,7 +89,7 @@ export default function ServiceIncludeBadges({
 
       {hasNote && (
         <p
-          className={`${noteText}${hasEquipment || hasFreeList || hasPaid ? " mt-1.5" : ""}`}
+          className={`${noteText}${hasTravel || hasEquipment || hasFreeList || hasPaid ? " mt-1.5" : ""}`}
         >
           {noteTrim}
         </p>
@@ -93,7 +97,7 @@ export default function ServiceIncludeBadges({
 
       {hasPaid && (
         <div
-          className={`${hasEquipment || hasFreeList || hasNote ? "mt-2.5 border-t border-neutral-200/80 pt-2" : ""}`}
+          className={`${hasTravel || hasEquipment || hasFreeList || hasNote ? "mt-2.5 border-t border-neutral-200/80 pt-2" : ""}`}
         >
           <p className={`${size === "sm" ? "text-[10px]" : "text-[11px]"} font-semibold text-amber-900/90`}>
             ניתן בתוספת תשלום

@@ -54,6 +54,7 @@ export default async function ServiceDetailsPage({
         languages: service.languages,
         responseTimeHint: service.responseTimeHint,
         socialLinks: parseSocialLinksJson(service.socialLinksJson),
+        includesTravel: service.includesTravel,
         includesEquipment: service.includesEquipment,
         customIncludes: includesBundle.included,
         paidExtras: includesBundle.paidExtras,

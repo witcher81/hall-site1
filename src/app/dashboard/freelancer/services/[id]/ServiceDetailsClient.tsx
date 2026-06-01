@@ -23,6 +23,7 @@ type Service = {
   languages: string | null;
   responseTimeHint: string | null;
   socialLinks: SocialLink[];
+  includesTravel: boolean;
   includesEquipment: boolean;
   customIncludes: ServiceCustomInclude[];
   paidExtras: ServicePaidExtraItem[];
@@ -180,6 +181,7 @@ export default function ServiceDetailsClient({
           </div>
         )}
         {hasAnyServiceIncludes(
+          service.includesTravel,
           service.includesEquipment,
           service.customIncludes,
           service.includesNote,
@@ -191,6 +193,7 @@ export default function ServiceDetailsClient({
             </p>
             <ServiceIncludeBadges
               className="mt-2"
+              includesTravel={service.includesTravel}
               includesEquipment={service.includesEquipment}
               customIncludes={service.customIncludes}
               paidExtras={service.paidExtras}
