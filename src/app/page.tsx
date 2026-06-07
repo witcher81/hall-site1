@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
+import { loadDevSwitcherUsers } from "@/lib/devSwitcherData";
 import {
   getHomeFeaturedVenues,
   getHomeTopServices,
@@ -9,6 +9,7 @@ import HomePage from "@/components/home/HomePage";
 
 export default async function Home() {
   const user = await getCurrentUser();
+  const devSwitcher = await loadDevSwitcherUsers(user);
 
   const [featuredVenues, topServices] = await Promise.all([
     getHomeFeaturedVenues(6),
@@ -19,7 +20,9 @@ export default async function Home() {
     <div className="site-page">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={devSwitcher != null}
+        devSwitcherUsers={devSwitcher?.users}
+        devSwitcherCanCreate={devSwitcher?.canCreateManagedUsers}
       />
       <HomePage featuredVenues={featuredVenues} topServices={topServices} />
     </div>

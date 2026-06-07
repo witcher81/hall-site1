@@ -84,13 +84,24 @@ function getActivePersonalHref(
   return null;
 }
 
+type DevSwitcherUserRow = {
+  id: number;
+  name: string | null;
+  email: string;
+  role: string;
+};
+
 export default function HomeHeader({
   user,
   canUseDevUserSwitcher = false,
+  devSwitcherUsers,
+  devSwitcherCanCreate = false,
 }: {
   user: User | null;
-  /** רק כשהמשתמש הוא אדמין (ADMIN_EMAILS) — מועבר מהשרת */
   canUseDevUserSwitcher?: boolean;
+  devSwitcherUsers?: DevSwitcherUserRow[];
+  /** אדמין (ADMIN_EMAILS) — מועבר מהשרת, לא תלוי ב-fetch בדפדפן */
+  devSwitcherCanCreate?: boolean;
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -316,7 +327,12 @@ export default function HomeHeader({
         </div>
 
         <nav className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
-          {canUseDevUserSwitcher ? <DevUserSwitcher /> : null}
+          {canUseDevUserSwitcher ? (
+            <DevUserSwitcher
+              initialUsers={devSwitcherUsers}
+              canCreateManagedUsers={devSwitcherCanCreate}
+            />
+          ) : null}
           {user ? (
             <div className="relative" ref={menuRef}>
               <button

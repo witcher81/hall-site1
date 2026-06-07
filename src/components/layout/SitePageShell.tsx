@@ -1,6 +1,6 @@
 import HomeHeader from "@/components/HomeHeader";
 import { getCurrentUser } from "@/lib/auth";
-import { canShowDevUserSwitcher } from "@/lib/canShowDevUserSwitcher";
+import { loadDevSwitcherUsers } from "@/lib/devSwitcherData";
 
 type MainWidth = "default" | "wide" | "narrow" | "legal";
 
@@ -25,6 +25,7 @@ export default async function SitePageShell({
   bare = false,
 }: SitePageShellProps) {
   const user = await getCurrentUser();
+  const devSwitcher = await loadDevSwitcherUsers(user);
 
   if (bare) {
     return <div className="site-page">{children}</div>;
@@ -34,7 +35,9 @@ export default async function SitePageShell({
     <div className="site-page">
       <HomeHeader
         user={user}
-        canUseDevUserSwitcher={await canShowDevUserSwitcher(user)}
+        canUseDevUserSwitcher={devSwitcher != null}
+        devSwitcherUsers={devSwitcher?.users}
+        devSwitcherCanCreate={devSwitcher?.canCreateManagedUsers}
       />
       <main
         className={[MAIN_CLASS[mainWidth], mainClassName].filter(Boolean).join(" ")}

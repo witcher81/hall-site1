@@ -16,40 +16,53 @@ const ROLES = [
   { value: "FREELANCER", label: "פרילנסר" },
 ] as const;
 
-export default function DevUserSwitcher() {
+type Props = {
+  initialUsers?: UserRow[];
+  canCreateManagedUsers?: boolean;
+};
+
+export default function DevUserSwitcher({
+  initialUsers = [],
+  canCreateManagedUsers: canCreateFromServer = false,
+}: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [addFormOpen, setAddFormOpen] = useState(false);
-  const [users, setUsers] = useState<UserRow[]>([]);
+  const [users, setUsers] = useState<UserRow[]>(initialUsers);
   const [loading, setLoading] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [addForm, setAddForm] = useState({
     name: "",
     email: "",
     password: "",
     role: "VENUE_OWNER" as string,
   });
-  const [canCreateManagedUsers, setCanCreateManagedUsers] = useState(false);
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
 
+  const canCreateManagedUsers = canCreateFromServer;
+
   const fetchUsers = useCallback(() => {
     fetch("/api/dev/users")
-      .then((r) => r.json())
-      .then((data) => {
+      .then(async (r) => {
+        const data = await r.json().catch(() => null);
+        if (!r.ok) {
+          setFetchError(data?.error || "לא ניתן לטעון את רשימת המשתמשים");
+          return;
+        }
+        setFetchError(null);
         setUsers(data?.users ?? []);
-        setCanCreateManagedUsers(Boolean(data?.canCreateManagedUsers));
       })
       .catch(() => {
-        setUsers([]);
-        setCanCreateManagedUsers(false);
+        setFetchError("שגיאת רשת בטעינת המשתמשים");
       });
   }, []);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    setUsers(initialUsers);
+  }, [initialUsers]);
 
   useEffect(() => {
     if (open) fetchUsers();
@@ -149,10 +162,20 @@ export default function DevUserSwitcher() {
               setAddFormOpen(false);
             }}
           />
-          <div className="dev-switcher-menu absolute left-0 top-full z-20 mt-1 min-w-[260px] rounded-xl border border-neutral-200 bg-white py-2 shadow-xl">
+          <div className="dev-switcher-menu absolute right-0 top-full z-20 mt-1 min-w-[280px] max-w-[min(320px,calc(100vw-1rem))] rounded-xl border border-neutral-200 bg-white py-2 shadow-xl">
             <p className="px-3 py-1 text-xs text-neutral-600">
               התחבר כ (אדמין + משתמשי דיבאג שיצרת):
             </p>
+            {users.length === 0 ? (
+              <p className="px-3 py-2 text-xs leading-relaxed text-neutral-600">
+                {canCreateManagedUsers
+                  ? "אין משתמשים ברשימה. הוסף משתמש חדש למטה, או «שחזר משתמשים» אם נעלמו."
+                  : "הרשימה ריקה. רק אדמין (ADMIN_EMAILS) יכול להוסיף משתמשים — החלף לחשבון האדמין אם מופיע כאן."}
+              </p>
+            ) : null}
+            {fetchError ? (
+              <p className="px-3 py-1 text-xs text-amber-800">{fetchError}</p>
+            ) : null}
             {users.map((u) => (
               <button
                 key={u.id}

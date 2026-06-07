@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, hashPassword } from "@/lib/auth";
 import { allowDevUserSwitchDeployment, isAdminEmail } from "@/lib/admin";
-import { getDevUserSwitchContext } from "@/lib/canShowDevUserSwitcher";
+import { loadDevSwitcherUsers } from "@/lib/devSwitcherData";
 import { buildManagedDevUserEmailForAdmin } from "@/lib/devManagedUserEmail";
 import {
   validateEmail,
@@ -42,27 +42,10 @@ export async function GET() {
   const session = await getCurrentUser();
   if (!session) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const ctx = await getDevUserSwitchContext(session);
-  if (!ctx) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const data = await loadDevSwitcherUsers(session);
+  if (!data) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const managedIds = await allowedManagedUserIds(ctx.adminUserId);
-  const allowedIds = [ctx.adminUserId, ...managedIds];
-
-  const users = await prisma.user.findMany({
-    where: { id: { in: allowedIds } },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-    },
-  });
-
-  return NextResponse.json({
-    users,
-    canCreateManagedUsers: ctx.canCreateManagedUsers,
-  });
+  return NextResponse.json(data);
 }
 
 /**

@@ -35,6 +35,7 @@ export async function getDevUserSwitchContext(
 export async function canShowDevUserSwitcher(
   user: { id: number; email: string } | null
 ): Promise<boolean> {
-  const ctx = await getDevUserSwitchContext(user);
-  return ctx != null;
+  const { loadDevSwitcherUsers } = await import("@/lib/devSwitcherData");
+  const data = await loadDevSwitcherUsers(user);
+  return data != null;
 }
