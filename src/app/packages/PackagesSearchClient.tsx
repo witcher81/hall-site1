@@ -12,6 +12,7 @@ import CityDatalist from "@/components/CityDatalist";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
+import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PackagesListSort } from "@/lib/packagesFilter";
 
 const PACKAGES_SEARCH_STORAGE_KEY = "hallsHub.packagesSearch.v1";
@@ -186,6 +187,10 @@ export default function PackagesSearchClient() {
       restoredSearchRef.current = true;
       return;
     }
+    if (!hasFunctionalConsent()) {
+      restoredSearchRef.current = true;
+      return;
+    }
     try {
       const raw = localStorage.getItem(PACKAGES_SEARCH_STORAGE_KEY);
       if (raw) {
@@ -203,6 +208,7 @@ export default function PackagesSearchClient() {
   }, [searchParams, router]);
 
   useEffect(() => {
+    if (!hasFunctionalConsent()) return;
     try {
       localStorage.setItem(PACKAGES_SEARCH_STORAGE_KEY, searchParams.toString());
     } catch {

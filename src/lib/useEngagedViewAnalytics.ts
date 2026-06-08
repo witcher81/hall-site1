@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  COOKIE_CONSENT_UPDATED_EVENT,
+  hasAnalyticsConsent,
+} from "@/lib/cookieConsent";
 import { ENGAGED_VIEW_MIN_MS } from "@/lib/popularityConfig";
 
 function sessionKeyVenue(venueId: number) {
@@ -60,11 +64,26 @@ function runEngagedTimer(
   };
 }
 
+function useAnalyticsConsentGate(): boolean {
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setAllowed(hasAnalyticsConsent());
+    sync();
+    window.addEventListener(COOKIE_CONSENT_UPDATED_EVENT, sync);
+    return () => window.removeEventListener(COOKIE_CONSENT_UPDATED_EVENT, sync);
+  }, []);
+
+  return allowed;
+}
+
 export function useEngagedVenueView(venueId: number) {
   const venueIdRef = useRef(venueId);
   venueIdRef.current = venueId;
+  const analyticsAllowed = useAnalyticsConsentGate();
 
   useEffect(() => {
+    if (!analyticsAllowed) return;
     return runEngagedTimer(sessionKeyVenue(venueIdRef.current), (dwellMs) => {
       void fetch("/api/analytics/venue-view", {
         method: "POST",
@@ -75,14 +94,16 @@ export function useEngagedVenueView(venueId: number) {
         }),
       }).catch(() => {});
     });
-  }, [venueId]);
+  }, [venueId, analyticsAllowed]);
 }
 
 export function useEngagedFreelancerProfileView(providerUserId: number) {
   const idRef = useRef(providerUserId);
   idRef.current = providerUserId;
+  const analyticsAllowed = useAnalyticsConsentGate();
 
   useEffect(() => {
+    if (!analyticsAllowed) return;
     return runEngagedTimer(sessionKeyProvider(idRef.current), (dwellMs) => {
       void fetch("/api/analytics/freelancer-profile-view", {
         method: "POST",
@@ -93,5 +114,5 @@ export function useEngagedFreelancerProfileView(providerUserId: number) {
         }),
       }).catch(() => {});
     });
-  }, [providerUserId]);
+  }, [providerUserId, analyticsAllowed]);
 }

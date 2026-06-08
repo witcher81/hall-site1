@@ -47,6 +47,10 @@ export default async function PrivacyPage() {
           תנאי שימוש
         </Link>
         {" · "}
+        <Link href="/cookies" className="font-medium text-emerald-950 underline">
+          עוגיות
+        </Link>
+        {" · "}
         <Link href="/" className="text-neutral-600 underline">
           דף הבית
         </Link>

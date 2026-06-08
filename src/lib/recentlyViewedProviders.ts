@@ -1,3 +1,5 @@
+import { hasFunctionalConsent } from "@/lib/cookieConsent";
+
 const STORAGE_KEY = "hh-recent-providers";
 const MAX_ITEMS = 40;
 
@@ -24,6 +26,7 @@ function parseList(raw: string | null): RecentProviderEntry[] {
 
 export function getRecentProviderIdsOrdered(): number[] {
   if (typeof window === "undefined") return [];
+  if (!hasFunctionalConsent()) return [];
   try {
     const list = parseList(window.localStorage.getItem(STORAGE_KEY));
     list.sort((a, b) => b.at - a.at);
@@ -42,6 +45,7 @@ export function getRecentProviderIdsOrdered(): number[] {
 
 export function recordProviderRecentlyViewed(providerUserId: number): void {
   if (typeof window === "undefined") return;
+  if (!hasFunctionalConsent()) return;
   if (!Number.isInteger(providerUserId) || providerUserId <= 0) return;
   try {
     const list = parseList(window.localStorage.getItem(STORAGE_KEY));

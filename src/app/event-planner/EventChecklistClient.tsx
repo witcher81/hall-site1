@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { hasFunctionalConsent } from "@/lib/cookieConsent";
 
 /** גרסה חדשה — מתחילים מרשימה ריקה (לא ממשיכים מ־v2 עם ארבעת ברירות המחדל) */
 const STORAGE_KEY = "hh.eventChecklist.v3";
@@ -25,6 +26,7 @@ const QUICK_ADD_SUGGESTIONS = [
 
 function loadRows(): Row[] {
   if (typeof window === "undefined") return [];
+  if (!hasFunctionalConsent()) return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
@@ -46,6 +48,7 @@ function loadRows(): Row[] {
 }
 
 function saveRows(items: Row[]) {
+  if (!hasFunctionalConsent()) return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ items }));
   } catch {

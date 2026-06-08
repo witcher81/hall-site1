@@ -18,12 +18,17 @@ function RegisterForm() {
   const [role, setRole] = useState<
     "" | "SEEKER" | "VENUE_OWNER" | "FREELANCER"
   >("");
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     if (!role) {
       setError("נא לבחור סוג משתמש");
+      return;
+    }
+    if (!acceptedLegal) {
+      setError("יש לאשר את תנאי השימוש ומדיניות הפרטיות");
       return;
     }
     setLoading(true);
@@ -194,10 +199,30 @@ function RegisterForm() {
             </div>
           </div>
 
+          <label className="flex cursor-pointer items-start gap-2 text-xs text-neutral-700">
+            <input
+              type="checkbox"
+              checked={acceptedLegal}
+              onChange={(e) => setAcceptedLegal(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-amber-500 focus:ring-amber-400/40"
+            />
+            <span>
+              אני מאשר/ת שקראתי ואני מסכים/ה ל
+              <a href="/terms" className="font-semibold text-emerald-950 underline" target="_blank" rel="noopener noreferrer">
+                תנאי השימוש
+              </a>
+              {" "}ול
+              <a href="/privacy" className="font-semibold text-emerald-950 underline" target="_blank" rel="noopener noreferrer">
+                מדיניות הפרטיות
+              </a>
+              .
+            </span>
+          </label>
+
           {error && <p className="text-xs text-red-700">{error}</p>}
           <button
             type="submit"
-            disabled={loading || !role}
+            disabled={loading || !role || !acceptedLegal}
             className="w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
           >
             {loading ? "נרשם..." : "הרשמה"}

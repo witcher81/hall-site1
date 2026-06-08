@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import DevUserSwitcher from "./DevUserSwitcher";
 import MessagesUnreadBadge from "./MessagesUnreadBadge";
 import NotificationsUnreadBadge from "./NotificationsUnreadBadge";
+import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import RealtimeEventBridge from "./RealtimeEventBridge";
 
 type User = {
@@ -142,7 +143,9 @@ export default function HomeHeader({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem("hh-theme");
+    const stored = hasFunctionalConsent()
+      ? window.localStorage.getItem("hh-theme")
+      : null;
     const next: Theme = stored === "light" ? "light" : "dark";
     setTheme(next);
     document.documentElement.dataset.theme = next;
@@ -152,7 +155,7 @@ export default function HomeHeader({
   function toggleTheme() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && hasFunctionalConsent()) {
       window.localStorage.setItem("hh-theme", next);
     }
     document.documentElement.dataset.theme = next;

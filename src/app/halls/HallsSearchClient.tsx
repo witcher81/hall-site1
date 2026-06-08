@@ -29,6 +29,7 @@ import {
 } from "@/lib/venueParkingKind";
 import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
 import VenueOfferProductsSection from "@/components/VenueOfferProductsSection";
+import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PublicVenueListItem } from "@/lib/publicVenuesSearch";
 
 const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
@@ -489,6 +490,10 @@ export default function HallsSearchClient({
       restoredSearchRef.current = true;
       return;
     }
+    if (!hasFunctionalConsent()) {
+      restoredSearchRef.current = true;
+      return;
+    }
     try {
       const raw = localStorage.getItem(HALLS_SEARCH_STORAGE_KEY);
       if (raw) {
@@ -506,6 +511,7 @@ export default function HallsSearchClient({
   }, [searchParams, router]);
 
   useEffect(() => {
+    if (!hasFunctionalConsent()) return;
     try {
       localStorage.setItem(HALLS_SEARCH_STORAGE_KEY, searchParams.toString());
     } catch {

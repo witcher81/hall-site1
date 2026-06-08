@@ -28,7 +28,7 @@ export default async function SettingsPage() {
     <SitePageShell mainWidth="narrow">
       <SitePageHeader
         title="הגדרות"
-        description="ניהול פרטי החשבון והעדפות בסיסיות. בהמשך נוכל להוסיף כאן גם התראות ועוד."
+        description="פרופיל, אבטחה, פרטיות ועוגיות, מסמכים משפטיים ופעולות חשבון."
       />
       <SettingsClient
         user={{

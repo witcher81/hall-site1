@@ -1,3 +1,5 @@
+import { hasFunctionalConsent } from "@/lib/cookieConsent";
+
 const STORAGE_KEY = "hh-recent-venues";
 const MAX_ITEMS = 40;
 
@@ -25,6 +27,7 @@ function parseList(raw: string | null): RecentVenueEntry[] {
 /** רשימת מזהי אולמות לפי סדר כניסה אחרון (הכי חדש ראשון) */
 export function getRecentVenueIdsOrdered(): number[] {
   if (typeof window === "undefined") return [];
+  if (!hasFunctionalConsent()) return [];
   try {
     const list = parseList(window.localStorage.getItem(STORAGE_KEY));
     list.sort((a, b) => b.at - a.at);
@@ -43,6 +46,7 @@ export function getRecentVenueIdsOrdered(): number[] {
 
 export function recordVenueRecentlyViewed(venueId: number): void {
   if (typeof window === "undefined") return;
+  if (!hasFunctionalConsent()) return;
   if (!Number.isInteger(venueId) || venueId <= 0) return;
   try {
     const list = parseList(window.localStorage.getItem(STORAGE_KEY));
