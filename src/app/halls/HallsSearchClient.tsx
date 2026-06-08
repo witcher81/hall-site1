@@ -29,6 +29,7 @@ import {
 } from "@/lib/venueParkingKind";
 import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
 import VenueOfferProductsSection from "@/components/VenueOfferProductsSection";
+import type { PublicVenueListItem } from "@/lib/publicVenuesSearch";
 
 const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
 
@@ -177,37 +178,7 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
   };
 }
 
-type Venue = {
-  id: number;
-  name: string;
-  city: string;
-  address: string;
-  minGuests: number | null;
-  maxGuests: number | null;
-  minPrice: number | null;
-  maxPrice: number | null;
-  hallRentalMin: number | null;
-  hallRentalMax: number | null;
-  eventTypes?: string[] | null;
-  description: string | null;
-  coverImageUrl: string | null;
-  galleryImageUrls: string[];
-  kashrut?: string | null;
-  parking?: string | null;
-  parkingKind?: string | null;
-  venueType?: string | null;
-  seaView?: boolean | null;
-  boutique?: boolean | null;
-  accessible?: boolean | null;
-  hasChuppa?: boolean | null;
-  hasFood?: boolean | null;
-  hasTableSetup?: boolean | null;
-  hasDanceFloor?: boolean | null;
-  hasSoundSystem?: boolean | null;
-  customAmenities?: { label: string; checked: boolean }[];
-  /** קידום פעיל — האולם מוצג בראש תוצאות החיפוש */
-  isBoosted?: boolean;
-};
+type Venue = PublicVenueListItem;
 
 function HallsResultsSkeleton() {
   return (
@@ -477,19 +448,28 @@ function VenueResultCard({
 export default function HallsSearchClient({
   userLoggedIn = false,
   initialFavoriteVenueIds = [],
+  initialVenues = [],
+  initialWarning = null,
 }: {
   userLoggedIn?: boolean;
   initialFavoriteVenueIds?: number[];
+  /** תוצאות ראשוניות מהשרת — עובד גם כש־/api/venues נכשל */
+  initialVenues?: Venue[];
+  initialWarning?: string | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [venues, setVenues] = useState<Venue[]>([]);
+  const [venues, setVenues] = useState<Venue[]>(initialVenues);
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(
     () => new Set(initialFavoriteVenueIds)
   );
   const [compareIds, setCompareIds] = useState<number[]>([]);
   const [popularVenueOrder, setPopularVenueOrder] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [searchWarning, setSearchWarning] = useState<string | null>(
+    initialWarning
+  );
   const [form, setForm] = useState(() => ({ ...EMPTY_SEARCH_FORM }));
   const lastPushedQsRef = useRef<string | null>(null);
   const restoredSearchRef = useRef(false);
@@ -559,8 +539,20 @@ export default function HallsSearchClient({
       .catch(() => setPopularVenueOrder([]));
   }, []);
 
+  function clearAllFilters() {
+    try {
+      localStorage.removeItem(HALLS_SEARCH_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    setForm({ ...EMPTY_SEARCH_FORM });
+    lastPushedQsRef.current = "";
+    router.replace("/halls", { scroll: false });
+  }
+
   useEffect(() => {
     setLoading(true);
+    setFetchError(null);
     const params = new URLSearchParams();
     const city = searchParams.get("city");
     const minGuests = searchParams.get("minGuests");
@@ -610,9 +602,24 @@ export default function HallsSearchClient({
     if (hasSoundSystem) params.set("hasSoundSystem", hasSoundSystem);
     const qs = params.toString();
     fetch(`/api/venues${qs ? `?${qs}` : ""}`)
-      .then((res) => res.json())
-      .then((data) => setVenues(data.venues ?? []))
-      .catch(() => setVenues([]))
+      .then(async (res) => {
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          const msg =
+            (typeof data?.error === "string" && data.error) ||
+            "לא ניתן לטעון אולמות מהשרת";
+          setFetchError(msg);
+          return;
+        }
+        setFetchError(null);
+        setSearchWarning(
+          typeof data?.warning === "string" ? data.warning : null
+        );
+        setVenues(data?.venues ?? []);
+      })
+      .catch(() => {
+        setFetchError("שגיאת רשת בטעינת האולמות");
+      })
       .finally(() => setLoading(false));
   }, [searchParams]);
 
@@ -981,11 +988,38 @@ export default function HallsSearchClient({
 
       <RecentlyViewedBar variant="venues" />
 
+      {searchWarning ? (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-right text-xs text-amber-900">
+          {searchWarning}
+        </p>
+      ) : null}
+
+      {fetchError ? (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-right text-xs text-red-800">
+          {fetchError}
+          {venues.length > 0
+            ? " — מוצגות תוצאות שנטענו מהשרת."
+            : " — נסו לרענן את הדף או לנקות את הסינון."}
+        </p>
+      ) : null}
+
       {loading ? (
         <HallsResultsSkeleton />
       ) : venues.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-8 text-center text-sm text-neutral-600 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
-          לא נמצאו אולמות לפי הסינון. נסה לשנות פרמטרים או להשאיר שדות ריקים.
+          <p>לא נמצאו אולמות לפי הסינון. נסה לשנות פרמטרים או להשאיר שדות ריקים.</p>
+          {searchParams.toString() ? (
+            <p className="mt-2 text-xs text-neutral-500">
+              ייתכן שחיפוש קודם נשמר בדפדפן ומסנן תוצאות.
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="btn-primary mt-4 px-6 py-2 text-sm"
+          >
+            נקה את כל הסינון
+          </button>
         </div>
       ) : (
         <>

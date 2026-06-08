@@ -1,12 +1,34 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { searchPublicVenues } from "@/lib/publicVenuesSearch";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
 import HallsSearchClient from "./HallsSearchClient";
 
-export default async function HallsPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function toUrlSearchParams(
+  raw: Record<string, string | string[] | undefined>
+): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === "string") params.set(key, value);
+    else if (Array.isArray(value)) {
+      for (const v of value) params.append(key, v);
+    }
+  }
+  return params;
+}
+
+export default async function HallsPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
+  const sp = toUrlSearchParams(await searchParams);
+  const { venues: initialVenues, warning: initialWarning } =
+    await searchPublicVenues(sp);
+
   let favoriteVenueIds: number[] = [];
   if (user) {
     try {
@@ -32,6 +54,8 @@ export default async function HallsPage() {
       <HallsSearchClient
         userLoggedIn={!!user}
         initialFavoriteVenueIds={favoriteVenueIds}
+        initialVenues={initialVenues}
+        initialWarning={initialWarning ?? null}
       />
       <SiteFooter />
     </SitePageShell>
