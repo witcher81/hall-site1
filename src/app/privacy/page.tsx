@@ -31,8 +31,8 @@ export default async function PrivacyPage() {
         </p>
         <h2 className="text-base font-semibold text-emerald-950">זכויותיכם</h2>
         <p>
-          ניתן לבקש עדכון או מחיקת חשבון בפנייה אלינו. עוגיות התחברות נדרשות לשימוש בחשבון
-          מחובר.
+          ניתן לעדכן פרטים בדף ההגדרות, לנהל עוגיות, ולמחוק חשבון באופן עצמי (דורש אימות
+          סיסמה). עוגיות התחברות נדרשות לשימוש בחשבון מחובר.
         </p>
         <p>
           יצירת קשר:{" "}
@@ -49,6 +49,10 @@ export default async function PrivacyPage() {
         {" · "}
         <Link href="/cookies" className="font-medium text-emerald-950 underline">
           עוגיות
+        </Link>
+        {" · "}
+        <Link href="/accessibility" className="font-medium text-emerald-950 underline">
+          נגישות
         </Link>
         {" · "}
         <Link href="/" className="text-neutral-600 underline">

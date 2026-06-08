@@ -47,6 +47,10 @@ export default async function TermsPage() {
           מדיניות פרטיות
         </Link>
         {" · "}
+        <Link href="/accessibility" className="font-medium text-emerald-950 underline">
+          נגישות
+        </Link>
+        {" · "}
         <Link href="/" className="text-neutral-600 underline">
           דף הבית
         </Link>

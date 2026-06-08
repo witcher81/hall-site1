@@ -78,7 +78,12 @@ function getLimiters(): Cached {
 
 function pickLimiter(pathname: string, pair: LimiterSet): Ratelimit {
   if (AUTH_PATHS.has(pathname)) return pair.auth;
-  if (pathname === "/api/venue-owner/venues/boost") return pair.sensitive;
+  if (
+    pathname === "/api/venue-owner/venues/boost" ||
+    pathname === "/api/settings/account"
+  ) {
+    return pair.sensitive;
+  }
   if (ANALYTICS_PREFIXES.some((p) => pathname.startsWith(p))) return pair.analytics;
   if (HEAVY_PREFIXES.some((p) => pathname.startsWith(p))) return pair.heavy;
   return pair.api;

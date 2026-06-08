@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import CookiePreferencesSection from "@/components/consent/CookiePreferencesSection";
 import IsraeliMobilePhoneInput from "@/components/IsraeliMobilePhoneInput";
+import DeleteAccountSection from "./DeleteAccountSection";
 
 type Props = {
   user: {
@@ -260,26 +261,15 @@ export default function SettingsClient({ user }: Props) {
               מדיניות עוגיות
             </Link>
           </li>
+          <li>
+            <Link href="/accessibility" className="font-medium text-emerald-950 underline">
+              הצהרת נגישות
+            </Link>
+          </li>
         </ul>
       </section>
 
-      <section
-        id="account"
-        className="rounded-2xl border border-red-200 bg-red-50/40 p-6 shadow-[0_12px_40px_rgba(15,59,46,0.04)]"
-      >
-        <h2 className="text-base font-semibold text-red-900">אזור מסוכן — חשבון</h2>
-        <p className="mt-1 text-xs text-neutral-700">
-          מחיקת חשבון היא פעולה בלתי הפיכה. לבקשת מחיקה, פנו אלינו בדוא״ל ונאמת את הבקשה.
-        </p>
-        <p className="mt-3 text-xs">
-          <a
-            href="mailto:privacy@hallshub.example?subject=%D7%91%D7%A7%D7%A9%D7%AA%20%D7%9E%D7%97%D7%99%D7%A7%D7%AA%20%D7%97%D7%A9%D7%91%D7%95%D7%9F"
-            className="inline-flex rounded-full border border-red-300 bg-white px-5 py-2 text-sm font-semibold text-red-900 hover:bg-red-50"
-          >
-            בקשת מחיקת חשבון
-          </a>
-        </p>
-      </section>
+      <DeleteAccountSection email={user.email} />
     </div>
   );
 }

@@ -11,6 +11,7 @@ export default function SiteFooter() {
         <Link href="/terms">תנאי שימוש</Link>
         <Link href="/privacy">פרטיות</Link>
         <Link href="/cookies">עוגיות</Link>
+        <Link href="/accessibility">נגישות</Link>
         <CookieSettingsLink />
       </p>
     </footer>

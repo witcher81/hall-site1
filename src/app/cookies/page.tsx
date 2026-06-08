@@ -71,6 +71,10 @@ export default async function CookiesPage() {
           תנאי שימוש
         </Link>
         {" · "}
+        <Link href="/accessibility" className="font-medium text-emerald-950 underline">
+          נגישות
+        </Link>
+        {" · "}
         <Link href="/" className="text-neutral-600 underline">
           דף הבית
         </Link>
