@@ -1,0 +1,39 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getSiteLegalInfo } from "@/lib/siteLegal";
+import { sendEmail } from "@/lib/email";
+import { verifyTurnstileToken } from "@/lib/turnstile";
+
+export const runtime = "nodejs";
+
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => ({}));
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : "";
+  const email = typeof body.email === "string" ? body.email.trim().slice(0, 254) : "";
+  const subject = typeof body.subject === "string" ? body.subject.trim().slice(0, 200) : "";
+  const message = typeof body.message === "string" ? body.message.trim().slice(0, 4000) : "";
+
+  if (!name || !email || !message) {
+    return NextResponse.json({ error: "חובה למלא שם, אימייל והודעה" }, { status: 400 });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: "כתובת אימייל לא תקינה" }, { status: 400 });
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const captcha = await verifyTurnstileToken(body.turnstileToken, ip);
+  if (!captcha.ok) {
+    return NextResponse.json({ error: captcha.error }, { status: 400 });
+  }
+
+  const legal = getSiteLegalInfo();
+  const subj = subject || "פנייה מהאתר";
+  await sendEmail({
+    to: legal.supportEmail,
+    replyTo: email,
+    subject: `[Halls Hub] ${subj}`,
+    html: `<div dir="rtl"><p><strong>מאת:</strong> ${name} &lt;${email}&gt;</p><p><strong>נושא:</strong> ${subj}</p><hr/><pre style="white-space:pre-wrap;font-family:inherit">${message}</pre></div>`,
+    text: `מאת: ${name} <${email}>\nנושא: ${subj}\n\n${message}`,
+  });
+
+  return NextResponse.json({ ok: true });
+}

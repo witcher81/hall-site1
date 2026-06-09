@@ -5,6 +5,7 @@ import { useState } from "react";
 import CookiePreferencesSection from "@/components/consent/CookiePreferencesSection";
 import IsraeliMobilePhoneInput from "@/components/IsraeliMobilePhoneInput";
 import DeleteAccountSection from "./DeleteAccountSection";
+import NotificationPreferencesSection from "./NotificationPreferencesSection";
 
 type Props = {
   user: {
@@ -92,23 +93,26 @@ export default function SettingsClient({ user }: Props) {
     <div className="mt-6 space-y-8 text-right text-sm">
       <nav
         aria-label="קטגוריות הגדרות"
-        className="flex flex-wrap gap-2 text-xs font-medium text-neutral-600"
+        className="flex flex-wrap gap-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-[0_8px_24px_rgba(15,59,46,0.08)]"
       >
-        <a href="#profile" className="rounded-full border border-neutral-200 px-3 py-1 hover:border-amber-400">
-          פרופיל
-        </a>
-        <a href="#security" className="rounded-full border border-neutral-200 px-3 py-1 hover:border-amber-400">
-          אבטחה
-        </a>
-        <a href="#privacy" className="rounded-full border border-neutral-200 px-3 py-1 hover:border-amber-400">
-          פרטיות
-        </a>
-        <a href="#legal" className="rounded-full border border-neutral-200 px-3 py-1 hover:border-amber-400">
-          מסמכים
-        </a>
-        <a href="#account" className="rounded-full border border-neutral-200 px-3 py-1 hover:border-amber-400">
-          חשבון
-        </a>
+        {(
+          [
+            ["#profile", "פרופיל"],
+            ["#security", "אבטחה"],
+            ["#privacy", "פרטיות"],
+            ["#notifications", "התראות"],
+            ["#legal", "מסמכים"],
+            ["#account", "חשבון"],
+          ] as const
+        ).map(([href, label]) => (
+          <a
+            key={href}
+            href={href}
+            className="rounded-full border border-neutral-300 bg-[#f7f3eb] px-3.5 py-1.5 text-xs font-semibold text-emerald-950 shadow-sm transition hover:border-amber-400 hover:bg-amber-50"
+          >
+            {label}
+          </a>
+        ))}
       </nav>
 
       <section
@@ -236,6 +240,8 @@ export default function SettingsClient({ user }: Props) {
       <div id="privacy">
         <CookiePreferencesSection />
       </div>
+
+      <NotificationPreferencesSection />
 
       <section
         id="legal"

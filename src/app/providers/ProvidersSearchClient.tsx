@@ -37,14 +37,20 @@ type Service = {
   };
 };
 
-export default function ProvidersSearchClient() {
+import type { PublicProviderServiceItem } from "@/lib/publicProvidersSearch";
+
+export default function ProvidersSearchClient({
+  initialServices = [],
+}: {
+  initialServices?: PublicProviderServiceItem[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<Service[]>(initialServices);
   const [popularProviderIds, setPopularProviderIds] = useState<Set<number>>(
     new Set()
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialServices.length === 0);
   const [form, setForm] = useState({
     category: "",
     secondary: "",

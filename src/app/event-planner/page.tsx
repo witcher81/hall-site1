@@ -15,7 +15,7 @@ export default async function EventChecklistPage() {
     <SitePageShell mainWidth="narrow">
       <SitePageHeader
         title="צ׳קליסט לאירוע"
-        description="מתחילים מריק — בונים את הרשימה שלכם: רעיונות מהירים או טקסט חופשי. ✔ כשסגרתם שלב, ✕ כשעוד לא. הכל נשמר בדפדפן."
+        description="מתחילים מריק — בונים את הרשימה שלכם: רעיונות מהירים או טקסט חופשי. ✔ כשסגרתם שלב, ✕ כשעוד לא. נשמר בחשבון (וגם מקומית בדפדפן)."
       />
       <EventChecklistClient />
     </SitePageShell>

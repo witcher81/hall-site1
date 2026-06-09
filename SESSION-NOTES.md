@@ -1,6 +1,6 @@
 # Halls Hub — הקשר לעבודה (עדכון)
 
-**עדכון:** 19 מאי 2026  
+**עדכון:** 19 מאי 2026 (roadmap phases 0–7)  
 **מטרה:** להמשיך צ'אטים חדשים בלי לאבד את מצב הפרויקט.
 
 ---
@@ -44,6 +44,13 @@
 | `GOOGLE_GEOCODING_API_KEY` | אופציונלי (גיבוי גיאוקוד) |
 | `NEXT_PUBLIC_SENTRY_DSN` | אופציונלי |
 | `VENUE_BOOST_ALLOW_DEMO` | רק לבדיקות — קידום אולם דמו, לא סליקה אמיתית |
+| `SITE_LEGAL_NAME` | אופציונלי — שם עסק ב-footer ודפים משפטיים |
+| `SITE_SUPPORT_EMAIL` | אופציונלי — יצירת קשר / תמיכה |
+| `SITE_PRIVACY_EMAIL` | אופציונלי — פרטיות ותיקון 13 |
+| `SITE_ACCESSIBILITY_EMAIL` | אופציונלי — רכז נגישות |
+| `SITE_CONTACT_ADDRESS` | אופציונלי — כתובת ב-footer |
+| `TURNSTILE_SECRET_KEY` + `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | שלב 3 — CAPTCHA |
+| `STRIPE_*` | שלב 7 — סליקה Boost (אחרון) |
 
 2. פתח: `https://<הדומיין>/api/health`  
    צריך `ok: true` ו-`warnings: []` (או אזהרות רק על אופציונליים).
@@ -71,9 +78,23 @@
 
 ---
 
+## Roadmap (שלבים 0–7) — יושם
+
+| שלב | סטטוס |
+|-----|--------|
+| 0 | ניווט הגדרות, env מתועד |
+| 1 | `siteLegal`, `/contact`, `/privacy/request`, דפים משפטיים |
+| 2 | SSR ספקים/חבילות, sitemap/robots/404, `/api/health/db`, Boost מוסתר בפרוד |
+| 3 | Turnstile CAPTCHA, `ContentReport`, אדמין בסיסי, העדפות מייל |
+| 4 | `ServiceFavorite`, צ'קליסט ב-DB, חבילות CRUD API, מייל welcome |
+| 5 | `/admin` — דיווחים ומשתמשים |
+| 6 | pg_trgm migration, ליטוש auth (CAPTCHA) |
+| 7 | Stripe checkout + webhook ל-Boost |
+
+**Stripe:** הגדר `STRIPE_*` ב-Vercel + webhook ל-`/api/webhooks/stripe`.
+
 ## רעיונות / לא בוצע
 
-- סליקה אמיתית לקידום אולם (Stripe וכו')
 - OAuth (Google / Facebook)
 - סקריפטי בדיקה מקומיים ב-`scripts/test-*.mjs` — לא ב-git
 

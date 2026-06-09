@@ -163,11 +163,17 @@ function hasActiveFilters(sp: URLSearchParams): boolean {
   );
 }
 
-export default function PackagesSearchClient() {
+import type { PublicPackageListItem } from "@/lib/publicPackagesSearch";
+
+export default function PackagesSearchClient({
+  initialPackages = [],
+}: {
+  initialPackages?: PublicPackageListItem[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [packages, setPackages] = useState<PackageRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [packages, setPackages] = useState<PackageRow[]>(initialPackages);
+  const [loading, setLoading] = useState(initialPackages.length === 0);
   const [form, setForm] = useState<SearchFormState>(() => ({ ...EMPTY_SEARCH_FORM }));
   const lastPushedQsRef = useRef<string | null>(null);
   const restoredSearchRef = useRef(false);

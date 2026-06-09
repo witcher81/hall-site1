@@ -23,6 +23,10 @@ model User {
   role         String   @default("SEEKER")
   /// שדה היסטורי; משתמשים חדשים נרשמים כמאומתים (סשן מלא מיד)
   emailVerified Boolean @default(false)
+  /// JSON: העדפות מייל { inquiryReply, newInquiry, serviceRequestReply, newServiceRequest }
+  emailNotificationsJson String?
+  /// חסימת משתמש על ידי אדמין
+  isBlocked Boolean @default(false)
   // פרופיל עסקי לבעל אולם / ספק שירותים
   businessName    String?
   businessPhone   String?
@@ -46,6 +50,9 @@ model User {
   managedUsersAsAdmin   DevManagedUser[] @relation("AdminManagedUsers")
   managedByAdmins       DevManagedUser[] @relation("ManagedByAdmins")
   passwordResetTokens   PasswordResetToken[]
+  serviceFavorites      ServiceFavorite[]
+  contentReports        ContentReport[]
+  payments              Payment[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -208,6 +215,51 @@ model Favorite {
   @@unique([userId, venueId])
 }
 
+model ServiceFavorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceId Int
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, serviceId])
+  @@index([userId])
+}
+
+model ContentReport {
+  id             Int      @id @default(autoincrement())
+  reporterUserId Int?
+  reporter       User?    @relation(fields: [reporterUserId], references: [id], onDelete: SetNull)
+  targetType     String
+  targetId       Int
+  reason         String
+  details        String?
+  status         String   @default("OPEN")
+  createdAt      DateTime @default(now())
+  resolvedAt     DateTime?
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+model Payment {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeSessionId String?  @unique
+  stripePaymentId String?
+  amountNis       Int
+  purpose         String
+  venueId         Int?
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+
+  @@index([userId, createdAt])
+  @@index([venueId])
+}
+
 model Service {
   id              Int      @id @default(autoincrement())
   providerId      Int
@@ -242,6 +294,7 @@ model Service {
   plannedAsCatering    EventPlan[] @relation("EventPlanCatering")
   packageLinks    EventPackageService[]
   reviews         ServiceReview[]
+  favorites       ServiceFavorite[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

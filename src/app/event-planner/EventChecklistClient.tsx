@@ -69,13 +69,39 @@ export default function EventChecklistClient() {
   const [newLabel, setNewLabel] = useState("");
 
   useEffect(() => {
-    setItems(loadRows());
-    setHydrated(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/event-planner/items");
+        if (res.ok) {
+          const data = (await res.json()) as { items?: Row[] };
+          if (!cancelled && Array.isArray(data.items) && data.items.length > 0) {
+            setItems(data.items);
+            setHydrated(true);
+            return;
+          }
+        }
+      } catch {
+        /* fallback local */
+      }
+      if (!cancelled) {
+        setItems(loadRows());
+        setHydrated(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const persist = useCallback((next: Row[]) => {
     setItems(next);
     saveRows(next);
+    void fetch("/api/event-planner/items", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: next }),
+    }).catch(() => {});
   }, []);
 
   const doneCount = useMemo(() => items.filter((i) => i.done).length, [items]);

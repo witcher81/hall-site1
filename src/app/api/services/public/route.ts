@@ -1,48 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildServiceCategoryWhere } from "@/lib/serviceCategoryQuery";
-import { prisma } from "@/lib/prisma";
+import { searchPublicProviders } from "@/lib/publicProvidersSearch";
 
 export const runtime = "nodejs";
 
 /** רשימת שירותים לציבור (מחפשים) – עם סינון אופציונלי */
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const category = searchParams.get("category")?.trim() ?? "";
-  const secondary = searchParams.get("secondary")?.trim() ?? "";
-  const minPrice = searchParams.get("minPrice");
-  const maxPrice = searchParams.get("maxPrice");
-
-  const where: {
-    OR?: Array<{ category: string } | { category: { startsWith: string } }>;
-    minPrice?: { gte: number };
-    maxPrice?: { lte: number };
-  } = {
-    ...buildServiceCategoryWhere(category, secondary),
-  };
-  if (minPrice && minPrice !== "") {
-    const n = Number(minPrice);
-    if (!Number.isNaN(n)) where.minPrice = { gte: n };
-  }
-  if (maxPrice && maxPrice !== "") {
-    const n = Number(maxPrice);
-    if (!Number.isNaN(n)) where.maxPrice = { lte: n };
-  }
-
-  const services = await prisma.service.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: {
-      provider: {
-        select: {
-          id: true,
-          name: true,
-          businessName: true,
-          businessPhone: true,
-          socialLinksJson: true,
-        },
-      },
-    },
-  });
-
+  const { services } = await searchPublicProviders(req.nextUrl.searchParams);
   return NextResponse.json({ services });
 }

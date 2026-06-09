@@ -1,17 +1,21 @@
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
+import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
 import Link from "next/link";
+import { getSiteLegalInfo } from "@/lib/siteLegal";
 
 export default async function PrivacyPage() {
+  const legal = getSiteLegalInfo();
   return (
     <SitePageShell mainWidth="legal">
       <h1 className="site-page-title">מדיניות פרטיות</h1>
       <p className="mt-2 text-xs text-neutral-600">עודכן: מאי 2026</p>
+      <SiteLegalNotice show={legal.isPlaceholder} />
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
         <p>
-          אנו מכבדים את פרטיותכם. מסמך זה מתאר אילו נתונים נאספים בעת שימוש ב-Halls Hub וכיצד
-          הם משמשים.
+          אנו מכבדים את פרטיותכם. מסמך זה מתאר אילו נתונים נאספים בעת שימוש ב-{legal.legalName}{" "}
+          וכיצד הם משמשים.
         </p>
         <h2 className="text-base font-semibold text-emerald-950">נתונים שנאספים</h2>
         <ul className="list-disc space-y-1 pr-5">
@@ -24,20 +28,19 @@ export default async function PrivacyPage() {
           להפעלת החשבון, הצגת תוצאות חיפוש, התראות, מניעת שימוש לרעה (כולל הגבלת קצב בקשות),
           ושיפור השירות.
         </p>
-        <h2 className="text-base font-semibold text-emerald-950">שיתוף עם צדדים שלישיים</h2>
-        <p>
-          אנו משתמשים בספקי תשתית (אירוח, מסד נתונים, דואר אלקטרוני) לפי הצורך להפעלת האתר.
-          לא מוכרים את פרטיכם האישיים לצדדים שלישיים לשיווק.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">זכויותיכם</h2>
+        <h2 className="text-base font-semibold text-emerald-950">זכויותיכם (תיקון 13)</h2>
         <p>
           ניתן לעדכן פרטים בדף ההגדרות, לנהל עוגיות, ולמחוק חשבון באופן עצמי (דורש אימות
-          סיסמה). עוגיות התחברות נדרשות לשימוש בחשבון מחובר.
+          סיסמה). לבקשת עיון, תיקון או מחיקת מידע —{" "}
+          <Link href="/privacy/request" className="font-medium text-emerald-950 underline">
+            טופס בקשה לפי תיקון 13
+          </Link>
+          .
         </p>
         <p>
           יצירת קשר:{" "}
-          <a href="mailto:privacy@hallshub.example" className="text-emerald-950 underline">
-            privacy@hallshub.example
+          <a href={`mailto:${legal.privacyEmail}`} className="text-emerald-950 underline">
+            {legal.privacyEmail}
           </a>
         </p>
       </div>
@@ -55,8 +58,8 @@ export default async function PrivacyPage() {
           נגישות
         </Link>
         {" · "}
-        <Link href="/" className="text-neutral-600 underline">
-          דף הבית
+        <Link href="/contact" className="font-medium text-emerald-950 underline">
+          יצירת קשר
         </Link>
       </p>
       <SiteFooter />

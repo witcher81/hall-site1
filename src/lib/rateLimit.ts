@@ -80,7 +80,10 @@ function pickLimiter(pathname: string, pair: LimiterSet): Ratelimit {
   if (AUTH_PATHS.has(pathname)) return pair.auth;
   if (
     pathname === "/api/venue-owner/venues/boost" ||
-    pathname === "/api/settings/account"
+    pathname === "/api/venue-owner/venues/boost/checkout" ||
+    pathname === "/api/settings/account" ||
+    pathname === "/api/contact" ||
+    pathname === "/api/privacy-request"
   ) {
     return pair.sensitive;
   }

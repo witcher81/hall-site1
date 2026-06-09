@@ -3,6 +3,7 @@
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ISRAELI_MOBILE_PREFIXES } from "@/lib/israeliPhone";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -19,6 +20,7 @@ function RegisterForm() {
     "" | "SEEKER" | "VENUE_OWNER" | "FREELANCER"
   >("");
   const [acceptedLegal, setAcceptedLegal] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,6 +52,7 @@ function RegisterForm() {
           role,
           phonePrefix,
           phoneDigits,
+          turnstileToken,
         }),
       });
 
@@ -218,6 +221,11 @@ function RegisterForm() {
               .
             </span>
           </label>
+
+          <TurnstileWidget
+            onToken={setTurnstileToken}
+            onExpire={() => setTurnstileToken("")}
+          />
 
           {error && <p className="text-xs text-red-700">{error}</p>}
           <button

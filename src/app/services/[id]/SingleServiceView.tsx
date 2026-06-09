@@ -1,5 +1,6 @@
 "use client";
 
+import ReportContentButton from "@/components/ReportContentButton";
 import ServiceReviewsSection from "@/components/ServiceReviewsSection";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
@@ -686,6 +687,10 @@ export default function SingleServiceView({
           </p>
         </div>
       )}
+
+      <div className="mt-6">
+        <ReportContentButton targetType="service" targetId={service.id} />
+      </div>
 
       <ServiceReviewsSection
         serviceId={service.id}

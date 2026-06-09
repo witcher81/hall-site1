@@ -22,6 +22,7 @@ function personalAreaLinks(role: string | undefined): { href: string; label: str
   switch (role) {
     case "SEEKER":
       return [
+        { href: "/dashboard/seeker", label: "האזור האישי" },
         { href: "/favorites", label: "המועדפים שלי" },
         { href: "/my-inquiries", label: "הפניות שלי" },
         { href: "/my-service-requests", label: "הבקשות לספקים" },

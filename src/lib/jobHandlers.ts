@@ -2,6 +2,7 @@ import "server-only";
 
 import { createNotification } from "@/lib/notifications";
 import { sendPasswordResetEmail } from "@/lib/passwordResetEmail";
+import { sendWelcomeEmail } from "@/lib/welcomeEmail";
 
 type RegisterPostCreatePayload = {
   userId: number;
@@ -50,6 +51,14 @@ export async function executeJob(jobType: string, payload: unknown): Promise<voi
         body: `החשבון נוצר בהצלחה (${roleLabel}). אפשר להתחיל לעדכן פרופיל ולפעול במערכת.`,
         href: "/",
       });
+
+      if (typeof p.email === "string" && p.email.trim()) {
+        await sendWelcomeEmail({
+          to: p.email.trim(),
+          name: p.name ?? null,
+          role: typeof p.role === "string" ? p.role : "SEEKER",
+        });
+      }
 
       const crmWebhook = process.env.REGISTER_CRM_WEBHOOK_URL?.trim();
       if (crmWebhook) {

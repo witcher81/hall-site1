@@ -17,20 +17,28 @@ import {
   validateNewPassword,
   validateOptionalShortText,
 } from "@/lib/userInputValidation";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const ALLOWED_ROLES = ["SEEKER", "VENUE_OWNER", "FREELANCER"] as const;
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password, role, phonePrefix, phoneDigits } = body as {
+    const { name, email, password, role, phonePrefix, phoneDigits, turnstileToken } = body as {
       name?: string;
       email?: string;
       password?: string;
       role?: string;
       phonePrefix?: string;
       phoneDigits?: string;
+      turnstileToken?: string;
     };
+
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const captcha = await verifyTurnstileToken(turnstileToken, ip);
+    if (!captcha.ok) {
+      return NextResponse.json({ error: captcha.error }, { status: 400 });
+    }
 
     const emailResult = validateEmail(email);
     if (!emailResult.ok) {

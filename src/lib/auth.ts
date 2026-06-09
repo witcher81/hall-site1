@@ -156,7 +156,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     const user = await prisma.user.findUnique({
       where: { id: subId },
     });
-    if (!user) return null;
+    if (!user || user.isBlocked) return null;
     return {
       id: user.id,
       email: user.email,

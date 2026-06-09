@@ -2,9 +2,30 @@ import { Suspense } from "react";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
+import { searchPublicPackages } from "@/lib/publicPackagesSearch";
 import PackagesSearchClient from "./PackagesSearchClient";
 
-export default async function PackagesPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function toUrlSearchParams(
+  raw: Record<string, string | string[] | undefined>
+): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === "string") params.set(key, value);
+    else if (Array.isArray(value)) {
+      for (const v of value) params.append(key, v);
+    }
+  }
+  return params;
+}
+
+export default async function PackagesPage({ searchParams }: PageProps) {
+  const sp = toUrlSearchParams(await searchParams);
+  const { packages: initialPackages } = await searchPublicPackages(sp);
+
   return (
     <SitePageShell mainWidth="wide">
       <SitePageHeader
@@ -33,7 +54,7 @@ export default async function PackagesPage() {
           />
         }
       >
-        <PackagesSearchClient />
+        <PackagesSearchClient initialPackages={initialPackages} />
       </Suspense>
       <SiteFooter />
     </SitePageShell>

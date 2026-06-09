@@ -27,9 +27,13 @@ type Venue = {
 export default function VenueDetailsClient({
   initialVenue,
   boostPurchaseEnabled,
+  boostStripeEnabled = false,
+  boostDemoEnabled = false,
 }: {
   initialVenue: Venue;
   boostPurchaseEnabled: boolean;
+  boostStripeEnabled?: boolean;
+  boostDemoEnabled?: boolean;
 }) {
   const router = useRouter();
   const [venue] = useState(initialVenue);
@@ -254,6 +258,21 @@ export default function VenueDetailsClient({
     setBoosting(true);
     setBoostError(null);
     try {
+      if (boostStripeEnabled) {
+        const res = await fetch("/api/venue-owner/venues/boost/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ venueId: venue.id }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.url) {
+          setBoostError(data?.error || "פתיחת תשלום נכשלה");
+          setBoosting(false);
+          return;
+        }
+        window.location.assign(data.url as string);
+        return;
+      }
       const res = await fetch("/api/venue-owner/venues/boost", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -354,15 +373,18 @@ export default function VenueDetailsClient({
         <h2 className="text-lg font-semibold text-emerald-950">קידום בחיפוש</h2>
         <p className="text-xs leading-relaxed text-[#5C564C]">
           הקפצת האולם לראש רשימת תוצאות החיפוש למשך {VENUE_BOOST_DAYS} ימים
-          {boostPurchaseEnabled ? (
+          {boostStripeEnabled ? (
+            <>
+              . תשלום מאובטח דרך Stripe.
+            </>
+          ) : boostDemoEnabled ? (
             <>
               . התשלום כאן הוא{" "}
               <span className="font-medium text-emerald-950">דמו בלבד</span> (ללא סליקה אמיתית).
             </>
           ) : (
             <>
-              . <span className="font-medium text-emerald-950">רכישת קידום באתר החי תיפתח בקרוב</span>{" "}
-              (תשלום מאובטח).
+              . <span className="font-medium text-emerald-950">רכישת קידום תיפתח בקרוב</span>.
             </>
           )}
         </p>
@@ -385,8 +407,8 @@ export default function VenueDetailsClient({
             {boosting
               ? "מעבד..."
               : boostActive
-                ? `הארך קידום — ₪${VENUE_BOOST_PRICE_NIS} (דמו)`
-                : `קדם את האולם — ₪${VENUE_BOOST_PRICE_NIS} (דמו)`}
+                ? `הארך קידום — ₪${VENUE_BOOST_PRICE_NIS}${boostDemoEnabled ? " (דמו)" : ""}`
+                : `קדם את האולם — ₪${VENUE_BOOST_PRICE_NIS}${boostDemoEnabled ? " (דמו)" : ""}`}
           </button>
         ) : (
           <p className="mt-1 text-xs text-neutral-600">

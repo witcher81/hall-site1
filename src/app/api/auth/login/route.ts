@@ -7,11 +7,22 @@ import {
   type AuthUser,
 } from "@/lib/auth";
 import { validateEmail, validateLoginPassword } from "@/lib/userInputValidation";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password } = body as { email?: string; password?: string };
+    const { email, password, turnstileToken } = body as {
+      email?: string;
+      password?: string;
+      turnstileToken?: string;
+    };
+
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const captcha = await verifyTurnstileToken(turnstileToken, ip);
+    if (!captcha.ok) {
+      return NextResponse.json({ error: captcha.error }, { status: 400 });
+    }
 
     const emailResult = validateEmail(email);
     if (!emailResult.ok) {
@@ -29,7 +40,11 @@ export async function POST(req: NextRequest) {
       where: { email: normalizedEmail },
     });
 
-    if (!user || !(await verifyPassword(passwordPlain, user.passwordHash))) {
+    if (
+      !user ||
+      user.isBlocked ||
+      !(await verifyPassword(passwordPlain, user.passwordHash))
+    ) {
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }

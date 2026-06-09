@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { isVenueBoostDemoPurchaseEnabled } from "@/lib/venueBoost";
+import {
+  isVenueBoostDemoPurchaseEnabled,
+  isVenueBoostPurchaseUiEnabled,
+  isVenueBoostStripeEnabled,
+} from "@/lib/venueBoost";
 import VenueDetailsClient from "./VenueDetailsClient";
 
 export default async function VenueDetailsPage({
@@ -93,11 +97,15 @@ export default async function VenueDetailsPage({
     );
   }
 
-  const boostPurchaseEnabled = isVenueBoostDemoPurchaseEnabled();
+  const boostPurchaseEnabled = isVenueBoostPurchaseUiEnabled();
+  const boostStripeEnabled = isVenueBoostStripeEnabled();
+  const boostDemoEnabled = isVenueBoostDemoPurchaseEnabled();
 
   return (
     <VenueDetailsClient
       boostPurchaseEnabled={boostPurchaseEnabled}
+      boostStripeEnabled={boostStripeEnabled}
+      boostDemoEnabled={boostDemoEnabled}
       initialVenue={{
         id: venue.id,
         name: venue.name,
