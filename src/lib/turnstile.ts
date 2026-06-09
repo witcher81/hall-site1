@@ -4,13 +4,11 @@ export async function verifyTurnstileToken(
   token: string | undefined | null,
   remoteIp?: string | null
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
-  if (!secret) {
-    if (process.env.NODE_ENV !== "production") {
-      return { ok: true };
-    }
-    return { ok: false, error: "CAPTCHA לא מוגדר בשרת" };
+  if (!isTurnstileConfigured()) {
+    return { ok: true };
   }
+
+  const secret = process.env.TURNSTILE_SECRET_KEY!.trim();
 
   const t = token?.trim();
   if (!t) {
