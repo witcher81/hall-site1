@@ -4,7 +4,7 @@ import {
   isVenueBoostDemoPurchaseEnabled,
   isVenueBoostPurchaseUiEnabled,
   isVenueBoostStripeEnabled,
-} from "@/lib/venueBoost";
+} from "@/lib/venueBoost.server";
 import VenueDetailsClient from "./VenueDetailsClient";
 
 export default async function VenueDetailsPage({

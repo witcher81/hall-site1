@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
-import { VENUE_BOOST_DAYS } from "@/lib/venueBoost";
+import { VENUE_BOOST_DAYS } from "@/lib/venueBoostConfig";
 
 export const runtime = "nodejs";
 

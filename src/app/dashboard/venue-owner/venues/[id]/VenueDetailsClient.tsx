@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   VENUE_BOOST_DAYS,
   VENUE_BOOST_PRICE_NIS,
-} from "@/lib/venueBoost";
+} from "@/lib/venueBoostConfig";
 
 type Venue = {
   id: number;

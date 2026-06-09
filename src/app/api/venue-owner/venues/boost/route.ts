@@ -5,7 +5,7 @@ import {
   isVenueBoostDemoPurchaseEnabled,
   VENUE_BOOST_DAYS,
   VENUE_BOOST_PRICE_NIS,
-} from "@/lib/venueBoost";
+} from "@/lib/venueBoost.server";
 
 export const runtime = "nodejs";
 
