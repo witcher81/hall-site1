@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import { notifyFreelancerNewServiceRequest } from "@/lib/transactionalEmails";
 import { validatePreferredDateNotPast } from "@/lib/validatePreferredDate";
 import {
@@ -87,7 +88,10 @@ export async function POST(req: NextRequest) {
   });
 
   const providerEmail = service.provider.email;
-  if (providerEmail) {
+  if (
+    providerEmail &&
+    (await userWantsEmailFromDb(service.providerId, "newServiceRequest"))
+  ) {
     notifyFreelancerNewServiceRequest({
       providerEmail,
       providerName: service.provider.businessName ?? service.provider.name,

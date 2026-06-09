@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import { notifySeekerInquiryReplied } from "@/lib/transactionalEmails";
 import {
   USER_INPUT_MAX,
@@ -135,7 +136,10 @@ export async function PATCH(req: NextRequest) {
       body: `בעל האולם ענה לפנייה שלך עבור "${inquiry.venue.name}".`,
       href: "/my-inquiries",
     });
-    if (inquiry.user.email) {
+    if (
+      inquiry.user.email &&
+      (await userWantsEmailFromDb(inquiry.userId, "inquiryReply"))
+    ) {
       notifySeekerInquiryReplied({
         seekerEmail: inquiry.user.email,
         seekerName: inquiry.user.name,

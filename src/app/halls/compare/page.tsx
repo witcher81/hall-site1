@@ -1,15 +1,29 @@
 import { prisma } from "@/lib/prisma";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
+import {
+  coerceParkingKindFromStorage,
+  PARKING_KIND_SHORT_LABELS,
+} from "@/lib/venueParkingKind";
 
 export const runtime = "nodejs";
+
+function formatParkingLabel(
+  parkingKind: string | null,
+  parking: string | null
+): string {
+  const kind = parkingKind ? coerceParkingKindFromStorage(parkingKind) : null;
+  if (kind) return PARKING_KIND_SHORT_LABELS[kind];
+  const legacy = parking?.trim();
+  return legacy || "לא צוין";
+}
 
 export default async function HallsComparePage({
   searchParams,
 }: {
-  searchParams: { ids?: string };
+  searchParams: Promise<{ ids?: string }>;
 }) {
-  const idsParam = searchParams.ids;
+  const { ids: idsParam } = await searchParams;
   const ids = (idsParam || "")
     .split(",")
     .map((v) => Number(v))
@@ -31,6 +45,9 @@ export default async function HallsComparePage({
             minGuests: true,
             maxGuests: true,
             address: true,
+            kashrut: true,
+            parking: true,
+            parkingKind: true,
           },
           orderBy: { name: "asc" },
         });
@@ -107,8 +124,12 @@ export default async function HallsComparePage({
                     <td className="px-3 py-3 text-neutral-900">
                       {v.maxGuests ?? "לא צוין"}
                     </td>
-                    <td className="px-3 py-3 text-neutral-600">—</td>
-                    <td className="px-3 py-3 text-neutral-600">—</td>
+                    <td className="px-3 py-3 text-neutral-600">
+                      {formatParkingLabel(v.parkingKind, v.parking)}
+                    </td>
+                    <td className="px-3 py-3 text-neutral-600">
+                      {v.kashrut?.trim() || "לא צוין"}
+                    </td>
                   </tr>
                 ))}
               </tbody>

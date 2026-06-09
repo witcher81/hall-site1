@@ -45,6 +45,7 @@ export default function DashboardNav({ user }: { user: User }) {
           </span>
           {link(base, "האולמות שלי")}
           {link(base + "/inquiries", "פניות")}
+          {link(base + "/packages", "חבילות")}
           {link(base + "/profile", "פרופיל")}
           <Link
             href="/"

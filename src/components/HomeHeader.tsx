@@ -26,6 +26,7 @@ function personalAreaLinks(role: string | undefined): { href: string; label: str
         { href: "/favorites", label: "המועדפים שלי" },
         { href: "/my-inquiries", label: "הפניות שלי" },
         { href: "/my-service-requests", label: "הבקשות לספקים" },
+        { href: "/my-plans", label: "תוכניות אירוע" },
         { href: "/event-planner", label: "צ׳קליסט אירוע" },
         { href: "/event-builder", label: "בניית חבילה" },
       ];
@@ -41,7 +42,17 @@ function personalAreaLinks(role: string | undefined): { href: string; label: str
   }
 }
 
-type NavKey = "halls" | "hallsMap" | "providers" | "packages" | "messages" | "notifications";
+type NavKey =
+  | "halls"
+  | "hallsMap"
+  | "providers"
+  | "packages"
+  | "trending"
+  | "recentlyViewed"
+  | "favorites"
+  | "eventBuilder"
+  | "messages"
+  | "notifications";
 
 function navKeyActive(pathname: string, key: NavKey): boolean {
   if (key === "hallsMap") return pathname.startsWith("/halls/map");
@@ -52,6 +63,10 @@ function navKeyActive(pathname: string, key: NavKey): boolean {
   if (key === "providers")
     return pathname === "/providers" || pathname.startsWith("/providers/");
   if (key === "packages") return pathname.startsWith("/packages");
+  if (key === "trending") return pathname.startsWith("/trending");
+  if (key === "recentlyViewed") return pathname.startsWith("/recently-viewed");
+  if (key === "favorites") return pathname.startsWith("/favorites");
+  if (key === "eventBuilder") return pathname.startsWith("/event-builder");
   if (key === "messages") return pathname.startsWith("/messages");
   if (key === "notifications") return pathname.startsWith("/notifications");
   return false;
@@ -242,6 +257,54 @@ export default function HomeHeader({
             >
               חבילות אירוע
             </Link>
+            <Link
+              href="/trending"
+              aria-current={navKeyActive(pathname, "trending") ? "page" : undefined}
+              className={`${navLinkDesktopBase} ${
+                navKeyActive(pathname, "trending")
+                  ? navLinkDesktopActive
+                  : navLinkDesktopIdle
+              }`}
+            >
+              טרנדינג
+            </Link>
+            <Link
+              href="/recently-viewed"
+              aria-current={navKeyActive(pathname, "recentlyViewed") ? "page" : undefined}
+              className={`${navLinkDesktopBase} ${
+                navKeyActive(pathname, "recentlyViewed")
+                  ? navLinkDesktopActive
+                  : navLinkDesktopIdle
+              }`}
+            >
+              נצפו לאחרונה
+            </Link>
+            {user?.role === "SEEKER" && (
+              <>
+                <Link
+                  href="/favorites"
+                  aria-current={navKeyActive(pathname, "favorites") ? "page" : undefined}
+                  className={`${navLinkDesktopBase} ${
+                    navKeyActive(pathname, "favorites")
+                      ? navLinkDesktopActive
+                      : navLinkDesktopIdle
+                  }`}
+                >
+                  מועדפים
+                </Link>
+                <Link
+                  href="/event-builder"
+                  aria-current={navKeyActive(pathname, "eventBuilder") ? "page" : undefined}
+                  className={`${navLinkDesktopBase} ${
+                    navKeyActive(pathname, "eventBuilder")
+                      ? navLinkDesktopActive
+                      : navLinkDesktopIdle
+                  }`}
+                >
+                  בניית אירוע
+                </Link>
+              </>
+            )}
             {user && canUseMessages && (
               <Link
                 href="/messages"
@@ -427,6 +490,64 @@ export default function HomeHeader({
                     >
                       חבילות אירוע
                     </Link>
+                    <Link
+                      href="/trending"
+                      aria-current={navKeyActive(pathname, "trending") ? "page" : undefined}
+                      className={`${navLinkMobileBase} ${
+                        navKeyActive(pathname, "trending")
+                          ? navLinkMobileActive
+                          : navLinkMobileIdle
+                      }`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      טרנדינג
+                    </Link>
+                    <Link
+                      href="/recently-viewed"
+                      aria-current={
+                        navKeyActive(pathname, "recentlyViewed") ? "page" : undefined
+                      }
+                      className={`${navLinkMobileBase} ${
+                        navKeyActive(pathname, "recentlyViewed")
+                          ? navLinkMobileActive
+                          : navLinkMobileIdle
+                      }`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      נצפו לאחרונה
+                    </Link>
+                    {user?.role === "SEEKER" && (
+                      <>
+                        <Link
+                          href="/favorites"
+                          aria-current={
+                            navKeyActive(pathname, "favorites") ? "page" : undefined
+                          }
+                          className={`${navLinkMobileBase} ${
+                            navKeyActive(pathname, "favorites")
+                              ? navLinkMobileActive
+                              : navLinkMobileIdle
+                          }`}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          מועדפים
+                        </Link>
+                        <Link
+                          href="/event-builder"
+                          aria-current={
+                            navKeyActive(pathname, "eventBuilder") ? "page" : undefined
+                          }
+                          className={`${navLinkMobileBase} ${
+                            navKeyActive(pathname, "eventBuilder")
+                              ? navLinkMobileActive
+                              : navLinkMobileIdle
+                          }`}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          בניית אירוע
+                        </Link>
+                      </>
+                    )}
                     {canUseMessages && (
                       <Link
                         href="/messages"

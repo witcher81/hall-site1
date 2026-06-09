@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import { notifySeekerServiceRequestReplied } from "@/lib/transactionalEmails";
 import {
   USER_INPUT_MAX,
@@ -98,7 +99,10 @@ export async function PATCH(req: NextRequest) {
       body: `הספק ענה לבקשה שלך עבור "${serviceRequest.service.name}".`,
       href: "/my-service-requests",
     });
-    if (serviceRequest.user.email) {
+    if (
+      serviceRequest.user.email &&
+      (await userWantsEmailFromDb(serviceRequest.userId, "serviceRequestReply"))
+    ) {
       notifySeekerServiceRequestReplied({
         seekerEmail: serviceRequest.user.email,
         seekerName: serviceRequest.user.name,

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { prisma } from "@/lib/prisma";
 import {
   DEFAULT_EMAIL_NOTIFICATION_PREFS,
   type EmailNotificationPrefs,
@@ -37,4 +38,15 @@ export async function userWantsEmail(
 ): Promise<boolean> {
   const raw = await loadJson(userId);
   return parseEmailNotificationPrefs(raw)[key];
+}
+
+export async function userWantsEmailFromDb(
+  userId: number,
+  key: keyof EmailNotificationPrefs
+): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { emailNotificationsJson: true },
+  });
+  return parseEmailNotificationPrefs(user?.emailNotificationsJson)[key];
 }

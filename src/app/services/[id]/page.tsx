@@ -74,6 +74,18 @@ export default async function PublicSingleServicePage({
         )
       : false;
 
+  const isServiceFavorite =
+    user?.role === "SEEKER"
+      ? Boolean(
+          await prisma.serviceFavorite.findUnique({
+            where: {
+              userId_serviceId: { userId: user.id, serviceId: service.id },
+            },
+            select: { id: true },
+          })
+        )
+      : false;
+
   const bundle = parseServiceIncludesBundle(service.customIncludesJson);
 
   return (
@@ -112,6 +124,7 @@ export default async function PublicSingleServicePage({
         seekerLoggedIn={user?.role === "SEEKER"}
         currentUserId={user?.id ?? null}
         canWriteServiceReview={canWriteServiceReview}
+        initialIsFavorite={isServiceFavorite}
       />
     </SitePageShell>
   );

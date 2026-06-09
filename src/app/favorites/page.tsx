@@ -24,6 +24,19 @@ export default async function FavoritesPage() {
     coverImageUrl: string | null;
     galleryImageUrls: string[];
   }> = [];
+  let services: Array<{
+    id: number;
+    name: string;
+    category: string | null;
+    coverImageUrl: string | null;
+    minPrice: number | null;
+    maxPrice: number | null;
+    provider: {
+      id: number;
+      name: string | null;
+      businessName: string | null;
+    };
+  }> = [];
 
   try {
     const delegate = (prisma as unknown as {
@@ -65,13 +78,38 @@ export default async function FavoritesPage() {
     // Prisma client may not have Favorite model until after "npx prisma generate"
   }
 
+  try {
+    const serviceFavorites = await prisma.serviceFavorite.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        service: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+            coverImageUrl: true,
+            minPrice: true,
+            maxPrice: true,
+            provider: {
+              select: { id: true, name: true, businessName: true },
+            },
+          },
+        },
+      },
+    });
+    services = serviceFavorites.map((f) => f.service);
+  } catch {
+    // ServiceFavorite model may be missing on stale client
+  }
+
   return (
     <SitePageShell>
       <SitePageHeader
         title="המועדפים שלי"
-        description="אולמות ששמרת לרשימה. לחץ על אולם לצפייה או הסר מהרשימה."
+        description="אולמות ושירותים ששמרת לרשימה. לחץ לצפייה או הסר מהרשימה."
       />
-      <FavoritesClient initialVenues={venues} />
+      <FavoritesClient initialVenues={venues} initialServices={services} />
     </SitePageShell>
   );
 }

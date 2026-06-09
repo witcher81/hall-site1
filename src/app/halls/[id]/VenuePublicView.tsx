@@ -8,6 +8,7 @@ import { useEngagedVenueView } from "@/lib/useEngagedViewAnalytics";
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
 import { WEDDING_AMENITY_STORAGE_PREFIX } from "@/lib/venueInquiryAmenities";
 import { getVenueTypePublicLabel } from "@/lib/venueTypeOptions";
+import ReportContentButton from "@/components/ReportContentButton";
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
 
@@ -976,6 +977,10 @@ export default function VenuePublicView({
           </div>
         )}
       </section>
+
+      <div className="mt-6 text-right">
+        <ReportContentButton targetType="venue" targetId={venue.id} />
+      </div>
 
       {/* ביקורות ודירוגים — למטה אחרי שליחת הבקשה */}
       <VenueReviewsSection venueId={venue.id} currentUserId={user?.id ?? null} />

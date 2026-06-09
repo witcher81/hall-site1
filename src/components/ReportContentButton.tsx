@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 type Props = {
-  targetType: "venue" | "service";
+  targetType: "venue" | "service" | "provider";
   targetId: number;
 };
 

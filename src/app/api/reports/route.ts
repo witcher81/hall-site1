@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-const TARGET_TYPES = new Set(["venue", "service"]);
+const TARGET_TYPES = new Set(["venue", "service", "provider"]);
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();

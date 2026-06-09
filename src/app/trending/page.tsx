@@ -1,6 +1,15 @@
-import { redirect } from "next/navigation";
+import SitePageHeader from "@/components/layout/SitePageHeader";
+import SitePageShell from "@/components/layout/SitePageShell";
+import TrendingPageClient from "./TrendingPageClient";
 
-/** העמוד הוסר — הפופולרי מוצג כתג על כרטיסים ברשימות החיפוש */
-export default function TrendingPageRedirect() {
-  redirect("/halls");
+export default function TrendingPage() {
+  return (
+    <SitePageShell>
+      <SitePageHeader
+        title="טרנדינג"
+        description="אולמות וספקים שמושכים הכי הרבה עניין השבוע — לפי צפיות מעורבות באתר."
+      />
+      <TrendingPageClient />
+    </SitePageShell>
+  );
 }

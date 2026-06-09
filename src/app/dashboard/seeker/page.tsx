@@ -9,18 +9,22 @@ export default async function SeekerDashboardPage() {
   if (!user) redirect("/auth/login");
   if (user.role !== "SEEKER") redirect("/");
 
-  const [inquiries, requests, favorites, unread] = await Promise.all([
-    prisma.inquiry.count({ where: { userId: user.id } }),
-    prisma.serviceRequest.count({ where: { userId: user.id } }),
-    prisma.favorite.count({ where: { userId: user.id } }),
-    prisma.notification.count({ where: { userId: user.id, isRead: false } }),
-  ]);
+  const [inquiries, requests, venueFavorites, serviceFavorites, unread] =
+    await Promise.all([
+      prisma.inquiry.count({ where: { userId: user.id } }),
+      prisma.serviceRequest.count({ where: { userId: user.id } }),
+      prisma.favorite.count({ where: { userId: user.id } }),
+      prisma.serviceFavorite.count({ where: { userId: user.id } }),
+      prisma.notification.count({ where: { userId: user.id, isRead: false } }),
+    ]);
+  const favorites = venueFavorites + serviceFavorites;
 
   const cards = [
     { href: "/my-inquiries", label: "פניות לאולמות", count: inquiries },
     { href: "/my-service-requests", label: "בקשות לספקים", count: requests },
     { href: "/favorites", label: "מועדפים", count: favorites },
     { href: "/notifications", label: "התראות שלא נקראו", count: unread },
+    { href: "/my-plans", label: "תוכניות אירוע", count: null },
     { href: "/event-builder", label: "בניית אירוע", count: null },
     { href: "/event-planner", label: "צ'קליסט אירוע", count: null },
   ];

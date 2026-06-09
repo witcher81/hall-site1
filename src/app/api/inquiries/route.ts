@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import {
   notifySeekerInquiryReplied,
   notifyVenueOwnerNewInquiry,
@@ -190,7 +191,10 @@ export async function POST(req: NextRequest) {
     where: { id: venue.ownerId },
     select: { email: true, name: true },
   });
-  if (ownerUser?.email) {
+  if (
+    ownerUser?.email &&
+    (await userWantsEmailFromDb(venue.ownerId, "newInquiry"))
+  ) {
     notifyVenueOwnerNewInquiry({
       ownerEmail: ownerUser.email,
       ownerName: ownerUser.name,
@@ -221,7 +225,10 @@ export async function POST(req: NextRequest) {
       body: `התקבלה תשובה אוטומטית לפנייה עבור "${venue.name}".`,
       href: "/my-inquiries",
     });
-    if (user.email) {
+    if (
+      user.email &&
+      (await userWantsEmailFromDb(user.id, "inquiryReply"))
+    ) {
       notifySeekerInquiryReplied({
         seekerEmail: user.email,
         seekerName: user.name,

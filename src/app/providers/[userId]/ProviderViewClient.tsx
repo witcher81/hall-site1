@@ -1,5 +1,6 @@
 "use client";
 
+import ReportContentButton from "@/components/ReportContentButton";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
@@ -109,6 +110,10 @@ export default function ProviderViewClient({
           </ul>
         )}
       </section>
+
+      <div className="text-right">
+        <ReportContentButton targetType="provider" targetId={provider.id} />
+      </div>
     </div>
   );
 }

@@ -58,6 +58,7 @@ export default function SingleServiceView({
   seekerLoggedIn,
   currentUserId,
   canWriteServiceReview,
+  initialIsFavorite = false,
 }: {
   provider: Provider;
   service: Service;
@@ -65,6 +66,7 @@ export default function SingleServiceView({
   seekerLoggedIn: boolean;
   currentUserId: number | null;
   canWriteServiceReview: boolean;
+  initialIsFavorite?: boolean;
 }) {
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [requestSent, setRequestSent] = useState(false);
@@ -78,6 +80,7 @@ export default function SingleServiceView({
   const [galleryLightboxIndex, setGalleryLightboxIndex] = useState<number | null>(
     null
   );
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const providerName = provider.businessName || provider.name || "ספק";
@@ -273,9 +276,52 @@ export default function SingleServiceView({
             <span className="truncate font-semibold text-emerald-950">{providerName}</span>
           </a>
 
-          <h1 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
-            {service.name}
-          </h1>
+          <div className="mt-3 flex items-start justify-between gap-3">
+            <h1 className="text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
+              {service.name}
+            </h1>
+            {seekerLoggedIn && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (isFavorite) {
+                    await fetch(`/api/service-favorites?serviceId=${service.id}`, {
+                      method: "DELETE",
+                    });
+                    setIsFavorite(false);
+                  } else {
+                    await fetch("/api/service-favorites", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ serviceId: service.id }),
+                    });
+                    setIsFavorite(true);
+                  }
+                }}
+                className={`shrink-0 rounded-full border p-2.5 transition hover:bg-[#F8F6F2] ${
+                  isFavorite
+                    ? "border-red-200 text-red-600"
+                    : "border-transparent text-neutral-600 hover:border-neutral-200 hover:text-red-600"
+                }`}
+                title={isFavorite ? "הסר ממועדפים" : "שמירה לרשימת המועדפים"}
+                aria-label={isFavorite ? "הסר ממועדפים" : "שמירה למועדפים"}
+              >
+                <svg
+                  className={`h-6 w-6 ${isFavorite ? "text-red-600" : ""}`}
+                  fill={isFavorite ? "currentColor" : "none"}
+                  stroke={isFavorite ? "#dc2626" : "currentColor"}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
 
           {categoryParsed.primary ? (
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-gradient-to-br from-[#FFFCF6] to-[#FAF8F4] p-4 shadow-sm">

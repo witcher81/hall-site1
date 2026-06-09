@@ -97,12 +97,28 @@ export default function MyInquiriesClient({
                   })}
                 </p>
               </div>
-              <a
-                href={`/halls/${q.venue.id}`}
-                className="inline-flex shrink-0 items-center justify-center rounded-full border-2 border-emerald-950/20 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm transition hover:border-emerald-950/40 hover:bg-emerald-950/[0.04] sm:self-start"
-              >
-                צפייה באולם
-              </a>
+              <div className="flex shrink-0 flex-wrap gap-2 sm:self-start">
+                <a
+                  href={`/messages?venueId=${q.venue.id}`}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full border border-emerald-950/35 bg-emerald-950/08 px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-950/12"
+                >
+                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
+                  </svg>
+                  פתח שיחה
+                </a>
+                <a
+                  href={`/halls/${q.venue.id}`}
+                  className="inline-flex items-center justify-center rounded-full border-2 border-emerald-950/20 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm transition hover:border-emerald-950/40 hover:bg-emerald-950/[0.04]"
+                >
+                  צפייה באולם
+                </a>
+              </div>
             </div>
 
             <InquiryEventSummaryLuxury
