@@ -14,6 +14,7 @@
     "db:wipe-all": "prisma db execute --file prisma/wipe-all-app-data.sql --schema prisma/schema.prisma",
     "geocode:venues": "node scripts/geocode-venues.mjs",
     "seed:packages": "node scripts/seed-event-packages.mjs",
+    "seed:venues": "node scripts/seed-sample-venues.mjs",
     "dev": "next dev --webpack",
     "dev:turbo": "next dev --turbopack",
     "dev:stop": "powershell -NoProfile -Command \"$ErrorActionPreference='SilentlyContinue'; Get-NetTCPConnection -LocalPort 3000 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }; Start-Sleep -Milliseconds 400; if (Test-Path '.next/dev/lock') { Remove-Item -Force '.next/dev/lock' }\"",

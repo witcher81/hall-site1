@@ -28,6 +28,7 @@ import {
   resolveParkingFilterFromSearchParams,
 } from "@/lib/venueParkingKind";
 import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
+import HallsMapSection from "@/components/HallsMapSection";
 import VenueOfferProductsSection from "@/components/VenueOfferProductsSection";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PublicVenueListItem } from "@/lib/publicVenuesSearch";
@@ -472,8 +473,38 @@ export default function HallsSearchClient({
     initialWarning
   );
   const [form, setForm] = useState(() => ({ ...EMPTY_SEARCH_FORM }));
+  const [mapOpen, setMapOpen] = useState(
+    () => searchParams.get("view") === "map"
+  );
   const lastPushedQsRef = useRef<string | null>(null);
   const restoredSearchRef = useRef(false);
+
+  useEffect(() => {
+    setMapOpen(searchParams.get("view") === "map");
+  }, [searchParams]);
+
+  function setMapOpenWithUrl(open: boolean) {
+    setMapOpen(open);
+    const params = new URLSearchParams(searchParams.toString());
+    if (open) params.set("view", "map");
+    else params.delete("view");
+    const qs = params.toString();
+    lastPushedQsRef.current = qs;
+    router.replace(qs ? `/halls?${qs}` : "/halls", { scroll: false });
+  }
+
+  const mapFallbackVenues = useMemo(
+    () =>
+      venues.map((v) => ({
+        id: v.id,
+        name: v.name,
+        city: v.city,
+        address: v.address,
+      })),
+    [venues]
+  );
+
+  const mapVenueIds = useMemo(() => venues.map((v) => v.id), [venues]);
 
   useLayoutEffect(() => {
     const qs = searchParams.toString();
@@ -688,7 +719,25 @@ export default function HallsSearchClient({
   );
 
   return (
-    <div className="mt-6 space-y-8">
+    <div className="relative mt-6 space-y-8">
+      <button
+        type="button"
+        onClick={() => setMapOpenWithUrl(!mapOpen)}
+        className={`fixed top-36 z-40 flex flex-col items-center gap-1 rounded-l-2xl border border-neutral-200 bg-white px-2.5 py-4 text-[11px] font-bold shadow-[0_8px_28px_rgba(15,59,46,0.15)] transition hover:border-amber-400 hover:bg-amber-50 sm:px-3 ${
+          mapOpen ? "border-amber-400 bg-amber-50 text-emerald-950" : "text-emerald-950"
+        }`}
+        style={{ insetInlineEnd: 0 }}
+        aria-expanded={mapOpen}
+        aria-label={mapOpen ? "הסתר מפת אולמות" : "הצג מפת אולמות"}
+      >
+        <span aria-hidden className="text-lg">
+          🗺
+        </span>
+        <span className="max-w-[3rem] leading-tight">
+          {mapOpen ? "הסתר מפה" : "מפת אולמות"}
+        </span>
+      </button>
+
       <form
         onSubmit={handleSubmit}
         className="rounded-3xl border border-neutral-200 bg-white p-6 text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] sm:p-8 md:p-10"
@@ -993,6 +1042,15 @@ export default function HallsSearchClient({
       </form>
 
       <RecentlyViewedBar variant="venues" />
+
+      {mapOpen ? (
+        <HallsMapSection
+          filterVenueIds={mapVenueIds}
+          initialCity={form.city}
+          searchVenuesFallback={mapFallbackVenues}
+          onClose={() => setMapOpenWithUrl(false)}
+        />
+      ) : null}
 
       {searchWarning ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-right text-xs text-amber-900">

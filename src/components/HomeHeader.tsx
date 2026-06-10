@@ -44,7 +44,6 @@ function personalAreaLinks(role: string | undefined): { href: string; label: str
 
 type NavKey =
   | "halls"
-  | "hallsMap"
   | "providers"
   | "packages"
   | "trending"
@@ -55,9 +54,7 @@ type NavKey =
   | "notifications";
 
 function navKeyActive(pathname: string, key: NavKey): boolean {
-  if (key === "hallsMap") return pathname.startsWith("/halls/map");
   if (key === "halls") {
-    if (pathname.startsWith("/halls/map")) return false;
     return pathname === "/halls" || pathname.startsWith("/halls/");
   }
   if (key === "providers")
@@ -199,18 +196,6 @@ export default function HomeHeader({
           <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-slate-50">
             Halls Hub
           </Link>
-          <Link
-            href="/halls/map"
-            aria-current={navKeyActive(pathname, "hallsMap") ? "page" : undefined}
-            className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] transition sm:hidden ${
-              navKeyActive(pathname, "hallsMap")
-                ? "border-[#C9A227] bg-amber-400/20 font-semibold text-[#F5E6A8]"
-                : "border-slate-600/80 text-slate-200 hover:border-slate-400 hover:text-white"
-            }`}
-          >
-            מפה
-          </Link>
-
           {/* ניווט אחיד: אותם פריטי בסיס לכולם; "אזור אישי" = מה שהיה תלוי־תפקיד */}
           <nav className="hidden min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 sm:flex lg:gap-x-3">
             <Link
@@ -223,17 +208,6 @@ export default function HomeHeader({
               }`}
             >
               חיפוש אולמות
-            </Link>
-            <Link
-              href="/halls/map"
-              aria-current={navKeyActive(pathname, "hallsMap") ? "page" : undefined}
-              className={`${navLinkDesktopBase} ${
-                navKeyActive(pathname, "hallsMap")
-                  ? navLinkDesktopActive
-                  : navLinkDesktopIdle
-              }`}
-            >
-              מפת אולמות
             </Link>
             <Link
               href="/providers"
@@ -447,20 +421,6 @@ export default function HomeHeader({
                       onClick={() => setMenuOpen(false)}
                     >
                       חיפוש אולמות
-                    </Link>
-                    <Link
-                      href="/halls/map"
-                      aria-current={
-                        navKeyActive(pathname, "hallsMap") ? "page" : undefined
-                      }
-                      className={`${navLinkMobileBase} ${
-                        navKeyActive(pathname, "hallsMap")
-                          ? navLinkMobileActive
-                          : navLinkMobileIdle
-                      }`}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      מפת אולמות
                     </Link>
                     <Link
                       href="/providers"
