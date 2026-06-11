@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { searchPublicVenues } from "@/lib/publicVenuesSearch";
+import { venuesToMapMarkers } from "@/lib/venueMapMarkers";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
@@ -26,8 +27,21 @@ function toUrlSearchParams(
 export default async function HallsPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   const sp = toUrlSearchParams(await searchParams);
-  const { venues: initialVenues, warning: initialWarning } =
-    await searchPublicVenues(sp);
+  const [{ venues: initialVenues, warning: initialWarning }, mapVenueRows] =
+    await Promise.all([
+      searchPublicVenues(sp),
+      prisma.venue.findMany({
+        select: {
+          id: true,
+          name: true,
+          city: true,
+          address: true,
+          latitude: true,
+          longitude: true,
+        },
+      }),
+    ]);
+  const initialMapVenues = venuesToMapMarkers(mapVenueRows);
 
   let favoriteVenueIds: number[] = [];
   if (user) {
@@ -55,6 +69,7 @@ export default async function HallsPage({ searchParams }: PageProps) {
         userLoggedIn={!!user}
         initialFavoriteVenueIds={favoriteVenueIds}
         initialVenues={initialVenues}
+        initialMapVenues={initialMapVenues}
         initialWarning={initialWarning ?? null}
       />
       <SiteFooter />

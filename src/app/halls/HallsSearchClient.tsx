@@ -29,6 +29,7 @@ import {
 } from "@/lib/venueParkingKind";
 import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
 import HallsMapSection from "@/components/HallsMapSection";
+import type { MapVenue } from "@/components/VenuesMapClient";
 import VenueOfferProductsSection from "@/components/VenueOfferProductsSection";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PublicVenueListItem } from "@/lib/publicVenuesSearch";
@@ -468,12 +469,15 @@ export default function HallsSearchClient({
   userLoggedIn = false,
   initialFavoriteVenueIds = [],
   initialVenues = [],
+  initialMapVenues = [],
   initialWarning = null,
 }: {
   userLoggedIn?: boolean;
   initialFavoriteVenueIds?: number[];
   /** תוצאות ראשוניות מהשרת — עובד גם כש־/api/venues נכשל */
   initialVenues?: Venue[];
+  /** כל האולמות למפה — נטען בשרת, בלי תלות ב-API */
+  initialMapVenues?: MapVenue[];
   initialWarning?: string | null;
 }) {
   const router = useRouter();
@@ -537,8 +541,6 @@ export default function HallsSearchClient({
       })),
     [venues]
   );
-
-  const mapVenueIds = useMemo(() => venues.map((v) => v.id), [venues]);
 
   useLayoutEffect(() => {
     const qs = searchParams.toString();
@@ -1103,8 +1105,7 @@ export default function HallsSearchClient({
             className="fixed z-50 inset-x-3 top-24 bottom-4 overflow-y-auto rounded-2xl md:inset-x-auto md:inset-inline-start-3 md:w-[min(540px,calc(100vw-1.5rem))]"
           >
             <HallsMapSection
-              filterVenueIds={mapVenueIds}
-              initialCity={form.city}
+              initialMapVenues={initialMapVenues}
               searchVenuesFallback={mapFallbackVenues}
               onClose={() => setMapOpenWithUrl(false)}
               compact

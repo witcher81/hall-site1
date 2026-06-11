@@ -34,90 +34,63 @@ function venueMatchesCityFilter(venueCity: string, filterRaw: string): boolean {
 }
 
 type Props = {
-  /** סינון סיכות לפי תוצאות חיפוש נוכחיות */
-  filterVenueIds?: number[];
-  /** עיר מהחיפוש — מילוי אוטומטי בסינון המפה */
-  initialCity?: string;
-  /** נפילה: בניית סיכות מתוצאות החיפוש אם ה-API ריק/נכשל */
+  /** נתוני מפה מהשרת — לא תלוי ב-API client (עוקף הגבלת קצב בפרוד) */
+  initialMapVenues?: MapVenue[];
+  /** נפילה אם אין נתוני שרת */
   searchVenuesFallback?: SearchVenueFallback[];
   onClose?: () => void;
   compact?: boolean;
 };
 
 export default function HallsMapSection({
-  filterVenueIds,
-  initialCity = "",
+  initialMapVenues = [],
   searchVenuesFallback = [],
   onClose,
   compact = false,
 }: Props) {
-  const [venues, setVenues] = useState<MapVenue[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [filterCity, setFilterCity] = useState(initialCity);
+  const [venues, setVenues] = useState<MapVenue[] | null>(() =>
+    initialMapVenues.length > 0 ? initialMapVenues : null
+  );
+  const [filterCity, setFilterCity] = useState("");
 
-  useEffect(() => {
-    setFilterCity(initialCity);
-  }, [initialCity]);
-
-  const venueIdsKey = filterVenueIds?.join(",") ?? "all";
   const fallbackKey = searchVenuesFallback.map((v) => v.id).join(",");
 
   useEffect(() => {
+    if (initialMapVenues.length > 0) {
+      setVenues(initialMapVenues);
+      return;
+    }
+
     let cancelled = false;
     void (async () => {
       try {
         const res = await fetch("/api/venues/map");
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          if (!cancelled) {
-            setError(
-              typeof data?.error === "string"
-                ? data.error
-                : "טעינת אולמות למפה נכשלה"
-            );
-          }
-          return;
-        }
-        let list: MapVenue[] = Array.isArray(data.venues) ? data.venues : [];
+        let list: MapVenue[] = Array.isArray(data?.venues) ? data.venues : [];
 
-        if (list.length === 0 && searchVenuesFallback.length > 0) {
-          list = venuesToMapMarkers(searchVenuesFallback);
-        }
-
-        if (filterVenueIds && filterVenueIds.length > 0) {
-          const idSet = new Set(filterVenueIds);
-          list = list.filter((v) => idSet.has(v.id));
-          if (list.length === 0 && searchVenuesFallback.length > 0) {
-            list = venuesToMapMarkers(
-              searchVenuesFallback.filter((v) => idSet.has(v.id))
-            );
+        if (!res.ok || list.length === 0) {
+          if (searchVenuesFallback.length > 0) {
+            list = venuesToMapMarkers(searchVenuesFallback);
           }
         }
 
         if (!cancelled) {
-          setVenues(list);
-          setError(null);
+          setVenues(list.length > 0 ? list : []);
         }
       } catch {
         if (!cancelled) {
-          if (searchVenuesFallback.length > 0) {
-            let list = venuesToMapMarkers(searchVenuesFallback);
-            if (filterVenueIds && filterVenueIds.length > 0) {
-              const idSet = new Set(filterVenueIds);
-              list = list.filter((v) => idSet.has(v.id));
-            }
-            setVenues(list);
-            setError(null);
-          } else {
-            setError("טעינת אולמות למפה נכשלה");
-          }
+          const list =
+            searchVenuesFallback.length > 0
+              ? venuesToMapMarkers(searchVenuesFallback)
+              : [];
+          setVenues(list);
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [venueIdsKey, fallbackKey, searchVenuesFallback, filterVenueIds]);
+  }, [initialMapVenues, fallbackKey, searchVenuesFallback]);
 
   const extraCities = useMemo(
     () =>
@@ -152,7 +125,8 @@ export default function HallsMapSection({
         <div>
           <h2 className="text-base font-bold text-emerald-950">מפת אולמות</h2>
           <p className="mt-1 text-xs text-neutral-600">
-            לחיצה על סיכה מובילה לעמוד האולם. סינון לפי עיר או לפי תוצאות החיפוש.
+            כל האולמות במערכת. לחיצה על סיכה מובילה לעמוד האולם — אפשר לקפוץ לעיר
+            בשדה החיפוש.
           </p>
         </div>
         {onClose ? (
@@ -168,7 +142,7 @@ export default function HallsMapSection({
       </div>
 
       <div className="mb-4 rounded-xl border border-neutral-100 bg-neutral-50/80 p-3">
-        <label className="block text-sm font-medium text-emerald-950">קפיצה לעיר</label>
+        <label className="block text-sm font-medium text-emerald-950">חיפוש עיר</label>
         <CityAutocompleteInput
           value={filterCity}
           onChange={setFilterCity}
@@ -183,18 +157,16 @@ export default function HallsMapSection({
             onClick={() => setFilterCity("")}
             className="mt-2 text-xs font-medium text-emerald-950 underline-offset-2 hover:underline"
           >
-            נקה סינון עיר
+            הצג את כל האולמות
           </button>
         ) : null}
       </div>
 
-      {error ? (
-        <p className="py-6 text-center text-sm text-red-600">{error}</p>
-      ) : !venues ? (
+      {!venues ? (
         <p className="py-12 text-center text-sm text-neutral-600">טוען נתונים...</p>
       ) : venues.length === 0 ? (
         <p className="py-8 text-center text-sm text-neutral-600">
-          אין אולמות להצגה על המפה. נסו לנקות סינון בחיפוש או להוסיף אולמות במערכת.
+          אין אולמות להצגה על המפה עדיין.
         </p>
       ) : displayedVenues.length === 0 ? (
         <>
