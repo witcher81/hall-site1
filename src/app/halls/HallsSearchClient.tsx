@@ -34,6 +34,8 @@ import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PublicVenueListItem } from "@/lib/publicVenuesSearch";
 
 const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
+const MAP_VIEW_PARAM = "view";
+const MAP_VIEW_VALUE = "map";
 
 /** ברירת מחדל מלאה — מונע input שעובר מ־uncontrolled ל־controlled כשחסר מפתח ב־state */
 const EMPTY_SEARCH_FORM = {
@@ -119,6 +121,14 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   if (f.hasDanceFloor) params.set("hasDanceFloor", "true");
   if (f.hasSoundSystem) params.set("hasSoundSystem", "true");
   return params;
+}
+
+/** שומר view=map ב-URL כשהמפה פתוחה — בלי זה סנכרון הסינון מוחק את הפרמטר וסוגר את המפה */
+function withMapViewParam(params: URLSearchParams, mapOpen: boolean): URLSearchParams {
+  const next = new URLSearchParams(params.toString());
+  if (mapOpen) next.set(MAP_VIEW_PARAM, MAP_VIEW_VALUE);
+  else next.delete(MAP_VIEW_PARAM);
+  return next;
 }
 
 function formFromSearchParams(sp: URLSearchParams): SearchFormState {
@@ -474,23 +484,31 @@ export default function HallsSearchClient({
   );
   const [form, setForm] = useState(() => ({ ...EMPTY_SEARCH_FORM }));
   const [mapOpen, setMapOpen] = useState(
-    () => searchParams.get("view") === "map"
+    () => searchParams.get(MAP_VIEW_PARAM) === MAP_VIEW_VALUE
   );
   const lastPushedQsRef = useRef<string | null>(null);
   const restoredSearchRef = useRef(false);
 
   useEffect(() => {
-    setMapOpen(searchParams.get("view") === "map");
+    setMapOpen(searchParams.get(MAP_VIEW_PARAM) === MAP_VIEW_VALUE);
   }, [searchParams]);
 
   function setMapOpenWithUrl(open: boolean) {
     setMapOpen(open);
-    const params = new URLSearchParams(searchParams.toString());
-    if (open) params.set("view", "map");
-    else params.delete("view");
+    const params = withMapViewParam(
+      new URLSearchParams(searchParams.toString()),
+      open
+    );
     const qs = params.toString();
     lastPushedQsRef.current = qs;
     router.replace(qs ? `/halls?${qs}` : "/halls", { scroll: false });
+    if (open) {
+      window.setTimeout(() => {
+        document
+          .getElementById("halls-map-panel")
+          ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 120);
+    }
   }
 
   const mapFallbackVenues = useMemo(
@@ -544,7 +562,9 @@ export default function HallsSearchClient({
   useEffect(() => {
     if (!hasFunctionalConsent()) return;
     try {
-      localStorage.setItem(HALLS_SEARCH_STORAGE_KEY, searchParams.toString());
+      const stored = new URLSearchParams(searchParams.toString());
+      stored.delete(MAP_VIEW_PARAM);
+      localStorage.setItem(HALLS_SEARCH_STORAGE_KEY, stored.toString());
     } catch {
       /* ignore */
     }
@@ -552,13 +572,13 @@ export default function HallsSearchClient({
 
   useEffect(() => {
     const t = window.setTimeout(() => {
-      const next = buildParamsFromForm(form).toString();
+      const next = withMapViewParam(buildParamsFromForm(form), mapOpen).toString();
       if (next === searchParams.toString()) return;
       lastPushedQsRef.current = next;
       router.replace(next ? `/halls?${next}` : "/halls", { scroll: false });
     }, 380);
     return () => window.clearTimeout(t);
-  }, [form, router, searchParams]);
+  }, [form, mapOpen, router, searchParams]);
 
   useEffect(() => {
     fetch("/api/trending")
@@ -662,7 +682,7 @@ export default function HallsSearchClient({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const next = buildParamsFromForm(form).toString();
+    const next = withMapViewParam(buildParamsFromForm(form), mapOpen).toString();
     lastPushedQsRef.current = next;
     router.replace(next ? `/halls?${next}` : "/halls", { scroll: false });
   }
@@ -1044,12 +1064,14 @@ export default function HallsSearchClient({
       <RecentlyViewedBar variant="venues" />
 
       {mapOpen ? (
-        <HallsMapSection
-          filterVenueIds={mapVenueIds}
-          initialCity={form.city}
-          searchVenuesFallback={mapFallbackVenues}
-          onClose={() => setMapOpenWithUrl(false)}
-        />
+        <div id="halls-map-panel">
+          <HallsMapSection
+            filterVenueIds={mapVenueIds}
+            initialCity={form.city}
+            searchVenuesFallback={mapFallbackVenues}
+            onClose={() => setMapOpenWithUrl(false)}
+          />
+        </div>
       ) : null}
 
       {searchWarning ? (
