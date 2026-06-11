@@ -1102,13 +1102,13 @@ export default function HallsSearchClient({
           />
           <div
             id="halls-map-panel"
-            className="fixed z-50 inset-x-3 top-24 bottom-4 overflow-y-auto rounded-2xl md:inset-x-auto md:inset-inline-start-3 md:w-[min(540px,calc(100vw-1.5rem))]"
+            className="fixed z-50 flex max-h-[calc(100dvh-4.5rem)] w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl inset-x-2 top-[4.25rem] bottom-2 sm:inset-x-4 sm:top-20 sm:w-[calc(100vw-2rem)] md:left-1/2 md:right-auto md:top-1/2 md:bottom-auto md:w-[min(94vw,1160px)] md:max-h-[min(90dvh,860px)] md:-translate-x-1/2 md:-translate-y-1/2"
           >
             <HallsMapSection
               initialMapVenues={initialMapVenues}
               searchVenuesFallback={mapFallbackVenues}
               onClose={() => setMapOpenWithUrl(false)}
-              compact
+              modal
             />
           </div>
         </>

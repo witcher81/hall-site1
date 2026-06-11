@@ -23,10 +23,13 @@ export type MapFocusTarget = { lat: number; lng: number; zoom?: number };
 export default function VenuesMapClient({
   venues,
   mapFocus,
+  large = false,
 }: {
   venues: MapVenue[];
   /** כשאין סיכות מתאימות — מרכזים על עיר (מרכז משוער) */
   mapFocus?: MapFocusTarget | null;
+  /** מפה גבוהה יותר בחלון מודאלי */
+  large?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -105,26 +108,45 @@ export default function VenuesMapClient({
     }
     map.panInsideBounds(israelBounds, { animate: false });
 
+    const fixSize = () => map.invalidateSize();
+    const t = window.setTimeout(fixSize, 80);
+    const ro =
+      typeof ResizeObserver !== "undefined" && containerRef.current
+        ? new ResizeObserver(() => fixSize())
+        : null;
+    ro?.observe(containerRef.current);
+
     return () => {
+      window.clearTimeout(t);
+      ro?.disconnect();
       map.remove();
       mapRef.current = null;
     };
   }, [venues, focusLat, focusLng, focusZoom]);
 
+  const mapHeightClass = large
+    ? "min-h-[min(48vh,420px)] flex-1 w-full rounded-2xl bg-neutral-50 sm:min-h-[min(58vh,640px)]"
+    : "h-[min(70vh,560px)] w-full rounded-2xl bg-neutral-50";
+
   return (
-    <div className="space-y-2">
-      <div
-        ref={containerRef}
-        className="h-[min(70vh,560px)] w-full rounded-2xl bg-neutral-50"
-      />
-      <p className="text-[11px] leading-relaxed text-neutral-600">
-        מפה רגילה: OpenStreetMap; לוויין: תצלום. הגלילה מוגבלת לישראל. בלחיצה על סיכה: &quot;תצוגת רחוב
-        (Google)&quot; בלשונית חדשה.
-      </p>
-      <p className="text-[11px] leading-relaxed text-neutral-600">
-        השמות על גבי המפה הם חלק מאריחי התמונה (OSM) — לא ניתן לשנות אוטומטית עברית מול ערבית לפי סוג
-        יישוב; זה דורש מפת וקטור ושפה ייעודית (מפתח/ספק).
-      </p>
+    <div className={large ? "flex min-h-0 flex-1 flex-col gap-2" : "space-y-2"}>
+      <div ref={containerRef} className={mapHeightClass} />
+      {large ? (
+        <p className="shrink-0 text-[11px] leading-relaxed text-neutral-500">
+          לחיצה על סיכה: עמוד האולם ותצוגת רחוב. מפה: OpenStreetMap · לוויין: ArcGIS.
+        </p>
+      ) : (
+        <>
+          <p className="text-[11px] leading-relaxed text-neutral-600">
+            מפה רגילה: OpenStreetMap; לוויין: תצלום. הגלילה מוגבלת לישראל. בלחיצה על סיכה: &quot;תצוגת רחוב
+            (Google)&quot; בלשונית חדשה.
+          </p>
+          <p className="text-[11px] leading-relaxed text-neutral-600">
+            השמות על גבי המפה הם חלק מאריחי התמונה (OSM) — לא ניתן לשנות אוטומטית עברית מול ערבית לפי סוג
+            יישוב; זה דורש מפת וקטור ושפה ייעודית (מפתח/ספק).
+          </p>
+        </>
+      )}
     </div>
   );
 }

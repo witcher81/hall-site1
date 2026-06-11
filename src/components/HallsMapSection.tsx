@@ -39,6 +39,8 @@ type Props = {
   /** נפילה אם אין נתוני שרת */
   searchVenuesFallback?: SearchVenueFallback[];
   onClose?: () => void;
+  /** חלון מפה גדול במרכז המסך */
+  modal?: boolean;
   compact?: boolean;
 };
 
@@ -46,6 +48,7 @@ export default function HallsMapSection({
   initialMapVenues = [],
   searchVenuesFallback = [],
   onClose,
+  modal = false,
   compact = false,
 }: Props) {
   const [venues, setVenues] = useState<MapVenue[] | null>(() =>
@@ -117,8 +120,12 @@ export default function HallsMapSection({
 
   return (
     <div
-      className={`rounded-2xl border border-neutral-200 bg-white text-right shadow-[0_8px_32px_rgba(15,59,46,0.1)] ${
-        compact ? "p-4" : "p-4 sm:p-5"
+      className={`text-right ${
+        modal
+          ? "flex h-full min-h-0 flex-col p-4 sm:p-6"
+          : `rounded-2xl border border-neutral-200 bg-white shadow-[0_8px_32px_rgba(15,59,46,0.1)] ${
+              compact ? "p-4" : "p-4 sm:p-5"
+            }`
       }`}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
@@ -162,22 +169,24 @@ export default function HallsMapSection({
         ) : null}
       </div>
 
-      {!venues ? (
-        <p className="py-12 text-center text-sm text-neutral-600">טוען נתונים...</p>
-      ) : venues.length === 0 ? (
-        <p className="py-8 text-center text-sm text-neutral-600">
-          אין אולמות להצגה על המפה עדיין.
-        </p>
-      ) : displayedVenues.length === 0 ? (
-        <>
-          <p className="mb-3 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
-            אין סיכות בעיר «{filterCity.trim()}» — מציגים מרכז עיר אם קיים.
+      <div className={modal ? "flex min-h-0 flex-1 flex-col" : undefined}>
+        {!venues ? (
+          <p className="py-12 text-center text-sm text-neutral-600">טוען נתונים...</p>
+        ) : venues.length === 0 ? (
+          <p className="py-8 text-center text-sm text-neutral-600">
+            אין אולמות להצגה על המפה עדיין.
           </p>
-          <VenuesMapClient venues={[]} mapFocus={mapFocus} />
-        </>
-      ) : (
-        <VenuesMapClient venues={displayedVenues} mapFocus={mapFocus} />
-      )}
+        ) : displayedVenues.length === 0 ? (
+          <>
+            <p className="mb-3 shrink-0 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+              אין סיכות בעיר «{filterCity.trim()}» — מציגים מרכז עיר אם קיים.
+            </p>
+            <VenuesMapClient venues={[]} mapFocus={mapFocus} large={modal} />
+          </>
+        ) : (
+          <VenuesMapClient venues={displayedVenues} mapFocus={mapFocus} large={modal} />
+        )}
+      </div>
     </div>
   );
 }
