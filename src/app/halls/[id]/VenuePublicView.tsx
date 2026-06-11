@@ -134,19 +134,107 @@ function AmenityOfferPill({
   );
 }
 
+function formatGuestRange(
+  minGuests: number | null,
+  maxGuests: number | null
+): string | null {
+  if (minGuests == null && maxGuests == null) return null;
+  if (minGuests != null && maxGuests != null && minGuests === maxGuests) {
+    return `עד ${maxGuests} אורחים`;
+  }
+  return `${minGuests ?? "?"}–${maxGuests ?? "?"} אורחים`;
+}
+
+function formatMealPriceRange(
+  minPrice: number | null,
+  maxPrice: number | null
+): string | null {
+  if (minPrice == null && maxPrice == null) return null;
+  return `₪${minPrice ?? "?"}–${maxPrice ?? "?"} למנה`;
+}
+
+function formatHallRentalRange(
+  min: number | null | undefined,
+  max: number | null | undefined
+): string | null {
+  if (min == null && max == null) return null;
+  const fmt = (n: number | null | undefined) =>
+    n != null ? n.toLocaleString("he-IL") : "?";
+  return `₪${fmt(min ?? max)}–${fmt(max ?? min)} השכרת אולם`;
+}
+
+function mergeProfileWithVenueDefaults(
+  profile: PublicEventTypeProfile,
+  venue: Pick<Venue, "minGuests" | "maxGuests" | "minPrice" | "maxPrice" | "hasFood">
+): PublicEventTypeProfile {
+  const hasFoodAtEvent = profile.hasFoodAtEvent || Boolean(venue.hasFood);
+  return {
+    ...profile,
+    hasFoodAtEvent,
+    minGuests: profile.minGuests ?? venue.minGuests,
+    maxGuests: profile.maxGuests ?? venue.maxGuests,
+    minPrice: hasFoodAtEvent ? profile.minPrice ?? venue.minPrice : profile.minPrice,
+    maxPrice: hasFoodAtEvent ? profile.maxPrice ?? venue.maxPrice : profile.maxPrice,
+  };
+}
+
+function VenuePricingSummary({ venue }: { venue: Venue }) {
+  const guestText = formatGuestRange(venue.minGuests, venue.maxGuests);
+  const mealText =
+    venue.hasFood || (venue.eventTypes?.includes("חתונה") ?? false)
+      ? formatMealPriceRange(venue.minPrice, venue.maxPrice)
+      : null;
+  const hallText = formatHallRentalRange(venue.hallRentalMin, venue.hallRentalMax);
+
+  if (!guestText && !mealText && !hallText) return null;
+
+  return (
+    <div className="mt-4 grid gap-2 sm:grid-cols-3">
+      {guestText ? (
+        <div className="rounded-xl border border-emerald-950/15 bg-emerald-50/50 px-3 py-2.5">
+          <p className="text-[11px] font-semibold text-neutral-600">קיבולת אורחים</p>
+          <p className="mt-0.5 text-sm font-bold tabular-nums text-emerald-950">{guestText}</p>
+        </div>
+      ) : null}
+      {mealText ? (
+        <div className="rounded-xl border border-amber-400/35 bg-amber-50/60 px-3 py-2.5">
+          <p className="text-[11px] font-semibold text-neutral-600">מחיר למנה</p>
+          <p className="mt-0.5 text-sm font-bold tabular-nums text-emerald-950">{mealText}</p>
+        </div>
+      ) : null}
+      {hallText ? (
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+          <p className="text-[11px] font-semibold text-neutral-600">השכרת אולם</p>
+          <p className="mt-0.5 text-sm font-bold tabular-nums text-emerald-950">{hallText}</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function EventTypeProfilePanel({
   eventLabel,
   profile,
+  venue,
 }: {
   eventLabel: string;
   profile: PublicEventTypeProfile;
+  venue: Pick<Venue, "minGuests" | "maxGuests" | "minPrice" | "maxPrice" | "hasFood">;
 }) {
-  const checkedHall = profile.customHallItems.filter((i) => i.checked);
-  const hasGuestRange =
-    profile.minGuests != null || profile.maxGuests != null;
+  const merged = mergeProfileWithVenueDefaults(profile, venue);
+  const checkedHall = merged.customHallItems.filter((i) => i.checked);
+  const hasGuestRange = merged.minGuests != null || merged.maxGuests != null;
   const hasMealRange =
-    profile.hasFoodAtEvent &&
-    (profile.minPrice != null || profile.maxPrice != null);
+    merged.hasFoodAtEvent &&
+    (merged.minPrice != null || merged.maxPrice != null);
+  const guestFallbackNote =
+    (profile.minGuests == null && profile.maxGuests == null) &&
+    (venue.minGuests != null || venue.maxGuests != null);
+  const mealFallbackNote =
+    merged.hasFoodAtEvent &&
+    profile.minPrice == null &&
+    profile.maxPrice == null &&
+    (venue.minPrice != null || venue.maxPrice != null);
 
   return (
     <div
@@ -166,18 +254,24 @@ function EventTypeProfilePanel({
           <dt className="text-xs font-semibold text-neutral-600">טווח אורחים</dt>
           <dd className="mt-0.5 font-medium tabular-nums">
             {hasGuestRange
-              ? `${profile.minGuests ?? "?"}–${profile.maxGuests ?? "?"} אורחים`
-              : "לא צוין טווח נפרד לסוג זה."}
+              ? formatGuestRange(merged.minGuests, merged.maxGuests)
+              : "לא צוין טווח אורחים."}
           </dd>
+          {guestFallbackNote ? (
+            <p className="mt-1 text-[11px] text-neutral-500">לפי נתוני האולם הכלליים</p>
+          ) : null}
         </div>
-        {profile.hasFoodAtEvent ? (
+        {merged.hasFoodAtEvent ? (
           <div>
             <dt className="text-xs font-semibold text-neutral-600">מחיר למנה</dt>
             <dd className="mt-0.5 font-medium tabular-nums">
               {hasMealRange
-                ? `₪${profile.minPrice ?? "?"}–${profile.maxPrice ?? "?"}`
-                : "לא צוין מחיר למנה בפרופיל לסוג זה."}
+                ? formatMealPriceRange(merged.minPrice, merged.maxPrice)
+                : "לא צוין מחיר למנה."}
             </dd>
+            {mealFallbackNote ? (
+              <p className="mt-1 text-[11px] text-neutral-500">לפי נתוני האולם הכלליים</p>
+            ) : null}
           </div>
         ) : (
           <div>
@@ -187,7 +281,7 @@ function EventTypeProfilePanel({
             </dd>
           </div>
         )}
-        {profile.hasFoodAtEvent && profile.hasVeganFood ? (
+        {merged.hasFoodAtEvent && profile.hasVeganFood ? (
           <div>
             <dt className="text-xs font-semibold text-neutral-600">אפשרות טבעונית</dt>
             <dd className="mt-0.5">
@@ -478,15 +572,17 @@ export default function VenuePublicView({
         (venue.softCustomAttributeLabels?.length ?? 0) > 0
     );
 
+  const venueMealPriceLabel = formatMealPriceRange(venue.minPrice, venue.maxPrice);
+
   const generalAmenityOffers = [
     ...(Boolean(venue.hasFood)
       ? [
           {
             key: "builtin-food",
-            label: "אוכל",
+            label: venueMealPriceLabel ? `אוכל · ${venueMealPriceLabel}` : "אוכל",
             mode: venue.amenityPriceModes?.hasFood,
             extraPrice: venue.amenityExtraPrices?.hasFood,
-            foodNonWeddingPricing: true,
+            foodNonWeddingPricing: !venueMealPriceLabel,
           },
         ]
       : []),
@@ -626,6 +722,7 @@ export default function VenuePublicView({
                 <p className="mt-2 text-sm text-neutral-600">
                   {[venue.city, venue.address].filter(Boolean).join(" · ")}
                 </p>
+                <VenuePricingSummary venue={venue} />
               </div>
               <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                 {user?.role === "SEEKER" && (
@@ -805,6 +902,7 @@ export default function VenuePublicView({
                 <EventTypeProfilePanel
                   eventLabel={expandedEventType}
                   profile={venue.eventTypeProfiles[expandedEventType]}
+                  venue={venue}
                 />
               )}
           </div>
