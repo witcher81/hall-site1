@@ -131,6 +131,13 @@ function withMapViewParam(params: URLSearchParams, mapOpen: boolean): URLSearchP
   return next;
 }
 
+function searchParamsQueryEqual(a: string, b: string): boolean {
+  const pa = new URLSearchParams(a);
+  const pb = new URLSearchParams(b);
+  const keys = [...new Set([...pa.keys(), ...pb.keys()])].sort();
+  return keys.every((key) => pa.getAll(key).join("\0") === pb.getAll(key).join("\0"));
+}
+
 function formFromSearchParams(sp: URLSearchParams): SearchFormState {
   const minG = sp.get("minGuests") ?? "";
   const maxG = sp.get("maxGuests") ?? "";
@@ -486,29 +493,38 @@ export default function HallsSearchClient({
   const [mapOpen, setMapOpen] = useState(
     () => searchParams.get(MAP_VIEW_PARAM) === MAP_VIEW_VALUE
   );
+  const mapOpenRef = useRef(mapOpen);
+  mapOpenRef.current = mapOpen;
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
   const lastPushedQsRef = useRef<string | null>(null);
   const restoredSearchRef = useRef(false);
 
+  /** סנכרון מ-URL רק לניווט חיצוני (חזרה/קדימה) — לא דורס לחיצה על הכפתור */
   useEffect(() => {
-    setMapOpen(searchParams.get(MAP_VIEW_PARAM) === MAP_VIEW_VALUE);
+    const qs = searchParams.toString();
+    if (
+      lastPushedQsRef.current !== null &&
+      searchParamsQueryEqual(lastPushedQsRef.current, qs)
+    ) {
+      lastPushedQsRef.current = null;
+      return;
+    }
+    const urlWantsMap = searchParams.get(MAP_VIEW_PARAM) === MAP_VIEW_VALUE;
+    mapOpenRef.current = urlWantsMap;
+    setMapOpen(urlWantsMap);
   }, [searchParams]);
 
   function setMapOpenWithUrl(open: boolean) {
+    mapOpenRef.current = open;
     setMapOpen(open);
     const params = withMapViewParam(
-      new URLSearchParams(searchParams.toString()),
+      new URLSearchParams(searchParamsRef.current.toString()),
       open
     );
     const qs = params.toString();
     lastPushedQsRef.current = qs;
     router.replace(qs ? `/halls?${qs}` : "/halls", { scroll: false });
-    if (open) {
-      window.setTimeout(() => {
-        document
-          .getElementById("halls-map-panel")
-          ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }, 120);
-    }
   }
 
   const mapFallbackVenues = useMemo(
@@ -526,8 +542,10 @@ export default function HallsSearchClient({
 
   useLayoutEffect(() => {
     const qs = searchParams.toString();
-    if (lastPushedQsRef.current !== null && lastPushedQsRef.current === qs) {
-      lastPushedQsRef.current = null;
+    if (
+      lastPushedQsRef.current !== null &&
+      searchParamsQueryEqual(lastPushedQsRef.current, qs)
+    ) {
       return;
     }
     setForm(formFromSearchParams(searchParams));
@@ -572,13 +590,17 @@ export default function HallsSearchClient({
 
   useEffect(() => {
     const t = window.setTimeout(() => {
-      const next = withMapViewParam(buildParamsFromForm(form), mapOpen).toString();
-      if (next === searchParams.toString()) return;
+      const next = withMapViewParam(
+        buildParamsFromForm(form),
+        mapOpenRef.current
+      ).toString();
+      const current = searchParamsRef.current.toString();
+      if (searchParamsQueryEqual(next, current)) return;
       lastPushedQsRef.current = next;
       router.replace(next ? `/halls?${next}` : "/halls", { scroll: false });
     }, 380);
     return () => window.clearTimeout(t);
-  }, [form, mapOpen, router, searchParams]);
+  }, [form, router]);
 
   useEffect(() => {
     fetch("/api/trending")
@@ -602,6 +624,8 @@ export default function HallsSearchClient({
     } catch {
       /* ignore */
     }
+    mapOpenRef.current = false;
+    setMapOpen(false);
     setForm({ ...EMPTY_SEARCH_FORM });
     lastPushedQsRef.current = "";
     router.replace("/halls", { scroll: false });
@@ -682,7 +706,10 @@ export default function HallsSearchClient({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const next = withMapViewParam(buildParamsFromForm(form), mapOpen).toString();
+    const next = withMapViewParam(
+      buildParamsFromForm(form),
+      mapOpenRef.current
+    ).toString();
     lastPushedQsRef.current = next;
     router.replace(next ? `/halls?${next}` : "/halls", { scroll: false });
   }
@@ -743,7 +770,7 @@ export default function HallsSearchClient({
       <button
         type="button"
         onClick={() => setMapOpenWithUrl(!mapOpen)}
-        className={`fixed top-36 z-40 flex flex-col items-center gap-1 rounded-l-2xl border border-neutral-200 bg-white px-2.5 py-4 text-[11px] font-bold shadow-[0_8px_28px_rgba(15,59,46,0.15)] transition hover:border-amber-400 hover:bg-amber-50 sm:px-3 ${
+        className={`fixed top-36 z-[60] flex flex-col items-center gap-1 rounded-l-2xl border border-neutral-200 bg-white px-2.5 py-4 text-[11px] font-bold shadow-[0_8px_28px_rgba(15,59,46,0.15)] transition hover:border-amber-400 hover:bg-amber-50 sm:px-3 ${
           mapOpen ? "border-amber-400 bg-amber-50 text-emerald-950" : "text-emerald-950"
         }`}
         style={{ insetInlineEnd: 0 }}
@@ -1064,14 +1091,26 @@ export default function HallsSearchClient({
       <RecentlyViewedBar variant="venues" />
 
       {mapOpen ? (
-        <div id="halls-map-panel">
-          <HallsMapSection
-            filterVenueIds={mapVenueIds}
-            initialCity={form.city}
-            searchVenuesFallback={mapFallbackVenues}
-            onClose={() => setMapOpenWithUrl(false)}
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-emerald-950/25 backdrop-blur-[1px]"
+            onClick={() => setMapOpenWithUrl(false)}
+            aria-label="סגור מפת אולמות"
           />
-        </div>
+          <div
+            id="halls-map-panel"
+            className="fixed z-50 inset-x-3 top-24 bottom-4 overflow-y-auto rounded-2xl md:inset-x-auto md:inset-inline-start-3 md:w-[min(540px,calc(100vw-1.5rem))]"
+          >
+            <HallsMapSection
+              filterVenueIds={mapVenueIds}
+              initialCity={form.city}
+              searchVenuesFallback={mapFallbackVenues}
+              onClose={() => setMapOpenWithUrl(false)}
+              compact
+            />
+          </div>
+        </>
       ) : null}
 
       {searchWarning ? (
