@@ -103,14 +103,15 @@ export default function OptionalPriceRangeFields({
   const disableRange = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isControlled) {
-      onUseRangeChange?.(false);
-      return;
-    }
     const ep =
       minPrice.trim() && minPrice.trim() === maxPrice.trim()
         ? minPrice.trim()
         : minPrice.trim() || maxPrice.trim();
+    if (isControlled) {
+      onUseRangeChange?.(false);
+      onChange(ep, ep);
+      return;
+    }
     setUseRange(false);
     onChange(ep, ep);
   };

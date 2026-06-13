@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, DragEvent, MouseEvent, ReactNode, SetStateAction } from "react";
+import type { Dispatch, DragEvent, ReactNode, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
@@ -14,6 +14,7 @@ import {
 import {
   defaultSeekerExternalForCustomRow,
 } from "@/lib/venueAmenitySeekerExternal";
+import { storedMinMaxIsPriceRange } from "@/lib/freelancerServicePriceForm";
 
 export type { HallGeneralPriceMode, HallGeneralBuiltinKey, BuiltinAmenityKeyFull };
 export { HALL_VENUE_PRODUCT_DND_ITEMS, VENUE_PRODUCT_BUILTIN_KEYS };
@@ -68,7 +69,15 @@ function setDragPayload(e: DragEvent, payload: DragPayload) {
   e.dataTransfer.effectAllowed = "move";
 }
 
-/** מונע גרירה כשלוחצים על תיבת סימון / שדות מחיר */
+/** מונע גרירה כשלוחצים על בקרות בתוך השורה */
+const DRAG_BLOCK_SELECTOR =
+  "button, input, textarea, select, a, [data-amenity-no-drag]";
+
+function shouldBlockDragStart(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return !!target.closest(DRAG_BLOCK_SELECTOR);
+}
+
 function stopDragFromControl(e: DragEvent) {
   e.preventDefault();
   e.stopPropagation();
@@ -96,18 +105,10 @@ const compactPriceInputClass =
 
 const EXPAND_EXTRA_PRICE_RANGE_LABEL = "אין לך מחיר מדויק? הכנס טווח מחירים";
 
-function DragHandle({
-  payload,
-  className = "",
-}: {
-  payload: DragPayload;
-  className?: string;
-}) {
+function DragHint({ className = "" }: { className?: string }) {
   return (
     <span
-      draggable
-      onDragStart={(e) => setDragPayload(e, payload)}
-      className={`shrink-0 cursor-grab text-[10px] text-[#9A928A] active:cursor-grabbing ${className}`}
+      className={`pointer-events-none shrink-0 text-[10px] text-[#9A928A] ${className}`}
       aria-hidden
       title="גרור לעמודה אחרת"
     >
@@ -116,15 +117,29 @@ function DragHandle({
   );
 }
 
-function AmenityRowShell({
+function DraggableAmenityRow({
+  payload,
   className,
   children,
 }: {
+  payload: DragPayload;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className={className}>{children}</div>
+    <div
+      draggable
+      onDragStart={(e) => {
+        if (shouldBlockDragStart(e.target)) {
+          stopDragFromControl(e);
+          return;
+        }
+        setDragPayload(e, payload);
+      }}
+      className={`cursor-grab active:cursor-grabbing ${className ?? ""}`}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -145,31 +160,12 @@ export function assignHallGeneralRowIds(
 type BuiltinPriceModes = Record<BuiltinAmenityKeyFull, HallGeneralPriceMode>;
 type BuiltinExtraPrices = Record<BuiltinAmenityKeyFull, string>;
 
-function renderExtraPriceBlock(
-  min: string,
-  max: string,
-  onChange: (min: string, max: string) => void,
-  stopPropagation: (ev: MouseEvent) => void
-) {
-  return (
-    <div className="w-full basis-full" onClick={stopPropagation} draggable={false} onDragStart={stopDragFromControl}>
-      <OptionalPriceRangeFields
-        minPrice={min}
-        maxPrice={max}
-        onChange={onChange}
-        grouped
-        expandAsButton
-        singleLabel="תוספת תשלום (₪)"
-        singlePlaceholder="למשל 500"
-        minLabel="מינימום (₪)"
-        maxLabel="מקסימום (₪)"
-        expandRangeLabel={EXPAND_EXTRA_PRICE_RANGE_LABEL}
-        collapseRangeLabel="מחיר קבוע"
-        inputClassName={compactPriceInputClass}
-        className="!p-2"
-      />
-    </div>
-  );
+function extraRangeKeyBuiltin(key: HallGeneralBuiltinKey) {
+  return `b:${key}`;
+}
+
+function extraRangeKeyCustom(id: string) {
+  return `c:${id}`;
 }
 
 type Props = {
@@ -219,6 +215,64 @@ export default function HallGeneralAmenitiesDnd({
   );
 
   const [dragOver, setDragOver] = useState<DropZone | null>(null);
+  const [extraPriceRangeKeys, setExtraPriceRangeKeys] = useState<Set<string>>(() => new Set());
+
+  const setExtraRangeMode = useCallback((rangeKey: string, next: boolean) => {
+    setExtraPriceRangeKeys((prev) => {
+      const copy = new Set(prev);
+      if (next) copy.add(rangeKey);
+      else copy.delete(rangeKey);
+      return copy;
+    });
+  }, []);
+
+  const isExtraRangeMode = useCallback(
+    (rangeKey: string, min: string, max: string) =>
+      extraPriceRangeKeys.has(rangeKey) || storedMinMaxIsPriceRange(min, max),
+    [extraPriceRangeKeys]
+  );
+
+  const renderExtraPriceBlock = useCallback(
+    (
+      rangeKey: string,
+      min: string,
+      max: string,
+      onChange: (min: string, max: string) => void
+    ) => {
+      const useRange = isExtraRangeMode(rangeKey, min, max);
+      return (
+        <div className="w-full basis-full" data-amenity-no-drag>
+          <OptionalPriceRangeFields
+            minPrice={min}
+            maxPrice={max}
+            onChange={onChange}
+            useRange={useRange}
+            onUseRangeChange={(next) => {
+              setExtraRangeMode(rangeKey, next);
+              if (!next) {
+                const ep =
+                  min.trim() && min.trim() === max.trim()
+                    ? min.trim()
+                    : min.trim() || max.trim();
+                onChange(ep, ep);
+              }
+            }}
+            grouped
+            expandAsButton
+            singleLabel="תוספת תשלום (₪)"
+            singlePlaceholder="למשל 500"
+            minLabel="מינימום (₪)"
+            maxLabel="מקסימום (₪)"
+            expandRangeLabel={EXPAND_EXTRA_PRICE_RANGE_LABEL}
+            collapseRangeLabel="מחיר קבוע"
+            inputClassName={compactPriceInputClass}
+            className="!p-2"
+          />
+        </div>
+      );
+    },
+    [isExtraRangeMode, setExtraRangeMode]
+  );
 
   useEffect(() => {
     const clear = () => setDragOver(null);
@@ -309,41 +363,33 @@ export default function HallGeneralAmenitiesDnd({
     const { supportsExtraPrice } = itemMeta(key);
     const payload: DragPayload = { kind: "builtin", key };
     return (
-      <AmenityRowShell
+      <DraggableAmenityRow
         key={`${zone}-b-${key}`}
+        payload={payload}
         className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-neutral-800"
       >
-        <DragHandle payload={payload} />
-        <label
-          className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2"
-          draggable={false}
-          onDragStart={stopDragFromControl}
-        >
+        <DragHint />
+        <label className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2">
           <input
             type="checkbox"
             checked
             onChange={() => onSetHallBuiltin(key, false)}
             className="checkbox-hall shrink-0"
-            onClick={(ev) => ev.stopPropagation()}
           />
           <span className="font-medium">{label}</span>
         </label>
         {inExtra && supportsExtraPrice
           ? renderExtraPriceBlock(
+              extraRangeKeyBuiltin(key),
               builtinAmenityExtraPrices[key] ?? "",
               builtinAmenityExtraPriceMaxes[key] ?? "",
               (min, max) => {
                 setBuiltinAmenityExtraPrices((prev) => ({ ...prev, [key]: min }));
                 setBuiltinAmenityExtraPriceMaxes((prev) => ({ ...prev, [key]: max }));
-              },
-              (ev) => ev.stopPropagation()
+              }
             )
           : null}
-        <div
-          className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2"
-          draggable={false}
-          onDragStart={stopDragFromControl}
-        >
+        <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2" data-amenity-no-drag>
           <SeekerExternalSourceToggle
             compact
             checked={builtinAmenityAllowsSeekerExternal[key] ?? false}
@@ -355,7 +401,7 @@ export default function HallGeneralAmenitiesDnd({
             }
           />
         </div>
-      </AmenityRowShell>
+      </DraggableAmenityRow>
     );
   };
 
@@ -363,16 +409,13 @@ export default function HallGeneralAmenitiesDnd({
     const inExtra = zone === "extra";
     const payload: DragPayload = { kind: "custom", id: row.id };
     return (
-      <AmenityRowShell
+      <DraggableAmenityRow
         key={`${zone}-c-${row.id}`}
+        payload={payload}
         className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-neutral-800"
       >
-        <DragHandle payload={payload} />
-        <label
-          className="flex min-w-0 items-center gap-2"
-          draggable={false}
-          onDragStart={stopDragFromControl}
-        >
+        <DragHint />
+        <label className="flex min-w-0 items-center gap-2">
           <input
             type="checkbox"
             checked={row.checked}
@@ -389,13 +432,13 @@ export default function HallGeneralAmenitiesDnd({
                 )
               )
             }
-            onClick={(ev) => ev.stopPropagation()}
             className="checkbox-hall shrink-0"
           />
           <span className="truncate">{row.label}</span>
         </label>
         {inExtra
           ? renderExtraPriceBlock(
+              extraRangeKeyCustom(row.id),
               row.extraPrice,
               row.extraPriceMax,
               (min, max) =>
@@ -403,27 +446,17 @@ export default function HallGeneralAmenitiesDnd({
                   prev.map((r) =>
                     r.id === row.id ? { ...r, extraPrice: min, extraPriceMax: max } : r
                   )
-                ),
-              (ev) => ev.stopPropagation()
+                )
             )
           : null}
         <button
           type="button"
           className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
-          draggable={false}
-          onDragStart={stopDragFromControl}
-          onClick={(ev) => {
-            ev.stopPropagation();
-            setCustomAmenityRows((prev) => prev.filter((r) => r.id !== row.id));
-          }}
+          onClick={() => setCustomAmenityRows((prev) => prev.filter((r) => r.id !== row.id))}
         >
           הסר
         </button>
-        <div
-          className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2"
-          draggable={false}
-          onDragStart={stopDragFromControl}
-        >
+        <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2" data-amenity-no-drag>
           <SeekerExternalSourceToggle
             compact
             checked={row.allowsSeekerExternal}
@@ -434,7 +467,7 @@ export default function HallGeneralAmenitiesDnd({
             }
           />
         </div>
-      </AmenityRowShell>
+      </DraggableAmenityRow>
     );
   };
 
@@ -443,16 +476,13 @@ export default function HallGeneralAmenitiesDnd({
     const unplaced = active && builtinAmenityPriceModes[key] === "unplaced";
     const payload: DragPayload = { kind: "builtin", key };
     return (
-      <AmenityRowShell
+      <DraggableAmenityRow
         key={`in-b-${key}`}
+        payload={payload}
         className="flex items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
       >
-        <DragHandle payload={payload} />
-        <label
-          className="flex cursor-pointer items-center gap-2"
-          draggable={false}
-          onDragStart={stopDragFromControl}
-        >
+        <DragHint />
+        <label className="flex cursor-pointer items-center gap-2">
           <input
             type="checkbox"
             checked={active}
@@ -468,14 +498,13 @@ export default function HallGeneralAmenitiesDnd({
               }
             }}
             className="checkbox-hall shrink-0"
-            onClick={(ev) => ev.stopPropagation()}
           />
           <span className="font-medium">{label}</span>
         </label>
         {unplaced ? (
           <span className="text-[10px] text-amber-800">גררו ל«כלול» או «בתוספת תשלום»</span>
         ) : null}
-      </AmenityRowShell>
+      </DraggableAmenityRow>
     );
   };
 
@@ -483,16 +512,13 @@ export default function HallGeneralAmenitiesDnd({
     const unplaced = row.checked && row.priceMode === "unplaced";
     const payload: DragPayload = { kind: "custom", id: row.id };
     return (
-      <AmenityRowShell
+      <DraggableAmenityRow
         key={`in-c-${row.id}`}
+        payload={payload}
         className="flex flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
       >
-        <DragHandle payload={payload} />
-        <label
-          className="flex min-w-0 items-center gap-2"
-          draggable={false}
-          onDragStart={stopDragFromControl}
-        >
+        <DragHint />
+        <label className="flex min-w-0 items-center gap-2">
           <input
             type="checkbox"
             checked={row.checked}
@@ -510,7 +536,6 @@ export default function HallGeneralAmenitiesDnd({
                 )
               );
             }}
-            onClick={(ev) => ev.stopPropagation()}
             className="checkbox-hall shrink-0"
           />
           <span className="truncate">{row.label}</span>
@@ -521,16 +546,11 @@ export default function HallGeneralAmenitiesDnd({
         <button
           type="button"
           className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
-          draggable={false}
-          onDragStart={stopDragFromControl}
-          onClick={(ev) => {
-            ev.stopPropagation();
-            setCustomAmenityRows((prev) => prev.filter((r) => r.id !== row.id));
-          }}
+          onClick={() => setCustomAmenityRows((prev) => prev.filter((r) => r.id !== row.id))}
         >
           הסר
         </button>
-      </AmenityRowShell>
+      </DraggableAmenityRow>
     );
   };
 
@@ -557,7 +577,7 @@ export default function HallGeneralAmenitiesDnd({
         <p className="text-xs font-semibold text-emerald-950">איך מסדרים פריטים?</p>
         <ol className="mt-2 list-inside list-decimal space-y-1.5 text-[11px] leading-relaxed text-neutral-700">
           <li>
-            <strong>גררו</strong> שורה (או את הסמל ⠿) לעמודה המתאימה — או סמנו וי ואז גררו.
+            <strong>גררו</strong> שורה לעמודה המתאימה — או סמנו וי ואז גררו.
           </li>
           <li>
             <strong>כלול במחיר</strong> — המחפש רואה שהשירות כלול; אין תשלום נוסף מעבר למחיר
