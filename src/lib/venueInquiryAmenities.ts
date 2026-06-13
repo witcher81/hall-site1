@@ -66,11 +66,14 @@ export type InquiryServiceOption = {
 export function inquiryServiceAllowsExternalSource(opt: {
   id: string;
   allowsExternalSource?: boolean;
+  priceMode?: "included" | "extra";
 }): boolean {
   if (typeof opt.allowsExternalSource === "boolean") return opt.allowsExternalSource;
   if (opt.id.startsWith("service:chuppa")) return false;
   const builtin = opt.id.replace(/^service:/, "") as BuiltinServiceKey;
-  if (BUILTIN_FIXED_VENUE_ONLY_KEYS.has(builtin)) return false;
+  if (BUILTIN_FIXED_VENUE_ONLY_KEYS.has(builtin) && opt.priceMode !== "extra") {
+    return false;
+  }
   return false;
 }
 
@@ -134,7 +137,7 @@ function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustom
       if (label.startsWith("__builtin__:")) {
         const bKey = label.slice("__builtin__:".length) as BuiltinServiceKey;
         allowsSeekerExternal = BUILTIN_SERVICE_KEYS.includes(bKey)
-          ? resolveSeekerExternalForBuiltin(bKey, storedExternal)
+          ? resolveSeekerExternalForBuiltin(bKey, storedExternal, priceMode)
           : false;
       } else {
         allowsSeekerExternal = resolveSeekerExternalForCustomRow(storedExternal, false);
@@ -249,7 +252,7 @@ function pushBuiltinOption(
     extraPriceMax: state?.extraPriceMax ?? null,
     allowsExternalSource:
       state?.allowsSeekerExternal ??
-      resolveSeekerExternalForBuiltin(key, undefined),
+      resolveSeekerExternalForBuiltin(key, undefined, state?.priceMode ?? "included"),
   });
 }
 

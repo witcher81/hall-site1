@@ -1083,15 +1083,14 @@ export default function NewVenuePage() {
           </div>
 
           <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-            <p className="mb-1 text-xs font-semibold text-neutral-600">
-              מה יש באולם? (כללי — לכל סוגי האירועים)
+            <p className="mb-1 text-sm font-semibold text-emerald-950">
+              מה יש באולם? (לכל סוגי האירועים)
             </p>
-            <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
-              הוסיפו פריטים שהמחפש מקבל מהאולם — הם נכנסים לטבלת המיון (לא פעיל / כלול /
-              בתוספת תשלום). אוכל, שולחנות והגברה — גרירה; רחבת ריקודים מסומנת ב«מה האולם
-              מציע» למעלה.
+            <p className="mb-3 text-xs leading-relaxed text-neutral-600">
+              כאן מגדירים מה האולם מציע למחפש — זה מופיע בדף הציבורי, בחיפוש ובטופס פנייה.
+              אוכל, שולחנות והגברה מסודרים למטה; רחבת ריקודים מסומנת ב«מה האולם מציע» למעלה.
               {anyEventOffersFood
-                ? " האוכל נקבע גם לפי סוגי האירוע למטה."
+                ? " מחיר האוכל יכול להשתנות לפי סוג האירוע — ראו למטה."
                 : ""}
             </p>
             <HallGeneralAmenitiesDnd

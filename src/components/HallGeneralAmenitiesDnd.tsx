@@ -269,10 +269,12 @@ export default function HallGeneralAmenitiesDnd({
 
   const SortColumn = ({
     title,
+    hint,
     zone,
     children,
   }: {
     title: string;
+    hint: string;
     zone: DropZone;
     children: ReactNode;
   }) => (
@@ -285,8 +287,9 @@ export default function HallGeneralAmenitiesDnd({
       onDragOver={(e) => onDragOverZone(zone, e)}
       onDrop={(e) => onDropZone(zone, e)}
     >
-      <div className="border-b border-[#D4C9BC]/90 bg-emerald-950/[0.08] px-2 py-2 text-center text-xs font-semibold text-emerald-950">
-        {title}
+      <div className="border-b border-[#D4C9BC]/90 bg-emerald-950/[0.08] px-2 py-2 text-center">
+        <p className="text-xs font-semibold text-emerald-950">{title}</p>
+        <p className="mt-0.5 text-[10px] leading-snug text-neutral-600">{hint}</p>
       </div>
       <div className={`flex flex-1 flex-col gap-2 p-2 ${zoneDropClass(zone)}`}>{children}</div>
     </div>
@@ -322,7 +325,7 @@ export default function HallGeneralAmenitiesDnd({
         {inExtra && supportsExtraPrice
           ? renderExtraPriceBlock(
               builtinAmenityExtraPrices[key] ?? "",
-              builtinAmenityExtraPriceMaxes[key] ?? builtinAmenityExtraPrices[key] ?? "",
+              builtinAmenityExtraPriceMaxes[key] ?? "",
               (min, max) => {
                 setBuiltinAmenityExtraPrices((prev) => ({ ...prev, [key]: min }));
                 setBuiltinAmenityExtraPriceMaxes((prev) => ({ ...prev, [key]: max }));
@@ -335,7 +338,7 @@ export default function HallGeneralAmenitiesDnd({
           draggable={false}
           onDragStart={stopDragFromControl}
         >
-          {builtinAmenityOffersSeekerExternalConfig(key) ? (
+          {builtinAmenityOffersSeekerExternalConfig(key, inExtra ? "extra" : "included") ? (
             <SeekerExternalSourceToggle
               compact
               checked={builtinAmenityAllowsSeekerExternal[key] ?? false}
@@ -395,7 +398,7 @@ export default function HallGeneralAmenitiesDnd({
         {inExtra
           ? renderExtraPriceBlock(
               row.extraPrice,
-              row.extraPriceMax || row.extraPrice,
+              row.extraPriceMax,
               (min, max) =>
                 setCustomAmenityRows((prev) =>
                   prev.map((r) =>
@@ -474,7 +477,7 @@ export default function HallGeneralAmenitiesDnd({
           <span className="font-medium">{label}</span>
         </label>
         {unplaced ? (
-          <span className="text-[10px] text-neutral-600">גררו ל«כלול» או «בתוספת»</span>
+          <span className="text-[10px] text-amber-800">גררו ל«כלול» או «בתוספת תשלום»</span>
         ) : null}
       </DraggableAmenityRow>
     );
@@ -520,7 +523,7 @@ export default function HallGeneralAmenitiesDnd({
           <span className="truncate">{row.label}</span>
         </label>
         {unplaced ? (
-          <span className="text-[10px] text-neutral-600">גררו ל«כלול» או «בתוספת»</span>
+          <span className="text-[10px] text-amber-800">גררו ל«כלול» או «בתוספת תשלום»</span>
         ) : null}
         <button
           type="button"
@@ -557,15 +560,35 @@ export default function HallGeneralAmenitiesDnd({
 
   return (
     <>
+      <div className="mb-4 rounded-xl border border-emerald-950/15 bg-white p-3 text-right">
+        <p className="text-xs font-semibold text-emerald-950">איך מסדרים פריטים?</p>
+        <ol className="mt-2 list-inside list-decimal space-y-1.5 text-[11px] leading-relaxed text-neutral-700">
+          <li>
+            <strong>גררו</strong> שורה (או את הסמל ⠿) לעמודה המתאימה — או סמנו וי ואז גררו.
+          </li>
+          <li>
+            <strong>כלול במחיר</strong> — המחפש רואה שהשירות כלול; אין תשלום נוסף מעבר למחיר
+            האולם.
+          </li>
+          <li>
+            <strong>בתוספת תשלום</strong> — המחפש רואה מחיר נפרד; חובה להזין סכום (או טווח).
+          </li>
+          <li>
+            <strong>לא פעיל</strong> — הפריט לא יופיע בחיפוש ולא בפנייה (טיוטה / לא מציעים כרגע).
+          </li>
+        </ol>
+        <p className="mt-2 text-[10px] text-neutral-500">
+          בכל פריט פעיל אפשר לסמן אם מותר למחפש להביא ספק חיצוני במקום דרך האולם (כשזה רלוונטי).
+        </p>
+      </div>
+
       <div className="mb-4 rounded-xl border border-neutral-200/80 bg-white/70 p-3">
-        <p className="mb-1 text-xs font-semibold text-neutral-600">
-          מה המחפש מקבל מהאולם
+        <p className="text-xs font-semibold text-emerald-950">פריט שלא ברשימה?</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
+          הקלידו שם (למשל: בר משקאות, עישון) ולחצו «הוסף». הפריט יופיע ב«לא פעיל» — גררו אותו
+          ל«כלול» או «בתוספת תשלום» כדי שיוצג למחפשים.
         </p>
-        <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
-          הוסיפו פריטים משלכם — הם ייכנסו ל«לא פעיל». סמנו וי או גררו ל«כלול במחיר» / «בתוספת
-          תשלום». סימון וי בלבד משאיר את הפריט ב«לא פעיל» עד שתגררו אותו לעמודה.
-        </p>
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
           <input
             type="text"
             value={customHallGeneralInput}
@@ -595,13 +618,12 @@ export default function HallGeneralAmenitiesDnd({
         </div>
       </div>
 
-      <p className="mb-3 text-[11px] leading-relaxed text-neutral-600">
-        גררו את כל השורה (או את הסמל ⠿) בין העמודות. לכל פריט פעיל בעמודה אפשר לסמן אם מותר להביא
-        ספק חיצוני. פריטים ללא סימון לא יופיעו בחיפוש.
-      </p>
-
       <div className="mb-3">
-        <SortColumn title="לא פעיל (לא בחיפוש)" zone="inactive">
+        <SortColumn
+          title="לא פעיל (לא בחיפוש)"
+          hint="פריטים שעדיין לא מוצגים למחפשים"
+          zone="inactive"
+        >
           {inactiveBuiltins.length === 0 && inactiveCustoms.length === 0 ? (
             <p className="py-4 text-center text-[11px] text-[#9A928A]">
               כל הפריטים המסומנים וממוקמים מופיעים בעמודות למטה
@@ -616,14 +638,22 @@ export default function HallGeneralAmenitiesDnd({
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <SortColumn title="כלול במחיר" zone="included">
+        <SortColumn
+          title="כלול במחיר"
+          hint="המחפש רואה: כלול — בלי תשלום נוסף"
+          zone="included"
+        >
           {includedBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "included"))}
           {includedCustoms.map((row) => renderCustomCard(row, "included"))}
           {includedBuiltins.length === 0 && includedCustoms.length === 0 ? (
-            <p className="py-3 text-center text-[11px] text-[#9A928A]">שחררו כאן פריטים כלולים</p>
+            <p className="py-3 text-center text-[11px] text-[#9A928A]">גררו לכאן פריטים כלולים</p>
           ) : null}
         </SortColumn>
-        <SortColumn title="בתוספת תשלום" zone="extra">
+        <SortColumn
+          title="בתוספת תשלום"
+          hint="המחפש רואה מחיר נפרד — הזינו סכום"
+          zone="extra"
+        >
           {extraBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "extra"))}
           {extraCustoms.map((row) => renderCustomCard(row, "extra"))}
           {extraBuiltins.length === 0 && extraCustoms.length === 0 ? (

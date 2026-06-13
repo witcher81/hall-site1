@@ -84,12 +84,15 @@ export default function OptionalPriceRangeFields({
     e.preventDefault();
     e.stopPropagation();
     const v = singleValue.trim() || minPrice.trim() || maxPrice.trim();
+    const nextMax =
+      maxPrice.trim() && maxPrice.trim() !== v ? maxPrice.trim() : "";
     if (isControlled) {
       onUseRangeChange?.(true);
+      onChange(v, nextMax);
       return;
     }
     setUseRange(true);
-    onChange(v, maxPrice.trim() || v);
+    onChange(v, nextMax);
   };
 
   const disableRange = (e: MouseEvent) => {
@@ -144,7 +147,12 @@ export default function OptionalPriceRangeFields({
             className={inputClassName}
             placeholder={singlePlaceholder}
           />
-          <button type="button" onClick={enableRange} className={expandBtnClass}>
+          <button
+            type="button"
+            onClick={enableRange}
+            onMouseDown={stopPointer}
+            className={expandBtnClass}
+          >
             {expandRangeLabel}
           </button>
         </div>
@@ -181,7 +189,12 @@ export default function OptionalPriceRangeFields({
               />
             </div>
           </div>
-          <button type="button" onClick={disableRange} className={collapseBtnClass}>
+          <button
+            type="button"
+            onClick={disableRange}
+            onMouseDown={stopPointer}
+            className={collapseBtnClass}
+          >
             {collapseRangeLabel}
           </button>
         </div>

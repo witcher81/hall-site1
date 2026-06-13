@@ -126,7 +126,8 @@ export function buildVenueEditInitial(
           }
           builtinAmenityAllowsSeekerExternal[key] = resolveSeekerExternalForBuiltin(
             key,
-            parseSeekerExternalFromRecord(o)
+            parseSeekerExternalFromRecord(o),
+            o.priceMode === "extra" ? "extra" : "included"
           );
         }
       }

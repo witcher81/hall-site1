@@ -12,13 +12,18 @@ export const BUILTIN_FIXED_VENUE_ONLY_KEYS = new Set<BuiltinAmenityKeyFull>([
 ]);
 
 export function builtinAmenityOffersSeekerExternalConfig(
-  key: BuiltinAmenityKeyFull
+  key: BuiltinAmenityKeyFull,
+  priceMode: "included" | "extra" = "included"
 ): boolean {
+  if (priceMode === "extra") return true;
   return !BUILTIN_FIXED_VENUE_ONLY_KEYS.has(key);
 }
 
-export function defaultSeekerExternalForBuiltin(key: BuiltinAmenityKeyFull): boolean {
-  if (!builtinAmenityOffersSeekerExternalConfig(key)) return false;
+export function defaultSeekerExternalForBuiltin(
+  key: BuiltinAmenityKeyFull,
+  priceMode: "included" | "extra" = "included"
+): boolean {
+  if (!builtinAmenityOffersSeekerExternalConfig(key, priceMode)) return false;
   return key === "hasFood" || key === "hasSoundSystem";
 }
 
@@ -37,11 +42,12 @@ export function parseSeekerExternalFromRecord(
 
 export function resolveSeekerExternalForBuiltin(
   key: BuiltinAmenityKeyFull,
-  stored: boolean | undefined
+  stored: boolean | undefined,
+  priceMode: "included" | "extra" = "included"
 ): boolean {
-  if (!builtinAmenityOffersSeekerExternalConfig(key)) return false;
+  if (!builtinAmenityOffersSeekerExternalConfig(key, priceMode)) return false;
   if (typeof stored === "boolean") return stored;
-  return defaultSeekerExternalForBuiltin(key);
+  return defaultSeekerExternalForBuiltin(key, priceMode);
 }
 
 export function resolveSeekerExternalForCustomRow(
@@ -71,6 +77,9 @@ export function initialBuiltinSeekerExternalMap(): Record<
   boolean
 > {
   return Object.fromEntries(
-    VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, defaultSeekerExternalForBuiltin(k)])
+    VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [
+      k,
+      defaultSeekerExternalForBuiltin(k, "included"),
+    ])
   ) as Record<BuiltinAmenityKeyFull, boolean>;
 }

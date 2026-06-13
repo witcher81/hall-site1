@@ -454,7 +454,11 @@ function parseCustomAmenitiesJson(
       if (label.startsWith("__builtin__:")) {
         const bKey = label.slice("__builtin__:".length) as BuiltinAmenityKeyFull;
         allowsSeekerExternalSource = VENUE_PRODUCT_BUILTIN_KEYS.includes(bKey)
-          ? resolveSeekerExternalForBuiltin(bKey, parseSeekerExternalFromRecord(o))
+          ? resolveSeekerExternalForBuiltin(
+              bKey,
+              parseSeekerExternalFromRecord(o),
+              priceMode
+            )
           : false;
       } else {
         allowsSeekerExternalSource = resolveSeekerExternalForCustomRow(

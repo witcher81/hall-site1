@@ -27,9 +27,9 @@ export default function SeekerExternalSourceToggle({
         className="checkbox-hall mt-0.5 shrink-0"
       />
       <span className="leading-snug">
-        מאפשר להביא ספק חיצוני{" "}
-        <span className="text-[#9A928A]" title="אופציונלי" aria-label="אופציונלי">
-          *
+        אפשר למחפש לבחור ספק חיצוני במקום דרך האולם{" "}
+        <span className="text-[#9A928A]" title="לא חובה לסמן" aria-label="אופציונלי">
+          (אופציונלי)
         </span>
       </span>
     </label>
@@ -42,7 +42,7 @@ export function SeekerExternalVenueOnlyHint({ compact = false }: { compact?: boo
       className={`text-neutral-600 ${compact ? "text-[10px]" : "text-[11px]"}`}
       onClick={(e) => e.stopPropagation()}
     >
-      חלק מהאולם — ללא אפשרות לספק חיצוני בפנייה.
+      חלק מהאולם — המחפש יכול לבחור רק דרך האולם (לא ספק חיצוני).
     </p>
   );
 }

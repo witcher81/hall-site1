@@ -120,7 +120,7 @@ export default function EventTypeCustomHallRowsEditor({
               {row.priceMode === "extra" ? (
                 <OptionalPriceRangeFields
                   minPrice={row.extraPrice}
-                  maxPrice={row.extraPriceMax || row.extraPrice}
+                  maxPrice={row.extraPriceMax}
                   onChange={(min, max) =>
                     updateRow(idx, { extraPrice: min, extraPriceMax: max })
                   }
