@@ -72,7 +72,12 @@ export default function OptionalPriceRangeFields({
   const derived = parseMinMaxToFreelancerPriceForm(minPrice, maxPrice);
   const singleValue = useRange
     ? ""
-    : derived.exactPrice || (minPrice === maxPrice ? minPrice : minPrice || maxPrice);
+    : derived.exactPrice ||
+      (minPrice.trim() && !maxPrice.trim()
+        ? minPrice
+        : minPrice === maxPrice
+          ? minPrice
+          : minPrice || maxPrice);
 
   const stopPointer = (e: MouseEvent) => {
     e.stopPropagation();

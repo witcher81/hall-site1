@@ -6,17 +6,14 @@ import {
 /** שדה ב-JSON של שירותים (customAmenitiesJson / customHallItems) */
 export const SEEKER_EXTERNAL_JSON_KEY = "allowsSeekerExternalSource";
 
-/** פריטים מובנים שחלק מהאולם — אין בחירת ספק חיצוני */
-export const BUILTIN_FIXED_VENUE_ONLY_KEYS = new Set<BuiltinAmenityKeyFull>([
-  "hasTableSetup",
-]);
+/** פריטים מובנים שחלק מהאולם — אין בחירת ספק חיצוני (ריק — כל הפריטים ניתנים להגדרה) */
+export const BUILTIN_FIXED_VENUE_ONLY_KEYS = new Set<BuiltinAmenityKeyFull>([]);
 
 export function builtinAmenityOffersSeekerExternalConfig(
-  key: BuiltinAmenityKeyFull,
-  priceMode: "included" | "extra" = "included"
+  _key: BuiltinAmenityKeyFull,
+  _priceMode: "included" | "extra" = "included"
 ): boolean {
-  if (priceMode === "extra") return true;
-  return !BUILTIN_FIXED_VENUE_ONLY_KEYS.has(key);
+  return true;
 }
 
 export function defaultSeekerExternalForBuiltin(

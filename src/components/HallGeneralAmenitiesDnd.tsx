@@ -3,9 +3,7 @@
 import type { Dispatch, DragEvent, MouseEvent, ReactNode, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
-import SeekerExternalSourceToggle, {
-  SeekerExternalVenueOnlyHint,
-} from "@/components/SeekerExternalSourceToggle";
+import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
 import {
   HALL_VENUE_PRODUCT_DND_ITEMS,
   VENUE_PRODUCT_BUILTIN_KEYS,
@@ -14,7 +12,6 @@ import {
   type HallGeneralPriceMode,
 } from "@/lib/venueBuiltinAmenities";
 import {
-  builtinAmenityOffersSeekerExternalConfig,
   defaultSeekerExternalForCustomRow,
 } from "@/lib/venueAmenitySeekerExternal";
 
@@ -99,23 +96,35 @@ const compactPriceInputClass =
 
 const EXPAND_EXTRA_PRICE_RANGE_LABEL = "אין לך מחיר מדויק? הכנס טווח מחירים";
 
-function DraggableAmenityRow({
+function DragHandle({
   payload,
+  className = "",
+}: {
+  payload: DragPayload;
+  className?: string;
+}) {
+  return (
+    <span
+      draggable
+      onDragStart={(e) => setDragPayload(e, payload)}
+      className={`shrink-0 cursor-grab text-[10px] text-[#9A928A] active:cursor-grabbing ${className}`}
+      aria-hidden
+      title="גרור לעמודה אחרת"
+    >
+      ⠿
+    </span>
+  );
+}
+
+function AmenityRowShell({
   className,
   children,
 }: {
-  payload: DragPayload;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <div
-      draggable
-      onDragStart={(e) => setDragPayload(e, payload)}
-      className={`cursor-grab active:cursor-grabbing ${className ?? ""}`}
-    >
-      {children}
-    </div>
+    <div className={className}>{children}</div>
   );
 }
 
@@ -146,7 +155,7 @@ function renderExtraPriceBlock(
     <div className="w-full basis-full" onClick={stopPropagation} draggable={false} onDragStart={stopDragFromControl}>
       <OptionalPriceRangeFields
         minPrice={min}
-        maxPrice={max || min}
+        maxPrice={max}
         onChange={onChange}
         grouped
         expandAsButton
@@ -300,14 +309,11 @@ export default function HallGeneralAmenitiesDnd({
     const { supportsExtraPrice } = itemMeta(key);
     const payload: DragPayload = { kind: "builtin", key };
     return (
-      <DraggableAmenityRow
+      <AmenityRowShell
         key={`${zone}-b-${key}`}
-        payload={payload}
         className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-neutral-800"
       >
-        <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden title="גרור לעמודה אחרת">
-          ⠿
-        </span>
+        <DragHandle payload={payload} />
         <label
           className="flex min-w-0 shrink-0 cursor-pointer items-center gap-2"
           draggable={false}
@@ -338,22 +344,18 @@ export default function HallGeneralAmenitiesDnd({
           draggable={false}
           onDragStart={stopDragFromControl}
         >
-          {builtinAmenityOffersSeekerExternalConfig(key, inExtra ? "extra" : "included") ? (
-            <SeekerExternalSourceToggle
-              compact
-              checked={builtinAmenityAllowsSeekerExternal[key] ?? false}
-              onChange={(next) =>
-                setBuiltinAmenityAllowsSeekerExternal((prev) => ({
-                  ...prev,
-                  [key]: next,
-                }))
-              }
-            />
-          ) : (
-            <SeekerExternalVenueOnlyHint compact />
-          )}
+          <SeekerExternalSourceToggle
+            compact
+            checked={builtinAmenityAllowsSeekerExternal[key] ?? false}
+            onChange={(next) =>
+              setBuiltinAmenityAllowsSeekerExternal((prev) => ({
+                ...prev,
+                [key]: next,
+              }))
+            }
+          />
         </div>
-      </DraggableAmenityRow>
+      </AmenityRowShell>
     );
   };
 
@@ -361,14 +363,11 @@ export default function HallGeneralAmenitiesDnd({
     const inExtra = zone === "extra";
     const payload: DragPayload = { kind: "custom", id: row.id };
     return (
-      <DraggableAmenityRow
+      <AmenityRowShell
         key={`${zone}-c-${row.id}`}
-        payload={payload}
         className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/80 bg-white/90 px-2 py-2 text-xs text-neutral-800"
       >
-        <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden title="גרור לעמודה אחרת">
-          ⠿
-        </span>
+        <DragHandle payload={payload} />
         <label
           className="flex min-w-0 items-center gap-2"
           draggable={false}
@@ -435,7 +434,7 @@ export default function HallGeneralAmenitiesDnd({
             }
           />
         </div>
-      </DraggableAmenityRow>
+      </AmenityRowShell>
     );
   };
 
@@ -444,14 +443,11 @@ export default function HallGeneralAmenitiesDnd({
     const unplaced = active && builtinAmenityPriceModes[key] === "unplaced";
     const payload: DragPayload = { kind: "builtin", key };
     return (
-      <DraggableAmenityRow
+      <AmenityRowShell
         key={`in-b-${key}`}
-        payload={payload}
         className="flex items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
       >
-        <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden>
-          ⠿
-        </span>
+        <DragHandle payload={payload} />
         <label
           className="flex cursor-pointer items-center gap-2"
           draggable={false}
@@ -479,7 +475,7 @@ export default function HallGeneralAmenitiesDnd({
         {unplaced ? (
           <span className="text-[10px] text-amber-800">גררו ל«כלול» או «בתוספת תשלום»</span>
         ) : null}
-      </DraggableAmenityRow>
+      </AmenityRowShell>
     );
   };
 
@@ -487,14 +483,11 @@ export default function HallGeneralAmenitiesDnd({
     const unplaced = row.checked && row.priceMode === "unplaced";
     const payload: DragPayload = { kind: "custom", id: row.id };
     return (
-      <DraggableAmenityRow
+      <AmenityRowShell
         key={`in-c-${row.id}`}
-        payload={payload}
         className="flex flex-wrap items-center gap-2 rounded-lg border border-[#E8E0D6]/60 bg-white/60 px-2 py-2 text-xs"
       >
-        <span className="shrink-0 text-[10px] text-[#9A928A]" aria-hidden>
-          ⠿
-        </span>
+        <DragHandle payload={payload} />
         <label
           className="flex min-w-0 items-center gap-2"
           draggable={false}
@@ -537,7 +530,7 @@ export default function HallGeneralAmenitiesDnd({
         >
           הסר
         </button>
-      </DraggableAmenityRow>
+      </AmenityRowShell>
     );
   };
 
