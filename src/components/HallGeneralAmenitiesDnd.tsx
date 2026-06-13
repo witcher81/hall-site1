@@ -358,6 +358,17 @@ export default function HallGeneralAmenitiesDnd({
     </div>
   );
 
+  const removeBuiltin = useCallback(
+    (key: HallGeneralBuiltinKey) => {
+      onSetHallBuiltin(key, false);
+      setBuiltinAmenityPriceModes((prev) => ({
+        ...prev,
+        [key]: "included",
+      }));
+    },
+    [onSetHallBuiltin, setBuiltinAmenityPriceModes]
+  );
+
   const renderBuiltinCard = (key: HallGeneralBuiltinKey, label: string, zone: DropZone) => {
     const inExtra = zone === "extra";
     const { supportsExtraPrice } = itemMeta(key);
@@ -401,6 +412,13 @@ export default function HallGeneralAmenitiesDnd({
             }
           />
         </div>
+        <button
+          type="button"
+          className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
+          onClick={() => removeBuiltin(key)}
+        >
+          הסר
+        </button>
       </DraggableAmenityRow>
     );
   };
@@ -504,6 +522,13 @@ export default function HallGeneralAmenitiesDnd({
         {unplaced ? (
           <span className="text-[10px] text-amber-800">גררו ל«כלול» או «בתוספת תשלום»</span>
         ) : null}
+        <button
+          type="button"
+          className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
+          onClick={() => removeBuiltin(key)}
+        >
+          הסר
+        </button>
       </DraggableAmenityRow>
     );
   };

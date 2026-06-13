@@ -47,6 +47,7 @@ import HallGeneralAmenitiesDnd, {
   type VenueProductBools,
   VENUE_PRODUCT_BUILTIN_KEYS,
 } from "@/components/HallGeneralAmenitiesDnd";
+import HallGeneralFoodSection from "@/components/HallGeneralFoodSection";
 import {
   findUnplacedHallGeneralLabel,
   hallGeneralAmenityLive,
@@ -345,29 +346,34 @@ export default function VenueEditForm({
       ),
     [eventTypes, eventTypeProfiles]
   );
-  const showFoodPhotoUpload = isWeddingSelected || anyEventOffersFood;
+  const showFoodPhotoUpload = form.productHasFood || anyEventOffersFood;
 
-  const excludedDndBuiltinKeys = useMemo((): HallGeneralBuiltinKey[] => {
-    if (anyEventOffersFood) return ["hasFood"];
-    return [];
-  }, [anyEventOffersFood]);
+  const excludedDndBuiltinKeys = useMemo(
+    (): HallGeneralBuiltinKey[] => ["hasFood"],
+    []
+  );
 
   const hallProductBools: VenueProductBools = {
-    hasFood: anyEventOffersFood || form.productHasFood,
+    hasFood: false,
     hasTableSetup: form.hasTableSetup,
     hasSoundSystem: form.hasSoundSystem,
   };
 
-  const setHallBuiltin = useCallback(
-    (key: HallGeneralBuiltinKey, checked: boolean) => {
-      if (key === "hasFood") {
-        if (anyEventOffersFood) return;
-        setForm((f) => ({ ...f, productHasFood: checked }));
-        return;
+  const setHallBuiltin = useCallback((key: HallGeneralBuiltinKey, checked: boolean) => {
+    if (key === "hasFood") return;
+    setForm((f) => ({ ...f, [key]: checked }));
+  }, []);
+
+  const setFoodForAllEvents = useCallback(
+    (enabled: boolean) => {
+      setForm((f) => ({ ...f, productHasFood: enabled }));
+      if (enabled) {
+        setBuiltinAmenityPriceModes((prev) =>
+          prev.hasFood === "unplaced" ? { ...prev, hasFood: "included" } : prev
+        );
       }
-      setForm((f) => ({ ...f, [key]: checked }));
     },
-    [anyEventOffersFood]
+    [setBuiltinAmenityPriceModes]
   );
 
   const anyEventHasDanceFloor = form.hasDanceFloor;
@@ -541,6 +547,16 @@ export default function VenueEditForm({
         setSaving(false);
         return;
       }
+      if (
+        form.productHasFood &&
+        builtinAmenityPriceModes.hasFood === "unplaced"
+      ) {
+        setError(
+          "אוכל מסומן לכל האירועים אך לא הוגדר אם כלול במחיר או בתוספת — בחרו באזור האוכל."
+        );
+        setSaving(false);
+        return;
+      }
       const missingGeneral = customAmenityRows.find(
         (row) =>
           row.checked &&
@@ -639,6 +655,10 @@ export default function VenueEditForm({
       fd.append("city", form.city);
       fd.append("address", form.address);
       fd.append("venueType", form.venueType);
+      if (form.productHasFood) {
+        fd.append("minPrice", form.minPrice);
+        fd.append("maxPrice", form.maxPrice);
+      }
       const eventTypeProfilesPayload: Record<string, unknown> = {};
       for (const et of eventTypes) {
         const row = eventTypeProfiles[et] ?? {
@@ -1112,9 +1132,36 @@ export default function VenueEditForm({
             </p>
             <p className="mb-3 text-xs leading-relaxed text-neutral-600">
               כאן מגדירים מה האולם מציע למחפש — זה מופיע בדף הציבורי, בחיפוש ובטופס פנייה.
-              אוכל, שולחנות והגברה מסודרים למטה; רחבת ריקודים מסומנת ב«מה האולם מציע» למעלה.
-              {anyEventOffersFood ? " מחיר האוכל יכול להשתנות לפי סוג האירוע — ראו למטה." : ""}
+              אוכל מוגדר בנפרד; שולחנות והגברה מסודרים למטה. רחבת ריקודים מסומנת ב«מה האולם מציע»
+              למעלה.
             </p>
+            <HallGeneralFoodSection
+              enabled={form.productHasFood}
+              onEnabledChange={setFoodForAllEvents}
+              mealMinPrice={form.minPrice}
+              mealMaxPrice={form.maxPrice}
+              onMealPriceChange={(min, max) =>
+                setForm((f) => ({ ...f, minPrice: min, maxPrice: max }))
+              }
+              priceMode={builtinAmenityPriceModes.hasFood}
+              onPriceModeChange={(mode) =>
+                setBuiltinAmenityPriceModes((prev) => ({ ...prev, hasFood: mode }))
+              }
+              extraMin={builtinAmenityExtraPrices.hasFood}
+              extraMax={builtinAmenityExtraPriceMaxes.hasFood}
+              onExtraPriceChange={(min, max) => {
+                setBuiltinAmenityExtraPrices((prev) => ({ ...prev, hasFood: min }));
+                setBuiltinAmenityExtraPriceMaxes((prev) => ({ ...prev, hasFood: max }));
+              }}
+              allowsSeekerExternal={builtinAmenityAllowsSeekerExternal.hasFood}
+              onAllowsSeekerExternalChange={(next) =>
+                setBuiltinAmenityAllowsSeekerExternal((prev) => ({
+                  ...prev,
+                  hasFood: next,
+                }))
+              }
+              hasEventTypeSection={eventTypes.length > 0}
+            />
             <HallGeneralAmenitiesDnd
               productBools={hallProductBools}
               onSetHallBuiltin={setHallBuiltin}
@@ -1162,7 +1209,14 @@ export default function VenueEditForm({
                       : [],
                   };
                   const showMealPrices =
-                    isWeddingEt || profile.hasFoodAtEvent === true;
+                    form.productHasFood ||
+                    isWeddingEt ||
+                    profile.hasFoodAtEvent === true;
+                  const defaultMealHint =
+                    form.productHasFood &&
+                    (form.minPrice.trim() || form.maxPrice.trim())
+                      ? `מחיר כללי: ₪${form.minPrice.trim() || "?"}–${form.maxPrice.trim() || "?"}`
+                      : null;
                   return (
                     <div key={`profile-${et}`} className="rounded-lg border border-neutral-200 bg-white p-3">
                       <p className="mb-2 text-xs font-semibold text-emerald-950">{et}</p>
@@ -1193,7 +1247,7 @@ export default function VenueEditForm({
                           className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:border-amber-400"
                           placeholder="מקסימום אורחים"
                         />
-                        {!isWeddingEt && (
+                        {!isWeddingEt && !form.productHasFood && (
                           <label className="flex items-center gap-2 text-xs text-neutral-800 sm:col-span-2">
                             <input
                               type="checkbox"
@@ -1219,9 +1273,15 @@ export default function VenueEditForm({
                             יש אוכל באירוע מסוג זה
                           </label>
                         )}
-                        {isWeddingEt && (
+                        {isWeddingEt && !form.productHasFood && (
                           <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
                             בחתונה מניחים שיש אוכל — הזינו מחיר למנה. בטופס פנייה יופיעו גם סוגי חופה וכשרות.
+                          </p>
+                        )}
+                        {form.productHasFood && (
+                          <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
+                            אוכל מוגדר לכל האירועים. הזינו כאן מחיר שונה רק אם לסוג «{et}» יש מחיר
+                            מנה אחר{defaultMealHint ? ` (${defaultMealHint})` : ""}.
                           </p>
                         )}
                         {showMealPrices && (
@@ -1233,6 +1293,11 @@ export default function VenueEditForm({
                             className="sm:col-span-2"
                             minPrice={profile.minPrice}
                             maxPrice={profile.maxPrice}
+                            singleLabel={
+                              form.productHasFood
+                                ? "מחיר למנה לסוג זה (₪) — ריק = מחיר כללי"
+                                : "מחיר למנה (₪)"
+                            }
                             collapseRangeLabel="יש לי מחיר קבוע למנה"
                             onChange={(min, max) =>
                               setEventTypeProfiles((prev) => ({
