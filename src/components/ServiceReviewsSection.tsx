@@ -15,10 +15,12 @@ export default function ServiceReviewsSection({
   serviceId,
   currentUserId,
   canWriteReview,
+  seekerLoggedIn = false,
 }: {
   serviceId: number;
   currentUserId: number | null;
   canWriteReview: boolean;
+  seekerLoggedIn?: boolean;
 }) {
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [average, setAverage] = useState(0);
@@ -88,6 +90,15 @@ export default function ServiceReviewsSection({
       {!loading && reviews.length > 0 && (
         <p className="mt-1 text-xs text-neutral-600">
           ממוצע {average} כוכבים · {reviews.length} ביקורות
+        </p>
+      )}
+
+      {seekerLoggedIn && !canWriteReview && !myReview && (
+        <p className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-700">
+          כדי לדרג שירות זה, שלחו בקשה קודם דרך האתר.{" "}
+          <a href="#service-request" className="font-semibold text-emerald-950 underline">
+            לטופס הבקשה
+          </a>
         </p>
       )}
 

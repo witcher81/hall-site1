@@ -36,7 +36,11 @@ type Service = {
 
 export default function ServiceDetailsClient({
   service,
-}: { service: Service }) {
+  providerId,
+}: {
+  service: Service;
+  providerId: number;
+}) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -80,7 +84,23 @@ export default function ServiceDetailsClient({
             <p className="mt-1 text-xs text-neutral-600">{service.category}</p>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={`/services/${service.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-950 hover:border-amber-400/60"
+          >
+            תצוגה ציבורית — שירות ↗
+          </a>
+          <a
+            href={`/providers/${providerId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-950 hover:border-amber-400/60"
+          >
+            תצוגה ציבורית — פרופיל ↗
+          </a>
           <a
             href={`/dashboard/freelancer/services/${service.id}/edit`}
             className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-emerald-950 hover:border-amber-400/60"

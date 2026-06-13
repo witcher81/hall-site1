@@ -10,6 +10,10 @@ import { WEDDING_AMENITY_STORAGE_PREFIX } from "@/lib/venueInquiryAmenities";
 import { getVenueTypePublicLabel } from "@/lib/venueTypeOptions";
 import ReportContentButton from "@/components/ReportContentButton";
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
+import ShareButton from "@/components/ShareButton";
+import LoginPromptModal from "@/components/LoginPromptModal";
+import { parseGalleryVideoEmbed } from "@/lib/galleryVideo";
+import { buildWhatsAppUrl } from "@/lib/whatsappContact";
 import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
 
 type User = { id: number; email: string; name: string | null; role?: string } | null;
@@ -58,6 +62,7 @@ type Venue = {
   softCustomAttributeLabels?: string[];
   /** פרופיל לפי סוג אירוע — מ־eventTypeProfilesJson בשרת */
   eventTypeProfiles?: Record<string, PublicEventTypeProfile>;
+  ownerContactPhone?: string | null;
 };
 
 /** שבב שירות — שם בולט + תג סטטוס מחיר (כלול / בתוספת) */
@@ -505,6 +510,16 @@ export default function VenuePublicView({
   const [expandedEventType, setExpandedEventType] = useState<string | null>(
     null
   );
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+
+  const whatsappUrl = useMemo(
+    () =>
+      buildWhatsAppUrl(
+        venue.ownerContactPhone,
+        `שלום, אשמח לקבל פרטים על אולם ${venue.name} ב${venue.city} (Halls Hub)`
+      ),
+    [venue.ownerContactPhone, venue.name, venue.city]
+  );
 
   const handleCalendarDaySelect = (ymd: string) => {
     router.push(`/halls/${venue.id}/inquiry?date=${encodeURIComponent(ymd)}`);
@@ -725,6 +740,20 @@ export default function VenuePublicView({
                 <VenuePricingSummary venue={venue} />
               </div>
               <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+                {whatsappUrl ? (
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#25D366]/50 bg-[#25D366]/10 px-4 py-2.5 text-sm font-semibold text-emerald-950 transition hover:bg-[#25D366]/20 sm:flex-initial"
+                  >
+                    WhatsApp
+                  </a>
+                ) : null}
+                <ShareButton
+                  sharePath={`/halls/${venue.id}`}
+                  title={venue.name}
+                />
                 {user?.role === "SEEKER" && (
                   <a
                     href={`/messages?venueId=${venue.id}`}
@@ -741,7 +770,7 @@ export default function VenuePublicView({
                     צ&apos;אט עם בעל האולם
                   </a>
                 )}
-                {user && (
+                {user ? (
                   <button
                     type="button"
                     onClick={async () => {
@@ -771,6 +800,23 @@ export default function VenuePublicView({
                       stroke={isFavorite ? "#dc2626" : "currentColor"}
                       viewBox="0 0 24 24"
                     >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setLoginPromptOpen(true)}
+                    className="rounded-full border border-transparent p-2.5 text-neutral-600 transition hover:border-neutral-200 hover:text-red-600"
+                    title="שמירה למועדפים — נדרשת התחברות"
+                    aria-label="שמירה למועדפים"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -964,21 +1010,30 @@ export default function VenuePublicView({
             </p>
             {visibleImages.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-3">
-                {visibleImages.map((img, idx) => (
+                {visibleImages.map((img, idx) => {
+                  const video = parseGalleryVideoEmbed(img.url);
+                  return (
                   <button
                     key={`${img.category}-${idx}`}
                     type="button"
                     onClick={() => openLightbox(idx)}
-                    className="overflow-hidden rounded-lg border border-neutral-200 text-right focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+                    className="relative overflow-hidden rounded-lg border border-neutral-200 text-right focus:outline-none focus:ring-2 focus:ring-amber-400/40"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={img.url}
-                      alt={`${venue.name} תמונה ${idx + 1}`}
-                      className="h-24 w-full cursor-pointer object-cover transition hover:opacity-95"
-                    />
+                    {video ? (
+                      <div className="flex h-24 w-full items-center justify-center bg-emerald-950/90 text-white">
+                        <span className="text-xs font-semibold">▶ וידאו</span>
+                      </div>
+                    ) : (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={img.url}
+                        alt={`${venue.name} תמונה ${idx + 1}`}
+                        className="h-24 w-full cursor-pointer object-cover transition hover:opacity-95"
+                      />
+                    )}
                   </button>
-                ))}
+                );
+                })}
               </div>
             ) : (
               <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
@@ -1130,13 +1185,31 @@ export default function VenuePublicView({
             className="flex max-h-[85vh] max-w-[90vw] items-center justify-center px-14"
             onClick={closeLightbox}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={visibleImages[lightboxIndex]?.url ?? ""}
-              alt={`${venue.name} תמונה ${lightboxIndex + 1}`}
-              className="max-h-[85vh] max-w-full object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {(() => {
+              const current = visibleImages[lightboxIndex];
+              const video = current ? parseGalleryVideoEmbed(current.url) : null;
+              if (video) {
+                return (
+                  <iframe
+                    src={video.embedUrl}
+                    title={`${venue.name} וידאו`}
+                    className="aspect-video max-h-[85vh] w-[min(90vw,960px)] rounded-lg bg-black"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                );
+              }
+              return (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={current?.url ?? ""}
+                  alt={`${venue.name} תמונה ${lightboxIndex + 1}`}
+                  className="max-h-[85vh] max-w-full object-contain"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              );
+            })()}
           </div>
 
           <p className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-4 py-2 text-sm text-white">
@@ -1144,6 +1217,11 @@ export default function VenuePublicView({
           </p>
         </div>
       )}
+      <LoginPromptModal
+        open={loginPromptOpen}
+        onClose={() => setLoginPromptOpen(false)}
+        redirectPath={`/halls/${venue.id}`}
+      />
     </div>
   );
 }

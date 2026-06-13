@@ -1,6 +1,7 @@
 "use client";
 
 import ReportContentButton from "@/components/ReportContentButton";
+import ShareButton from "@/components/ShareButton";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
@@ -44,6 +45,12 @@ export default function ProviderViewClient({
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-end gap-2">
+        <ShareButton
+          sharePath={`/providers/${provider.id}`}
+          title={provider.businessName || provider.name || "ספק"}
+        />
+      </div>
       {provider.socialLinks.length > 0 && (
         <div className="site-card-padded">
           <p className="mb-2 text-right text-xs font-medium text-neutral-600">

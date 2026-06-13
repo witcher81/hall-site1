@@ -3,6 +3,8 @@
 import ReportContentButton from "@/components/ReportContentButton";
 import ServiceReviewsSection from "@/components/ServiceReviewsSection";
 import SocialLinksRow from "@/components/SocialLinksRow";
+import ShareButton from "@/components/ShareButton";
+import LoginPromptModal from "@/components/LoginPromptModal";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import {
   getPrimaryCategoryDescription,
@@ -81,6 +83,7 @@ export default function SingleServiceView({
     null
   );
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const providerName = provider.businessName || provider.name || "ספק";
@@ -280,47 +283,70 @@ export default function SingleServiceView({
             <h1 className="text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
               {service.name}
             </h1>
-            {seekerLoggedIn && (
-              <button
-                type="button"
-                onClick={async () => {
-                  if (isFavorite) {
-                    await fetch(`/api/service-favorites?serviceId=${service.id}`, {
-                      method: "DELETE",
-                    });
-                    setIsFavorite(false);
-                  } else {
-                    await fetch("/api/service-favorites", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ serviceId: service.id }),
-                    });
-                    setIsFavorite(true);
-                  }
-                }}
-                className={`shrink-0 rounded-full border p-2.5 transition hover:bg-[#F8F6F2] ${
-                  isFavorite
-                    ? "border-red-200 text-red-600"
-                    : "border-transparent text-neutral-600 hover:border-neutral-200 hover:text-red-600"
-                }`}
-                title={isFavorite ? "הסר ממועדפים" : "שמירה לרשימת המועדפים"}
-                aria-label={isFavorite ? "הסר ממועדפים" : "שמירה למועדפים"}
-              >
-                <svg
-                  className={`h-6 w-6 ${isFavorite ? "text-red-600" : ""}`}
-                  fill={isFavorite ? "currentColor" : "none"}
-                  stroke={isFavorite ? "#dc2626" : "currentColor"}
-                  viewBox="0 0 24 24"
+            <div className="flex shrink-0 items-center gap-2">
+              <ShareButton
+                sharePath={`/services/${service.id}`}
+                title={service.name}
+              />
+              {seekerLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (isFavorite) {
+                      await fetch(`/api/service-favorites?serviceId=${service.id}`, {
+                        method: "DELETE",
+                      });
+                      setIsFavorite(false);
+                    } else {
+                      await fetch("/api/service-favorites", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ serviceId: service.id }),
+                      });
+                      setIsFavorite(true);
+                    }
+                  }}
+                  className={`rounded-full border p-2.5 transition hover:bg-[#F8F6F2] ${
+                    isFavorite
+                      ? "border-red-200 text-red-600"
+                      : "border-transparent text-neutral-600 hover:border-neutral-200 hover:text-red-600"
+                  }`}
+                  title={isFavorite ? "הסר ממועדפים" : "שמירה לרשימת המועדפים"}
+                  aria-label={isFavorite ? "הסר ממועדפים" : "שמירה למועדפים"}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  />
-                </svg>
-              </button>
-            )}
+                  <svg
+                    className={`h-6 w-6 ${isFavorite ? "text-red-600" : ""}`}
+                    fill={isFavorite ? "currentColor" : "none"}
+                    stroke={isFavorite ? "#dc2626" : "currentColor"}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setLoginPromptOpen(true)}
+                  className="rounded-full border border-transparent p-2.5 text-neutral-600 transition hover:border-neutral-200 hover:text-red-600"
+                  aria-label="שמירה למועדפים"
+                  title="שמירה למועדפים — נדרשת התחברות"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
 
           {categoryParsed.primary ? (
@@ -588,7 +614,7 @@ export default function SingleServiceView({
         </section>
       )}
 
-      <section className="site-card-padded text-right">
+      <section id="service-request" className="site-card-padded text-right">
         <div className="border-b border-neutral-200 pb-3">
           <h2 className="text-base font-semibold text-emerald-950">שליחת בקשה לשירות</h2>
           <p className="mt-1 text-xs text-neutral-600">{service.name}</p>
@@ -742,6 +768,12 @@ export default function SingleServiceView({
         serviceId={service.id}
         currentUserId={currentUserId}
         canWriteReview={seekerLoggedIn && canWriteServiceReview}
+        seekerLoggedIn={seekerLoggedIn}
+      />
+      <LoginPromptModal
+        open={loginPromptOpen}
+        onClose={() => setLoginPromptOpen(false)}
+        redirectPath={`/services/${service.id}`}
       />
     </div>
   );

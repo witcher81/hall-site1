@@ -309,10 +309,15 @@ export default function EventBuilderClient() {
   }
 
   const venueIdNum = venueIdInput.trim() ? Number(venueIdInput) : NaN;
-  const inquiryHref =
-    Number.isInteger(venueIdNum) && venueIdNum > 0
-      ? `/halls/${venueIdNum}/inquiry${eventDate ? `?date=${encodeURIComponent(eventDate)}` : ""}`
-      : null;
+  const inquiryHref = (() => {
+    if (!Number.isInteger(venueIdNum) || venueIdNum <= 0) return null;
+    const params = new URLSearchParams();
+    if (eventDate) params.set("date", eventDate);
+    if (guestCount.trim()) params.set("guests", guestCount.trim());
+    if (eventType.trim()) params.set("eventType", eventType.trim());
+    const qs = params.toString();
+    return `/halls/${venueIdNum}/inquiry${qs ? `?${qs}` : ""}`;
+  })();
 
   if (editingId != null) {
     return (
@@ -566,17 +571,19 @@ export default function EventBuilderClient() {
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
           {inquiryHref ? (
-            <Link href={inquiryHref} className="btn-secondary min-h-[48px] px-6 text-center">
+            <Link href={inquiryHref} className="btn-primary min-h-[48px] px-6 text-center">
               שליחת פנייה לאולם
             </Link>
           ) : (
-            <span />
+            <p className="text-xs text-neutral-600 sm:self-center">
+              בחרו אולם כדי לשלוח פנייה עם הפרטים שמילאתם.
+            </p>
           )}
           <button
             type="button"
             disabled={saving}
             onClick={() => void saveBundle()}
-            className="btn-primary min-h-[48px] px-8 disabled:opacity-60"
+            className="btn-secondary min-h-[48px] px-8 disabled:opacity-60"
           >
             {saving ? "שומר…" : "שמירת החבילה"}
           </button>

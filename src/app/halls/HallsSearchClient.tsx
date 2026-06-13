@@ -14,6 +14,8 @@ import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
+import SavedHallSearchesPanel from "@/components/SavedHallSearchesPanel";
+import { parseNaturalHallSearchQuery } from "@/lib/naturalHallSearch";
 import {
   computeLabelWinners,
   computeTopPicks,
@@ -30,6 +32,7 @@ import {
 import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
 import HallsMapSection from "@/components/HallsMapSection";
 import type { MapVenue } from "@/components/VenuesMapClient";
+import LoginPromptModal from "@/components/LoginPromptModal";
 import VenueOfferProductsSection from "@/components/VenueOfferProductsSection";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PublicVenueListItem } from "@/lib/publicVenuesSearch";
@@ -231,6 +234,7 @@ function VenueResultCard({
   userLoggedIn,
   favoriteIds,
   setFavoriteIds,
+  onGuestFavorite,
   compareIds,
   setCompareIds,
   highlight = false,
@@ -242,6 +246,7 @@ function VenueResultCard({
   userLoggedIn: boolean;
   favoriteIds: Set<number>;
   setFavoriteIds: Dispatch<SetStateAction<Set<number>>>;
+  onGuestFavorite?: () => void;
   compareIds: number[];
   setCompareIds: Dispatch<SetStateAction<number[]>>;
   highlight?: boolean;
@@ -296,32 +301,35 @@ function VenueResultCard({
             <span className="text-4xl">🏛</span>
           </div>
         )}
-        {userLoggedIn && (
-          <button
-            type="button"
-            onClick={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const isFav = favoriteIds.has(v.id);
-              if (isFav) {
-                await fetch(`/api/favorites?venueId=${v.id}`, { method: "DELETE" });
-                setFavoriteIds((prev) => {
-                  const next = new Set(prev);
-                  next.delete(v.id);
-                  return next;
-                });
-              } else {
-                await fetch("/api/favorites", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ venueId: v.id }),
-                });
-                setFavoriteIds((prev) => new Set(prev).add(v.id));
-              }
-            }}
-            className="absolute left-2 top-2 rounded-full bg-black/50 p-1.5 text-white transition hover:bg-black/70"
-            aria-label={favoriteIds.has(v.id) ? "הסר ממועדפים" : "שמירה למועדפים"}
-          >
+        <button
+          type="button"
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!userLoggedIn) {
+              onGuestFavorite?.();
+              return;
+            }
+            const isFav = favoriteIds.has(v.id);
+            if (isFav) {
+              await fetch(`/api/favorites?venueId=${v.id}`, { method: "DELETE" });
+              setFavoriteIds((prev) => {
+                const next = new Set(prev);
+                next.delete(v.id);
+                return next;
+              });
+            } else {
+              await fetch("/api/favorites", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ venueId: v.id }),
+              });
+              setFavoriteIds((prev) => new Set(prev).add(v.id));
+            }
+          }}
+          className="absolute left-2 top-2 rounded-full bg-black/50 p-1.5 text-white transition hover:bg-black/70"
+          aria-label={favoriteIds.has(v.id) ? "הסר ממועדפים" : "שמירה למועדפים"}
+        >
             <svg
               className="h-5 w-5"
               fill={favoriteIds.has(v.id) ? "currentColor" : "none"}
@@ -336,7 +344,6 @@ function VenueResultCard({
               />
             </svg>
           </button>
-        )}
       </div>
       <div className="p-4 text-right">
         <div className="flex items-start justify-between gap-2">
@@ -494,6 +501,8 @@ export default function HallsSearchClient({
     initialWarning
   );
   const [form, setForm] = useState(() => ({ ...EMPTY_SEARCH_FORM }));
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [naturalQuery, setNaturalQuery] = useState("");
   const [mapOpen, setMapOpen] = useState(
     () => searchParams.get(MAP_VIEW_PARAM) === MAP_VIEW_VALUE
   );
@@ -706,6 +715,37 @@ export default function HallsSearchClient({
       .finally(() => setLoading(false));
   }, [searchParams]);
 
+  function applyNaturalSearch() {
+    const hints = parseNaturalHallSearchQuery(naturalQuery);
+    if (Object.keys(hints).length === 0) return;
+    setForm((f) => ({
+      ...f,
+      city: hints.city ?? f.city,
+      eventType: hints.eventType ?? f.eventType,
+      exactGuests: hints.minGuests ?? f.exactGuests,
+      minGuests: hints.minGuests ?? f.minGuests,
+      maxGuests: hints.maxGuests ?? f.maxGuests,
+      exactPrice: hints.maxPrice ?? f.exactPrice,
+      maxPrice: hints.maxPrice ?? f.maxPrice,
+      kashrut: hints.kashrut ?? f.kashrut,
+      seaView: hints.seaView ?? f.seaView,
+      boutique: hints.boutique ?? f.boutique,
+      accessible: hints.accessible ?? f.accessible,
+      hasChuppa: hints.hasChuppa ?? f.hasChuppa,
+    }));
+  }
+
+  const savedSearchQuery = useMemo(() => {
+    const p = new URLSearchParams(searchParams.toString());
+    p.delete(MAP_VIEW_PARAM);
+    return p.toString();
+  }, [searchParams]);
+
+  const mapVenueIds = useMemo(
+    () => (venues.length > 0 ? venues.map((v) => v.id) : null),
+    [venues]
+  );
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const next = withMapViewParam(
@@ -737,10 +777,20 @@ export default function HallsSearchClient({
   );
 
   const topPicks = useMemo(
-    () =>
-      venues.length === 0
-        ? []
-        : computeTopPicks(venues as HallVenueLike[], popularVenueOrder, searchFiltersForBrain),
+    () => {
+      if (venues.length === 0) return [];
+      const base = computeTopPicks(
+        venues as HallVenueLike[],
+        popularVenueOrder,
+        searchFiltersForBrain
+      );
+      const trendingExtras = venues.filter(
+        (v) =>
+          popularVenueOrder.includes(v.id) &&
+          !base.some((b) => b.id === v.id)
+      );
+      return [...base, ...trendingExtras.slice(0, Math.max(0, 3 - base.length))].slice(0, 3);
+    },
     [venues, popularVenueOrder, searchFiltersForBrain]
   );
 
@@ -797,6 +847,28 @@ export default function HallsSearchClient({
             <p className="mt-1 text-sm text-neutral-600">
               אפשר למלא או לשנות כל שדה בכל סדר — אין שלבים חובה. במסכים צרים השדות מתחלקים לעמודות.
             </p>
+          </div>
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4">
+          <label className={labelClass}>חיפוש בשפה חופשית</label>
+          <p className="mt-1 text-xs text-neutral-600">
+            לדוגמה: «חתונה בתל אביב ל-150 אורחים עם נוף לים»
+          </p>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <input
+              value={naturalQuery}
+              onChange={(e) => setNaturalQuery(e.target.value)}
+              placeholder="תארו בקצרה מה אתם מחפשים…"
+              className={fieldClass}
+            />
+            <button
+              type="button"
+              onClick={applyNaturalSearch}
+              className="shrink-0 rounded-xl bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900"
+            >
+              החל סינון
+            </button>
           </div>
         </div>
 
@@ -1090,6 +1162,8 @@ export default function HallsSearchClient({
         </div>
       </form>
 
+      <SavedHallSearchesPanel currentQuery={savedSearchQuery} />
+
       <RecentlyViewedBar variant="venues" />
 
       {mapOpen ? (
@@ -1109,6 +1183,9 @@ export default function HallsSearchClient({
               searchVenuesFallback={mapFallbackVenues}
               onClose={() => setMapOpenWithUrl(false)}
               modal
+              syncCity={form.city}
+              onSyncCityChange={(city) => setForm((f) => ({ ...f, city }))}
+              restrictToVenueIds={mapVenueIds}
             />
           </div>
         </>
@@ -1173,6 +1250,7 @@ export default function HallsSearchClient({
                     userLoggedIn={userLoggedIn}
                     favoriteIds={favoriteIds}
                     setFavoriteIds={setFavoriteIds}
+                    onGuestFavorite={() => setLoginPromptOpen(true)}
                     compareIds={compareIds}
                     setCompareIds={setCompareIds}
                     highlight
@@ -1200,6 +1278,7 @@ export default function HallsSearchClient({
                     userLoggedIn={userLoggedIn}
                     favoriteIds={favoriteIds}
                     setFavoriteIds={setFavoriteIds}
+                    onGuestFavorite={() => setLoginPromptOpen(true)}
                     compareIds={compareIds}
                     setCompareIds={setCompareIds}
                   />
@@ -1253,6 +1332,11 @@ export default function HallsSearchClient({
           </div>
         </div>
       )}
+      <LoginPromptModal
+        open={loginPromptOpen}
+        onClose={() => setLoginPromptOpen(false)}
+        redirectPath="/halls"
+      />
     </div>
   );
 }

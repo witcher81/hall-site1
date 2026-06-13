@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
+import ListPageSkeleton from "@/components/ui/ListPageSkeleton";
 import MessagesClient from "./MessagesClient";
 
 export default async function MessagesPage() {
@@ -21,11 +22,7 @@ export default async function MessagesPage() {
         title="הודעות"
         description="צ'אט בינך לבין מחפשים, בעלי אולמות או ספקים — לפי הקשר (אולם / שירות)."
       />
-      <Suspense
-        fallback={
-          <p className="mt-6 text-center text-sm text-neutral-600">טוען...</p>
-        }
-      >
+      <Suspense fallback={<ListPageSkeleton rows={5} />}>
         <MessagesClient currentUserId={user.id} userRole={user.role} />
       </Suspense>
     </SitePageShell>

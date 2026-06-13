@@ -12,14 +12,36 @@ const LABELS: { key: keyof EmailNotificationPrefs; label: string }[] = [
 
 export default function NotificationPreferencesSection() {
   const [prefs, setPrefs] = useState<EmailNotificationPrefs | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError(null);
     fetch("/api/settings/notifications")
-      .then((r) => r.json())
-      .then((d: { prefs?: EmailNotificationPrefs }) => setPrefs(d.prefs ?? null))
-      .catch(() => setPrefs(null));
+      .then(async (r) => {
+        const d = await r.json().catch(() => null);
+        if (!r.ok) {
+          setLoadError(
+            typeof d?.error === "string"
+              ? d.error
+              : "לא ניתן לטעון העדפות התראות"
+          );
+          setPrefs(null);
+          return;
+        }
+        setPrefs(d.prefs ?? null);
+        if (!d.prefs) {
+          setLoadError("לא נמצאו העדפות התראות לחשבון זה");
+        }
+      })
+      .catch(() => {
+        setLoadError("שגיאת רשת בטעינת העדפות");
+        setPrefs(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   async function save() {
@@ -35,8 +57,6 @@ export default function NotificationPreferencesSection() {
     setMessage(res.ok ? "ההעדפות נשמרו" : "שמירה נכשלה");
   }
 
-  if (!prefs) return null;
-
   return (
     <section
       id="notifications"
@@ -46,32 +66,43 @@ export default function NotificationPreferencesSection() {
       <p className="mt-1 text-xs text-neutral-600">
         בחרו אילו אירועים יישלחו גם לדוא״ל (בנוסף להתראות באתר).
       </p>
-      <ul className="mt-4 space-y-2 text-sm">
-        {LABELS.map(({ key, label }) => (
-          <li key={key}>
-            <label className="flex cursor-pointer items-center justify-between gap-3">
-              <span>{label}</span>
-              <input
-                type="checkbox"
-                checked={prefs[key]}
-                onChange={(e) =>
-                  setPrefs((p) => (p ? { ...p, [key]: e.target.checked } : p))
-                }
-                className="h-4 w-4 rounded border-neutral-300"
-              />
-            </label>
-          </li>
-        ))}
-      </ul>
-      {message && <p className="mt-2 text-xs text-emerald-800">{message}</p>}
-      <button
-        type="button"
-        onClick={() => void save()}
-        disabled={saving}
-        className="mt-4 rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-300 disabled:opacity-60"
-      >
-        {saving ? "שומר..." : "שמירת העדפות"}
-      </button>
+
+      {loading ? (
+        <p className="mt-4 text-sm text-neutral-600">טוען העדפות…</p>
+      ) : loadError ? (
+        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {loadError}
+        </p>
+      ) : prefs ? (
+        <>
+          <ul className="mt-4 space-y-2 text-sm">
+            {LABELS.map(({ key, label }) => (
+              <li key={key}>
+                <label className="flex cursor-pointer items-center justify-between gap-3">
+                  <span>{label}</span>
+                  <input
+                    type="checkbox"
+                    checked={prefs[key]}
+                    onChange={(e) =>
+                      setPrefs((p) => (p ? { ...p, [key]: e.target.checked } : p))
+                    }
+                    className="h-4 w-4 rounded border-neutral-300"
+                  />
+                </label>
+              </li>
+            ))}
+          </ul>
+          {message && <p className="mt-2 text-xs text-emerald-800">{message}</p>}
+          <button
+            type="button"
+            onClick={() => void save()}
+            disabled={saving}
+            className="mt-4 rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-300 disabled:opacity-60"
+          >
+            {saving ? "שומר..." : "שמירת העדפות"}
+          </button>
+        </>
+      ) : null}
     </section>
   );
 }

@@ -72,6 +72,28 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
   const vImg = pkg.venue.coverImageUrl || "/globe.svg";
 
+  const servicePriceMin = pkg.services.reduce(
+    (sum, row) => sum + (row.service.minPrice ?? 0),
+    0
+  );
+  const servicePriceMax = pkg.services.reduce(
+    (sum, row) => sum + (row.service.maxPrice ?? row.service.minPrice ?? 0),
+    0
+  );
+  const hallMin = pkg.bundlePriceFrom ?? null;
+  const hallMax = pkg.bundlePriceTo ?? null;
+  const estimatedMin =
+    (hallMin ?? 0) + (servicePriceMin > 0 ? servicePriceMin : 0);
+  const estimatedMax =
+    (hallMax ?? hallMin ?? 0) + (servicePriceMax > 0 ? servicePriceMax : 0);
+  const hasEstimate = estimatedMin > 0 || estimatedMax > 0;
+
+  const packageServicesNote = pkg.services.map((r) => r.service.name).join(", ");
+  const inquiryMessage = `מעוניין/ת בחבילה "${pkg.title}"${packageServicesNote ? ` הכוללת: ${packageServicesNote}` : ""}.`;
+  const inquiryHref = `/halls/${pkg.venue.id}/inquiry?${new URLSearchParams({
+    message: inquiryMessage,
+  }).toString()}`;
+
   return (
     <SitePageShell mainWidth="narrow">
       <nav className="mb-2 text-right text-xs text-neutral-600">
@@ -102,6 +124,19 @@ export default async function PackageDetailPage({ params }: PageProps) {
             <p className="mt-3 text-lg font-semibold text-amber-700">
               {formatBundlePrice(pkg.bundlePriceFrom, pkg.bundlePriceTo)}
             </p>
+            {hasEstimate ? (
+              <p className="mt-2 rounded-xl border border-emerald-200/60 bg-emerald-50/50 px-3 py-2 text-sm text-emerald-950">
+                <span className="font-semibold">סיכום עלות משוער (אולם + ספקים):</span>{" "}
+                {estimatedMin > 0 && estimatedMax > 0 && estimatedMin !== estimatedMax
+                  ? `₪${estimatedMin.toLocaleString("he-IL")} – ₪${estimatedMax.toLocaleString("he-IL")}`
+                  : estimatedMin > 0
+                    ? `מ־₪${estimatedMin.toLocaleString("he-IL")}`
+                    : `עד ₪${estimatedMax.toLocaleString("he-IL")}`}
+                <span className="mt-1 block text-[11px] font-normal text-neutral-600">
+                  להמחשה בלבד — חוזה ופירוט מול כל ספק בנפרד.
+                </span>
+              </p>
+            ) : null}
           </div>
 
           {pkg.description && (
@@ -161,10 +196,10 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
             <Link
-              href={`/halls/${pkg.venue.id}/inquiry`}
+              href={inquiryHref}
               className="btn-primary min-h-[52px] flex-1 sm:min-w-[200px]"
             >
-              שלחו בקשה לאולם
+              בקש הצעה
             </Link>
             <Link
               href={`/halls/${pkg.venue.id}`}

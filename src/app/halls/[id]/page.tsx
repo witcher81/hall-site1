@@ -154,6 +154,12 @@ export default async function HallPublicPage({
           category: true,
         },
       },
+      owner: {
+        select: {
+          businessPhone: true,
+          phone: true,
+        },
+      },
     },
   });
 
@@ -301,6 +307,10 @@ export default async function HallPublicPage({
           coverImageUrl: venue.coverImageUrl,
           galleryImageUrls,
           galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
+          ownerContactPhone:
+            venue.owner?.businessPhone?.trim() ||
+            venue.owner?.phone?.trim() ||
+            null,
         }}
       />
     </SitePageShell>

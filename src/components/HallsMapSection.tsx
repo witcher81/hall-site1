@@ -42,6 +42,11 @@ type Props = {
   /** חלון מפה גדול במרכז המסך */
   modal?: boolean;
   compact?: boolean;
+  /** סנכרון עיר עם סינון החיפוש הראשי */
+  syncCity?: string;
+  onSyncCityChange?: (city: string) => void;
+  /** הגבלה לתוצאות חיפוש נוכחיות (null = כל האולמות) */
+  restrictToVenueIds?: number[] | null;
 };
 
 export default function HallsMapSection({
@@ -50,11 +55,20 @@ export default function HallsMapSection({
   onClose,
   modal = false,
   compact = false,
+  syncCity,
+  onSyncCityChange,
+  restrictToVenueIds = null,
 }: Props) {
   const [venues, setVenues] = useState<MapVenue[] | null>(() =>
     initialMapVenues.length > 0 ? initialMapVenues : null
   );
-  const [filterCity, setFilterCity] = useState("");
+  const [filterCity, setFilterCity] = useState(syncCity ?? "");
+
+  useEffect(() => {
+    if (syncCity !== undefined && syncCity !== filterCity) {
+      setFilterCity(syncCity);
+    }
+  }, [syncCity]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fallbackKey = searchVenuesFallback.map((v) => v.id).join(",");
 
@@ -105,8 +119,13 @@ export default function HallsMapSection({
 
   const displayedVenues = useMemo(() => {
     if (!venues) return [];
-    return venues.filter((v) => venueMatchesCityFilter(v.city, filterCity));
-  }, [venues, filterCity]);
+    let list = venues.filter((v) => venueMatchesCityFilter(v.city, filterCity));
+    if (restrictToVenueIds && restrictToVenueIds.length > 0) {
+      const allowed = new Set(restrictToVenueIds);
+      list = list.filter((v) => allowed.has(v.id));
+    }
+    return list;
+  }, [venues, filterCity, restrictToVenueIds]);
 
   const mapFocus: MapFocusTarget | null = useMemo(() => {
     const t = filterCity.trim();
@@ -152,7 +171,10 @@ export default function HallsMapSection({
         <label className="block text-sm font-medium text-emerald-950">חיפוש עיר</label>
         <CityAutocompleteInput
           value={filterCity}
-          onChange={setFilterCity}
+          onChange={(city) => {
+            setFilterCity(city);
+            onSyncCityChange?.(city);
+          }}
           extraCities={extraCities}
           className={fieldClass}
           placeholder="הקלד עיר, למשל: חיפה, ירושלים…"

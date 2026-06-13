@@ -46,6 +46,7 @@ export default function DashboardNav({ user }: { user: User }) {
           {link(base, "השירותים שלי")}
           {link(base + "/requests", "בקשות שהתקבלו")}
           {link(base + "/profile", "פרופיל")}
+          {link("/messages", "הודעות")}
           <Link
             href="/"
             className="rounded-full border border-white/25 px-4 py-2 text-sm font-medium text-[#F8F6F0] transition hover:bg-white/10"

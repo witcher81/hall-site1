@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { HH_MESSAGES_UNREAD_EVENT } from "@/components/MessagesUnreadBadge";
+import ListPageSkeleton from "@/components/ui/ListPageSkeleton";
 
 type OtherUser = {
   id: number;
@@ -548,7 +549,7 @@ export default function MessagesClient({
           )}
         </h2>
         {loadingList ? (
-          <p className="text-xs text-neutral-600">טוען...</p>
+          <ListPageSkeleton rows={3} />
         ) : conversations.length === 0 ? (
           <div className="space-y-2 text-xs leading-relaxed text-neutral-600">
             <p className="font-medium text-emerald-950">אין שיחות עדיין</p>
@@ -660,7 +661,7 @@ export default function MessagesClient({
               className="flex-1 space-y-2 overflow-y-auto p-4 text-right"
             >
               {loadingMsgs ? (
-                <p className="text-xs text-neutral-600">טוען הודעות...</p>
+                <ListPageSkeleton rows={4} />
               ) : (
                 messages.map((m) => {
                   const mine = m.senderId === currentUserId;

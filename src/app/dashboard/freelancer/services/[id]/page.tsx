@@ -43,6 +43,7 @@ export default async function ServiceDetailsPage({
 
   return (
     <ServiceDetailsClient
+      providerId={user.id}
       service={{
         id: service.id,
         name: service.name,

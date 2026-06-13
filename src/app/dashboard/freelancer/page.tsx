@@ -9,7 +9,7 @@ export default async function FreelancerDashboardPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "FREELANCER") redirect("/auth/login");
 
-  const { dbUser, services } = await getFreelancerDashboardData(user.id);
+  const { dbUser, services, recentRequests } = await getFreelancerDashboardData(user.id);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8 lg:px-10">
@@ -37,6 +37,7 @@ export default async function FreelancerDashboardPage() {
               }
             : null,
           services,
+          recentRequests,
         }}
       />
     </main>

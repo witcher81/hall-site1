@@ -26,6 +26,7 @@ function personalAreaLinks(role: string | undefined): { href: string; label: str
         { href: "/favorites", label: "המועדפים שלי" },
         { href: "/my-inquiries", label: "הפניות שלי" },
         { href: "/my-service-requests", label: "הבקשות לספקים" },
+        { href: "/event-tools", label: "כלי תכנון אירוע" },
         { href: "/my-plans", label: "תוכניות אירוע" },
         { href: "/event-planner", label: "צ׳קליסט אירוע" },
         { href: "/event-builder", label: "בניית חבילה" },

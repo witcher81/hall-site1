@@ -9,14 +9,44 @@ export default async function SeekerDashboardPage() {
   if (!user) redirect("/auth/login");
   if (user.role !== "SEEKER") redirect("/");
 
-  const [inquiries, requests, venueFavorites, serviceFavorites, unread] =
-    await Promise.all([
-      prisma.inquiry.count({ where: { userId: user.id } }),
-      prisma.serviceRequest.count({ where: { userId: user.id } }),
-      prisma.favorite.count({ where: { userId: user.id } }),
-      prisma.serviceFavorite.count({ where: { userId: user.id } }),
-      prisma.notification.count({ where: { userId: user.id, isRead: false } }),
-    ]);
+  const [
+    inquiries,
+    requests,
+    venueFavorites,
+    serviceFavorites,
+    unread,
+    recentInquiries,
+    recentVenueFavorites,
+    recentServiceFavorites,
+  ] = await Promise.all([
+    prisma.inquiry.count({ where: { userId: user.id } }),
+    prisma.serviceRequest.count({ where: { userId: user.id } }),
+    prisma.favorite.count({ where: { userId: user.id } }),
+    prisma.serviceFavorite.count({ where: { userId: user.id } }),
+    prisma.notification.count({ where: { userId: user.id, isRead: false } }),
+    prisma.inquiry.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      include: { venue: { select: { id: true, name: true, city: true } } },
+    }),
+    prisma.favorite.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      include: { venue: { select: { id: true, name: true, city: true, coverImageUrl: true } } },
+    }),
+    prisma.serviceFavorite.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      include: {
+        service: {
+          select: { id: true, name: true, coverImageUrl: true },
+        },
+      },
+    }),
+  ]);
   const favorites = venueFavorites + serviceFavorites;
 
   const cards = [
@@ -24,10 +54,15 @@ export default async function SeekerDashboardPage() {
     { href: "/my-service-requests", label: "בקשות לספקים", count: requests },
     { href: "/favorites", label: "מועדפים", count: favorites },
     { href: "/notifications", label: "התראות שלא נקראו", count: unread },
-    { href: "/my-plans", label: "תוכניות אירוע", count: null },
-    { href: "/event-builder", label: "בניית אירוע", count: null },
-    { href: "/event-planner", label: "צ'קליסט אירוע", count: null },
+    { href: "/event-tools", label: "כלי תכנון אירוע", count: null },
+    { href: "/recently-viewed", label: "נצפו לאחרונה", count: null },
   ];
+
+  const STATUS_LABEL: Record<string, string> = {
+    NEW: "נשלחה",
+    READ: "נצפתה",
+    REPLIED: "נענתה",
+  };
 
   return (
     <SitePageShell mainWidth="narrow">
@@ -48,6 +83,68 @@ export default async function SeekerDashboardPage() {
           </li>
         ))}
       </ul>
+
+      <section className="mt-10 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-bold text-emerald-950">פניות אחרונות</h2>
+        {recentInquiries.length === 0 ? (
+          <p className="mt-2 text-xs text-neutral-600">
+            עדיין לא שלחת פניות.{" "}
+            <Link href="/halls" className="font-semibold text-emerald-950 underline">
+              חיפוש אולמות
+            </Link>
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-xs">
+            {recentInquiries.map((q) => (
+              <li key={q.id} className="flex items-center justify-between gap-2 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2">
+                <Link href={`/halls/${q.venue.id}`} className="font-medium text-emerald-950 hover:underline">
+                  {q.venue.name} · {q.venue.city}
+                </Link>
+                <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-950">
+                  {STATUS_LABEL[q.status] ?? q.status}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link href="/my-inquiries" className="mt-3 inline-block text-xs font-semibold text-emerald-950 underline">
+          כל הפניות →
+        </Link>
+      </section>
+
+      <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-bold text-emerald-950">מועדפים אחרונים</h2>
+        {recentVenueFavorites.length === 0 && recentServiceFavorites.length === 0 ? (
+          <p className="mt-2 text-xs text-neutral-600">
+            שמרו אולמות ושירותים בלחיצה על הלב בחיפוש.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-xs">
+            {recentVenueFavorites.map((f) => (
+              <li key={`v-${f.venueId}`}>
+                <Link href={`/halls/${f.venue.id}`} className="font-medium text-emerald-950 hover:underline">
+                  אולם: {f.venue.name} · {f.venue.city}
+                </Link>
+              </li>
+            ))}
+            {recentServiceFavorites.map((f) => (
+              <li key={`s-${f.serviceId}`}>
+                <Link href={`/services/${f.service.id}`} className="font-medium text-emerald-950 hover:underline">
+                  שירות: {f.service.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-3 flex flex-wrap gap-3 text-xs">
+          <Link href="/favorites" className="font-semibold text-emerald-950 underline">
+            כל המועדפים →
+          </Link>
+          <Link href="/recently-viewed" className="font-semibold text-emerald-950 underline">
+            נצפו לאחרונה →
+          </Link>
+        </div>
+      </section>
     </SitePageShell>
   );
 }

@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  clearInquiryDraft,
+  loadInquiryDraft,
+  saveInquiryDraft,
+} from "@/lib/inquiryDraft";
+
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import InquiryOfferOverview, {
   type MarketplaceAvailability,
@@ -343,7 +349,45 @@ export default function VenueInquiryClient({
 
   useEffect(() => {
     applyDateFromQuery(searchParams.get("date"));
-  }, [searchParams, applyDateFromQuery]);
+    const guests = searchParams.get("guests");
+    if (guests && /^\d+$/.test(guests)) {
+      setForm((f) => ({ ...f, guestCount: guests }));
+    }
+    const eventTypeParam = searchParams.get("eventType");
+    if (eventTypeParam?.trim()) {
+      setForm((f) => ({ ...f, eventType: eventTypeParam.trim() }));
+    }
+    const messageParam = searchParams.get("message");
+    if (messageParam?.trim()) {
+      setForm((f) => ({ ...f, message: messageParam.trim() }));
+    }
+    const draft = loadInquiryDraft(venueId);
+    if (draft) {
+      setForm((f) => ({
+        ...f,
+        preferredDate: draft.preferredDate || f.preferredDate,
+        guestCount: draft.guestCount || f.guestCount,
+        eventType: draft.eventType || f.eventType,
+        message: draft.message || f.message,
+      }));
+      if (draft.stepId === "offers" || draft.stepId === "send") {
+        setStepId(draft.stepId);
+      }
+    }
+  }, [searchParams, applyDateFromQuery, venueId]);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      saveInquiryDraft(venueId, {
+        preferredDate: form.preferredDate,
+        guestCount: form.guestCount,
+        eventType: form.eventType,
+        message: form.message,
+        stepId,
+      });
+    }, 500);
+    return () => window.clearTimeout(t);
+  }, [venueId, form, stepId]);
 
   useEffect(() => {
     if (!eventTypeMenuOpen) return;
@@ -550,6 +594,7 @@ export default function VenueInquiryClient({
         return;
       }
       setSuccess(true);
+      clearInquiryDraft(venueId);
       setTimeout(() => {
         router.push(`/halls/${venueId}`);
       }, 900);

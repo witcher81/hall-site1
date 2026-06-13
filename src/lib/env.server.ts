@@ -23,3 +23,15 @@ export function assertNoSecretExposedAsPublicEnv(): void {
     }
   }
 }
+
+/** אזהרה בפרוד אם חסר Upstash — rate limiting ב-API יחזיר 503 */
+export function warnUpstashMissingInProduction(): void {
+  if (process.env.NODE_ENV !== "production") return;
+  const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  if (!url || !token) {
+    console.warn(
+      "[hall-site] UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN חסרים בפרוד — הגבלת קצב API עלולה להיכשל (503)."
+    );
+  }
+}

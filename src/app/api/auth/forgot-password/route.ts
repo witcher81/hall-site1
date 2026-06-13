@@ -8,6 +8,7 @@ import {
 import { sendPasswordResetEmail } from "@/lib/passwordResetEmail";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { validateEmail } from "@/lib/userInputValidation";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const GENERIC_OK_MESSAGE =
   "אם קיים חשבון עם כתובת זו, ישלח אליו קישור לאיפוס הסיסמה.";
@@ -15,7 +16,19 @@ const GENERIC_OK_MESSAGE =
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null);
-    const { email } = (body ?? {}) as { email?: unknown };
+    const { email, turnstileToken } = (body ?? {}) as {
+      email?: unknown;
+      turnstileToken?: unknown;
+    };
+
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const captcha = await verifyTurnstileToken(
+      typeof turnstileToken === "string" ? turnstileToken : undefined,
+      ip
+    );
+    if (!captcha.ok) {
+      return NextResponse.json({ error: captcha.error }, { status: 400 });
+    }
 
     const emailResult = validateEmail(email);
     if (!emailResult.ok) {

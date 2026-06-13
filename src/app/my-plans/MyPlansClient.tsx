@@ -2,6 +2,133 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+type PickerItem = { id: number; label: string };
+
+function EntityPicker({
+  label,
+  placeholder,
+  value,
+  onChange,
+  searchPath,
+  favoritesPath,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (id: string, label?: string) => void;
+  searchPath: string;
+  favoritesPath?: string;
+}) {
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<PickerItem[]>([]);
+  const [favorites, setFavorites] = useState<PickerItem[]>([]);
+  const [selectedLabel, setSelectedLabel] = useState("");
+
+  useEffect(() => {
+    if (!favoritesPath) return;
+    void fetch(favoritesPath)
+      .then((r) => r.json())
+      .then((data) => {
+        if (favoritesPath.includes("service-favorites")) {
+          const list = (data.services ?? []) as { id: number; name: string }[];
+          setFavorites(list.map((s) => ({ id: s.id, label: s.name })));
+        } else {
+          const list = (data.favorites ?? []) as { id: number; name: string; city?: string }[];
+          setFavorites(
+            list.map((v) => ({
+              id: v.id,
+              label: v.city ? `${v.name} · ${v.city}` : v.name,
+            }))
+          );
+        }
+      })
+      .catch(() => setFavorites([]));
+  }, [favoritesPath]);
+
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    const t = window.setTimeout(() => {
+      void fetch(`${searchPath}${encodeURIComponent(query.trim())}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (searchPath.includes("/api/venues")) {
+            const list = (data.venues ?? []) as { id: number; name: string; city: string }[];
+            setSuggestions(
+              list.map((v) => ({ id: v.id, label: `${v.name} · ${v.city}` }))
+            );
+          } else {
+            const list = (data.services ?? data.providers ?? []) as {
+              id: number;
+              name: string;
+            }[];
+            setSuggestions(list.map((s) => ({ id: s.id, label: s.name })));
+          }
+        })
+        .catch(() => setSuggestions([]));
+    }, 280);
+    return () => window.clearTimeout(t);
+  }, [query, searchPath]);
+
+  return (
+    <div className="space-y-1">
+      <label className="block text-xs font-semibold text-emerald-950">{label}</label>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+      />
+      {favorites.length > 0 ? (
+        <div className="flex flex-wrap gap-1">
+          {favorites.slice(0, 4).map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => {
+                onChange(String(f.id), f.label);
+                setSelectedLabel(f.label);
+                setQuery("");
+                setSuggestions([]);
+              }}
+              className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-emerald-950"
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {suggestions.length > 0 ? (
+        <ul className="max-h-36 overflow-y-auto rounded-xl border border-neutral-200 bg-white text-xs shadow-sm">
+          {suggestions.map((s) => (
+            <li key={s.id}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(String(s.id), s.label);
+                  setSelectedLabel(s.label);
+                  setQuery("");
+                  setSuggestions([]);
+                }}
+                className="w-full px-3 py-2 text-right hover:bg-amber-50"
+              >
+                {s.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {value ? (
+        <p className="text-[11px] text-neutral-600">
+          נבחר: <strong>{selectedLabel || `#${value}`}</strong>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 type ChecklistState = "todo" | "in_progress" | "done";
 
 type LinkedVenue = { id: number; name: string; city: string } | null;
@@ -270,33 +397,37 @@ export default function MyPlansClient() {
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <input
+            <EntityPicker
+              label="אולם"
+              placeholder="חפשו לפי שם או עיר"
               value={form.venueId}
-              onChange={(e) => setForm((f) => ({ ...f, venueId: e.target.value }))}
-              placeholder="מזהה אולם (/halls/[id])"
-              className="rounded-xl border border-neutral-200 px-3 py-2"
+              onChange={(id) => setForm((f) => ({ ...f, venueId: id }))}
+              searchPath="/api/venues?q="
+              favoritesPath="/api/favorites"
             />
-            <input
+            <EntityPicker
+              label="צילום"
+              placeholder="חפשו שירות צילום"
               value={form.photographerServiceId}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, photographerServiceId: e.target.value }))
-              }
-              placeholder="מזהה שירות צילום"
-              className="rounded-xl border border-neutral-200 px-3 py-2"
+              onChange={(id) => setForm((f) => ({ ...f, photographerServiceId: id }))}
+              searchPath="/api/services/public?q="
+              favoritesPath="/api/service-favorites"
             />
-            <input
+            <EntityPicker
+              label="DJ"
+              placeholder="חפשו שירות DJ"
               value={form.djServiceId}
-              onChange={(e) => setForm((f) => ({ ...f, djServiceId: e.target.value }))}
-              placeholder="מזהה שירות DJ"
-              className="rounded-xl border border-neutral-200 px-3 py-2"
+              onChange={(id) => setForm((f) => ({ ...f, djServiceId: id }))}
+              searchPath="/api/services/public?q="
+              favoritesPath="/api/service-favorites"
             />
-            <input
+            <EntityPicker
+              label="קייטרינג"
+              placeholder="חפשו שירות קייטרינג"
               value={form.cateringServiceId}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, cateringServiceId: e.target.value }))
-              }
-              placeholder="מזהה שירות קייטרינג"
-              className="rounded-xl border border-neutral-200 px-3 py-2"
+              onChange={(id) => setForm((f) => ({ ...f, cateringServiceId: id }))}
+              searchPath="/api/services/public?q="
+              favoritesPath="/api/service-favorites"
             />
           </div>
           <textarea

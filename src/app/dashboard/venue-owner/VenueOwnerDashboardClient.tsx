@@ -17,18 +17,68 @@ type Venue = {
   coverImageUrl: string | null;
 };
 
+type RecentInquiry = {
+  id: number;
+  status: string;
+  createdAt: string;
+  venue: { id: number; name: string };
+  user: { name: string | null; email: string };
+};
+
 type Props = {
   initial: {
     user: { name: string | null; email: string; phone: string | null } | null;
     venues: Venue[];
+    recentInquiries: RecentInquiry[];
   };
+};
+
+const INQUIRY_STATUS: Record<string, string> = {
+  NEW: "חדשה",
+  READ: "נצפתה",
+  REPLIED: "נענתה",
 };
 
 export default function VenueOwnerDashboardClient({ initial }: Props) {
   const [venues] = useState<Venue[]>(initial.venues);
+  const recentInquiries = initial.recentInquiries;
 
   return (
     <section className="mt-6 text-right text-sm text-neutral-900">
+      {recentInquiries.length > 0 ? (
+        <div className="mb-8 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-emerald-950">פניות אחרונות</h2>
+            <a
+              href="/dashboard/venue-owner/inquiries"
+              className="text-xs font-semibold text-emerald-950 underline"
+            >
+              כל הפניות →
+            </a>
+          </div>
+          <ul className="mt-3 space-y-2">
+            {recentInquiries.map((q) => (
+              <li key={q.id}>
+                <a
+                  href={`/dashboard/venue-owner/inquiries/${q.id}`}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2 transition hover:border-amber-300"
+                >
+                  <span className="min-w-0 truncate">
+                    <span className="font-medium text-emerald-950">{q.venue.name}</span>
+                    <span className="mr-2 text-[11px] text-neutral-600">
+                      {q.user.name || q.user.email}
+                    </span>
+                  </span>
+                  <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold">
+                    {INQUIRY_STATUS[q.status] ?? q.status}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="text-right">
           <div className="mb-2 h-1 w-10 rounded-full bg-amber-400" aria-hidden />
