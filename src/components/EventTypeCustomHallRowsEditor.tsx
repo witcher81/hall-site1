@@ -41,6 +41,7 @@ export default function EventTypeCustomHallRowsEditor({
         extraPrice: "",
         extraPriceMax: "",
         allowsSeekerExternal: defaultSeekerExternalForCustomRow(),
+        allowsSeekerExternalEventTypes: [],
       },
     ]);
     onInputChange("");

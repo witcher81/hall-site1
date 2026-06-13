@@ -2,8 +2,7 @@
 
 import { useCallback, useState } from "react";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
-import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
-import type { HallGeneralPriceMode } from "@/lib/venueBuiltinAmenities";
+import SeekerExternalWithEventTypes from "@/components/SeekerExternalWithEventTypes";
 import { storedMinMaxIsPriceRange } from "@/lib/freelancerServicePriceForm";
 
 const compactPriceInputClass =
@@ -17,13 +16,11 @@ type Props = {
   mealMinPrice: string;
   mealMaxPrice: string;
   onMealPriceChange: (min: string, max: string) => void;
-  priceMode: HallGeneralPriceMode;
-  onPriceModeChange: (mode: "included" | "extra") => void;
-  extraMin: string;
-  extraMax: string;
-  onExtraPriceChange: (min: string, max: string) => void;
   allowsSeekerExternal: boolean;
   onAllowsSeekerExternalChange: (next: boolean) => void;
+  seekerExternalEventTypes: string[];
+  onSeekerExternalEventTypesChange: (next: string[]) => void;
+  eventTypes: string[];
   hasEventTypeSection: boolean;
 };
 
@@ -33,39 +30,22 @@ export default function HallGeneralFoodSection({
   mealMinPrice,
   mealMaxPrice,
   onMealPriceChange,
-  priceMode,
-  onPriceModeChange,
-  extraMin,
-  extraMax,
-  onExtraPriceChange,
   allowsSeekerExternal,
   onAllowsSeekerExternalChange,
+  seekerExternalEventTypes,
+  onSeekerExternalEventTypesChange,
+  eventTypes,
   hasEventTypeSection,
 }: Props) {
   const [mealRangeKeys, setMealRangeKeys] = useState<Set<string>>(() => new Set());
-  const [extraRangeKeys, setExtraRangeKeys] = useState<Set<string>>(() => new Set());
 
   const mealRangeKey = "food-meal";
-  const extraRangeKey = "food-extra";
 
   const isMealRange = useCallback(
     (min: string, max: string) =>
       mealRangeKeys.has(mealRangeKey) || storedMinMaxIsPriceRange(min, max),
     [mealRangeKeys]
   );
-
-  const isExtraRange = useCallback(
-    (min: string, max: string) =>
-      extraRangeKeys.has(extraRangeKey) || storedMinMaxIsPriceRange(min, max),
-    [extraRangeKeys]
-  );
-
-  const modeBtnClass = (active: boolean) =>
-    `rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition ${
-      active
-        ? "border-emerald-950 bg-emerald-950 text-white"
-        : "border-[#D4C9BC] bg-white text-neutral-800 hover:bg-neutral-50"
-    }`;
 
   return (
     <div className="mb-4 rounded-xl border border-amber-200/70 bg-amber-50/40 p-3">
@@ -119,67 +99,14 @@ export default function HallGeneralFoodSection({
             className="!p-2"
           />
 
-          <div>
-            <p className="mb-2 text-[11px] font-medium text-neutral-700">
-              האם האוכל כלול במחיר האולם או בתוספת תשלום?
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className={modeBtnClass(priceMode === "included")}
-                onClick={() => onPriceModeChange("included")}
-              >
-                כלול במחיר
-              </button>
-              <button
-                type="button"
-                className={modeBtnClass(priceMode === "extra")}
-                onClick={() => onPriceModeChange("extra")}
-              >
-                בתוספת תשלום
-              </button>
-            </div>
-          </div>
-
-          {priceMode === "extra" ? (
-            <OptionalPriceRangeFields
-              minPrice={extraMin}
-              maxPrice={extraMax}
-              onChange={onExtraPriceChange}
-              useRange={isExtraRange(extraMin, extraMax)}
-              onUseRangeChange={(next) => {
-                setExtraRangeKeys((prev) => {
-                  const copy = new Set(prev);
-                  if (next) copy.add(extraRangeKey);
-                  else copy.delete(extraRangeKey);
-                  return copy;
-                });
-                if (!next) {
-                  const ep =
-                    extraMin.trim() && extraMin.trim() === extraMax.trim()
-                      ? extraMin.trim()
-                      : extraMin.trim() || extraMax.trim();
-                  onExtraPriceChange(ep, ep);
-                }
-              }}
-              grouped
-              expandAsButton
-              singleLabel="תוספת תשלום לאוכל (₪)"
-              singlePlaceholder="למשל 500"
-              minLabel="מינימום (₪)"
-              maxLabel="מקסימום (₪)"
-              expandRangeLabel={EXPAND_EXTRA_PRICE_RANGE_LABEL}
-              collapseRangeLabel="מחיר קבוע"
-              inputClassName={compactPriceInputClass}
-              className="!p-2"
-            />
-          ) : null}
-
           <div className="border-t border-amber-200/60 pt-2">
-            <SeekerExternalSourceToggle
+            <SeekerExternalWithEventTypes
               compact
               checked={allowsSeekerExternal}
-              onChange={onAllowsSeekerExternalChange}
+              onCheckedChange={onAllowsSeekerExternalChange}
+              eventTypes={eventTypes}
+              selectedEventTypes={seekerExternalEventTypes}
+              onSelectedEventTypesChange={onSeekerExternalEventTypesChange}
             />
           </div>
 

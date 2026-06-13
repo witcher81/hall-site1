@@ -3,6 +3,7 @@ import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/v
 import {
   defaultSeekerExternalForCustomRow,
   parseSeekerExternalFromRecord,
+  parseSeekerExternalEventTypesFromRecord,
   resolveSeekerExternalForCustomRow,
 } from "@/lib/venueAmenitySeekerExternal";
 
@@ -15,6 +16,7 @@ export type VenueEditCustomHallRow = {
   extraPrice: string;
   extraPriceMax: string;
   allowsSeekerExternal: boolean;
+  allowsSeekerExternalEventTypes: string[];
 };
 
 export const EVENT_TYPE_PUBLIC_NOTES_MAX = 800;
@@ -97,6 +99,7 @@ export function parseCustomAmenitiesFromDb(
         allowsSeekerExternal: resolveSeekerExternalForCustomRow(
           parseSeekerExternalFromRecord(o)
         ),
+        allowsSeekerExternalEventTypes: parseSeekerExternalEventTypesFromRecord(o),
       });
     }
     return out;
@@ -120,6 +123,7 @@ export function splitWeddingAmenities(rows: VenueEditCustomHallRow[]) {
           extraPrice: row.extraPrice,
           extraPriceMax: row.extraPriceMax,
           allowsSeekerExternal: row.allowsSeekerExternal,
+          allowsSeekerExternalEventTypes: row.allowsSeekerExternalEventTypes,
         });
       }
       continue;
@@ -155,6 +159,7 @@ function parseCustomHallItemsFromProfileJson(
       allowsSeekerExternal: resolveSeekerExternalForCustomRow(
         parseSeekerExternalFromRecord(o)
       ),
+      allowsSeekerExternalEventTypes: [],
     });
   }
   return out;

@@ -56,7 +56,7 @@ import {
 } from "@/lib/venueBuiltinAmenities";
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
 import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
-import { defaultSeekerExternalForCustomRow } from "@/lib/venueAmenitySeekerExternal";
+import { defaultSeekerExternalForCustomRow, seekerExternalFieldsForPayload } from "@/lib/venueAmenitySeekerExternal";
 
 const VenueLocationPicker = dynamic(
   () => import("@/components/VenueLocationPicker"),
@@ -337,6 +337,8 @@ export default function VenueEditForm({
   >(initial.builtinAmenityExtraPriceMaxes);
   const [builtinAmenityAllowsSeekerExternal, setBuiltinAmenityAllowsSeekerExternal] =
     useState(initial.builtinAmenityAllowsSeekerExternal);
+  const [builtinAmenitySeekerExternalEventTypes, setBuiltinAmenitySeekerExternalEventTypes] =
+    useState(initial.builtinAmenitySeekerExternalEventTypes);
   const isWeddingSelected = eventTypes.includes("חתונה");
   const anyEventOffersFood = useMemo(
     () =>
@@ -368,13 +370,51 @@ export default function VenueEditForm({
     (enabled: boolean) => {
       setForm((f) => ({ ...f, productHasFood: enabled }));
       if (enabled) {
-        setBuiltinAmenityPriceModes((prev) =>
-          prev.hasFood === "unplaced" ? { ...prev, hasFood: "included" } : prev
-        );
+        setBuiltinAmenityPriceModes((prev) => ({ ...prev, hasFood: "included" }));
       }
     },
     [setBuiltinAmenityPriceModes]
   );
+
+  const validateSeekerExternalEventTypes = useCallback(() => {
+    if (
+      form.productHasFood &&
+      builtinAmenityAllowsSeekerExternal.hasFood &&
+      eventTypes.length > 0 &&
+      (builtinAmenitySeekerExternalEventTypes.hasFood?.length ?? 0) === 0
+    ) {
+      return "באוכל: סומן ספק חיצוני — נא לבחור לפחות סוג אירוע אחד.";
+    }
+    for (const { key, label } of HALL_GENERAL_PRICE_KEYS) {
+      if (key === "hasFood") continue;
+      if (!form[key]) continue;
+      if (
+        builtinAmenityAllowsSeekerExternal[key] &&
+        eventTypes.length > 0 &&
+        (builtinAmenitySeekerExternalEventTypes[key]?.length ?? 0) === 0
+      ) {
+        return `ב«${label}»: סומן ספק חיצוני — נא לבחור לפחות סוג אירוע אחד.`;
+      }
+    }
+    const badCustom = customAmenityRows.find(
+      (r) =>
+        r.checked &&
+        isHallGeneralPricePlaced(r.priceMode) &&
+        r.allowsSeekerExternal &&
+        eventTypes.length > 0 &&
+        r.allowsSeekerExternalEventTypes.length === 0
+    );
+    if (badCustom) {
+      return `ב«${badCustom.label}»: סומן ספק חיצוני — נא לבחור לפחות סוג אירוע אחד.`;
+    }
+    return null;
+  }, [
+    form,
+    builtinAmenityAllowsSeekerExternal,
+    builtinAmenitySeekerExternalEventTypes,
+    eventTypes,
+    customAmenityRows,
+  ]);
 
   const anyEventHasDanceFloor = form.hasDanceFloor;
 
@@ -554,6 +594,12 @@ export default function VenueEditForm({
         setError(
           "אוכל מסומן לכל האירועים אך לא הוגדר אם כלול במחיר או בתוספת — בחרו באזור האוכל."
         );
+        setSaving(false);
+        return;
+      }
+      const seekerExternalErr = validateSeekerExternalEventTypes();
+      if (seekerExternalErr) {
+        setError(seekerExternalErr);
         setSaving(false);
         return;
       }
@@ -770,14 +816,20 @@ export default function VenueEditForm({
           return {
             label: `__builtin__:${key}`,
             checked: builtinChecked[key],
-            priceMode: persistedHallGeneralPriceMode(mode),
-            ...(placed && mode === "extra"
+            priceMode:
+              key === "hasFood" && form.productHasFood
+                ? "included"
+                : persistedHallGeneralPriceMode(mode),
+            ...(placed && mode === "extra" && key !== "hasFood"
               ? amenityExtraPayloadFields(
                   builtinAmenityExtraPrices[key],
                   builtinAmenityExtraPriceMaxes[key] || builtinAmenityExtraPrices[key]
                 )
               : { extraPrice: null }),
-            allowsSeekerExternalSource: builtinAmenityAllowsSeekerExternal[key],
+            ...seekerExternalFieldsForPayload(
+              builtinAmenityAllowsSeekerExternal[key],
+              builtinAmenitySeekerExternalEventTypes[key] ?? []
+            ),
           };
         }),
         ...customAmenityRows.map((r) => {
@@ -789,7 +841,10 @@ export default function VenueEditForm({
             ...(placed && r.priceMode === "extra"
               ? amenityExtraPayloadFields(r.extraPrice, r.extraPriceMax || r.extraPrice)
               : { extraPrice: null }),
-            allowsSeekerExternalSource: r.allowsSeekerExternal,
+            ...seekerExternalFieldsForPayload(
+              r.allowsSeekerExternal,
+              r.allowsSeekerExternalEventTypes
+            ),
           };
         }),
       ];
@@ -1143,16 +1198,6 @@ export default function VenueEditForm({
               onMealPriceChange={(min, max) =>
                 setForm((f) => ({ ...f, minPrice: min, maxPrice: max }))
               }
-              priceMode={builtinAmenityPriceModes.hasFood}
-              onPriceModeChange={(mode) =>
-                setBuiltinAmenityPriceModes((prev) => ({ ...prev, hasFood: mode }))
-              }
-              extraMin={builtinAmenityExtraPrices.hasFood}
-              extraMax={builtinAmenityExtraPriceMaxes.hasFood}
-              onExtraPriceChange={(min, max) => {
-                setBuiltinAmenityExtraPrices((prev) => ({ ...prev, hasFood: min }));
-                setBuiltinAmenityExtraPriceMaxes((prev) => ({ ...prev, hasFood: max }));
-              }}
               allowsSeekerExternal={builtinAmenityAllowsSeekerExternal.hasFood}
               onAllowsSeekerExternalChange={(next) =>
                 setBuiltinAmenityAllowsSeekerExternal((prev) => ({
@@ -1160,6 +1205,14 @@ export default function VenueEditForm({
                   hasFood: next,
                 }))
               }
+              seekerExternalEventTypes={builtinAmenitySeekerExternalEventTypes.hasFood}
+              onSeekerExternalEventTypesChange={(next) =>
+                setBuiltinAmenitySeekerExternalEventTypes((prev) => ({
+                  ...prev,
+                  hasFood: next,
+                }))
+              }
+              eventTypes={eventTypes}
               hasEventTypeSection={eventTypes.length > 0}
             />
             <HallGeneralAmenitiesDnd
@@ -1178,6 +1231,9 @@ export default function VenueEditForm({
               setCustomAmenityRows={setCustomAmenityRows}
               customHallGeneralInput={customHallGeneralInput}
               setCustomHallGeneralInput={setCustomHallGeneralInput}
+              eventTypes={eventTypes}
+              builtinSeekerExternalEventTypes={builtinAmenitySeekerExternalEventTypes}
+              setBuiltinSeekerExternalEventTypes={setBuiltinAmenitySeekerExternalEventTypes}
             />
           </div>
 

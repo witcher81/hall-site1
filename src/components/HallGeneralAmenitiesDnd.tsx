@@ -3,7 +3,7 @@
 import type { Dispatch, DragEvent, ReactNode, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
-import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
+import SeekerExternalWithEventTypes from "@/components/SeekerExternalWithEventTypes";
 import {
   HALL_VENUE_PRODUCT_DND_ITEMS,
   VENUE_PRODUCT_BUILTIN_KEYS,
@@ -29,6 +29,7 @@ export type HallGeneralCustomRow = {
   extraPrice: string;
   extraPriceMax: string;
   allowsSeekerExternal: boolean;
+  allowsSeekerExternalEventTypes: string[];
 };
 
 const DND_MIME = "application/x-hall-general-amenity";
@@ -97,6 +98,7 @@ export function newHallGeneralCustomRow(label: string): HallGeneralCustomRow {
     extraPrice: "",
     extraPriceMax: "",
     allowsSeekerExternal: defaultSeekerExternalForCustomRow(),
+    allowsSeekerExternalEventTypes: [],
   };
 }
 
@@ -149,6 +151,7 @@ export function assignHallGeneralRowIds(
   return rows.map((r, i) => ({
     ...r,
     extraPriceMax: r.extraPriceMax ?? r.extraPrice,
+    allowsSeekerExternalEventTypes: r.allowsSeekerExternalEventTypes ?? [],
     id:
       typeof globalThis.crypto !== "undefined" &&
       typeof globalThis.crypto.randomUUID === "function"
@@ -187,6 +190,11 @@ type Props = {
   setCustomAmenityRows: Dispatch<SetStateAction<HallGeneralCustomRow[]>>;
   customHallGeneralInput: string;
   setCustomHallGeneralInput: Dispatch<SetStateAction<string>>;
+  eventTypes: string[];
+  builtinSeekerExternalEventTypes: Record<BuiltinAmenityKeyFull, string[]>;
+  setBuiltinSeekerExternalEventTypes: Dispatch<
+    SetStateAction<Record<BuiltinAmenityKeyFull, string[]>>
+  >;
 };
 
 export default function HallGeneralAmenitiesDnd({
@@ -205,6 +213,9 @@ export default function HallGeneralAmenitiesDnd({
   setCustomAmenityRows,
   customHallGeneralInput,
   setCustomHallGeneralInput,
+  eventTypes,
+  builtinSeekerExternalEventTypes,
+  setBuiltinSeekerExternalEventTypes,
 }: Props) {
   const dndItems = useMemo(
     () =>
@@ -401,11 +412,19 @@ export default function HallGeneralAmenitiesDnd({
             )
           : null}
         <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2" data-amenity-no-drag>
-          <SeekerExternalSourceToggle
+          <SeekerExternalWithEventTypes
             compact
             checked={builtinAmenityAllowsSeekerExternal[key] ?? false}
-            onChange={(next) =>
+            onCheckedChange={(next) =>
               setBuiltinAmenityAllowsSeekerExternal((prev) => ({
+                ...prev,
+                [key]: next,
+              }))
+            }
+            eventTypes={eventTypes}
+            selectedEventTypes={builtinSeekerExternalEventTypes[key] ?? []}
+            onSelectedEventTypesChange={(next) =>
+              setBuiltinSeekerExternalEventTypes((prev) => ({
                 ...prev,
                 [key]: next,
               }))
@@ -475,12 +494,33 @@ export default function HallGeneralAmenitiesDnd({
           הסר
         </button>
         <div className="w-full basis-full border-t border-[#E8E0D6]/80 pt-2" data-amenity-no-drag>
-          <SeekerExternalSourceToggle
+          <SeekerExternalWithEventTypes
             compact
             checked={row.allowsSeekerExternal}
-            onChange={(next) =>
+            onCheckedChange={(next) =>
               setCustomAmenityRows((prev) =>
-                prev.map((r) => (r.id === row.id ? { ...r, allowsSeekerExternal: next } : r))
+                prev.map((r) =>
+                  r.id === row.id
+                    ? {
+                        ...r,
+                        allowsSeekerExternal: next,
+                        allowsSeekerExternalEventTypes: next
+                          ? r.allowsSeekerExternalEventTypes.length > 0
+                            ? r.allowsSeekerExternalEventTypes
+                            : [...eventTypes]
+                          : [],
+                      }
+                    : r
+                )
+              )
+            }
+            eventTypes={eventTypes}
+            selectedEventTypes={row.allowsSeekerExternalEventTypes}
+            onSelectedEventTypesChange={(next) =>
+              setCustomAmenityRows((prev) =>
+                prev.map((r) =>
+                  r.id === row.id ? { ...r, allowsSeekerExternalEventTypes: next } : r
+                )
               )
             }
           />

@@ -19,7 +19,9 @@ import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
 import {
   initialBuiltinSeekerExternalMap,
+  initialBuiltinSeekerExternalEventTypesMap,
   parseSeekerExternalFromRecord,
+  parseSeekerExternalEventTypesFromRecord,
   resolveSeekerExternalForBuiltin,
 } from "@/lib/venueAmenitySeekerExternal";
 
@@ -54,6 +56,7 @@ export type VenueEditFormInitial = {
   builtinAmenityExtraPrices: Record<BuiltinAmenityKeyFull, string>;
   builtinAmenityExtraPriceMaxes: Record<BuiltinAmenityKeyFull, string>;
   builtinAmenityAllowsSeekerExternal: Record<BuiltinAmenityKeyFull, boolean>;
+  builtinAmenitySeekerExternalEventTypes: Record<BuiltinAmenityKeyFull, string[]>;
   latitude: number | null;
   longitude: number | null;
   parkingKind: ParkingKind;
@@ -105,6 +108,7 @@ export function buildVenueEditInitial(
     VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, ""])
   ) as Record<BuiltinAmenityKeyFull, string>;
   const builtinAmenityAllowsSeekerExternal = initialBuiltinSeekerExternalMap();
+  const builtinAmenitySeekerExternalEventTypes = initialBuiltinSeekerExternalEventTypesMap();
 
   if (venue.customAmenitiesJson) {
     try {
@@ -129,6 +133,8 @@ export function buildVenueEditInitial(
             parseSeekerExternalFromRecord(o),
             o.priceMode === "extra" ? "extra" : "included"
           );
+          builtinAmenitySeekerExternalEventTypes[key] =
+            parseSeekerExternalEventTypesFromRecord(o);
         }
       }
     } catch {
@@ -174,6 +180,7 @@ export function buildVenueEditInitial(
     builtinAmenityExtraPrices,
     builtinAmenityExtraPriceMaxes,
     builtinAmenityAllowsSeekerExternal,
+    builtinAmenitySeekerExternalEventTypes,
     latitude: venue.latitude ?? null,
     longitude: venue.longitude ?? null,
     parkingKind: inferParkingKindFromDb({

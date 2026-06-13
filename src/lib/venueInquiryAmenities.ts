@@ -8,6 +8,8 @@ import {
   parseSeekerExternalFromRecord,
   resolveSeekerExternalForBuiltin,
   resolveSeekerExternalForCustomRow,
+  parseSeekerExternalEventTypesFromRecord,
+  allowsSeekerExternalForInquiryEvent,
 } from "@/lib/venueAmenitySeekerExternal";
 
 /**
@@ -106,6 +108,7 @@ type ParsedCustomRow = {
   extraPrice: number | null;
   extraPriceMax: number | null;
   allowsSeekerExternal: boolean;
+  seekerExternalEventTypes: string[];
 };
 
 function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustomRow[] {
@@ -149,6 +152,7 @@ function parseCustomAmenitiesJson(json: string | null | undefined): ParsedCustom
         extraPrice,
         extraPriceMax,
         allowsSeekerExternal,
+        seekerExternalEventTypes: parseSeekerExternalEventTypesFromRecord(o),
       });
     }
     return out;
@@ -163,6 +167,7 @@ type BuiltinState = {
   extraPrice: number | null;
   extraPriceMax: number | null;
   allowsSeekerExternal: boolean;
+  seekerExternalEventTypes: string[];
 };
 
 function parseBuiltinStates(
@@ -179,6 +184,7 @@ function parseBuiltinStates(
       extraPrice: row.extraPrice,
       extraPriceMax: row.extraPriceMax,
       allowsSeekerExternal: row.allowsSeekerExternal,
+      seekerExternalEventTypes: row.seekerExternalEventTypes,
     };
   }
   return out;
@@ -242,17 +248,23 @@ function appendChuppaOptionsForInquiry(
 function pushBuiltinOption(
   out: InquiryServiceOption[],
   key: BuiltinServiceKey,
-  state: BuiltinState | undefined
+  state: BuiltinState | undefined,
+  inquiryEventType: string | null
 ) {
+  const master =
+    state?.allowsSeekerExternal ??
+    resolveSeekerExternalForBuiltin(key, undefined, state?.priceMode ?? "included");
   out.push({
     id: `service:${key}`,
     label: BUILTIN_LABELS[key],
     priceMode: state?.priceMode ?? "included",
     extraPrice: state?.extraPrice ?? null,
     extraPriceMax: state?.extraPriceMax ?? null,
-    allowsExternalSource:
-      state?.allowsSeekerExternal ??
-      resolveSeekerExternalForBuiltin(key, undefined, state?.priceMode ?? "included"),
+    allowsExternalSource: allowsSeekerExternalForInquiryEvent(
+      master,
+      state?.seekerExternalEventTypes,
+      inquiryEventType
+    ),
   });
 }
 
@@ -281,7 +293,7 @@ export function getVenueInquiryOptions(
     } else if (!isBuiltinOffered(v, key, builtinStates)) {
       continue;
     }
-    pushBuiltinOption(services, key, builtinStates[key]);
+    pushBuiltinOption(services, key, builtinStates[key], eventType);
   }
 
   const rawCustoms = parseCustomAmenitiesJson(v.customAmenitiesJson).filter(
@@ -300,7 +312,11 @@ export function getVenueInquiryOptions(
         priceMode: row.priceMode,
         extraPrice: row.extraPrice,
         extraPriceMax: row.extraPriceMax,
-        allowsExternalSource: row.allowsSeekerExternal,
+        allowsExternalSource: allowsSeekerExternalForInquiryEvent(
+          row.allowsSeekerExternal,
+          row.seekerExternalEventTypes,
+          eventType
+        ),
       });
       weddingCustomIdx += 1;
     } else {
@@ -310,7 +326,11 @@ export function getVenueInquiryOptions(
         priceMode: row.priceMode,
         extraPrice: row.extraPrice,
         extraPriceMax: row.extraPriceMax,
-        allowsExternalSource: row.allowsSeekerExternal,
+        allowsExternalSource: allowsSeekerExternalForInquiryEvent(
+          row.allowsSeekerExternal,
+          row.seekerExternalEventTypes,
+          eventType
+        ),
       });
       generalIdx += 1;
     }

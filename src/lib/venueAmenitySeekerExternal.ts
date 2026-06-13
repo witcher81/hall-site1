@@ -6,6 +6,9 @@ import {
 /** שדה ב-JSON של שירותים (customAmenitiesJson / customHallItems) */
 export const SEEKER_EXTERNAL_JSON_KEY = "allowsSeekerExternalSource";
 
+/** סוגי אירוע שבהם מותר ספק חיצוני (כשהמתג הראשי דלוק) */
+export const SEEKER_EXTERNAL_EVENT_TYPES_KEY = "seekerExternalEventTypes";
+
 /** פריטים מובנים שחלק מהאולם — אין בחירת ספק חיצוני (ריק — כל הפריטים ניתנים להגדרה) */
 export const BUILTIN_FIXED_VENUE_ONLY_KEYS = new Set<BuiltinAmenityKeyFull>([]);
 
@@ -17,11 +20,10 @@ export function builtinAmenityOffersSeekerExternalConfig(
 }
 
 export function defaultSeekerExternalForBuiltin(
-  key: BuiltinAmenityKeyFull,
-  priceMode: "included" | "extra" = "included"
+  _key: BuiltinAmenityKeyFull,
+  _priceMode: "included" | "extra" = "included"
 ): boolean {
-  if (!builtinAmenityOffersSeekerExternalConfig(key, priceMode)) return false;
-  return key === "hasFood" || key === "hasSoundSystem";
+  return false;
 }
 
 export function defaultSeekerExternalForCustomRow(): boolean {
@@ -35,6 +37,52 @@ export function parseSeekerExternalFromRecord(
   if (v === true || v === "true") return true;
   if (v === false || v === "false") return false;
   return undefined;
+}
+
+export function parseSeekerExternalEventTypesFromRecord(
+  o: Record<string, unknown>
+): string[] {
+  const raw = o[SEEKER_EXTERNAL_EVENT_TYPES_KEY];
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (x): x is string => typeof x === "string" && x.trim().length > 0
+  );
+}
+
+/** האם מותר ספק חיצוני לסוג האירוע בפנייה */
+export function allowsSeekerExternalForInquiryEvent(
+  masterEnabled: boolean,
+  allowedEventTypes: string[] | undefined,
+  inquiryEventType: string | null | undefined
+): boolean {
+  if (!masterEnabled) return false;
+  if (!allowedEventTypes || allowedEventTypes.length === 0) return true;
+  const et = inquiryEventType?.trim();
+  if (!et) return false;
+  return allowedEventTypes.includes(et);
+}
+
+export function seekerExternalEventTypesPayload(
+  masterEnabled: boolean,
+  eventTypes: string[]
+): string[] | undefined {
+  if (!masterEnabled) return undefined;
+  const cleaned = eventTypes.filter((et) => et.trim().length > 0);
+  return cleaned.length > 0 ? cleaned : undefined;
+}
+
+export function seekerExternalFieldsForPayload(
+  masterEnabled: boolean,
+  eventTypes: string[]
+): {
+  allowsSeekerExternalSource: boolean;
+  seekerExternalEventTypes?: string[];
+} {
+  const allowed = seekerExternalEventTypesPayload(masterEnabled, eventTypes);
+  return {
+    allowsSeekerExternalSource: masterEnabled,
+    ...(allowed ? { seekerExternalEventTypes: allowed } : {}),
+  };
 }
 
 export function resolveSeekerExternalForBuiltin(
@@ -79,4 +127,13 @@ export function initialBuiltinSeekerExternalMap(): Record<
       defaultSeekerExternalForBuiltin(k, "included"),
     ])
   ) as Record<BuiltinAmenityKeyFull, boolean>;
+}
+
+export function initialBuiltinSeekerExternalEventTypesMap(): Record<
+  BuiltinAmenityKeyFull,
+  string[]
+> {
+  return Object.fromEntries(
+    VENUE_PRODUCT_BUILTIN_KEYS.map((k) => [k, [] as string[]])
+  ) as Record<BuiltinAmenityKeyFull, string[]>;
 }

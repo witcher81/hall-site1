@@ -23,8 +23,10 @@ import {
 } from "@/lib/venueBuiltinAmenities";
 import {
   parseSeekerExternalFromRecord,
+  parseSeekerExternalEventTypesFromRecord,
   resolveSeekerExternalForBuiltin,
   resolveSeekerExternalForCustomRow,
+  seekerExternalFieldsForPayload,
 } from "@/lib/venueAmenitySeekerExternal";
 import {
   coerceParkingKindFromStorage,
@@ -424,6 +426,7 @@ function parseCustomAmenitiesJson(
       extraPrice: number | null;
       extraPriceMax?: number;
       allowsSeekerExternalSource: boolean;
+      seekerExternalEventTypes?: string[];
     }[] = [];
     const seen = new Set<string>();
     for (const item of v) {
@@ -451,6 +454,7 @@ function parseCustomAmenitiesJson(
         extraPriceMax = parsed.extraPriceMax;
       }
       let allowsSeekerExternalSource: boolean;
+      let seekerExternalEventTypes: string[] = [];
       if (label.startsWith("__builtin__:")) {
         const bKey = label.slice("__builtin__:".length) as BuiltinAmenityKeyFull;
         allowsSeekerExternalSource = VENUE_PRODUCT_BUILTIN_KEYS.includes(bKey)
@@ -460,19 +464,25 @@ function parseCustomAmenitiesJson(
               priceMode
             )
           : false;
+        seekerExternalEventTypes = parseSeekerExternalEventTypesFromRecord(o);
       } else {
         allowsSeekerExternalSource = resolveSeekerExternalForCustomRow(
           parseSeekerExternalFromRecord(o),
           false
         );
+        seekerExternalEventTypes = parseSeekerExternalEventTypesFromRecord(o);
       }
+      const externalFields = seekerExternalFieldsForPayload(
+        allowsSeekerExternalSource,
+        seekerExternalEventTypes
+      );
       rows.push({
         label,
         checked,
         priceMode,
         extraPrice,
         ...(extraPriceMax != null ? { extraPriceMax } : {}),
-        allowsSeekerExternalSource,
+        ...externalFields,
       });
     }
     return { json: rows.length > 0 ? JSON.stringify(rows) : null, error: null };
