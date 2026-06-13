@@ -4,6 +4,7 @@ import {
   createSessionToken,
   getCurrentUser,
   setSessionCookie,
+  setSessionCookieOnResponse,
 } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { getDevUserSwitchContext } from "@/lib/canShowDevUserSwitcher";
@@ -82,5 +83,7 @@ export async function POST(req: NextRequest) {
   const token = createSessionToken(authUser);
   await setSessionCookie(token);
 
-  return NextResponse.json({ success: true, user: authUser });
+  const res = NextResponse.json({ success: true, user: authUser });
+  setSessionCookieOnResponse(res, token);
+  return res;
 }

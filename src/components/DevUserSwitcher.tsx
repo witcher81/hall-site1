@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 type UserRow = {
   id: number;
@@ -25,7 +24,6 @@ export default function DevUserSwitcher({
   initialUsers = [],
   canCreateManagedUsers: canCreateFromServer = false,
 }: Props) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [users, setUsers] = useState<UserRow[]>(initialUsers);
@@ -43,6 +41,8 @@ export default function DevUserSwitcher({
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
 
   const canCreateManagedUsers = canCreateFromServer;
+
+  const [switchError, setSwitchError] = useState<string | null>(null);
 
   const fetchUsers = useCallback(() => {
     fetch("/api/dev/users")
@@ -70,14 +70,27 @@ export default function DevUserSwitcher({
 
   async function switchTo(userId: number) {
     setLoading(true);
+    setSwitchError(null);
     try {
-      await fetch("/api/dev/switch-user", {
+      const res = await fetch("/api/dev/switch-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ userId }),
       });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setSwitchError(
+          typeof data?.error === "string"
+            ? data.error
+            : "החלפת משתמש נכשלה — נסו שוב"
+        );
+        return;
+      }
       setOpen(false);
-      router.refresh();
+      window.location.reload();
+    } catch {
+      setSwitchError("שגיאת רשת בהחלפת משתמש");
     } finally {
       setLoading(false);
     }
@@ -175,6 +188,9 @@ export default function DevUserSwitcher({
             ) : null}
             {fetchError ? (
               <p className="px-3 py-1 text-xs text-amber-800">{fetchError}</p>
+            ) : null}
+            {switchError ? (
+              <p className="px-3 py-1 text-xs text-red-600">{switchError}</p>
             ) : null}
             {users.map((u) => (
               <button

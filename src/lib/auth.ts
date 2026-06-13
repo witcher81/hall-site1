@@ -41,6 +41,19 @@ export function clearSessionCookiesOnResponse(res: NextResponse) {
   }
 }
 
+const sessionCookieSetOptions = () => ({
+  httpOnly: true,
+  secure: IS_PRODUCTION,
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: SESSION_MAX_AGE_SECONDS,
+});
+
+/** הגדרת סשן על תגובת Route Handler — משלים ל-cookies().set() */
+export function setSessionCookieOnResponse(res: NextResponse, token: string) {
+  res.cookies.set(SESSION_COOKIE_NAME, token, sessionCookieSetOptions());
+}
+
 const LEGACY_PENDING_VERIFY_COOKIE = IS_PRODUCTION
   ? "__Host-hall_verify_pending"
   : "hall_verify_pending";
@@ -116,13 +129,7 @@ export async function clearPendingVerificationCookie() {
 
 export async function setSessionCookie(token: string) {
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: IS_PRODUCTION,
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS,
-  });
+  cookieStore.set(SESSION_COOKIE_NAME, token, sessionCookieSetOptions());
 }
 
 export async function clearSessionCookie() {
