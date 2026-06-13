@@ -286,15 +286,15 @@ function EventTypeProfilePanel({
             </dd>
           </div>
         )}
-        {merged.hasFoodAtEvent && profile.hasVeganFood ? (
+        {merged.hasFoodAtEvent && profile.mealAlternatives.length > 0 ? (
           <div>
-            <dt className="text-xs font-semibold text-neutral-600">אפשרות טבעונית</dt>
+            <dt className="text-xs font-semibold text-neutral-600">אפשרויות במנה</dt>
             <dd className="mt-0.5">
-              {profile.veganSameAsMealPrice
-                ? "כן — במחיר כמו המנה הרגילה."
-                : profile.veganMinPrice != null || profile.veganMaxPrice != null
-                  ? `מחיר למנה טבעונית: ₪${profile.veganMinPrice ?? "?"}–${profile.veganMaxPrice ?? "?"}`
-                  : "כן — פרטי מחיר לא הוזנו."}
+              <ul className="list-inside list-disc space-y-0.5">
+                {profile.mealAlternatives.map((alt) => (
+                  <li key={alt}>{alt}</li>
+                ))}
+              </ul>
             </dd>
           </div>
         ) : null}

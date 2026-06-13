@@ -7,6 +7,7 @@ import {
   resolveSeekerExternalForCustomRow,
 } from "@/lib/venueAmenitySeekerExternal";
 import { trimEventTypePublicNotes } from "@/lib/venueEditFormParse";
+import { parseMealAlternativesFromProfile } from "@/lib/venueMealAlternatives";
 
 export type PublicEventHallItem = {
   label: string;
@@ -23,10 +24,7 @@ export type PublicEventTypeProfile = {
   minPrice: number | null;
   maxPrice: number | null;
   hasFoodAtEvent: boolean;
-  hasVeganFood: boolean;
-  veganSameAsMealPrice: boolean;
-  veganMinPrice: number | null;
-  veganMaxPrice: number | null;
+  mealAlternatives: string[];
   /** הערות בעל האולם למחפשים — אופציונלי */
   publicNotes: string | null;
   customHallItems: PublicEventHallItem[];
@@ -99,11 +97,7 @@ function parseOneProfile(o: Record<string, unknown>, et: string): PublicEventTyp
     maxPrice = null;
   }
 
-  const hasVeganFood = boolFood(o.hasVeganFood);
-  const veganSameAsMealPrice =
-    o.veganSameAsMealPrice === true || o.veganSameAsMealPrice === "true";
-  const veganMinPrice = toInt(o.veganMinPrice);
-  const veganMaxPrice = toInt(o.veganMaxPrice);
+  const mealAlternatives = parseMealAlternativesFromProfile(o);
 
   const notesRaw = typeof o.publicNotes === "string" ? o.publicNotes : "";
   const publicNotes = notesRaw.trim() ? trimEventTypePublicNotes(notesRaw) : null;
@@ -114,10 +108,7 @@ function parseOneProfile(o: Record<string, unknown>, et: string): PublicEventTyp
     minPrice,
     maxPrice,
     hasFoodAtEvent,
-    hasVeganFood,
-    veganSameAsMealPrice,
-    veganMinPrice,
-    veganMaxPrice,
+    mealAlternatives,
     publicNotes,
     customHallItems: parseCustomHallItems(o.customHallItems),
   };
@@ -131,10 +122,7 @@ function emptyProfile(et: string): PublicEventTypeProfile {
     minPrice: null,
     maxPrice: null,
     hasFoodAtEvent: isWedding,
-    hasVeganFood: false,
-    veganSameAsMealPrice: false,
-    veganMinPrice: null,
-    veganMaxPrice: null,
+    mealAlternatives: [],
     publicNotes: null,
     customHallItems: [],
   };

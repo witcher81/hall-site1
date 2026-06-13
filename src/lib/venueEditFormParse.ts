@@ -1,7 +1,7 @@
 import { parseAmenityExtraFromDb } from "@/lib/amenityExtraPrice";
 import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
+import { parseMealAlternativesFromProfile } from "@/lib/venueMealAlternatives";
 import {
-  defaultSeekerExternalForCustomRow,
   parseSeekerExternalFromRecord,
   parseSeekerExternalEventTypesFromRecord,
   resolveSeekerExternalForCustomRow,
@@ -27,10 +27,8 @@ export type VenueEditEventTypeProfile = {
   hasFoodAtEvent: boolean;
   minPrice: string;
   maxPrice: string;
-  hasVeganFood: boolean;
-  veganSameAsMealPrice: boolean;
-  veganMinPrice: string;
-  veganMaxPrice: string;
+  /** אפשרויות/שינויים במנה — למשל טבעוני, צמחוני */
+  mealAlternatives: string[];
   /** הערות למחפשים בדף האולם — אופציונלי */
   publicNotes: string;
   customHallRows: VenueEditCustomHallRow[];
@@ -165,39 +163,6 @@ function parseCustomHallItemsFromProfileJson(
   return out;
 }
 
-function inferVeganSameAsMealPrice(profile: Record<string, unknown>): boolean {
-  if (profile.veganSameAsMealPrice === true || profile.veganSameAsMealPrice === "true") {
-    return true;
-  }
-  if (profile.veganSameAsMealPrice === false || profile.veganSameAsMealPrice === "false") {
-    return false;
-  }
-  const minP =
-    profile.minPrice == null || profile.minPrice === "" ? null : Number(profile.minPrice);
-  const maxP =
-    profile.maxPrice == null || profile.maxPrice === "" ? null : Number(profile.maxPrice);
-  const vMin =
-    profile.veganMinPrice == null || profile.veganMinPrice === ""
-      ? null
-      : Number(profile.veganMinPrice);
-  const vMax =
-    profile.veganMaxPrice == null || profile.veganMaxPrice === ""
-      ? null
-      : Number(profile.veganMaxPrice);
-  if (vMin == null && vMax == null) return true;
-  if (
-    minP != null &&
-    maxP != null &&
-    vMin != null &&
-    vMax != null &&
-    minP === vMin &&
-    maxP === vMax
-  ) {
-    return true;
-  }
-  return false;
-}
-
 export function mergeLegacyWeddingIntoWeddingProfile(
   profiles: Record<string, VenueEditEventTypeProfile>,
   weddingLegacy: VenueEditCustomHallRow[]
@@ -219,7 +184,7 @@ export function mergeLegacyWeddingIntoWeddingProfile(
 export function parseEventTypeProfilesForForm(
   raw: string | null | undefined,
   eventTypes: string[],
-  fallbackVegan: boolean
+  _fallbackVegan: boolean
 ): Record<string, VenueEditEventTypeProfile> {
   const safeTypes = Array.isArray(eventTypes)
     ? eventTypes.filter((e): e is string => typeof e === "string")
@@ -232,10 +197,7 @@ export function parseEventTypeProfilesForForm(
       hasFoodAtEvent: et === "חתונה",
       minPrice: "",
       maxPrice: "",
-      hasVeganFood: fallbackVegan,
-      veganSameAsMealPrice: true,
-      veganMinPrice: "",
-      veganMaxPrice: "",
+      mealAlternatives: [],
       publicNotes: "",
       customHallRows: [],
     };
@@ -245,10 +207,6 @@ export function parseEventTypeProfilesForForm(
     const parsed = JSON.parse(raw) as unknown;
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
     const obj = parsed as Record<string, unknown>;
-    const boolVegan = (profile: Record<string, unknown>) =>
-      "hasVeganFood" in profile
-        ? profile.hasVeganFood === true || profile.hasVeganFood === "true"
-        : fallbackVegan;
     for (const et of safeTypes) {
       const row = obj[et];
       if (typeof row !== "object" || row === null || Array.isArray(row)) continue;
@@ -261,15 +219,7 @@ export function parseEventTypeProfilesForForm(
         profile.maxPrice == null || profile.maxPrice === ""
           ? ""
           : String(profile.maxPrice);
-      const veganMinP =
-        profile.veganMinPrice == null || profile.veganMinPrice === ""
-          ? ""
-          : String(profile.veganMinPrice);
-      const veganMaxP =
-        profile.veganMaxPrice == null || profile.veganMaxPrice === ""
-          ? ""
-          : String(profile.veganMaxPrice);
-      const veganSameAs = inferVeganSameAsMealPrice(profile);
+      const mealAlternatives = parseMealAlternativesFromProfile(profile);
       const customHallRows = parseCustomHallItemsFromProfileJson(profile);
       if (et === "חתונה") {
         out[et] = {
@@ -278,10 +228,7 @@ export function parseEventTypeProfilesForForm(
           hasFoodAtEvent: true,
           minPrice: minP,
           maxPrice: maxP,
-          hasVeganFood: boolVegan(profile),
-          veganSameAsMealPrice: veganSameAs,
-          veganMinPrice: veganSameAs ? "" : veganMinP,
-          veganMaxPrice: veganSameAs ? "" : veganMaxP,
+          mealAlternatives,
           publicNotes: parsePublicNotesFromProfile(profile),
           customHallRows,
         };
@@ -303,10 +250,7 @@ export function parseEventTypeProfilesForForm(
         hasFoodAtEvent,
         minPrice: hasFoodAtEvent ? minP : "",
         maxPrice: hasFoodAtEvent ? maxP : "",
-        hasVeganFood: boolVegan(profile),
-        veganSameAsMealPrice: hasFoodAtEvent ? veganSameAs : true,
-        veganMinPrice: hasFoodAtEvent && !veganSameAs ? veganMinP : "",
-        veganMaxPrice: hasFoodAtEvent && !veganSameAs ? veganMaxP : "",
+        mealAlternatives: hasFoodAtEvent ? mealAlternatives : [],
         publicNotes: parsePublicNotesFromProfile(profile),
         customHallRows,
       };

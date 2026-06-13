@@ -13,6 +13,7 @@ import {
 import AddressStreetSuggest from "@/components/AddressStreetSuggest";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import EventTypeCustomHallRowsEditor from "@/components/EventTypeCustomHallRowsEditor";
+import EventTypeMealAlternativesEditor from "@/components/EventTypeMealAlternativesEditor";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import {
   amenityExtraPayloadFields,
@@ -175,10 +176,7 @@ export default function VenueEditForm({
         hasFoodAtEvent: et === "חתונה" ? true : row?.hasFoodAtEvent === true,
         minPrice: row?.minPrice ?? "",
         maxPrice: row?.maxPrice ?? "",
-        hasVeganFood: row?.hasVeganFood ?? initial.hasVeganFood,
-        veganSameAsMealPrice: row?.veganSameAsMealPrice ?? true,
-        veganMinPrice: row?.veganMinPrice ?? "",
-        veganMaxPrice: row?.veganMaxPrice ?? "",
+        mealAlternatives: Array.isArray(row?.mealAlternatives) ? row.mealAlternatives : [],
         publicNotes: row?.publicNotes ?? "",
         customHallRows: Array.isArray(row?.customHallRows) ? row.customHallRows : [],
       };
@@ -435,10 +433,7 @@ export default function VenueEditForm({
             hasFoodAtEvent: et === "חתונה",
             minPrice: "",
             maxPrice: "",
-            hasVeganFood: false,
-            veganSameAsMealPrice: true,
-            veganMinPrice: "",
-            veganMaxPrice: "",
+            mealAlternatives: [],
             publicNotes: "",
             customHallRows: [],
           };
@@ -640,30 +635,6 @@ export default function VenueEditForm({
         }
       }
       for (const et of eventTypes) {
-        const profile = eventTypeProfiles[et];
-        if (!profile) continue;
-        const showMealPrices = et === "חתונה" || profile.hasFoodAtEvent === true;
-        if (!profile.hasVeganFood || !showMealPrices) continue;
-        if (profile.veganSameAsMealPrice) continue;
-        const vm = mealIntOrNull(profile.veganMinPrice);
-        const vx = mealIntOrNull(profile.veganMaxPrice);
-        if (vm != null || vx != null) {
-          if (vm == null || vx == null) {
-            setError(
-              `בסוג האירוע "${et}": יש להזין גם מחיר מינימום וגם מחיר מקסימום למנה טבעונית.`
-            );
-            setSaving(false);
-            return;
-          }
-          const vErr = validatePriceMinMax(vm, vx);
-          if (vErr) {
-            setError(`בסוג האירוע "${et}" (טבעוני): ${vErr}`);
-            setSaving(false);
-            return;
-          }
-        }
-      }
-      for (const et of eventTypes) {
         const rows = eventTypeProfiles[et]?.customHallRows ?? [];
         const bad = rows.find(
           (row) =>
@@ -713,10 +684,7 @@ export default function VenueEditForm({
           hasFoodAtEvent: et === "חתונה",
           minPrice: "",
           maxPrice: "",
-          hasVeganFood: false,
-          veganSameAsMealPrice: true,
-          veganMinPrice: "",
-          veganMaxPrice: "",
+          mealAlternatives: [],
           publicNotes: "",
           customHallRows: [] as EventTypeProfileState["customHallRows"],
         };
@@ -733,18 +701,6 @@ export default function VenueEditForm({
             : { extraPrice: null }),
           allowsSeekerExternalSource: r.allowsSeekerExternal,
         }));
-        const showMealPricesPayload = et === "חתונה" || base.hasFoodAtEvent === true;
-        const veganPayload: Record<string, unknown> = {};
-        if (base.hasVeganFood && showMealPricesPayload) {
-          if (base.veganSameAsMealPrice) {
-            veganPayload.veganSameAsMealPrice = true;
-          } else {
-            const vm = mealIntOrNull(base.veganMinPrice);
-            const vx = mealIntOrNull(base.veganMaxPrice);
-            if (vm != null) veganPayload.veganMinPrice = vm;
-            if (vx != null) veganPayload.veganMaxPrice = vx;
-          }
-        }
         const publicNotes = trimEventTypePublicNotes(base.publicNotes ?? "");
         eventTypeProfilesPayload[et] = {
           minGuests: base.minGuests,
@@ -752,8 +708,9 @@ export default function VenueEditForm({
           minPrice: base.minPrice,
           maxPrice: base.maxPrice,
           hasFoodAtEvent: base.hasFoodAtEvent,
-          hasVeganFood: base.hasVeganFood,
-          ...veganPayload,
+          ...(base.mealAlternatives.length > 0
+            ? { mealAlternatives: base.mealAlternatives }
+            : {}),
           ...(publicNotes ? { publicNotes } : {}),
           ...(items.length > 0 ? { customHallItems: items } : {}),
         };
@@ -768,10 +725,10 @@ export default function VenueEditForm({
       fd.append("hasChuppa", String(hasChuppaForApi));
       fd.append("hasChuppaOutdoor", String(form.hasChuppaOutdoor));
       fd.append("hasChuppaCovered", String(form.hasChuppaCovered));
-      const anyEventVeganFood = eventTypes.some(
-        (et) => eventTypeProfiles[et]?.hasVeganFood === true
+      const anyEventMealAlternatives = eventTypes.some(
+        (et) => (eventTypeProfiles[et]?.mealAlternatives?.length ?? 0) > 0
       );
-      fd.append("hasVeganFood", String(anyEventVeganFood));
+      fd.append("hasVeganFood", String(anyEventMealAlternatives));
       fd.append("foodKashrut", form.foodKashrut || "");
       const anyEventFood =
         eventTypes.includes("חתונה") ||
@@ -1251,10 +1208,7 @@ export default function VenueEditForm({
                     hasFoodAtEvent: isWeddingEt,
                     minPrice: "",
                     maxPrice: "",
-                    hasVeganFood: false,
-                    veganSameAsMealPrice: true,
-                    veganMinPrice: "",
-                    veganMaxPrice: "",
+                    mealAlternatives: [],
                     publicNotes: "",
                     customHallRows: [],
                   };
@@ -1317,10 +1271,7 @@ export default function VenueEditForm({
                                     hasFoodAtEvent: on,
                                     minPrice: on ? profile.minPrice : "",
                                     maxPrice: on ? profile.maxPrice : "",
-                                    hasVeganFood: on ? profile.hasVeganFood : false,
-                                    veganSameAsMealPrice: on ? profile.veganSameAsMealPrice : true,
-                                    veganMinPrice: on ? profile.veganMinPrice : "",
-                                    veganMaxPrice: on ? profile.veganMaxPrice : "",
+                                    mealAlternatives: on ? profile.mealAlternatives : [],
                                   },
                                 }));
                               }}
@@ -1351,8 +1302,8 @@ export default function VenueEditForm({
                             maxPrice={profile.maxPrice}
                             singleLabel={
                               form.productHasFood
-                                ? "מחיר למנה לסוג זה (₪) — ריק = מחיר כללי"
-                                : "מחיר למנה (₪)"
+                                ? "שינוי מחיר מנה לאירוע הזה (₪) — ריק = מחיר כללי"
+                                : "מחיר למנה לסוג זה (₪) — ריק = מחיר כללי"
                             }
                             collapseRangeLabel="יש לי מחיר קבוע למנה"
                             onChange={(min, max) =>
@@ -1363,72 +1314,17 @@ export default function VenueEditForm({
                             }
                           />
                         )}
-                        {showMealPrices && (
-                          <div className="mt-1 space-y-2 border-t border-neutral-200/70 pt-2 sm:col-span-2">
-                            <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-800">
-                              <input
-                                type="checkbox"
-                                checked={profile.hasVeganFood}
-                                onChange={(e) => {
-                                  const on = e.target.checked;
-                                  setEventTypeProfiles((prev) => ({
-                                    ...prev,
-                                    [et]: {
-                                      ...profile,
-                                      hasVeganFood: on,
-                                      veganSameAsMealPrice: on ? profile.veganSameAsMealPrice : true,
-                                      veganMinPrice: on ? profile.veganMinPrice : "",
-                                      veganMaxPrice: on ? profile.veganMaxPrice : "",
-                                    },
-                                  }));
-                                }}
-                                className="checkbox-hall shrink-0"
-                              />
-                              אפשרות לאוכל טבעוני (בסוג אירוע זה)
-                            </label>
-                            {profile.hasVeganFood && (
-                              <>
-                                <label className="flex cursor-pointer items-center gap-2 text-[11px] text-neutral-800 sm:pe-8">
-                                  <input
-                                    type="checkbox"
-                                    checked={profile.veganSameAsMealPrice}
-                                    onChange={(e) => {
-                                      const same = e.target.checked;
-                                      setEventTypeProfiles((prev) => ({
-                                        ...prev,
-                                        [et]: {
-                                          ...profile,
-                                          veganSameAsMealPrice: same,
-                                          veganMinPrice: same ? "" : profile.veganMinPrice,
-                                          veganMaxPrice: same ? "" : profile.veganMaxPrice,
-                                        },
-                                      }));
-                                    }}
-                                    className="checkbox-hall shrink-0"
-                                  />
-                                  אותו מחיר כמו למנה שצוין למעלה
-                                </label>
-                                {!profile.veganSameAsMealPrice && (
-                                  <OptionalPriceRangeFields
-                                    key={`${et}-vegan`}
-                                    resetKey={`${et}-vegan`}
-                                    className="sm:pe-8"
-                                    singleLabel="מחיר למנה טבעונית (₪)"
-                                    collapseRangeLabel="יש לי מחיר קבוע למנה טבעונית"
-                                    minPrice={profile.veganMinPrice}
-                                    maxPrice={profile.veganMaxPrice}
-                                    onChange={(min, max) =>
-                                      setEventTypeProfiles((prev) => ({
-                                        ...prev,
-                                        [et]: { ...profile, veganMinPrice: min, veganMaxPrice: max },
-                                      }))
-                                    }
-                                  />
-                                )}
-                              </>
-                            )}
-                          </div>
-                        )}
+                        {showMealPrices ? (
+                          <EventTypeMealAlternativesEditor
+                            alternatives={profile.mealAlternatives}
+                            onChange={(mealAlternatives) =>
+                              setEventTypeProfiles((prev) => ({
+                                ...prev,
+                                [et]: { ...profile, mealAlternatives },
+                              }))
+                            }
+                          />
+                        ) : null}
                         <EventTypeProfilePublicNotesField
                           value={profile.publicNotes ?? ""}
                           onChange={(publicNotes) =>

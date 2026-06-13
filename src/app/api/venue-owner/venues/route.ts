@@ -29,6 +29,10 @@ import {
   seekerExternalFieldsForPayload,
 } from "@/lib/venueAmenitySeekerExternal";
 import {
+  parseMealAlternativesFromProfile,
+  sanitizeMealAlternativesForApi,
+} from "@/lib/venueMealAlternatives";
+import {
   coerceParkingKindFromStorage,
   parkingKindHasAnyParking,
   parkingKindNeedsMap,
@@ -331,39 +335,16 @@ function parseEventTypeProfilesJson(
         return { json: null, derived: empty, error: hallCustom.error };
       }
 
-      const hasVeganFoodParsed =
-        profileObj.hasVeganFood === true || profileObj.hasVeganFood === "true";
-      const veganSameAsMealPrice =
-        profileObj.veganSameAsMealPrice === true ||
-        profileObj.veganSameAsMealPrice === "true";
-      let veganMinPrice = toIntOrNull(
-        profileObj.veganMinPrice == null ? null : String(profileObj.veganMinPrice)
-      );
-      let veganMaxPrice = toIntOrNull(
-        profileObj.veganMaxPrice == null ? null : String(profileObj.veganMaxPrice)
-      );
-      if (!hasVeganFoodParsed || !servesFood) {
-        veganMinPrice = null;
-        veganMaxPrice = null;
-      } else if (veganSameAsMealPrice) {
-        veganMinPrice = minPrice;
-        veganMaxPrice = maxPrice;
-      } else if (veganMinPrice != null || veganMaxPrice != null) {
-        if (veganMinPrice == null || veganMaxPrice == null) {
-          return {
-            json: null,
-            derived: empty,
-            error: `בסוג האירוע "${et}": יש להזין גם מחיר מינימום וגם מחיר מקסימום למנה טבעונית.`,
-          };
-        }
-        const vErr = validatePriceMinMax(veganMinPrice, veganMaxPrice);
-        if (vErr) {
-          return {
-            json: null,
-            derived: empty,
-            error: `בסוג האירוע "${et}" (טבעוני): ${vErr}`,
-          };
-        }
+      const mealAltParsed = sanitizeMealAlternativesForApi(profileObj.mealAlternatives);
+      if (mealAltParsed.error) {
+        return { json: null, derived: empty, error: mealAltParsed.error };
+      }
+      let mealAlternatives = mealAltParsed.items;
+      if (mealAlternatives.length === 0 && servesFood) {
+        mealAlternatives = parseMealAlternativesFromProfile(profileObj);
+      }
+      if (!servesFood) {
+        mealAlternatives = [];
       }
 
       const stored: Record<string, unknown> = {
@@ -373,14 +354,9 @@ function parseEventTypeProfilesJson(
         maxPrice,
         nonWeddingFoodMode,
         hasFoodAtEvent: servesFood,
-        hasVeganFood: hasVeganFoodParsed,
       };
-      if (hasVeganFoodParsed && servesFood) {
-        if (veganSameAsMealPrice) {
-          stored.veganSameAsMealPrice = true;
-        }
-        if (veganMinPrice != null) stored.veganMinPrice = veganMinPrice;
-        if (veganMaxPrice != null) stored.veganMaxPrice = veganMaxPrice;
+      if (mealAlternatives.length > 0) {
+        stored.mealAlternatives = mealAlternatives;
       }
       if (hallCustom.items.length > 0) {
         stored.customHallItems = hallCustom.items;
