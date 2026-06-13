@@ -177,6 +177,9 @@ export default function VenueEditForm({
         minPrice: row?.minPrice ?? "",
         maxPrice: row?.maxPrice ?? "",
         mealAlternatives: Array.isArray(row?.mealAlternatives) ? row.mealAlternatives : [],
+        overrideMealPrice:
+          row?.overrideMealPrice === true ||
+          Boolean(String(row?.minPrice ?? "").trim() || String(row?.maxPrice ?? "").trim()),
         publicNotes: row?.publicNotes ?? "",
         customHallRows: Array.isArray(row?.customHallRows) ? row.customHallRows : [],
       };
@@ -369,6 +372,14 @@ export default function VenueEditForm({
       setForm((f) => ({ ...f, productHasFood: enabled }));
       if (enabled) {
         setBuiltinAmenityPriceModes((prev) => ({ ...prev, hasFood: "included" }));
+      } else {
+        setEventTypeProfiles((prev) => {
+          const next = { ...prev };
+          for (const et of Object.keys(next)) {
+            next[et] = { ...next[et], overrideMealPrice: false };
+          }
+          return next;
+        });
       }
     },
     [setBuiltinAmenityPriceModes]
@@ -434,6 +445,7 @@ export default function VenueEditForm({
             minPrice: "",
             maxPrice: "",
             mealAlternatives: [],
+            overrideMealPrice: false,
             publicNotes: "",
             customHallRows: [],
           };
@@ -685,6 +697,7 @@ export default function VenueEditForm({
           minPrice: "",
           maxPrice: "",
           mealAlternatives: [],
+          overrideMealPrice: false,
           publicNotes: "",
           customHallRows: [] as EventTypeProfileState["customHallRows"],
         };
@@ -1209,6 +1222,7 @@ export default function VenueEditForm({
                     minPrice: "",
                     maxPrice: "",
                     mealAlternatives: [],
+                    overrideMealPrice: false,
                     publicNotes: "",
                     customHallRows: [],
                   };
@@ -1218,15 +1232,18 @@ export default function VenueEditForm({
                       ? profileRaw.customHallRows
                       : [],
                   };
-                  const showMealPrices =
+                  const showMealExtras =
                     form.productHasFood ||
                     isWeddingEt ||
                     profile.hasFoodAtEvent === true;
-                  const defaultMealHint =
+                  const showMealPriceFields = form.productHasFood
+                    ? profile.overrideMealPrice
+                    : isWeddingEt || profile.hasFoodAtEvent === true;
+                  const generalMealHint =
                     form.productHasFood &&
                     (form.minPrice.trim() || form.maxPrice.trim())
-                      ? `מחיר כללי: ₪${form.minPrice.trim() || "?"}–${form.maxPrice.trim() || "?"}`
-                      : null;
+                      ? ` (מחיר כללי: ₪${form.minPrice.trim() || "?"}–${form.maxPrice.trim() || "?"})`
+                      : "";
                   return (
                     <div key={`profile-${et}`} className="rounded-lg border border-neutral-200 bg-white p-3">
                       <p className="mb-2 text-xs font-semibold text-emerald-950">{et}</p>
@@ -1285,13 +1302,34 @@ export default function VenueEditForm({
                             בחתונה מניחים שיש אוכל — הזינו מחיר למנה. בטופס פנייה יופיעו גם סוגי חופה וכשרות.
                           </p>
                         )}
-                        {form.productHasFood && (
-                          <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
-                            אוכל מוגדר לכל האירועים. הזינו כאן מחיר שונה רק אם לסוג «{et}» יש מחיר
-                            מנה אחר{defaultMealHint ? ` (${defaultMealHint})` : ""}.
-                          </p>
-                        )}
-                        {showMealPrices && (
+                        {form.productHasFood ? (
+                          <label className="flex items-center gap-2 text-xs text-neutral-800 sm:col-span-2">
+                            <input
+                              type="checkbox"
+                              checked={profile.overrideMealPrice}
+                              onChange={(e) => {
+                                const on = e.target.checked;
+                                setEventTypeProfiles((prev) => ({
+                                  ...prev,
+                                  [et]: {
+                                    ...profile,
+                                    overrideMealPrice: on,
+                                    minPrice: on ? profile.minPrice : "",
+                                    maxPrice: on ? profile.maxPrice : "",
+                                  },
+                                }));
+                              }}
+                              className="checkbox-hall shrink-0"
+                            />
+                            <span>
+                              שינוי מחיר מנה לאירוע זה
+                              {generalMealHint ? (
+                                <span className="text-[11px] text-neutral-600">{generalMealHint}</span>
+                              ) : null}
+                            </span>
+                          </label>
+                        ) : null}
+                        {showMealPriceFields ? (
                           <OptionalPriceRangeFields
                             key={`${et}-meal`}
                             resetKey={`${et}-meal`}
@@ -1313,8 +1351,8 @@ export default function VenueEditForm({
                               }))
                             }
                           />
-                        )}
-                        {showMealPrices ? (
+                        ) : null}
+                        {showMealExtras ? (
                           <EventTypeMealAlternativesEditor
                             alternatives={profile.mealAlternatives}
                             onChange={(mealAlternatives) =>

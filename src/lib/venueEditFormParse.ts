@@ -29,6 +29,8 @@ export type VenueEditEventTypeProfile = {
   maxPrice: string;
   /** אפשרויות/שינויים במנה — למשל טבעוני, צמחוני */
   mealAlternatives: string[];
+  /** כשיש אוכל גלובלי — סימון שמחיר המנה לסוג זה שונה מהמחיר הכללי */
+  overrideMealPrice: boolean;
   /** הערות למחפשים בדף האולם — אופציונלי */
   publicNotes: string;
   customHallRows: VenueEditCustomHallRow[];
@@ -198,6 +200,7 @@ export function parseEventTypeProfilesForForm(
       minPrice: "",
       maxPrice: "",
       mealAlternatives: [],
+      overrideMealPrice: false,
       publicNotes: "",
       customHallRows: [],
     };
@@ -220,6 +223,7 @@ export function parseEventTypeProfilesForForm(
           ? ""
           : String(profile.maxPrice);
       const mealAlternatives = parseMealAlternativesFromProfile(profile);
+      const overrideMealPrice = minP !== "" || maxP !== "";
       const customHallRows = parseCustomHallItemsFromProfileJson(profile);
       if (et === "חתונה") {
         out[et] = {
@@ -229,6 +233,7 @@ export function parseEventTypeProfilesForForm(
           minPrice: minP,
           maxPrice: maxP,
           mealAlternatives,
+          overrideMealPrice,
           publicNotes: parsePublicNotesFromProfile(profile),
           customHallRows,
         };
@@ -251,6 +256,7 @@ export function parseEventTypeProfilesForForm(
         minPrice: hasFoodAtEvent ? minP : "",
         maxPrice: hasFoodAtEvent ? maxP : "",
         mealAlternatives: hasFoodAtEvent ? mealAlternatives : [],
+        overrideMealPrice: hasFoodAtEvent ? overrideMealPrice : false,
         publicNotes: parsePublicNotesFromProfile(profile),
         customHallRows,
       };

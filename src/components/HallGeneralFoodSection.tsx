@@ -109,13 +109,6 @@ export default function HallGeneralFoodSection({
               onSelectedEventTypesChange={onSeekerExternalEventTypesChange}
             />
           </div>
-
-          {hasEventTypeSection ? (
-            <p className="text-[10px] leading-relaxed text-neutral-500">
-              מחיר שונה לסוג אירוע מסוים? עדכנו ב«טווחים לפי סוג אירוע» למטה — שדה ריק ישתמש במחיר
-              הכללי שצוין כאן.
-            </p>
-          ) : null}
         </div>
       ) : hasEventTypeSection ? (
         <p className="mt-2 text-[10px] leading-relaxed text-neutral-500">

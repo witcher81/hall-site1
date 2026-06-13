@@ -37,10 +37,6 @@ export default function SeekerExternalWithEventTypes({
           onCheckedChange(next);
           if (!next) {
             onSelectedEventTypesChange([]);
-            return;
-          }
-          if (selectedEventTypes.length === 0 && eventTypes.length > 0) {
-            onSelectedEventTypesChange([...eventTypes]);
           }
         }}
       />
