@@ -80,10 +80,10 @@ export function parseNaturalHallSearchQuery(raw: string): NaturalSearchHints {
   if (/(כשר|מהדרין|רבנות)/.test(normalized)) {
     hints.kashrut = "כשר";
   }
-  if (/(ים|נוף לים|חוף)/.test(normalized)) {
+  if (/(גינה|חצר|חוץ|פטיו)/.test(normalized)) {
     hints.seaView = true;
   }
-  if (/(בוטיק|אינטימי|קטן)/.test(normalized)) {
+  if (/(קטן|אינטימי|עד\s*\d+|מעט אורחים)/.test(normalized)) {
     hints.boutique = true;
   }
   if (/(נגיש|נגישות|כיסא גלגלים)/.test(normalized)) {

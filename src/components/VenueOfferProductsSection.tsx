@@ -1,5 +1,7 @@
 "use client";
 
+import { VENUE_HALL_SOFT_PRESET_LABEL } from "@/lib/venueHallSoftPresets";
+
 /** כותרת ותוויות תואמות לחיפוש אולמות — מאפיינים שנשמרים ב-Venue לסינון */
 export const VENUE_OFFER_PRODUCTS_HEADING = "מוצרים שהאולם מציעה";
 
@@ -60,7 +62,7 @@ export default function VenueOfferProductsSection({
             onChange={(e) => onChange("seaView", e.target.checked)}
             className={offerInputClass}
           />
-          נוף לים
+          {VENUE_HALL_SOFT_PRESET_LABEL.seaView}
         </label>
         <label className={offerCheckboxClass}>
           <input
@@ -69,7 +71,7 @@ export default function VenueOfferProductsSection({
             onChange={(e) => onChange("boutique", e.target.checked)}
             className={offerInputClass}
           />
-          אירועי בוטיק
+          {VENUE_HALL_SOFT_PRESET_LABEL.boutique}
         </label>
         <label className={offerCheckboxClass}>
           <input
@@ -78,7 +80,7 @@ export default function VenueOfferProductsSection({
             onChange={(e) => onChange("accessible", e.target.checked)}
             className={offerInputClass}
           />
-          נגישות לנכים
+          {VENUE_HALL_SOFT_PRESET_LABEL.accessible}
         </label>
         <label
           className={`${offerCheckboxClass}${chuppaDetailLocked ? " opacity-90" : ""}`}

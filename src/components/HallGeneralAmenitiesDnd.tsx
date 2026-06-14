@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, DragEvent, ReactNode, SetStateAction } from "react";
+import type { DragEvent, Dispatch, ReactNode, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import SeekerExternalWithEventTypes from "@/components/SeekerExternalWithEventTypes";
@@ -12,8 +12,10 @@ import {
   type HallGeneralPriceMode,
 } from "@/lib/venueBuiltinAmenities";
 import {
-  defaultSeekerExternalForCustomRow,
-} from "@/lib/venueAmenitySeekerExternal";
+  VenueAddItemsInputRow,
+  VenueAddItemsPanel,
+} from "@/components/VenueAddItemsTable";
+import { defaultSeekerExternalForCustomRow } from "@/lib/venueAmenitySeekerExternal";
 import { storedMinMaxIsPriceRange } from "@/lib/freelancerServicePriceForm";
 
 export type { HallGeneralPriceMode, HallGeneralBuiltinKey, BuiltinAmenityKeyFull };
@@ -171,6 +173,49 @@ function extraRangeKeyCustom(id: string) {
   return `c:${id}`;
 }
 
+function AmenityDropColumn({
+  title,
+  hint,
+  zone,
+  dragOver,
+  onDragOverZone,
+  onDropZone,
+  children,
+}: {
+  title: string;
+  hint: string;
+  zone: DropZone;
+  dragOver: DropZone | null;
+  onDragOverZone: (zone: DropZone, e: DragEvent) => void;
+  onDropZone: (zone: DropZone, e: DragEvent) => void;
+  children: ReactNode;
+}) {
+  const isOver = dragOver === zone;
+  return (
+    <div
+      className={`flex min-h-[120px] flex-col overflow-hidden rounded-xl border-2 border-dashed transition-colors sm:min-h-[160px] ${
+        isOver
+          ? "border-emerald-950 bg-emerald-950/[0.04]"
+          : "border-[#D4C9BC] bg-white/40"
+      }`}
+      onDragOver={(e) => onDragOverZone(zone, e)}
+      onDrop={(e) => onDropZone(zone, e)}
+    >
+      <div className="border-b border-[#D4C9BC]/90 bg-emerald-950/[0.08] px-2 py-2 text-center">
+        <p className="text-xs font-semibold text-emerald-950">{title}</p>
+        <p className="mt-0.5 text-[10px] leading-snug text-neutral-600">{hint}</p>
+      </div>
+      <div
+        className={`flex flex-1 flex-col gap-2 p-2 ${
+          isOver ? "bg-emerald-950/[0.06]" : ""
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 type Props = {
   productBools: VenueProductBools;
   onSetHallBuiltin: (key: HallGeneralBuiltinKey, checked: boolean) => void;
@@ -254,6 +299,7 @@ export default function HallGeneralAmenitiesDnd({
       return (
         <div className="w-full basis-full" data-amenity-no-drag>
           <OptionalPriceRangeFields
+            key={rangeKey}
             minPrice={min}
             maxPrice={max}
             onChange={onChange}
@@ -338,36 +384,6 @@ export default function HallGeneralAmenitiesDnd({
     setDragOver(zone);
   };
 
-  const zoneDropClass = (zone: DropZone) =>
-    dragOver === zone ? "bg-emerald-950/[0.06]" : "";
-
-  const SortColumn = ({
-    title,
-    hint,
-    zone,
-    children,
-  }: {
-    title: string;
-    hint: string;
-    zone: DropZone;
-    children: ReactNode;
-  }) => (
-    <div
-      className={`flex min-h-[120px] flex-col overflow-hidden rounded-xl border-2 border-dashed transition-colors sm:min-h-[160px] ${
-        dragOver === zone
-          ? "border-emerald-950 bg-emerald-950/[0.04]"
-          : "border-[#D4C9BC] bg-white/40"
-      }`}
-      onDragOver={(e) => onDragOverZone(zone, e)}
-      onDrop={(e) => onDropZone(zone, e)}
-    >
-      <div className="border-b border-[#D4C9BC]/90 bg-emerald-950/[0.08] px-2 py-2 text-center">
-        <p className="text-xs font-semibold text-emerald-950">{title}</p>
-        <p className="mt-0.5 text-[10px] leading-snug text-neutral-600">{hint}</p>
-      </div>
-      <div className={`flex flex-1 flex-col gap-2 p-2 ${zoneDropClass(zone)}`}>{children}</div>
-    </div>
-  );
 
   const removeBuiltin = useCallback(
     (key: HallGeneralBuiltinKey) => {
@@ -505,9 +521,7 @@ export default function HallGeneralAmenitiesDnd({
                         ...r,
                         allowsSeekerExternal: next,
                         allowsSeekerExternalEventTypes: next
-                          ? r.allowsSeekerExternalEventTypes.length > 0
-                            ? r.allowsSeekerExternalEventTypes
-                            : [...eventTypes]
+                          ? r.allowsSeekerExternalEventTypes
                           : [],
                       }
                     : r
@@ -660,24 +674,20 @@ export default function HallGeneralAmenitiesDnd({
         </p>
       </div>
 
-      <div className="mb-4 rounded-xl border border-neutral-200/80 bg-white/70 p-3">
-        <p className="text-xs font-semibold text-emerald-950">פריט שלא ברשימה?</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
-          הקלידו שם (למשל: בר משקאות, עישון) ולחצו «הוסף». הפריט יופיע ב«לא פעיל» — גררו אותו
-          ל«כלול» או «בתוספת תשלום» כדי שיוצג למחפשים.
-        </p>
-        <div className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-          <input
-            type="text"
+      <div className="mb-4">
+        <p className="mb-2 text-xs font-semibold text-emerald-950">פריט שלא ברשימה?</p>
+        <VenueAddItemsPanel
+          hint={
+            <>
+              הקלידו שם (למשל: בר משקאות, עישון) ולחצו «הוסף». הפריט יופיע ב«לא פעיל» — גררו אותו
+              ל«כלול» או «בתוספת תשלום» כדי שיוצג למחפשים.
+            </>
+          }
+        >
+          <VenueAddItemsInputRow
             value={customHallGeneralInput}
-            onChange={(e) => setCustomHallGeneralInput(e.target.value)}
-            className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400"
-            placeholder="הוסף פריט משלך…"
-            maxLength={80}
-          />
-          <button
-            type="button"
-            onClick={() => {
+            onChange={setCustomHallGeneralInput}
+            onAdd={() => {
               const value = customHallGeneralInput.trim();
               if (!value) return;
               if (customAmenityRows.length >= 20) return;
@@ -689,18 +699,21 @@ export default function HallGeneralAmenitiesDnd({
               setCustomAmenityRows((prev) => [...prev, newHallGeneralCustomRow(value)]);
               setCustomHallGeneralInput("");
             }}
-            className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-neutral-800 hover:bg-neutral-50"
-          >
-            הוסף
-          </button>
-        </div>
+            placeholder="הוסף פריט משלך…"
+            maxLength={80}
+            disabled={customAmenityRows.length >= 20}
+          />
+        </VenueAddItemsPanel>
       </div>
 
       <div className="mb-3">
-        <SortColumn
+        <AmenityDropColumn
           title="לא פעיל (לא בחיפוש)"
           hint="פריטים שעדיין לא מוצגים למחפשים"
           zone="inactive"
+          dragOver={dragOver}
+          onDragOverZone={onDragOverZone}
+          onDropZone={onDropZone}
         >
           {inactiveBuiltins.length === 0 && inactiveCustoms.length === 0 ? (
             <p className="py-4 text-center text-[11px] text-[#9A928A]">
@@ -712,25 +725,31 @@ export default function HallGeneralAmenitiesDnd({
               {inactiveCustoms.map((row) => renderInactiveCustom(row))}
             </div>
           )}
-        </SortColumn>
+        </AmenityDropColumn>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <SortColumn
+        <AmenityDropColumn
           title="כלול במחיר"
           hint="המחפש רואה: כלול — בלי תשלום נוסף"
           zone="included"
+          dragOver={dragOver}
+          onDragOverZone={onDragOverZone}
+          onDropZone={onDropZone}
         >
           {includedBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "included"))}
           {includedCustoms.map((row) => renderCustomCard(row, "included"))}
           {includedBuiltins.length === 0 && includedCustoms.length === 0 ? (
             <p className="py-3 text-center text-[11px] text-[#9A928A]">גררו לכאן פריטים כלולים</p>
           ) : null}
-        </SortColumn>
-        <SortColumn
+        </AmenityDropColumn>
+        <AmenityDropColumn
           title="בתוספת תשלום"
           hint="המחפש רואה מחיר נפרד — הזינו סכום"
           zone="extra"
+          dragOver={dragOver}
+          onDragOverZone={onDragOverZone}
+          onDropZone={onDropZone}
         >
           {extraBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "extra"))}
           {extraCustoms.map((row) => renderCustomCard(row, "extra"))}
@@ -739,7 +758,7 @@ export default function HallGeneralAmenitiesDnd({
               שחררו כאן פריטים בתשלום נפרד
             </p>
           ) : null}
-        </SortColumn>
+        </AmenityDropColumn>
       </div>
     </>
   );

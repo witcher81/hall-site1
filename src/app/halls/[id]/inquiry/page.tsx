@@ -4,6 +4,7 @@ import { parseEventTypesList } from "@/lib/venueEditFormParse";
 import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import type { VenueInquiryAmenitiesInput } from "@/lib/venueInquiryAmenities";
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
+import { VENUE_HALL_SOFT_PRESET_LABEL } from "@/lib/venueHallSoftPresets";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { redirect } from "next/navigation";
@@ -86,9 +87,9 @@ export default async function VenueInquiryPage({
   });
 
   const presetLabels: string[] = [];
-  if (venue.seaView === true) presetLabels.push("נוף לים");
-  if (venue.boutique === true) presetLabels.push("אירועי בוטיק");
-  if (venue.accessible === true) presetLabels.push("נגישות לנכים");
+  if (venue.seaView === true) presetLabels.push(VENUE_HALL_SOFT_PRESET_LABEL.seaView);
+  if (venue.boutique === true) presetLabels.push(VENUE_HALL_SOFT_PRESET_LABEL.boutique);
+  if (venue.accessible === true) presetLabels.push(VENUE_HALL_SOFT_PRESET_LABEL.accessible);
 
   return (
     <SitePageShell mainWidth="narrow">

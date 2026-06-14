@@ -15,6 +15,7 @@ import LoginPromptModal from "@/components/LoginPromptModal";
 import { parseGalleryVideoEmbed } from "@/lib/galleryVideo";
 import { buildWhatsAppUrl } from "@/lib/whatsappContact";
 import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
+import { VENUE_HALL_SOFT_PRESET_LABEL } from "@/lib/venueHallSoftPresets";
 
 type User = { id: number; email: string; name: string | null; role?: string } | null;
 type PriceMode = "included" | "extra";
@@ -637,8 +638,8 @@ export default function VenuePublicView({
   const venueCharacteristicLabels: string[] = [
     ...(venueTypePublicLabel ? [venueTypePublicLabel] : []),
     ...(venue.hasDanceFloor ? ["רחבת ריקודים"] : []),
-    ...(venue.seaView ? ["נוף לים"] : []),
-    ...(venue.boutique ? ["אירועי בוטיק"] : []),
+    ...(venue.seaView ? [VENUE_HALL_SOFT_PRESET_LABEL.seaView] : []),
+    ...(venue.boutique ? [VENUE_HALL_SOFT_PRESET_LABEL.boutique] : []),
     ...(venue.accessible ? ["נגיש לנכים"] : []),
     ...(venue.softCustomAttributeLabels ?? []),
   ];

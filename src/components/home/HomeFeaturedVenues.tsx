@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { HomeFeaturedVenue } from "@/lib/homePageData";
+import { VENUE_HALL_SOFT_PRESET_LABEL } from "@/lib/venueHallSoftPresets";
 import HomeImageCard from "./HomeImageCard";
 
 export default function HomeFeaturedVenues({
@@ -46,7 +47,7 @@ export default function HomeFeaturedVenues({
                     ) : null}
                     {v.boutique ? (
                       <span className="rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-800 backdrop-blur">
-                        בוטיק
+                        {VENUE_HALL_SOFT_PRESET_LABEL.boutique}
                       </span>
                     ) : null}
                   </>

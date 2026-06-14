@@ -853,7 +853,7 @@ export default function HallsSearchClient({
         <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4">
           <label className={labelClass}>חיפוש בשפה חופשית</label>
           <p className="mt-1 text-xs text-neutral-600">
-            לדוגמה: «חתונה בתל אביב ל-150 אורחים עם נוף לים»
+            לדוגמה: «חתונה בתל אביב ל-150 אורחים עם גינה»
           </p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <input

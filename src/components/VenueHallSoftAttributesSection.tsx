@@ -1,24 +1,28 @@
 "use client";
 
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
+import {
+  VenueAddItemsInputRow,
+  VenueAddItemsPanel,
+  VenueItemsTable,
+  VenueItemsTableRemoveButton,
+  VenueItemsTableRow,
+} from "@/components/VenueAddItemsTable";
+import {
+  VENUE_HALL_SOFT_PRESETS,
+  type VenueHallSoftPresetKey,
+} from "@/lib/venueHallSoftPresets";
 
-/** סימונים לחיפוש/תצוגה — לא בבלוק «מה יש באולם» עם מחיר */
-export type VenueHallSoftPresetKey = "seaView" | "boutique" | "accessible";
+export type { VenueHallSoftPresetKey };
 
-const PRESET_CHECKS: readonly { key: VenueHallSoftPresetKey; label: string }[] = [
-  { key: "seaView", label: "נוף לים" },
-  { key: "boutique", label: "אירועי בוטיק" },
-  { key: "accessible", label: "נגישות לנכים" },
-] as const;
-
-const chipClass =
-  "relative flex min-w-0 cursor-pointer items-center gap-2.5 rounded-xl border border-neutral-200/80 bg-white px-3 py-2.5 text-sm font-medium text-neutral-900 transition hover:border-amber-400/50";
-const cbClass =
-  "h-4 w-4 shrink-0 rounded border-[#C9A227] text-amber-600 focus:ring-amber-400";
+const PRESET_CHECKS = VENUE_HALL_SOFT_PRESETS;
 
 const PRESET_LABELS_LOWER = new Set(
   PRESET_CHECKS.map((p) => p.label.toLowerCase())
 );
+
+const cbClass =
+  "checkbox-hall shrink-0";
 
 type Props = {
   presetValues: Record<VenueHallSoftPresetKey, boolean>;
@@ -55,6 +59,8 @@ export default function VenueHallSoftAttributesSection({
     onCustomInputChange("");
   };
 
+  const hasTableRows = customRows.length > 0 || PRESET_CHECKS.length > 0;
+
   return (
     <div>
       <p className="mb-1 text-xs font-semibold text-neutral-600">מה מיוחד באולם?</p>
@@ -64,76 +70,64 @@ export default function VenueHallSoftAttributesSection({
       </p>
 
       <p className="mb-2 text-xs font-semibold text-neutral-600">הוסיפו פרט משלכם</p>
-      <p className="mb-2 text-[11px] leading-relaxed text-neutral-600">
-        לדוגמה: גג פתוח, לובי כפול — אחרי «הוסף» הפריט יופיע בשורה למטה ליד נוף לים, בוטיק
-        ונגישות.
-      </p>
-      <div className="mb-4 rounded-xl border border-neutral-200/90 bg-white/70 p-3">
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-          <input
-            type="text"
-            value={customInput}
-            onChange={(e) => onCustomInputChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addCustom();
-              }
-            }}
-            className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400"
-            placeholder="הוסף פרט…"
-            maxLength={80}
-          />
-          <button
-            type="button"
-            onClick={addCustom}
-            className="shrink-0 rounded-xl border border-[#D4C9BC] px-3 py-2 text-xs text-neutral-800 hover:bg-neutral-50"
-          >
-            הוסף
-          </button>
-        </div>
-      </div>
+      <VenueAddItemsPanel
+        hint={
+          <>
+            לדוגמה: גג פתוח, לובי כפול — אחרי «הוסף» הפריט יופיע בטבלה למטה ליד גינה/חצר, אירועים
+            קטנים ונגישות.
+          </>
+        }
+      >
+        <VenueAddItemsInputRow
+          value={customInput}
+          onChange={onCustomInputChange}
+          onAdd={addCustom}
+          placeholder="הוסף פרט…"
+          maxLength={80}
+          disabled={customRows.length >= MAX_CUSTOM}
+        />
+      </VenueAddItemsPanel>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-        {customRows.map((row) => (
-          <div key={row.id} className={`${chipClass} pe-9`}>
-            <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={row.on}
-                onChange={(e) =>
-                  onCustomRowsChange(
-                    customRows.map((r) =>
-                      r.id === row.id ? { ...r, on: e.target.checked } : r
+      {hasTableRows ? (
+        <VenueItemsTable>
+          {customRows.map((row) => (
+            <VenueItemsTableRow key={row.id}>
+              <label className="flex min-w-0 flex-1 items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={row.on}
+                  onChange={(e) =>
+                    onCustomRowsChange(
+                      customRows.map((r) =>
+                        r.id === row.id ? { ...r, on: e.target.checked } : r
+                      )
                     )
-                  )
-                }
-                className={cbClass}
+                  }
+                  className={cbClass}
+                />
+                <span className="truncate font-medium">{row.label}</span>
+              </label>
+              <VenueItemsTableRemoveButton
+                label="הסר"
+                onClick={() => onCustomRowsChange(customRows.filter((r) => r.id !== row.id))}
               />
-              <span className="truncate">{row.label}</span>
-            </label>
-            <button
-              type="button"
-              title="הסר פריט"
-              className="absolute end-2 top-1/2 -translate-y-1/2 rounded px-1 text-[11px] text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
-              onClick={() => onCustomRowsChange(customRows.filter((r) => r.id !== row.id))}
-            >
-              הסר
-            </button>
-          </div>
-        ))}
-        {PRESET_CHECKS.map(({ key, label }) => (
-          <label key={key} className={chipClass}>
-            <input
-              type="checkbox"
-              checked={presetValues[key]}
-              onChange={(e) => onPresetChange(key, e.target.checked)}
-              className={cbClass}
-            />
-            {label}
-          </label>
-        ))}
-      </div>
+            </VenueItemsTableRow>
+          ))}
+          {PRESET_CHECKS.map(({ key, label }) => (
+            <VenueItemsTableRow key={key}>
+              <label className="flex min-w-0 flex-1 items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={presetValues[key]}
+                  onChange={(e) => onPresetChange(key, e.target.checked)}
+                  className={cbClass}
+                />
+                <span className="font-medium">{label}</span>
+              </label>
+            </VenueItemsTableRow>
+          ))}
+        </VenueItemsTable>
+      ) : null}
     </div>
   );
 }
