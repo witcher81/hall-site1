@@ -16,6 +16,7 @@ import {
   validateRequiredText,
   validateUploadedImageFile,
 } from "@/lib/userInputValidation";
+import { validateVenueKashrut } from "@/lib/venueKashrutOptions";
 import { saveVenueImageFile } from "@/lib/venueImageUpload";
 import {
   VENUE_PRODUCT_BUILTIN_KEYS,
@@ -590,11 +591,7 @@ export async function POST(req: NextRequest) {
     "מענה אוטומטי"
   );
   if (!autoChk.ok) return badRequest(autoChk.error);
-  const foodChk = validateOptionalShortText(
-    (formData.get("foodKashrut") as string | null)?.trim() || null,
-    USER_INPUT_MAX.FOOD_KASHRUT,
-    "כשרות"
-  );
+  const foodChk = validateVenueKashrut(formData.get("foodKashrut"));
   if (!foodChk.ok) return badRequest(foodChk.error);
 
   const venueTypeParsed = parseVenueTypeFromForm(formData.get("venueType"));
@@ -651,7 +648,8 @@ export async function POST(req: NextRequest) {
   const coverImageFile = formData.get("coverImage") as File | null;
   const galleryFilesHall = formData.getAll("galleryImagesHALL") as File[];
   const galleryFilesChuppa = formData.getAll("galleryImagesCHUPPA") as File[];
-  const galleryFilesDance = formData.getAll("galleryImagesDANCE") as File[];
+  const galleryFilesOther = formData.getAll("galleryImagesOTHER") as File[];
+  const galleryFilesDanceLegacy = formData.getAll("galleryImagesDANCE") as File[];
   const galleryFilesFood = formData.getAll("galleryImagesFOOD") as File[];
   const galleryFilesLegacy = formData.getAll("galleryImages") as File[];
 
@@ -665,7 +663,8 @@ export async function POST(req: NextRequest) {
   const totalGalleryFiles =
     galleryHallFilesToUse.length +
     galleryFilesChuppa.length +
-    galleryFilesDance.length +
+    galleryFilesOther.length +
+    galleryFilesDanceLegacy.length +
     galleryFilesFood.length;
   if (totalGalleryFiles > USER_INPUT_MAX.MAX_VENUE_GALLERY_FILES_TOTAL) {
     return badRequest("יותר מדי תמונות בגלריה");
@@ -673,7 +672,8 @@ export async function POST(req: NextRequest) {
   for (const f of [
     ...galleryHallFilesToUse,
     ...galleryFilesChuppa,
-    ...galleryFilesDance,
+    ...galleryFilesOther,
+    ...galleryFilesDanceLegacy,
     ...galleryFilesFood,
   ]) {
     if (f instanceof File && f.size > 0) {
@@ -711,10 +711,11 @@ export async function POST(req: NextRequest) {
     "gallery-chuppa",
     "CHUPPA"
   );
-  const galleryDance = await saveGalleryFiles(
-    galleryFilesDance,
-    "gallery-dance",
-    "DANCE"
+  const galleryOtherFilesToUse = [...galleryFilesOther, ...galleryFilesDanceLegacy];
+  const galleryOther = await saveGalleryFiles(
+    galleryOtherFilesToUse,
+    "gallery-other",
+    "OTHER"
   );
   const galleryFood = await saveGalleryFiles(
     galleryFilesFood,
@@ -725,7 +726,7 @@ export async function POST(req: NextRequest) {
   const galleryImages = [
     ...galleryHall,
     ...galleryChuppa,
-    ...galleryDance,
+    ...galleryOther,
     ...galleryFood,
   ];
   const galleryImagePaths = galleryImages.map((img) => img.url);
@@ -1012,11 +1013,7 @@ export async function PUT(req: NextRequest) {
     "מענה אוטומטי"
   );
   if (!autoChk.ok) return badRequest(autoChk.error);
-  const foodChk = validateOptionalShortText(
-    (formData.get("foodKashrut") as string | null)?.trim() || null,
-    USER_INPUT_MAX.FOOD_KASHRUT,
-    "כשרות"
-  );
+  const foodChk = validateVenueKashrut(formData.get("foodKashrut"));
   if (!foodChk.ok) return badRequest(foodChk.error);
   const autoReplyOut = autoChk.value;
 
@@ -1062,14 +1059,16 @@ export async function PUT(req: NextRequest) {
   const coverImageFile = formData.get("coverImage") as File | null;
   const galleryFilesHall = formData.getAll("galleryImagesHALL") as File[];
   const galleryFilesChuppa = formData.getAll("galleryImagesCHUPPA") as File[];
-  const galleryFilesDance = formData.getAll("galleryImagesDANCE") as File[];
+  const galleryFilesOther = formData.getAll("galleryImagesOTHER") as File[];
+  const galleryFilesDanceLegacy = formData.getAll("galleryImagesDANCE") as File[];
   const galleryFilesFood = formData.getAll("galleryImagesFOOD") as File[];
   const galleryFilesLegacy = formData.getAll("galleryImages") as File[];
 
   const shouldReplaceGalleryPut =
     galleryFilesHall.length > 0 ||
     galleryFilesChuppa.length > 0 ||
-    galleryFilesDance.length > 0 ||
+    galleryFilesOther.length > 0 ||
+    galleryFilesDanceLegacy.length > 0 ||
     galleryFilesFood.length > 0 ||
     galleryFilesLegacy.length > 0;
   const galleryHallFilesPut =
@@ -1082,7 +1081,8 @@ export async function PUT(req: NextRequest) {
     const totalPut =
       galleryHallFilesPut.length +
       galleryFilesChuppa.length +
-      galleryFilesDance.length +
+      galleryFilesOther.length +
+      galleryFilesDanceLegacy.length +
       galleryFilesFood.length;
     if (totalPut > USER_INPUT_MAX.MAX_VENUE_GALLERY_FILES_TOTAL) {
       return badRequest("יותר מדי תמונות בגלריה");
@@ -1090,7 +1090,8 @@ export async function PUT(req: NextRequest) {
     for (const f of [
       ...galleryHallFilesPut,
       ...galleryFilesChuppa,
-      ...galleryFilesDance,
+      ...galleryFilesOther,
+    ...galleryFilesDanceLegacy,
       ...galleryFilesFood,
     ]) {
       if (f instanceof File && f.size > 0) {
@@ -1134,7 +1135,15 @@ export async function PUT(req: NextRequest) {
 
     await saveUploadedGalleryFiles(galleryHallFilesPut, "gallery-hall", "HALL");
     await saveUploadedGalleryFiles(galleryFilesChuppa, "gallery-chuppa", "CHUPPA");
-    await saveUploadedGalleryFiles(galleryFilesDance, "gallery-dance", "DANCE");
+    const galleryOtherFilesPut = [
+      ...galleryFilesOther,
+      ...galleryFilesDanceLegacy,
+    ];
+    await saveUploadedGalleryFiles(
+      galleryOtherFilesPut,
+      "gallery-other",
+      "OTHER"
+    );
     await saveUploadedGalleryFiles(galleryFilesFood, "gallery-food", "FOOD");
 
     const paths = imagesToCreate.map((img) => img.url);

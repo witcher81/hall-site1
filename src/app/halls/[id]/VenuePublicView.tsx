@@ -12,10 +12,16 @@ import ReportContentButton from "@/components/ReportContentButton";
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import ShareButton from "@/components/ShareButton";
 import LoginPromptModal from "@/components/LoginPromptModal";
+import {
+  galleryCategoryMatchesFilter,
+  normalizeGalleryCategory,
+  type VenueGalleryFilterCategory,
+} from "@/lib/venueGalleryCategories";
 import { parseGalleryVideoEmbed } from "@/lib/galleryVideo";
 import { buildWhatsAppUrl } from "@/lib/whatsappContact";
 import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
 import { VENUE_HALL_SOFT_PRESET_LABEL } from "@/lib/venueHallSoftPresets";
+import { venueKashrutLabel } from "@/lib/venueKashrutOptions";
 
 type User = { id: number; email: string; name: string | null; role?: string } | null;
 type PriceMode = "included" | "extra";
@@ -505,9 +511,7 @@ export default function VenuePublicView({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<
-    "ALL" | "HALL" | "CHUPPA" | "DANCE" | "FOOD"
-  >("ALL");
+  const [activeCategory, setActiveCategory] = useState<VenueGalleryFilterCategory>("ALL");
   const [expandedEventType, setExpandedEventType] = useState<string | null>(
     null
   );
@@ -540,7 +544,12 @@ export default function VenuePublicView({
     }
 
     if (venue.galleryImages?.length) {
-      images.push(...venue.galleryImages);
+      images.push(
+        ...venue.galleryImages.map((img) => ({
+          url: img.url,
+          category: normalizeGalleryCategory(img.category),
+        }))
+      );
     } else if (venue.galleryImageUrls?.length) {
       // תמיכה ישנה: אם אין טבלת קטגוריות, מניחים שהכל שייך ל-HALL
       images.push(
@@ -556,7 +565,9 @@ export default function VenuePublicView({
 
   const visibleImages = useMemo(() => {
     if (activeCategory === "ALL") return allImages;
-    return allImages.filter((img) => img.category === activeCategory);
+    return allImages.filter((img) =>
+      galleryCategoryMatchesFilter(img.category, activeCategory)
+    );
   }, [allImages, activeCategory]);
 
   const hasCheckedCustomAmenities =
@@ -646,7 +657,7 @@ export default function VenuePublicView({
   const hasVenueCharacteristics = venueCharacteristicLabels.length > 0;
 
   const venueMetaLabels: string[] = [
-    ...(venue.kashrut ? [`כשרות: ${venue.kashrut}`] : []),
+    ...(venue.kashrut ? [`כשרות: ${venueKashrutLabel(venue.kashrut)}`] : []),
     ...(venue.parking ? [`חניה: ${venue.parking}`] : []),
   ];
   const hasGeneralServicesSection =
@@ -981,14 +992,14 @@ export default function VenuePublicView({
                 { id: "ALL", label: "הכל" },
                 { id: "HALL", label: "אולם" },
                 { id: "CHUPPA", label: "חופה", enabled: venue.hasChuppa ?? true },
-                { id: "DANCE", label: "רחבה", enabled: venue.hasDanceFloor ?? true },
+                { id: "OTHER", label: "אחר" },
                 {
                   id: "FOOD",
                   label: "אוכל",
                   enabled: showFoodInPublicProfile,
                 },
               ]
-                .filter((cat) => cat.id === "ALL" || cat.id === "HALL" || cat.enabled !== false)
+                .filter((cat) => cat.id === "ALL" || cat.id === "HALL" || ("enabled" in cat ? cat.enabled !== false : true))
                 .map((cat) => (
                 <button
                   key={cat.id}

@@ -1,4 +1,6 @@
 /** ממיר שאילתת חיפוש חופשית (עברית) לפרמטרי סינון בסיסיים — ללא LLM */
+import { parseKashrutHintFromText } from "@/lib/venueKashrutOptions";
+
 export type NaturalSearchHints = {
   city?: string;
   eventType?: string;
@@ -77,9 +79,8 @@ export function parseNaturalHallSearchQuery(raw: string): NaturalSearchHints {
     hints.maxPrice = priceMatch[1];
   }
 
-  if (/(כשר|מהדרין|רבנות)/.test(normalized)) {
-    hints.kashrut = "כשר";
-  }
+  const kashrutHint = parseKashrutHintFromText(normalized);
+  if (kashrutHint) hints.kashrut = kashrutHint;
   if (/(גינה|חצר|חוץ|פטיו)/.test(normalized)) {
     hints.seaView = true;
   }

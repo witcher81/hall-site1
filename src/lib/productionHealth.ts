@@ -43,7 +43,7 @@ export function buildProductionHealthReport(): ProductionHealthReport {
   if (production) {
     if (!rateLimitConfigured) {
       warnings.push(
-        "UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN — חובה בפרוד; /api מחזיר 503 בלי זה."
+        "UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN — מומלץ בפרוד; בלי זה הגבלת קצב מקומית בלבד."
       );
     }
     if (!cronConfigured) {
@@ -78,8 +78,7 @@ export function buildProductionHealthReport(): ProductionHealthReport {
 
   const ok =
     !production ||
-    (rateLimitConfigured &&
-      cronConfigured &&
+    (cronConfigured &&
       databaseConfigured &&
       jwtConfigured);
 

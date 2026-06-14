@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
+import VenueKashrutSelect from "@/components/VenueKashrutSelect";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
@@ -29,7 +30,7 @@ import {
   PARKING_KINDS,
   resolveParkingFilterFromSearchParams,
 } from "@/lib/venueParkingKind";
-import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
+import VenueTypeSelect from "@/components/VenueTypeSelect";
 import HallsMapSection from "@/components/HallsMapSection";
 import type { MapVenue } from "@/components/VenuesMapClient";
 import LoginPromptModal from "@/components/LoginPromptModal";
@@ -1081,18 +1082,12 @@ export default function HallsSearchClient({
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             <div>
               <label className={labelClass}>כשרות</label>
-              <select
+              <VenueKashrutSelect
+                mode="search"
                 value={form.kashrut}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, kashrut: e.target.value }))
-                }
+                onChange={(kashrut) => setForm((f) => ({ ...f, kashrut }))}
                 className={fieldClass}
-              >
-                <option value="">כל סוגי הכשרות</option>
-                <option value="ללא">ללא כשרות</option>
-                <option value="רגיל">רגיל</option>
-                <option value="מהדרין">מהדרין</option>
-              </select>
+              />
             </div>
             <div>
               <label className={labelClass}>חניה</label>
@@ -1113,20 +1108,14 @@ export default function HallsSearchClient({
             </div>
             <div>
               <label className={labelClass}>סוג המקום</label>
-              <select
+              <VenueTypeSelect
                 value={form.venueType}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, venueType: e.target.value }))
+                onChange={(venueType) =>
+                  setForm((f) => ({ ...f, venueType }))
                 }
+                mode="search"
                 className={fieldClass}
-              >
-                <option value="">כל הסוגים</option>
-                {VENUE_TYPE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           </div>
 

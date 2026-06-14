@@ -31,7 +31,7 @@ export function warnUpstashMissingInProduction(): void {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
   if (!url || !token) {
     console.warn(
-      "[hall-site] UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN חסרים בפרוד — הגבלת קצב API עלולה להיכשל (503)."
+      "[hall-site] UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN חסרים בפרוד — הגבלת קצב מקומית בלבד (מומלץ Upstash)."
     );
   }
 }

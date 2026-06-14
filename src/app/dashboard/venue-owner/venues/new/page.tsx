@@ -15,6 +15,7 @@ import dynamic from "next/dynamic";
 import AddressStreetSuggest from "@/components/AddressStreetSuggest";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import EventTypeCustomHallRowsEditor from "@/components/EventTypeCustomHallRowsEditor";
+import VenueKashrutSelect from "@/components/VenueKashrutSelect";
 import EventTypeMealAlternativesEditor from "@/components/EventTypeMealAlternativesEditor";
 import { EventTypeProfilePublicNotesField } from "@/components/EventTypeProfilePublicNotesField";
 import { trimEventTypePublicNotes, type VenueEditEventTypeProfile } from "@/lib/venueEditFormParse";
@@ -29,7 +30,8 @@ import {
   parkingKindNeedsMap,
   type ParkingKind,
 } from "@/lib/venueParkingKind";
-import { VENUE_TYPE_OPTIONS } from "@/lib/venueTypeOptions";
+import VenueTypeSelect from "@/components/VenueTypeSelect";
+import { parseVenueTypeFromForm } from "@/lib/venueTypeOptions";
 import VenueHallSoftAttributesSection, {
   type VenueHallSoftPresetKey,
 } from "@/components/VenueHallSoftAttributesSection";
@@ -132,7 +134,7 @@ export default function NewVenuePage() {
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryHallImages, setGalleryHallImages] = useState<File[]>([]);
   const [galleryChuppaImages, setGalleryChuppaImages] = useState<File[]>([]);
-  const [galleryDanceImages, setGalleryDanceImages] = useState<File[]>([]);
+  const [galleryOtherImages, setGalleryOtherImages] = useState<File[]>([]);
   const [galleryFoodImages, setGalleryFoodImages] = useState<File[]>([]);
   const [eventTypes, setEventTypes] = useState<string[]>([]);
   const [eventTypeProfiles, setEventTypeProfiles] = useState<
@@ -196,7 +198,7 @@ export default function NewVenuePage() {
   const coverFileRef = useRef<HTMLInputElement>(null);
   const hallFileRef = useRef<HTMLInputElement>(null);
   const chuppaFileRef = useRef<HTMLInputElement>(null);
-  const danceFileRef = useRef<HTMLInputElement>(null);
+  const otherFileRef = useRef<HTMLInputElement>(null);
   const foodFileRef = useRef<HTMLInputElement>(null);
 
   const coverPreview = useMemo(
@@ -216,13 +218,13 @@ export default function NewVenuePage() {
       })),
     [galleryChuppaImages]
   );
-  const galleryDancePreviews = useMemo(
+  const galleryOtherPreviews = useMemo(
     () =>
-      galleryDanceImages.map((file) => ({
+      galleryOtherImages.map((file) => ({
         file,
         url: URL.createObjectURL(file),
       })),
-    [galleryDanceImages]
+    [galleryOtherImages]
   );
   const galleryFoodPreviews = useMemo(
     () =>
@@ -239,6 +241,12 @@ export default function NewVenuePage() {
     setError(null);
 
     try {
+      const venueTypeCheck = parseVenueTypeFromForm(form.venueType);
+      if (venueTypeCheck.error) {
+        setError(venueTypeCheck.error);
+        setCreating(false);
+        return;
+      }
       const unplacedLabel = findUnplacedHallGeneralLabel({
         productHasFood: form.productHasFood,
         hasTableSetup: form.hasTableSetup,
@@ -549,9 +557,9 @@ export default function NewVenuePage() {
           fd.append("galleryImagesCHUPPA", file);
         });
       }
-      if (galleryDanceImages.length > 0) {
-        galleryDanceImages.forEach((file) => {
-          fd.append("galleryImagesDANCE", file);
+      if (galleryOtherImages.length > 0) {
+        galleryOtherImages.forEach((file) => {
+          fd.append("galleryImagesOTHER", file);
         });
       }
       if (galleryFoodImages.length > 0) {
@@ -608,7 +616,6 @@ export default function NewVenuePage() {
       ),
     [eventTypes, eventTypeProfiles]
   );
-  const anyEventHasDanceFloor = form.hasDanceFloor;
   const showFoodPhotoUpload = form.productHasFood || anyEventOffersFood;
 
   const excludedDndBuiltinKeys = useMemo(
@@ -665,11 +672,11 @@ export default function NewVenuePage() {
     if (chuppaFileRef.current) chuppaFileRef.current.value = "";
   }
 
-  function removeDanceImage(idx: number) {
-    const row = galleryDancePreviews[idx];
+  function removeOtherImage(idx: number) {
+    const row = galleryOtherPreviews[idx];
     if (row) URL.revokeObjectURL(row.url);
-    setGalleryDanceImages((prev) => prev.filter((_, i) => i !== idx));
-    if (danceFileRef.current) danceFileRef.current.value = "";
+    setGalleryOtherImages((prev) => prev.filter((_, i) => i !== idx));
+    if (otherFileRef.current) otherFileRef.current.value = "";
   }
 
   function removeFoodImage(idx: number) {
@@ -874,20 +881,13 @@ export default function NewVenuePage() {
             <label className="block text-xs font-medium text-neutral-600">
               סוג המקום *
             </label>
-            <select
+            <VenueTypeSelect
               required
               value={form.venueType}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, venueType: e.target.value }))
-              }
+              onChange={(venueType) => setForm((f) => ({ ...f, venueType }))}
+              mode="form"
               className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
-            >
-              {VENUE_TYPE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div
@@ -1382,18 +1382,14 @@ export default function NewVenuePage() {
                             })}
                             <div className="sm:col-span-2">
                               <label className="block text-xs text-neutral-800">כשרות אוכל</label>
-                              <select
+                              <VenueKashrutSelect
+                                mode="form"
                                 value={form.foodKashrut}
-                                onChange={(e) =>
-                                  setForm((f) => ({ ...f, foodKashrut: e.target.value }))
+                                onChange={(foodKashrut) =>
+                                  setForm((f) => ({ ...f, foodKashrut }))
                                 }
                                 className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400"
-                              >
-                                <option value="">לא נבחר</option>
-                                <option value="ללא">ללא</option>
-                                <option value="רגיל">רגיל</option>
-                                <option value="מהדרין">מהדרין</option>
-                              </select>
+                              />
                             </div>
                           </>
                         )}
@@ -1475,20 +1471,19 @@ export default function NewVenuePage() {
               )}
               <div>
                 <label className="block text-xs font-medium text-neutral-600">
-                  תמונות רחבה
+                  תמונות אחר
                 </label>
                 <input
-                  ref={danceFileRef}
+                  ref={otherFileRef}
                   type="file"
                   multiple
                   accept="image/*"
-                  disabled={!anyEventHasDanceFloor}
                   onChange={(e) => {
                     const files = e.target.files;
                     if (!files) return;
-                    setGalleryDanceImages((prev) => [...prev, ...Array.from(files)]);
+                    setGalleryOtherImages((prev) => [...prev, ...Array.from(files)]);
                   }}
-                  className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
                 />
               </div>
               {showFoodPhotoUpload && (
@@ -1516,7 +1511,7 @@ export default function NewVenuePage() {
           {(coverPreview ||
             galleryHallPreviews.length > 0 ||
             (isWeddingSelected && galleryChuppaPreviews.length > 0) ||
-            galleryDancePreviews.length > 0 ||
+            galleryOtherPreviews.length > 0 ||
             (showFoodPhotoUpload && galleryFoodPreviews.length > 0)) && (
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
               <p className="mb-3 text-xs font-semibold text-neutral-600">
@@ -1599,17 +1594,17 @@ export default function NewVenuePage() {
                 </div>
               )}
 
-              {galleryDancePreviews.length > 0 && (
+              {galleryOtherPreviews.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-1 text-[11px] font-semibold text-neutral-600">תמונות רחבה</p>
+                  <p className="mb-1 text-[11px] font-semibold text-neutral-600">תמונות אחר</p>
                   <div className="grid gap-3 sm:grid-cols-4">
-                    {galleryDancePreviews.map(({ file, url }, idx) => (
+                    {galleryOtherPreviews.map(({ file, url }, idx) => (
                       <div key={`${file.name}-${file.size}-${idx}`} className="relative">
                         <button
                           type="button"
-                          onClick={() => removeDanceImage(idx)}
+                          onClick={() => removeOtherImage(idx)}
                           className="absolute start-1 top-1 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white shadow hover:bg-black/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-                          aria-label={`הסר תמונת רחבה ${idx + 1}`}
+                          aria-label={`הסר תמונת אחר ${idx + 1}`}
                         >
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1618,7 +1613,7 @@ export default function NewVenuePage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={url}
-                          alt={`תמונת רחבה ${idx + 1}`}
+                          alt={`תמונת אחר ${idx + 1}`}
                           className="h-20 w-full rounded-lg border border-neutral-200 object-cover"
                         />
                       </div>

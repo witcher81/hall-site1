@@ -5,6 +5,7 @@ import {
   coerceParkingKindFromStorage,
   PARKING_KIND_SHORT_LABELS,
 } from "@/lib/venueParkingKind";
+import { venueKashrutLabel } from "@/lib/venueKashrutOptions";
 import Link from "next/link";
 
 export const runtime = "nodejs";
@@ -105,7 +106,7 @@ export default async function HallsComparePage({
                   <p>השכרה: {formatPriceRange(v.hallRentalMin, v.hallRentalMax)}</p>
                   <p>אורחים: {v.minGuests ?? "?"}–{v.maxGuests ?? "?"}</p>
                   <p>חניה: {formatParkingLabel(v.parkingKind, v.parking)}</p>
-                  <p>כשרות: {v.kashrut?.trim() || "לא צוין"}</p>
+                  <p>כשרות: {venueKashrutLabel(v.kashrut) || "לא צוין"}</p>
                   <Link href={`/halls/${v.id}/inquiry`} className="btn-primary mt-2 inline-block w-full py-2 text-center text-xs">
                     שליחת פנייה
                   </Link>
@@ -174,7 +175,7 @@ export default async function HallsComparePage({
                       {formatParkingLabel(v.parkingKind, v.parking)}
                     </td>
                     <td className="px-3 py-3 text-neutral-600">
-                      {v.kashrut?.trim() || "לא צוין"}
+                      {venueKashrutLabel(v.kashrut) || "לא צוין"}
                     </td>
                     <td className="px-3 py-3">
                       <Link

@@ -109,7 +109,7 @@ model Venue {
   // מאפיינים מתקדמים לחיפוש
   kashrut     String?  // למשל: "ללא", "רגיל", "מהדרין"
   parking     String?  // למשל: "אין", "חניה צמודה", "חניון"
-  venueType   String?  // "אולם", "גן", "גן ואולם", "רופטופ"
+  venueType   String?  // סוג מקום — ערך מוגדר מראש או שם מותאם («אחר»)
   seaView     Boolean? // נוף לים
   boutique    Boolean? // מתאים לאירועי בוטיק
   accessible  Boolean? // נגישות לנכים
@@ -500,7 +500,7 @@ model VenueGalleryImage {
   venueId   Int
   venue     Venue              @relation(fields: [venueId], references: [id], onDelete: Cascade)
   url       String
-  // ערכים אפשריים: "HALL", "CHUPPA", "DANCE", "FOOD"
+  // ערכים אפשריים: "HALL", "CHUPPA", "OTHER", "FOOD" (DANCE — legacy, מוצג כ«אחר»)
   category  String
   createdAt DateTime          @default(now())
 
