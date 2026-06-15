@@ -16,6 +16,7 @@
     "seed:packages": "node scripts/seed-event-packages.mjs",
     "seed:venues": "node scripts/seed-sample-venues.mjs",
     "seed:venues:fix-images": "node scripts/seed-sample-venues.mjs --fix-images",
+    "seed:services": "node scripts/seed-sample-services.mjs",
     "dev": "next dev --webpack",
     "dev:turbo": "next dev --turbopack",
     "dev:stop": "powershell -NoProfile -Command \"$ErrorActionPreference='SilentlyContinue'; Get-NetTCPConnection -LocalPort 3000 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }; Start-Sleep -Milliseconds 400; if (Test-Path '.next/dev/lock') { Remove-Item -Force '.next/dev/lock' }\"",
