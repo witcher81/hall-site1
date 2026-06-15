@@ -128,6 +128,60 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   return params;
 }
 
+function countActiveFilters(f: SearchFormState): number {
+  let n = 0;
+  if (f.city.trim()) n++;
+  if (f.eventType) n++;
+  if (f.guestsUseRange) {
+    if (f.minGuests.trim() || f.maxGuests.trim()) n++;
+  } else if (f.exactGuests.trim()) {
+    n++;
+  }
+  if (f.priceUseRange) {
+    if (f.minPrice.trim() || f.maxPrice.trim()) n++;
+  } else if (f.exactPrice.trim()) {
+    n++;
+  }
+  if (f.hallRentalMin.trim() || f.hallRentalMax.trim()) n++;
+  if (f.kashrut) n++;
+  if (f.parkingKind) n++;
+  if (f.venueType) n++;
+  if (f.seaView) n++;
+  if (f.boutique) n++;
+  if (f.accessible) n++;
+  if (f.hasChuppa) n++;
+  if (f.hasFood) n++;
+  if (f.hasTableSetup) n++;
+  if (f.hasDanceFloor) n++;
+  if (f.hasSoundSystem) n++;
+  return n;
+}
+
+function buildFilterSummary(f: SearchFormState): string | null {
+  const parts: string[] = [];
+  if (f.city.trim()) parts.push(f.city.trim());
+  if (f.eventType) parts.push(f.eventType);
+  if (f.guestsUseRange) {
+    const g =
+      f.minGuests && f.maxGuests
+        ? `${f.minGuests}–${f.maxGuests}`
+        : f.minGuests || f.maxGuests;
+    if (g) parts.push(`${g} אורחים`);
+  } else if (f.exactGuests.trim()) {
+    parts.push(`${f.exactGuests} אורחים`);
+  }
+  if (f.priceUseRange) {
+    const p =
+      f.minPrice && f.maxPrice
+        ? `${f.minPrice}–${f.maxPrice}`
+        : f.minPrice || f.maxPrice;
+    if (p) parts.push(`₪${p} למנה`);
+  } else if (f.exactPrice.trim()) {
+    parts.push(`₪${f.exactPrice} למנה`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
 /** שומר view=map ב-URL כשהמפה פתוחה — בלי זה סנכרון הסינון מוחק את הפרמטר וסוגר את המפה */
 function withMapViewParam(params: URLSearchParams, mapOpen: boolean): URLSearchParams {
   const next = new URLSearchParams(params.toString());
@@ -504,6 +558,7 @@ export default function HallsSearchClient({
   const [form, setForm] = useState(() => ({ ...EMPTY_SEARCH_FORM }));
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const [naturalQuery, setNaturalQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(
     () => searchParams.get(MAP_VIEW_PARAM) === MAP_VIEW_VALUE
   );
@@ -817,6 +872,8 @@ export default function HallsSearchClient({
         .filter((c): c is string => Boolean(c)),
     [venues]
   );
+  const activeFilterCount = useMemo(() => countActiveFilters(form), [form]);
+  const filterSummary = useMemo(() => buildFilterSummary(form), [form]);
 
   return (
     <div className="relative mt-6 space-y-8">
@@ -840,17 +897,67 @@ export default function HallsSearchClient({
 
       <form
         onSubmit={handleSubmit}
-        className="rounded-3xl border border-neutral-200 bg-white p-6 text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] sm:p-8 md:p-10"
+        className={`rounded-3xl border border-neutral-200 bg-white text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] ${
+          filtersOpen ? "p-6 sm:p-8 md:p-10" : "p-4 sm:p-5"
+        }`}
       >
-        <div className="mb-6 flex flex-col gap-1 border-b border-neutral-200/80 pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+        <div
+          className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${
+            filtersOpen ? "mb-6 border-b border-neutral-200/80 pb-4" : ""
+          }`}
+        >
+          <div className="min-w-0 flex-1">
             <p className="text-lg font-bold text-emerald-950">סינון חיפוש</p>
-            <p className="mt-1 text-sm text-neutral-600">
-              אפשר למלא או לשנות כל שדה בכל סדר — אין שלבים חובה. במסכים צרים השדות מתחלקים לעמודות.
-            </p>
+            {filtersOpen ? (
+              <p className="mt-1 text-sm text-neutral-600">
+                אפשר למלא או לשנות כל שדה בכל סדר — אין שלבים חובה. במסכים צרים השדות מתחלקים לעמודות.
+              </p>
+            ) : filterSummary ? (
+              <p className="mt-1 truncate text-sm text-neutral-600">{filterSummary}</p>
+            ) : (
+              <p className="mt-1 text-sm text-neutral-600">
+                לחצו לפתיחת מסננים — עיר, אורחים, מחיר ועוד.
+              </p>
+            )}
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            {!filtersOpen && activeFilterCount > 0 ? (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="min-h-[44px] rounded-xl border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50"
+              >
+                נקה סינון
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((open) => !open)}
+              className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold transition ${
+                filtersOpen
+                  ? "border border-neutral-200 bg-white text-emerald-950 hover:bg-neutral-50"
+                  : "bg-emerald-950 text-white shadow-md hover:bg-emerald-900"
+              }`}
+              aria-expanded={filtersOpen}
+            >
+              {filtersOpen ? (
+                "סגור מסננים"
+              ) : (
+                <>
+                  <span>פתח מסננים</span>
+                  {activeFilterCount > 0 ? (
+                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-white">
+                      {activeFilterCount}
+                    </span>
+                  ) : null}
+                </>
+              )}
+            </button>
           </div>
         </div>
 
+        {filtersOpen ? (
+          <>
         <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4">
           <label className={labelClass}>חיפוש בשפה חופשית</label>
           <p className="mt-1 text-xs text-neutral-600">
@@ -1149,6 +1256,8 @@ export default function HallsSearchClient({
             עדכן עכשיו
           </button>
         </div>
+          </>
+        ) : null}
       </form>
 
       <SavedHallSearchesPanel currentQuery={savedSearchQuery} />

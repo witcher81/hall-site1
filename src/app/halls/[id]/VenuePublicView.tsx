@@ -499,6 +499,8 @@ function VenueSocialProofStrip({
   );
 }
 
+const HERO_CAROUSEL_INTERVAL_MS = 12_000;
+
 export default function VenuePublicView({
   venue,
   user,
@@ -512,6 +514,7 @@ export default function VenuePublicView({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [lightboxSource, setLightboxSource] = useState<"visible" | "all">("visible");
   const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const [heroCarouselPaused, setHeroCarouselPaused] = useState(false);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<VenueGalleryFilterCategory>("ALL");
@@ -529,15 +532,14 @@ export default function VenuePublicView({
     [venue.ownerContactPhone, venue.name, venue.city]
   );
 
-  const inquiryHref = useMemo(() => {
-    const path = `/halls/${venue.id}/inquiry`;
-    if (!user) {
-      return `/auth/login?redirect=${encodeURIComponent(path)}`;
-    }
-    return path;
-  }, [venue.id, user]);
-
   const showInquiryCta = !user || user.role === "SEEKER";
+
+  const scrollToInquirySection = () => {
+    document.getElementById("venue-inquiry")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   const handleCalendarDaySelect = (ymd: string) => {
     router.push(`/halls/${venue.id}/inquiry?date=${encodeURIComponent(ymd)}`);
@@ -586,6 +588,17 @@ export default function VenuePublicView({
   useEffect(() => {
     setHeroImageIndex(0);
   }, [venue.id, allImages.length]);
+
+  useEffect(() => {
+    if (allImages.length <= 1 || lightboxIndex !== null || heroCarouselPaused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const id = window.setInterval(() => {
+      setHeroImageIndex((i) => (i === allImages.length - 1 ? 0 : i + 1));
+    }, HERO_CAROUSEL_INTERVAL_MS);
+
+    return () => window.clearInterval(id);
+  }, [allImages.length, lightboxIndex, heroCarouselPaused]);
 
   const lightboxImages = lightboxSource === "all" ? allImages : visibleImages;
   const heroImage = allImages[heroImageIndex] ?? allImages[0];
@@ -733,7 +746,17 @@ export default function VenuePublicView({
       <section className="site-card overflow-hidden text-right text-sm">
         <div className="venue-hero-band relative border-b border-neutral-200/80">
           {allImages.length > 0 && heroImage ? (
-            <div className="relative aspect-[21/9] w-full overflow-hidden bg-neutral-900">
+            <div
+              className="relative aspect-[21/9] w-full overflow-hidden bg-neutral-900"
+              onMouseEnter={() => setHeroCarouselPaused(true)}
+              onMouseLeave={() => setHeroCarouselPaused(false)}
+              onFocusCapture={() => setHeroCarouselPaused(true)}
+              onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                  setHeroCarouselPaused(false);
+                }
+              }}
+            >
               {(() => {
                 const video = parseGalleryVideoEmbed(heroImage.url);
                 if (video) {
@@ -840,12 +863,13 @@ export default function VenuePublicView({
 
         {showInquiryCta ? (
           <div className="border-b border-amber-200/70 bg-gradient-to-l from-amber-50 via-amber-100/60 to-amber-50 px-5 py-4 sm:px-8 sm:py-5">
-            <a
-              href={inquiryHref}
+            <button
+              type="button"
+              onClick={scrollToInquirySection}
               className="btn-primary flex min-h-[56px] w-full items-center justify-center rounded-2xl px-6 text-lg font-bold shadow-[0_10px_28px_rgba(201,162,39,0.35)] transition hover:shadow-[0_12px_32px_rgba(201,162,39,0.42)] sm:min-h-[60px] sm:text-xl"
             >
               שליחת בקשה
-            </a>
+            </button>
             <p className="mt-2 text-center text-xs leading-relaxed text-neutral-600">
               אשף קצר — פרטי אירוע, שירותים ושליחה לאישור בעל האולם
             </p>
