@@ -4,6 +4,13 @@ import InquiryEventSummaryLuxury from "@/components/InquiryEventSummaryLuxury";
 import InquiryServiceChoicesFromSeeker, {
   InquiryFreeTextFromSeeker,
 } from "@/components/InquiryServiceChoicesFromSeeker";
+import {
+  canOwnerApprove,
+  canOwnerReject,
+  inquiryStatusBadgeClass,
+  inquiryStatusLabelOwner,
+  normalizeInquiryStatus,
+} from "@/lib/inquiryStatus";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -32,7 +39,10 @@ export default function InquiryDetailClient({ initial }: Props) {
   const [inquiry, setInquiry] = useState(initial);
   const [repliedNote, setRepliedNote] = useState("");
   const [openingChat, setOpeningChat] = useState(false);
-  const [pending, setPending] = useState<null | "READ" | "REPLIED">(null);
+  const [pending, setPending] = useState<
+    null | "READ" | "REPLIED" | "APPROVE" | "REJECT"
+  >(null);
+  const [decisionNote, setDecisionNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [editingOwnerNote, setEditingOwnerNote] = useState(false);
   const [ownerNoteDraft, setOwnerNoteDraft] = useState("");
@@ -40,6 +50,42 @@ export default function InquiryDetailClient({ initial }: Props) {
   const [noteError, setNoteError] = useState<string | null>(null);
 
   const q = inquiry;
+  const status = normalizeInquiryStatus(q.status);
+  const showDecisionActions = canOwnerApprove(q.status) || canOwnerReject(q.status);
+
+  async function runDecision(action: "approve" | "reject") {
+    setError(null);
+    setPending(action === "approve" ? "APPROVE" : "REJECT");
+    try {
+      const res = await fetch("/api/venue-owner/inquiries", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: q.id,
+          action,
+          ownerNote: decisionNote.trim() || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(
+          typeof data?.error === "string" ? data.error : "הפעולה נכשלה. נסו שוב."
+        );
+        return;
+      }
+      const nextStatus = action === "approve" ? "APPROVED" : "REJECTED";
+      setInquiry((prev) => ({
+        ...prev,
+        status: nextStatus,
+        ownerNote: decisionNote.trim() || prev.ownerNote,
+        repliedAt: new Date().toISOString(),
+      }));
+      setDecisionNote("");
+      router.refresh();
+    } finally {
+      setPending(null);
+    }
+  }
 
   async function markAs(status: "NEW" | "READ" | "REPLIED", ownerNote?: string) {
     setError(null);
@@ -187,11 +233,15 @@ export default function InquiryDetailClient({ initial }: Props) {
 
       <article
         className={`mt-4 overflow-hidden rounded-2xl border shadow-[0_12px_48px_rgba(15,59,46,0.08)] ${
-          q.status === "NEW"
+          status === "NEW"
             ? "border-[#C9A227]/45 bg-[#FFFCF5]"
-            : q.status === "REPLIED"
+            : status === "APPROVED"
               ? "border-emerald-200/90 bg-gradient-to-b from-emerald-50/95 to-white"
-              : "border-neutral-200 bg-white"
+              : status === "REJECTED"
+                ? "border-red-200/80 bg-gradient-to-b from-red-50/40 to-white"
+                : status === "REPLIED"
+                  ? "border-sky-200/80 bg-gradient-to-b from-sky-50/40 to-white"
+                  : "border-neutral-200 bg-white"
         }`}
       >
         <div className="h-1 bg-gradient-to-l from-[#C9A227]/90 via-[#E8D5A3] to-[#C9A227]/30" aria-hidden />
@@ -200,6 +250,11 @@ export default function InquiryDetailClient({ initial }: Props) {
             <div className="min-w-0 flex-1">
               <p className="font-serif text-lg font-semibold tracking-tight text-emerald-950">
                 {q.venue.name}
+                <span
+                  className={`mr-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${inquiryStatusBadgeClass(q.status)}`}
+                >
+                  {inquiryStatusLabelOwner(q.status)}
+                </span>
               </p>
               <p className="mt-1 text-base font-medium text-neutral-800">
                 {q.user.name || "לקוח"}
@@ -253,41 +308,89 @@ export default function InquiryDetailClient({ initial }: Props) {
                   {openingChat ? "פותח..." : "צ'אט עם הלקוח"}
                 </button>
                 {q.status === "NEW" && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => markAs("READ")}
-                      disabled={pending !== null}
-                      className="rounded-full border border-[#D4C9BA] bg-white px-4 py-2 text-xs font-semibold text-[#3D3428] shadow-sm transition hover:bg-neutral-50 disabled:opacity-60"
-                    >
-                      {pending === "READ" ? "שומר..." : "סמן כנקרא"}
-                    </button>
-                  </>
-                )}
-                {(q.status === "NEW" || q.status === "READ") && (
-                  <div className="w-full space-y-2 rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 lg:w-auto lg:min-w-[260px]">
-                    <label className="block text-[11px] font-medium text-neutral-600">
-                      הערה ללקוח (אופציונלי) — לפני סימון כנענה
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={repliedNote}
-                      onChange={(e) => setRepliedNote(e.target.value)}
-                      disabled={pending !== null}
-                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40 disabled:opacity-60"
-                      placeholder="למשל: יצרתי קשר, נקבעה פגישה..."
-                    />
-                    <button
-                      type="button"
-                      onClick={() => markAs("REPLIED", repliedNote)}
-                      disabled={pending !== null}
-                      className="w-full rounded-full bg-emerald-950 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#0F3B2E]/25 transition hover:bg-emerald-900 disabled:opacity-60"
-                    >
-                      {pending === "REPLIED" ? "שומר..." : "סמן כנענה"}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => markAs("READ")}
+                    disabled={pending !== null}
+                    className="rounded-full border border-[#D4C9BA] bg-white px-4 py-2 text-xs font-semibold text-[#3D3428] shadow-sm transition hover:bg-neutral-50 disabled:opacity-60"
+                  >
+                    {pending === "READ" ? "שומר..." : "סמן כנקרא"}
+                  </button>
                 )}
               </div>
+
+              {showDecisionActions && (
+                <div className="w-full space-y-2 rounded-xl border border-amber-200/80 bg-[#FFFCF5] p-3 lg:min-w-[280px]">
+                  <p className="text-[11px] font-semibold text-emerald-950">
+                    אישור או דחיית ההזמנה
+                  </p>
+                  <label className="block text-[11px] font-medium text-neutral-600">
+                    הערה ללקוח (אופציונלי)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={decisionNote}
+                    onChange={(e) => setDecisionNote(e.target.value)}
+                    disabled={pending !== null}
+                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40 disabled:opacity-60"
+                    placeholder="למשל: אושר! ניצור קשר לתיאום..."
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => runDecision("approve")}
+                      disabled={pending !== null}
+                      className="flex-1 rounded-full bg-emerald-950 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-emerald-900 disabled:opacity-60"
+                    >
+                      {pending === "APPROVE" ? "מאשר..." : "אשר הזמנה"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => runDecision("reject")}
+                      disabled={pending !== null}
+                      className="rounded-full border border-red-300 bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-800 transition hover:bg-red-100 disabled:opacity-60"
+                    >
+                      {pending === "REJECT" ? "דוחה..." : "דחה"}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-neutral-600">
+                    אישור יסמן את התאריך כתפוס בלוח הזמינות.
+                  </p>
+                </div>
+              )}
+
+              {status === "APPROVED" && (
+                <Link
+                  href={`/dashboard/venue-owner/venues/${q.venueId}`}
+                  className="block rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-center text-xs font-semibold text-emerald-900 hover:bg-emerald-100/80"
+                >
+                  ללוח זמינות האולם →
+                </Link>
+              )}
+
+              {(q.status === "NEW" || q.status === "READ") && (
+                <div className="w-full space-y-2 rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 lg:w-auto lg:min-w-[260px]">
+                  <label className="block text-[11px] font-medium text-neutral-600">
+                    מענה בלי אישור (אופציונלי)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={repliedNote}
+                    onChange={(e) => setRepliedNote(e.target.value)}
+                    disabled={pending !== null}
+                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40 disabled:opacity-60"
+                    placeholder="הודעה ללקוח — לא מהווה אישור הזמנה"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => markAs("REPLIED", repliedNote)}
+                    disabled={pending !== null}
+                    className="w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-60"
+                  >
+                    {pending === "REPLIED" ? "שומר..." : "שלח מענה (ללא אישור)"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -305,15 +408,24 @@ export default function InquiryDetailClient({ initial }: Props) {
             guestCount={q.guestCount}
           />
 
-          {q.status === "REPLIED" && (
-            <div className="mt-5 rounded-2xl border border-emerald-200/90 bg-white/95 p-4 text-xs shadow-sm">
+          {(status === "REPLIED" || status === "APPROVED" || status === "REJECTED") &&
+            (q.ownerNote || status === "REPLIED") && (
+            <div
+              className={`mt-5 rounded-2xl border p-4 text-xs shadow-sm ${
+                status === "APPROVED"
+                  ? "border-emerald-200/90 bg-white/95"
+                  : status === "REJECTED"
+                    ? "border-red-200/80 bg-white/95"
+                    : "border-sky-200/80 bg-white/95"
+              }`}
+            >
               {q.autoReplyApplied && (
                 <p className="mb-2 text-[11px] text-emerald-900/90">
                   הטקסט הבא נשלח אוטומטית לפי מענה אוטומטי שהגדרת בפרטי האולם.
                 </p>
               )}
 
-              {editingOwnerNote ? (
+              {editingOwnerNote && status === "REPLIED" ? (
                 <div className="space-y-2">
                   <label className="block font-medium text-emerald-900">עריכת הערה ללקוח</label>
                   <textarea
@@ -362,35 +474,44 @@ export default function InquiryDetailClient({ initial }: Props) {
                     <p className="text-neutral-600">לא נוספה הערה ללקוח.</p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOwnerNoteDraft(q.ownerNote ?? "");
-                        setEditingOwnerNote(true);
-                        setNoteError(null);
-                      }}
-                      disabled={notePending}
-                      className="rounded-full border border-emerald-300/80 bg-emerald-50/80 px-3 py-1.5 text-[11px] font-semibold text-emerald-900 hover:bg-emerald-100/80 disabled:opacity-60"
-                    >
-                      {q.ownerNote ? "ערוך הערה" : "הוסף הערה"}
-                    </button>
-                    {q.ownerNote && (
-                      <button
-                        type="button"
-                        onClick={deleteOwnerNote}
-                        disabled={notePending}
-                        className="rounded-full border border-red-200 bg-red-50/90 px-3 py-1.5 text-[11px] font-semibold text-red-800 hover:bg-red-100/90 disabled:opacity-60"
-                      >
-                        {notePending ? "…" : "מחק הערה"}
-                      </button>
+                    {status === "REPLIED" && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOwnerNoteDraft(q.ownerNote ?? "");
+                            setEditingOwnerNote(true);
+                            setNoteError(null);
+                          }}
+                          disabled={notePending}
+                          className="rounded-full border border-emerald-300/80 bg-emerald-50/80 px-3 py-1.5 text-[11px] font-semibold text-emerald-900 hover:bg-emerald-100/80 disabled:opacity-60"
+                        >
+                          {q.ownerNote ? "ערוך הערה" : "הוסף הערה"}
+                        </button>
+                        {q.ownerNote && (
+                          <button
+                            type="button"
+                            onClick={deleteOwnerNote}
+                            disabled={notePending}
+                            className="rounded-full border border-red-200 bg-red-50/90 px-3 py-1.5 text-[11px] font-semibold text-red-800 hover:bg-red-100/90 disabled:opacity-60"
+                          >
+                            {notePending ? "…" : "מחק הערה"}
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </>
               )}
 
               {q.repliedAt && (
-                <p className={`text-neutral-600 ${editingOwnerNote || q.ownerNote ? "mt-3 border-t border-emerald-100/80 pt-3" : "mt-1"}`}>
-                  סומן כנענה ב־{new Date(q.repliedAt).toLocaleString("he-IL")}
+                <p className={`text-neutral-600 ${q.ownerNote ? "mt-3 border-t border-emerald-100/80 pt-3" : "mt-1"}`}>
+                  {status === "APPROVED"
+                    ? "אושרה"
+                    : status === "REJECTED"
+                      ? "נדחתה"
+                      : "סומן כנענה"}{" "}
+                  ב־{new Date(q.repliedAt).toLocaleString("he-IL")}
                 </p>
               )}
             </div>

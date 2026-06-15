@@ -5,7 +5,6 @@ import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
 import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import {
-  notifySeekerInquiryReplied,
   notifyVenueOwnerNewInquiry,
 } from "@/lib/transactionalEmails";
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
@@ -213,29 +212,16 @@ export async function POST(req: NextRequest) {
       where: { id: inquiry.id },
       data: {
         ownerNote: autoText,
-        status: "REPLIED",
-        repliedAt: new Date(),
         autoReplyApplied: true,
       },
     });
     await createNotification({
       userId: user.id,
-      type: "INQUIRY_REPLIED",
-      title: "פנייה נענתה",
-      body: `התקבלה תשובה אוטומטית לפנייה עבור "${venue.name}".`,
-      href: "/my-inquiries",
+      type: "INQUIRY_AUTO_MESSAGE",
+      title: "הודעה מהאולם",
+      body: `התקבלה הודעה אוטומטית מ«${venue.name}» — ההזמנה ממתינה לאישור בעל האולם.`,
+      href: `/my-inquiries/${inquiry.id}`,
     });
-    if (
-      user.email &&
-      (await userWantsEmailFromDb(user.id, "inquiryReply"))
-    ) {
-      notifySeekerInquiryReplied({
-        seekerEmail: user.email,
-        seekerName: user.name,
-        venueName: venue.name,
-        autoReply: true,
-      });
-    }
     const updated = await prisma.inquiry.findUnique({ where: { id: inquiry.id } });
     if (updated) resultInquiry = updated;
   }

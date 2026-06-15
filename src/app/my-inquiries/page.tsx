@@ -5,13 +5,23 @@ import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import MyInquiriesClient from "./MyInquiriesClient";
 
-export default async function MyInquiriesPage() {
+export default async function MyInquiriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/auth/login");
   if (user.role !== "SEEKER") redirect("/");
 
+  const { status: statusParam } = await searchParams;
+  const pendingOnly = statusParam === "pending";
+
   const inquiries = await prisma.inquiry.findMany({
-    where: { userId: user.id },
+    where: {
+      userId: user.id,
+      ...(pendingOnly ? { status: { in: ["NEW", "READ"] } } : {}),
+    },
     orderBy: { createdAt: "desc" },
     include: {
       venue: {
@@ -47,10 +57,14 @@ export default async function MyInquiriesPage() {
   return (
     <SitePageShell mainWidth="narrow">
       <SitePageHeader
-        title="הפניות שלי"
-        description="פניות ששלחת לאולמות. תוכל לראות כאן אם בעל האולם צפה או ענה."
+        title={pendingOnly ? "הזמנות ממתינות לאישור" : "ההזמנות שלי"}
+        description={
+          pendingOnly
+            ? "בקשות שנשלחו וטרם אושרו או נדחו על ידי האולם."
+            : "בקשות הזמנה ששלחת לאולמות — מעקב סטטוס ואישור בעל האולם."
+        }
       />
-      <MyInquiriesClient initialInquiries={list} />
+      <MyInquiriesClient initialInquiries={list} pendingOnly={pendingOnly} />
     </SitePageShell>
   );
 }

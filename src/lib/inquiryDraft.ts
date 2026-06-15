@@ -8,6 +8,7 @@ export type InquiryDraft = {
   eventType: string;
   message: string;
   stepId: string;
+  sourceById?: Record<string, "venue" | "external">;
   savedAt: number;
 };
 

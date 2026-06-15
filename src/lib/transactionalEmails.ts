@@ -87,9 +87,12 @@ export function notifySeekerInquiryReplied(input: {
   seekerName: string | null;
   venueName: string;
   autoReply?: boolean;
+  inquiryId?: number;
 }): void {
   const site = getSiteUrl();
-  const href = `${site}/my-inquiries`;
+  const href = input.inquiryId
+    ? `${site}/my-inquiries/${input.inquiryId}`
+    : `${site}/my-inquiries`;
   const greeting = input.seekerName?.trim()
     ? `שלום ${escapeHtml(input.seekerName.trim())},`
     : "שלום,";
@@ -97,7 +100,7 @@ export function notifySeekerInquiryReplied(input: {
 
   const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
     <p style="margin:0 0 12px 0;line-height:1.6;">התקבלה ${kind} מבעל האולם <strong>${escapeHtml(input.venueName)}</strong> לפנייה ששלחת.</p>
-    ${ctaButton(href, "לצפייה בפניות שלי")}`;
+    ${ctaButton(href, "לצפייה בפנייה")}`;
 
   fireAndForget(
     sendEmail({
@@ -107,6 +110,62 @@ export function notifySeekerInquiryReplied(input: {
       text: `תשובה לפנייה עבור ${input.venueName}. ${href}`,
     }),
     "seekerInquiryReplied"
+  );
+}
+
+export function notifySeekerInquiryApproved(input: {
+  seekerEmail: string;
+  seekerName: string | null;
+  venueName: string;
+  inquiryId: number;
+}): void {
+  const site = getSiteUrl();
+  const href = `${site}/my-inquiries/${input.inquiryId}`;
+  const greeting = input.seekerName?.trim()
+    ? `שלום ${escapeHtml(input.seekerName.trim())},`
+    : "שלום,";
+
+  const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;">בשורות טובות — בעל האולם <strong>${escapeHtml(input.venueName)}</strong> <strong>אישר את בקשת ההזמנה</strong> שלך.</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;color:#525252;">התאריך שמור אצל האולם. לפרטים נוספים או תיאום — צרו קשר ישירות עם האולם.</p>
+    ${ctaButton(href, "לצפייה בהזמנה")}`;
+
+  fireAndForget(
+    sendEmail({
+      to: input.seekerEmail,
+      subject: `ההזמנה אושרה — ${input.venueName}`,
+      html: emailShell("ההזמנה אושרה", body),
+      text: `ההזמנה אושרה עבור ${input.venueName}. ${href}`,
+    }),
+    "seekerInquiryApproved"
+  );
+}
+
+export function notifySeekerInquiryRejected(input: {
+  seekerEmail: string;
+  seekerName: string | null;
+  venueName: string;
+  inquiryId: number;
+}): void {
+  const site = getSiteUrl();
+  const href = `${site}/my-inquiries/${input.inquiryId}`;
+  const greeting = input.seekerName?.trim()
+    ? `שלום ${escapeHtml(input.seekerName.trim())},`
+    : "שלום,";
+
+  const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;">בעל האולם <strong>${escapeHtml(input.venueName)}</strong> דחה את בקשת ההזמנה שלך.</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;color:#525252;">אפשר לחפש אולמות נוספים או לשלוח פנייה לתאריך אחר.</p>
+    ${ctaButton(href, "לצפייה בפרטים")}`;
+
+  fireAndForget(
+    sendEmail({
+      to: input.seekerEmail,
+      subject: `ההזמנה נדחתה — ${input.venueName}`,
+      html: emailShell("ההזמנה נדחתה", body),
+      text: `ההזמנה נדחתה עבור ${input.venueName}. ${href}`,
+    }),
+    "seekerInquiryRejected"
   );
 }
 

@@ -1,6 +1,10 @@
 "use client";
 
 import { formatInquiryPreferredDateForDisplay } from "@/lib/inquiryMessageDisplay";
+import {
+  inquiryStatusBadgeClass,
+  inquiryStatusLabelOwner,
+} from "@/lib/inquiryStatus";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -22,16 +26,19 @@ type Props = { initial: { inquiries: Inquiry[]; venues: { id: number; name: stri
 
 const STATUS_FILTER = [
   { value: "", label: "הכל" },
-  { value: "NEW", label: "חדשות" },
-  { value: "READ", label: "נקראו" },
-  { value: "REPLIED", label: "נענו" },
+  { value: "PENDING", label: "ממתין לאישור" },
+  { value: "APPROVED", label: "אושרו" },
+  { value: "REJECTED", label: "נדחו" },
+  { value: "REPLIED", label: "נענו (ללא אישור)" },
 ];
 
-const STATUS_BADGE: Record<string, string> = {
-  NEW: "חדשה",
-  READ: "נקראה",
-  REPLIED: "נענתה",
-};
+function matchesStatusFilter(inquiryStatus: string, filter: string): boolean {
+  if (filter === "") return true;
+  if (filter === "PENDING") {
+    return inquiryStatus === "NEW" || inquiryStatus === "READ";
+  }
+  return inquiryStatus === filter;
+}
 
 export default function InquiriesListClient({ initial }: Props) {
   const searchParams = useSearchParams();
@@ -66,14 +73,13 @@ export default function InquiriesListClient({ initial }: Props) {
   }, [inquiries, venueFilter]);
 
   const filtered = useMemo(() => {
-    if (filter === "") return filteredByVenue;
-    return filteredByVenue.filter((q) => q.status === filter);
+    return filteredByVenue.filter((q) => matchesStatusFilter(q.status, filter));
   }, [filteredByVenue, filter]);
 
   if (inquiries.length === 0) {
     return (
       <div className="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
-        עדיין לא התקבלו פניות. פניות ממחפשי אולמות יופיעו כאן.
+        עדיין לא התקבלו בקשות הזמנה. בקשות ממחפשי אולמות יופיעו כאן.
       </div>
     );
   }
@@ -140,9 +146,11 @@ export default function InquiriesListClient({ initial }: Props) {
                 className={`block overflow-hidden rounded-2xl border shadow-[0_12px_40px_rgba(15,59,46,0.07)] transition hover:border-amber-400/55 hover:shadow-md ${
                   q.status === "NEW"
                     ? "border-[#C9A227]/40 bg-[#FFFCF7]"
-                    : q.status === "REPLIED"
+                    : q.status === "APPROVED"
                       ? "border-emerald-200/80 bg-emerald-50/80"
-                      : "border-neutral-200 bg-white"
+                      : q.status === "REJECTED"
+                        ? "border-red-200/70 bg-white"
+                        : "border-neutral-200 bg-white"
                 }`}
               >
                 <div className="h-0.5 bg-gradient-to-l from-[#C9A227]/80 to-transparent" aria-hidden />
@@ -151,19 +159,13 @@ export default function InquiriesListClient({ initial }: Props) {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold text-emerald-950">{q.venue.name}</span>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                          q.status === "NEW"
-                            ? "bg-amber-400/25 text-[#5C4A1A]"
-                            : q.status === "REPLIED"
-                              ? "bg-emerald-200/80 text-emerald-900"
-                              : "bg-[#E8E0D4] text-[#4A453C]"
-                        }`}
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${inquiryStatusBadgeClass(q.status)}`}
                       >
-                        {STATUS_BADGE[q.status] ?? q.status}
+                        {inquiryStatusLabelOwner(q.status)}
                       </span>
-                      {q.autoReplyApplied && (
+                      {q.autoReplyApplied && q.status !== "APPROVED" && q.status !== "REJECTED" && (
                         <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] font-medium text-emerald-950">
-                          מענה אוטומטי
+                          הודעה אוטומטית
                         </span>
                       )}
                     </div>
@@ -197,14 +199,6 @@ export default function InquiriesListClient({ initial }: Props) {
       {filtered.length === 0 && inquiries.length > 0 && (
         <p className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
           אין פניות שמתאימות לסינון הנוכחי.
-          {multiVenue && venueFilter !== "" && (
-            <span className="mt-1 block text-xs">
-              נסו &quot;כל האולמות&quot; או אולם אחר — או שינוי סטטוס.
-            </span>
-          )}
-          {(!multiVenue || venueFilter === "") && filter !== "" && (
-            <span className="mt-1 block text-xs">נסו לבחור &quot;הכל&quot; בסטטוס.</span>
-          )}
         </p>
       )}
     </div>

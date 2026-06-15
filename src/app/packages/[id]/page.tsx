@@ -3,8 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
+import { inferEventTypeFromPackageText } from "@/lib/packageInquiryPrefill";
 import { prisma } from "@/lib/prisma";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
+import PackageInquiryLink from "@/components/packages/PackageInquiryLink";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -90,9 +92,13 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
   const packageServicesNote = pkg.services.map((r) => r.service.name).join(", ");
   const inquiryMessage = `מעוניין/ת בחבילה "${pkg.title}"${packageServicesNote ? ` הכוללת: ${packageServicesNote}` : ""}.`;
-  const inquiryHref = `/halls/${pkg.venue.id}/inquiry?${new URLSearchParams({
-    message: inquiryMessage,
-  }).toString()}`;
+  const inferredEventType = inferEventTypeFromPackageText(pkg.title, pkg.subtitle);
+  const inquiryParams = new URLSearchParams({ message: inquiryMessage });
+  if (inferredEventType) inquiryParams.set("eventType", inferredEventType);
+  if (pkg.venue.minGuests != null && pkg.venue.minGuests > 0) {
+    inquiryParams.set("guests", String(pkg.venue.minGuests));
+  }
+  const inquiryHref = `/halls/${pkg.venue.id}/inquiry?${inquiryParams.toString()}`;
 
   return (
     <SitePageShell mainWidth="narrow">
@@ -195,12 +201,14 @@ export default async function PackageDetailPage({ params }: PageProps) {
           </section>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
-            <Link
+            <PackageInquiryLink
+              venueId={pkg.venue.id}
               href={inquiryHref}
+              message={inquiryMessage}
               className="btn-primary min-h-[52px] flex-1 sm:min-w-[200px]"
             >
               בקש הצעה
-            </Link>
+            </PackageInquiryLink>
             <Link
               href={`/halls/${pkg.venue.id}`}
               className="btn-secondary min-h-[52px] flex-1 sm:min-w-[180px]"

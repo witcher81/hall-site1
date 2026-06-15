@@ -46,18 +46,22 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 
   const inquiries = await prisma.inquiry.findMany({
     where: { venueId },
-    select: { preferredDate: true },
+    select: { preferredDate: true, status: true },
   });
 
   const inquiryCounts: Record<string, number> = {};
+  const approvedInquiryCounts: Record<string, number> = {};
   for (const item of inquiries) {
     const raw = item.preferredDate?.trim() ?? "";
     if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) continue;
     if (raw < today.toISOString().slice(0, 10)) continue;
     inquiryCounts[raw] = (inquiryCounts[raw] ?? 0) + 1;
+    if (item.status === "APPROVED") {
+      approvedInquiryCounts[raw] = (approvedInquiryCounts[raw] ?? 0) + 1;
+    }
   }
 
-  return NextResponse.json({ availability, inquiryCounts });
+  return NextResponse.json({ availability, inquiryCounts, approvedInquiryCounts });
 }
 
 export async function POST(req: NextRequest, context: RouteContext) {

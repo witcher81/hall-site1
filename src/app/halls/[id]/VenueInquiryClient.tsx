@@ -5,6 +5,10 @@ import {
   loadInquiryDraft,
   saveInquiryDraft,
 } from "@/lib/inquiryDraft";
+import {
+  clearInquiryPrefill,
+  loadInquiryPrefill,
+} from "@/lib/inquiryPrefill";
 
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import InquiryOfferOverview, {
@@ -22,6 +26,11 @@ import {
   type VenueInquiryAmenitiesInput,
 } from "@/lib/venueInquiryAmenities";
 import { aggregateDealSavings, type InquiryDealInsight } from "@/lib/inquiryDealInsights";
+import {
+  estimateInquiryOrderCost,
+  formatNisRange,
+} from "@/lib/inquiryCostEstimate";
+import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
 import { partitionInquiryServices } from "@/lib/venueInquiryOfferGroups";
 import { inquiryServiceHallComparePrice } from "@/lib/venueInquiryFreelancerMatch";
 import { type ParkingKind } from "@/lib/venueParkingKind";
@@ -52,6 +61,8 @@ export default function VenueInquiryClient({
   venueAmenities,
   parkingKind,
   presetLabels,
+  kashrutLabel,
+  eventTypeProfiles,
 }: {
   venueId: number;
   venueName: string;
@@ -62,6 +73,8 @@ export default function VenueInquiryClient({
   parkingKind: ParkingKind | null;
   /** נוף לים, בוטיק, נגישות — מתצוגה ציבורית */
   presetLabels?: string[];
+  kashrutLabel?: string | null;
+  eventTypeProfiles?: Record<string, PublicEventTypeProfile>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -69,6 +82,9 @@ export default function VenueInquiryClient({
   const eventTypeMenuRef = useRef<HTMLDivElement>(null);
   /** Blocks accidental submit when "המשך" is replaced by "שלח" under the same click. */
   const stepTransitionLockRef = useRef(false);
+  const pendingSourceByIdRef = useRef<Record<string, ServiceChoiceSource> | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -94,6 +110,11 @@ export default function VenueInquiryClient({
   const [dealInsightsLoading, setDealInsightsLoading] = useState(false);
 
   const eventTypeTrimmed = form.eventType.trim() || null;
+
+  const activeEventProfile = useMemo(() => {
+    if (!eventTypeTrimmed || !eventTypeProfiles) return null;
+    return eventTypeProfiles[eventTypeTrimmed] ?? null;
+  }, [eventTypeTrimmed, eventTypeProfiles]);
 
   const { services: serviceOptions, infoTraits } = useMemo(
     () =>
@@ -172,8 +193,15 @@ export default function VenueInquiryClient({
   useEffect(() => {
     const next: Record<string, ServiceChoiceSource> = {};
     for (const o of partition.choosable) next[o.id] = "venue";
+    const pending = pendingSourceByIdRef.current;
+    if (pending) {
+      for (const [id, source] of Object.entries(pending)) {
+        if (id in next) next[id] = source;
+      }
+      pendingSourceByIdRef.current = null;
+    }
     setSourceById(next);
-  }, [choosableKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [choosableKey, partition.choosable]);
 
   const marketplaceCheckKey = useMemo(
     () =>
@@ -362,18 +390,28 @@ export default function VenueInquiryClient({
       setForm((f) => ({ ...f, message: messageParam.trim() }));
     }
     const draft = loadInquiryDraft(venueId);
+    const prefill = loadInquiryPrefill(venueId);
     if (draft) {
       setForm((f) => ({
         ...f,
         preferredDate: draft.preferredDate || f.preferredDate,
         guestCount: draft.guestCount || f.guestCount,
         eventType: draft.eventType || f.eventType,
-        message: draft.message || f.message,
+        message: prefill?.message || draft.message || f.message,
       }));
       if (draft.stepId === "offers" || draft.stepId === "send") {
         setStepId(draft.stepId);
       }
+    } else if (prefill?.message?.trim()) {
+      setForm((f) => ({ ...f, message: prefill.message!.trim() }));
     }
+    if (draft?.sourceById || prefill?.sourceById) {
+      pendingSourceByIdRef.current = {
+        ...draft?.sourceById,
+        ...prefill?.sourceById,
+      };
+    }
+    if (prefill) clearInquiryPrefill(venueId);
   }, [searchParams, applyDateFromQuery, venueId]);
 
   useEffect(() => {
@@ -384,10 +422,11 @@ export default function VenueInquiryClient({
         eventType: form.eventType,
         message: form.message,
         stepId,
+        sourceById,
       });
     }, 500);
     return () => window.clearTimeout(t);
-  }, [venueId, form, stepId]);
+  }, [venueId, form, stepId, sourceById]);
 
   useEffect(() => {
     if (!eventTypeMenuOpen) return;
@@ -427,6 +466,34 @@ export default function VenueInquiryClient({
     () => [...partition.included, ...partition.extra],
     [partition.included, partition.extra]
   );
+
+  const orderCostEstimate = useMemo(() => {
+    const labelById = new Map(serviceOptions.map((o) => [o.id, o.label]));
+    const guestNum = Number(form.guestCount);
+    const choices = buildServiceChoicesPayload().map((c) => ({
+      ...c,
+      label: labelById.get(c.id) ?? c.id,
+    }));
+    return estimateInquiryOrderCost({
+      guestCount: Number.isFinite(guestNum) && guestNum > 0 ? guestNum : null,
+      eventType: eventTypeTrimmed,
+      eventTypeProfilesJson: venueAmenities.eventTypeProfilesJson ?? null,
+      eventTypes,
+      serviceChoices: choices,
+    });
+  }, [
+    form.guestCount,
+    eventTypeTrimmed,
+    partition,
+    sourceById,
+    weddingChuppahPick,
+    serviceOptions,
+    venueAmenities.eventTypeProfilesJson,
+    eventTypes,
+    chuppahBoth,
+    chuppahSingleOutdoor,
+    chuppahSingleCovered,
+  ]);
 
   function buildServiceChoicesPayload(): Array<{
     id: string;
@@ -595,8 +662,11 @@ export default function VenueInquiryClient({
       }
       setSuccess(true);
       clearInquiryDraft(venueId);
+      const inquiryId = data?.inquiry?.id;
       setTimeout(() => {
-        router.push(`/halls/${venueId}`);
+        router.push(
+          inquiryId ? `/my-inquiries/${inquiryId}` : "/my-inquiries"
+        );
       }, 900);
     } catch {
       setError("שגיאה בלתי צפויה");
@@ -717,6 +787,39 @@ export default function VenueInquiryClient({
                   ) : null}
                 </p>
               ) : null}
+              {activeEventProfile && (
+                <div className="mt-3 space-y-2 rounded-xl border border-[#E8E0D4] bg-[#FFFCF7] px-3 py-3 text-[11px] text-neutral-800">
+                  {kashrutLabel ? (
+                    <p>
+                      <span className="font-semibold text-emerald-950">כשרות: </span>
+                      {kashrutLabel}
+                    </p>
+                  ) : null}
+                  {activeEventProfile.hasFoodAtEvent &&
+                  (activeEventProfile.minPrice != null ||
+                    activeEventProfile.maxPrice != null) ? (
+                    <p>
+                      <span className="font-semibold text-emerald-950">מחיר למנה: </span>
+                      {formatNisRange(
+                        activeEventProfile.minPrice,
+                        activeEventProfile.maxPrice
+                      )}
+                    </p>
+                  ) : null}
+                  {activeEventProfile.mealAlternatives.length > 0 ? (
+                    <p>
+                      <span className="font-semibold text-emerald-950">אפשרויות מנה: </span>
+                      {activeEventProfile.mealAlternatives.join(" · ")}
+                    </p>
+                  ) : null}
+                  {activeEventProfile.publicNotes ? (
+                    <p className="leading-relaxed">
+                      <span className="font-semibold text-emerald-950">מה חשוב לדעת: </span>
+                      {activeEventProfile.publicNotes}
+                    </p>
+                  ) : null}
+                </div>
+              )}
             </div>
           ) : null}
 
@@ -877,6 +980,34 @@ export default function VenueInquiryClient({
                     </li>
                   ) : null}
                 </ul>
+                {orderCostEstimate.hasEstimate ? (
+                  <div className="mt-4 rounded-lg border border-emerald-200/80 bg-white p-3">
+                    <p className="text-xs font-semibold text-emerald-950">הערכת עלות (משוערת)</p>
+                    <ul className="mt-2 space-y-1 text-xs text-neutral-700">
+                      {orderCostEstimate.lines.map((line) => (
+                        <li key={line.label} className="flex justify-between gap-3">
+                          <span>{line.label}</span>
+                          <strong className="tabular-nums shrink-0">
+                            {formatNisRange(line.amountMin, line.amountMax)}
+                          </strong>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 border-t border-neutral-200 pt-2 text-xs font-semibold text-emerald-950">
+                      סה״כ משוער:{" "}
+                      {formatNisRange(
+                        orderCostEstimate.totalMin,
+                        orderCostEstimate.totalMax
+                      )}
+                    </p>
+                    <p className="mt-1 text-[10px] text-neutral-500">
+                      הערכה בלבד — המחיר הסופי ייקבע לאחר אישור האולם.
+                    </p>
+                  </div>
+                ) : null}
+                <p className="mt-3 text-[11px] text-neutral-600">
+                  לאחר השליחה הבקשה תמתין לאישור בעל האולם.
+                </p>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-emerald-950">הערות (אופציונלי)</label>
@@ -894,7 +1025,7 @@ export default function VenueInquiryClient({
           {error && <p className="text-xs text-red-700">{error}</p>}
           {success && (
             <p className="text-xs font-medium text-emerald-800">
-              הפנייה נשלחה! מעבירים חזרה לעמוד האולם...
+              הבקשה נשלחה! ממתינה לאישור בעל האולם — מעבירים למעקב ההזמנה...
             </p>
           )}
 

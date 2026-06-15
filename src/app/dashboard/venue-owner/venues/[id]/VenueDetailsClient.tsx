@@ -50,6 +50,9 @@ export default function VenueDetailsClient({
     { id: number; date: string; status: "FREE" | "BOOKED" }[]
   >([]);
   const [inquiryCounts, setInquiryCounts] = useState<Record<string, number>>({});
+  const [approvedInquiryCounts, setApprovedInquiryCounts] = useState<
+    Record<string, number>
+  >({});
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
@@ -138,6 +141,7 @@ export default function VenueDetailsClient({
         })) ?? [];
       setAvailability(rows);
       setInquiryCounts(data?.inquiryCounts ?? {});
+      setApprovedInquiryCounts(data?.approvedInquiryCounts ?? {});
     } catch {
       setAvailabilityError("שגיאה בלתי צפויה בטעינת זמינות");
     } finally {
@@ -595,6 +599,7 @@ export default function VenueDetailsClient({
                   }
                   const status = availabilityMap[cell.date] ?? "FREE";
                   const count = inquiryCounts[cell.date] ?? 0;
+                  const approvedCount = approvedInquiryCounts[cell.date] ?? 0;
                   const isSelected = selectedDate === cell.date;
                   const tone =
                     status === "BOOKED"
@@ -615,7 +620,7 @@ export default function VenueDetailsClient({
                         {count > 0 && (
                           <span
                             className="shrink-0 rounded-full bg-emerald-950 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white shadow-sm sm:text-[11px]"
-                            title={`${count} פניות`}
+                            title={`${count} פניות${approvedCount > 0 ? ` · ${approvedCount} אושרו` : ""}`}
                           >
                             {count}
                           </span>
@@ -623,7 +628,9 @@ export default function VenueDetailsClient({
                       </div>
                       <div className="mt-auto border-t border-black/[0.06] pt-1.5 text-center">
                         {status === "BOOKED" ? (
-                          <span className="text-xs font-bold tracking-wide text-[#9B1C1C]">תפוס</span>
+                          <span className="text-xs font-bold tracking-wide text-[#9B1C1C]">
+                            תפוס{approvedCount > 0 ? " · אושר" : ""}
+                          </span>
                         ) : (
                           <span className="text-xs font-bold tracking-wide text-emerald-950">פנוי</span>
                         )}

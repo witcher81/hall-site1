@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { inquiryStatusLabelSeeker } from "@/lib/inquiryStatus";
 import { redirect } from "next/navigation";
 import SitePageShell from "@/components/layout/SitePageShell";
 
@@ -11,6 +12,7 @@ export default async function SeekerDashboardPage() {
 
   const [
     inquiries,
+    pendingInquiries,
     requests,
     venueFavorites,
     serviceFavorites,
@@ -20,6 +22,9 @@ export default async function SeekerDashboardPage() {
     recentServiceFavorites,
   ] = await Promise.all([
     prisma.inquiry.count({ where: { userId: user.id } }),
+    prisma.inquiry.count({
+      where: { userId: user.id, status: { in: ["NEW", "READ"] } },
+    }),
     prisma.serviceRequest.count({ where: { userId: user.id } }),
     prisma.favorite.count({ where: { userId: user.id } }),
     prisma.serviceFavorite.count({ where: { userId: user.id } }),
@@ -50,19 +55,18 @@ export default async function SeekerDashboardPage() {
   const favorites = venueFavorites + serviceFavorites;
 
   const cards = [
-    { href: "/my-inquiries", label: "פניות לאולמות", count: inquiries },
+    { href: "/my-inquiries", label: "הזמנות לאולמות", count: inquiries },
+    {
+      href: "/my-inquiries?status=pending",
+      label: "הזמנות ממתינות לאישור",
+      count: pendingInquiries,
+    },
     { href: "/my-service-requests", label: "בקשות לספקים", count: requests },
     { href: "/favorites", label: "מועדפים", count: favorites },
     { href: "/notifications", label: "התראות שלא נקראו", count: unread },
     { href: "/event-tools", label: "כלי תכנון אירוע", count: null },
     { href: "/recently-viewed", label: "נצפו לאחרונה", count: null },
   ];
-
-  const STATUS_LABEL: Record<string, string> = {
-    NEW: "נשלחה",
-    READ: "נצפתה",
-    REPLIED: "נענתה",
-  };
 
   return (
     <SitePageShell mainWidth="narrow">
@@ -97,11 +101,11 @@ export default async function SeekerDashboardPage() {
           <ul className="mt-3 space-y-2 text-xs">
             {recentInquiries.map((q) => (
               <li key={q.id} className="flex items-center justify-between gap-2 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2">
-                <Link href={`/halls/${q.venue.id}`} className="font-medium text-emerald-950 hover:underline">
+                <Link href={`/my-inquiries/${q.id}`} className="font-medium text-emerald-950 hover:underline">
                   {q.venue.name} · {q.venue.city}
                 </Link>
                 <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-950">
-                  {STATUS_LABEL[q.status] ?? q.status}
+                  {inquiryStatusLabelSeeker(q.status)}
                 </span>
               </li>
             ))}

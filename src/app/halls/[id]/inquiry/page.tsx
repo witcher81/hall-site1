@@ -1,6 +1,8 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseEventTypesList } from "@/lib/venueEditFormParse";
+import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
+import { venueKashrutLabel } from "@/lib/venueKashrutOptions";
 import { inferParkingKindFromDb } from "@/lib/venueParkingKind";
 import type { VenueInquiryAmenitiesInput } from "@/lib/venueInquiryAmenities";
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
@@ -50,6 +52,7 @@ export default async function VenueInquiryPage({
       customAmenitiesJson: true,
       venueSoftAttributesJson: true,
       eventTypeProfilesJson: true,
+      kashrut: true,
       parkingKind: true,
       hasParkingNearby: true,
       parkingLatitude: true,
@@ -65,6 +68,12 @@ export default async function VenueInquiryPage({
   }
 
   const eventTypes = parseEventTypesList(venue.eventTypes);
+  const eventTypeProfiles = parseVenueEventTypeProfilesForPublic(
+    venue.eventTypeProfilesJson,
+    eventTypes
+  );
+  const kashrutLabel = venueKashrutLabel(venue.kashrut);
+
   const venueAmenities: VenueInquiryAmenitiesInput = {
     hasChuppa: venue.hasChuppa,
     hasChuppaOutdoor: venue.hasChuppaOutdoor,
@@ -96,7 +105,7 @@ export default async function VenueInquiryPage({
       <SitePageHeader
         kicker="בקשה להצעת מחיר"
         title={venue.name}
-        description={`${INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} ההזמנה בשלבים: פרטי האירוע, מה האולם מציע, ושליחה.`}
+        description={`${INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} בקשת הזמנה בשלבים: פרטי האירוע, מה האולם מציע, ושליחה לאישור.`}
       >
         <a
           href={`/halls/${venue.id}`}
@@ -119,6 +128,8 @@ export default async function VenueInquiryPage({
           venueAmenities={venueAmenities}
           parkingKind={parkingKind}
           presetLabels={presetLabels}
+          kashrutLabel={kashrutLabel}
+          eventTypeProfiles={eventTypeProfiles}
         />
       </Suspense>
     </SitePageShell>

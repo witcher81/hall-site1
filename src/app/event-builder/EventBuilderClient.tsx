@@ -5,6 +5,10 @@ import {
   newBundleItemId,
   type SeekerBundleItem,
 } from "@/lib/seekerEventBundleTypes";
+import {
+  buildInquiryPrefillFromBundleItems,
+  saveInquiryPrefill,
+} from "@/lib/inquiryPrefill";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -571,7 +575,16 @@ export default function EventBuilderClient() {
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
           {inquiryHref ? (
-            <Link href={inquiryHref} className="btn-primary min-h-[48px] px-6 text-center">
+            <Link
+              href={inquiryHref}
+              className="btn-primary min-h-[48px] px-6 text-center"
+              onClick={() => {
+                saveInquiryPrefill(
+                  venueIdNum,
+                  buildInquiryPrefillFromBundleItems(items)
+                );
+              }}
+            >
               שליחת פנייה לאולם
             </Link>
           ) : (

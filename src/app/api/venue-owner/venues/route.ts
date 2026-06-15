@@ -41,6 +41,7 @@ import {
 } from "@/lib/venueParkingKind";
 import { parseVenueSoftAttributesJson } from "@/lib/venueSoftAttributesJson";
 import { parseVenueTypeFromForm } from "@/lib/venueTypeOptions";
+import { trimEventTypePublicNotes } from "@/lib/venueEditFormParse";
 import { parseAmenityExtraFromApiRecord } from "@/lib/amenityExtraPrice";
 
 const MAX_INT = 2_147_483_647;
@@ -361,6 +362,14 @@ function parseEventTypeProfilesJson(
       }
       if (hallCustom.items.length > 0) {
         stored.customHallItems = hallCustom.items;
+      }
+      const notesRaw =
+        typeof profileObj.publicNotes === "string" ? profileObj.publicNotes : "";
+      const publicNotes = notesRaw.trim()
+        ? trimEventTypePublicNotes(notesRaw)
+        : null;
+      if (publicNotes) {
+        stored.publicNotes = publicNotes;
       }
       clean[et] = stored;
       if (minGuests != null) minGuestsAll.push(minGuests);
