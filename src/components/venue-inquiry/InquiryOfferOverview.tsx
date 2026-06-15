@@ -7,9 +7,11 @@ import {
   type ServiceChoiceSource,
 } from "@/lib/venueInquiryAmenities";
 import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
+import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import { PARKING_KIND_LABELS, type ParkingKind } from "@/lib/venueParkingKind";
 import type { InquiryDealInsight } from "@/lib/inquiryDealInsights";
 import { inquiryServiceHallComparePrice } from "@/lib/venueInquiryFreelancerMatch";
+import type { InquiryVenueOptionReplacement } from "@/lib/inquiryVenueOptionReplacement";
 import InquiryChuppahSection from "./InquiryChuppahSection";
 import InquiryDealInsightBadge from "./InquiryDealInsightBadge";
 import InquiryFreelancerAlternatives from "./InquiryFreelancerAlternatives";
@@ -25,15 +27,15 @@ export type MarketplaceAvailability = {
 
 function OfferRow({
   opt,
-  source,
-  onSourceChange,
+  replacement,
+  onReplacementChange,
   marketplace,
   marketplaceLoading,
   dealInsight,
 }: {
   opt: InquiryServiceOption;
-  source: ServiceChoiceSource;
-  onSourceChange: (source: ServiceChoiceSource) => void;
+  replacement: InquiryVenueOptionReplacement | null;
+  onReplacementChange: (replacement: InquiryVenueOptionReplacement | null) => void;
   marketplace?: MarketplaceAvailability;
   marketplaceLoading?: boolean;
   dealInsight?: InquiryDealInsight;
@@ -43,14 +45,6 @@ function OfferRow({
     marketplace?.available === true && (marketplace.totalCount ?? 0) > 0;
   const showExternalChoice = configAllowsExternal && hasMarketplace;
   const hallPrice = inquiryServiceHallComparePrice(opt);
-  const external = source === "external";
-  const showDealHint =
-    dealInsight?.recommendExternal === true && !external && showExternalChoice;
-  const showAlternatives =
-    showExternalChoice &&
-    (external ||
-      (dealInsight?.recommendExternal &&
-        (dealInsight.topServices.length > 0 || dealInsight.totalCount > 0)));
 
   return (
     <li className="rounded-lg border border-[#E8E0D6]/80 bg-white px-3 py-2.5">
@@ -67,47 +61,67 @@ function OfferRow({
           {marketplaceLoading ? (
             <p className="mt-2 text-[11px] text-[#9A928A]">בודקים אם יש ספקים במאגר…</p>
           ) : showExternalChoice ? (
-            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-800">
-                <input
-                  type="radio"
-                  name={`offer-${opt.id}`}
-                  checked={source === "venue"}
-                  onChange={() => onSourceChange("venue")}
-                  className="h-4 w-4 accent-emerald-950"
-                />
-                {INQUIRY_EXTERNAL_SOURCE_COPY.venueRadio}
-              </label>
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-800">
-                <input
-                  type="radio"
-                  name={`offer-${opt.id}`}
-                  checked={source === "external"}
-                  onChange={() => onSourceChange("external")}
-                  className="h-4 w-4 accent-emerald-950"
-                />
-                {INQUIRY_EXTERNAL_SOURCE_COPY.externalRadio}
-              </label>
-            </div>
+            <>
+              <div
+                className={`mt-2 rounded-lg border px-3 py-2.5 ${
+                  replacement
+                    ? "border-emerald-950/25 bg-emerald-50/50"
+                    : "border-neutral-200 bg-neutral-50/80"
+                }`}
+              >
+                <p className="text-[10px] font-semibold text-neutral-600">הבחירה שלכם</p>
+                {replacement ? (
+                  <div className="mt-1.5 flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1 text-right">
+                      <p className="text-sm font-medium text-emerald-950">{replacement.name}</p>
+                      <p className="text-[11px] text-neutral-600">{replacement.providerName}</p>
+                      <p className="mt-0.5 text-[10px] text-neutral-500">
+                        חלופה במאגר במקום הצעת האולם
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      {replacement.minPrice != null ? (
+                        <span className="text-[11px] font-semibold tabular-nums text-emerald-950">
+                          {formatFreelancerServicePriceShekelCompact(
+                            replacement.minPrice,
+                            replacement.maxPrice
+                          )}
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => onReplacementChange(null)}
+                        className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-emerald-950 hover:bg-neutral-50"
+                      >
+                        חזרה להצעת האולם
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-neutral-900">מה שהאולם מציע</p>
+                      <p className="text-[10px] text-neutral-600">ברירת מחדל — אפשר להחליף ממאגר הספקים</p>
+                    </div>
+                    <InquiryServicePriceBadge opt={opt} />
+                  </div>
+                )}
+              </div>
+
+              <InquiryFreelancerAlternatives
+                opt={opt}
+                hallPrice={hallPrice}
+                prefetched={dealInsight}
+                selectedReplacement={replacement}
+                onSelectReplacement={onReplacementChange}
+              />
+            </>
           ) : (
             <p className="mt-2 text-[11px] text-neutral-600">
               {INQUIRY_EXTERNAL_SOURCE_COPY.venueOnlyLine} אין כרגע ספק מתאים במאגר — רק דרך
               האולם.
             </p>
           )}
-          {showDealHint ? (
-            <p className="mt-2 rounded-md border border-emerald-950/20 bg-emerald-50/50 px-2.5 py-1.5 text-[10px] text-neutral-800">
-              במאגר יש הצעות זולות יותר — בחרו «ספק חיצוני» כדי לשמור את ההעדפה בפנייה, או לחצו
-              «הצג המלצות במאגר» להשוואה.
-            </p>
-          ) : null}
-          {showAlternatives ? (
-            <InquiryFreelancerAlternatives
-              opt={opt}
-              hallPrice={hallPrice}
-              prefetched={dealInsight}
-            />
-          ) : null}
         </>
       ) : (
         <p className="mt-1 text-[11px] text-neutral-600">
@@ -121,16 +135,16 @@ function OfferRow({
 function OfferList({
   items,
   emptyText,
-  sourceById,
-  onSourceChange,
+  replacementByOptionId,
+  onReplacementChange,
   marketplaceById,
   marketplaceLoading,
   dealInsightsById,
 }: {
   items: InquiryServiceOption[];
   emptyText: string;
-  sourceById: Record<string, ServiceChoiceSource>;
-  onSourceChange: (id: string, source: ServiceChoiceSource) => void;
+  replacementByOptionId: Record<string, InquiryVenueOptionReplacement | undefined>;
+  onReplacementChange: (id: string, replacement: InquiryVenueOptionReplacement | null) => void;
   marketplaceById: Record<string, MarketplaceAvailability>;
   marketplaceLoading: boolean;
   dealInsightsById: Record<string, InquiryDealInsight>;
@@ -144,8 +158,8 @@ function OfferList({
         <OfferRow
           key={opt.id}
           opt={opt}
-          source={sourceById[opt.id] ?? "venue"}
-          onSourceChange={(src) => onSourceChange(opt.id, src)}
+          replacement={replacementByOptionId[opt.id] ?? null}
+          onReplacementChange={(replacement) => onReplacementChange(opt.id, replacement)}
           marketplace={marketplaceById[opt.id]}
           marketplaceLoading={marketplaceLoading}
           dealInsight={dealInsightsById[opt.id]}
@@ -163,8 +177,8 @@ type Props = {
   parkingKind: ParkingKind | null;
   eventTypeLabel: string | null;
   weddingFoodNote?: boolean;
-  sourceById: Record<string, ServiceChoiceSource>;
-  onSourceChange: (id: string, source: ServiceChoiceSource) => void;
+  replacementByOptionId: Record<string, InquiryVenueOptionReplacement | undefined>;
+  onReplacementChange: (id: string, replacement: InquiryVenueOptionReplacement | null) => void;
   marketplaceById: Record<string, MarketplaceAvailability>;
   marketplaceLoading: boolean;
   dealInsightsById: Record<string, InquiryDealInsight>;
@@ -185,8 +199,8 @@ export default function InquiryOfferOverview({
   parkingKind,
   eventTypeLabel,
   weddingFoodNote,
-  sourceById,
-  onSourceChange,
+  replacementByOptionId,
+  onReplacementChange,
   marketplaceById,
   marketplaceLoading,
   dealInsightsById,
@@ -248,8 +262,8 @@ export default function InquiryOfferOverview({
 
       {hasChoosable ? (
         <p className="text-[11px] leading-relaxed text-neutral-600">
-          {INQUIRY_EXTERNAL_SOURCE_COPY.servicesSectionHelp} המערכת משווה מחיר מול דירוג וביקורות
-          וממליצה מה הכי משתלם — לא רק את הרשימה הזולה ביותר.
+          לכל פריט בתוספת (או כלול) שמאפשר חלופה — ברירת המחדל היא מה שהאולם מציע. אפשר לגלול
+          ברשימת הספקים במאגר ולבחור חלופה שתחליף את הצעת האולם.
         </p>
       ) : null}
 
@@ -267,8 +281,8 @@ export default function InquiryOfferOverview({
             <OfferList
               items={included}
               emptyText="אין פריטים כלולים ברשימה זו"
-              sourceById={sourceById}
-              onSourceChange={onSourceChange}
+              replacementByOptionId={replacementByOptionId}
+              onReplacementChange={onReplacementChange}
               marketplaceById={marketplaceById}
               marketplaceLoading={marketplaceLoading}
               dealInsightsById={dealInsightsById}
@@ -283,8 +297,8 @@ export default function InquiryOfferOverview({
             <OfferList
               items={extra}
               emptyText="אין פריטים בתוספת תשלום"
-              sourceById={sourceById}
-              onSourceChange={onSourceChange}
+              replacementByOptionId={replacementByOptionId}
+              onReplacementChange={onReplacementChange}
               marketplaceById={marketplaceById}
               marketplaceLoading={marketplaceLoading}
               dealInsightsById={dealInsightsById}
@@ -306,4 +320,3 @@ export default function InquiryOfferOverview({
     </div>
   );
 }
-

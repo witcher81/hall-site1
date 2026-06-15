@@ -390,12 +390,23 @@ export type StoredServiceChoice = {
   source: ServiceChoiceSource;
   priceMode?: "included" | "extra";
   extraPrice?: number | null;
+  extraPriceMax?: number | null;
+  marketplaceServiceId?: number;
+  replacementName?: string;
+  replacementProvider?: string;
+};
+
+type ParsedChoiceInput = {
+  source: ServiceChoiceSource;
+  marketplaceServiceId?: number;
+  replacementName?: string;
+  replacementProvider?: string;
 };
 
 function filterWeddingChuppahExclusiveOptions(
   options: InquiryServiceOption[],
   inquiryEventType: string | null,
-  byId: Map<string, ServiceChoiceSource>
+  byId: Map<string, ParsedChoiceInput>
 ): InquiryServiceOption[] {
   if (!isWeddingInquiryEventType(inquiryEventType)) return options;
   const outdoor = options.some((o) => o.id === "service:chuppaOutdoor");
@@ -415,7 +426,7 @@ function filterWeddingChuppahExclusiveOptions(
     byId.delete("service:chuppaCovered");
     return options.filter((o) => o.id !== "service:chuppaCovered");
   }
-  byId.set("service:chuppaOutdoor", "venue");
+  byId.set("service:chuppaOutdoor", { source: "venue" });
   return options.filter((o) => o.id !== "service:chuppaCovered");
 }
 
@@ -429,7 +440,7 @@ export function normalizeInquiryServiceChoices(
   });
   if (options.length === 0) return [];
   const allowed = new Map(options.map((o) => [o.id, o]));
-  const byId = new Map<string, ServiceChoiceSource>();
+  const byId = new Map<string, ParsedChoiceInput>();
   if (Array.isArray(raw)) {
     for (const item of raw) {
       if (typeof item !== "object" || item === null) continue;
@@ -438,7 +449,24 @@ export function normalizeInquiryServiceChoices(
       const source = o.source;
       if (!allowed.has(id)) continue;
       if (source !== "venue" && source !== "external") continue;
-      byId.set(id, source);
+      const marketplaceServiceId =
+        typeof o.marketplaceServiceId === "number" &&
+        Number.isInteger(o.marketplaceServiceId) &&
+        o.marketplaceServiceId > 0
+          ? o.marketplaceServiceId
+          : undefined;
+      const replacementName =
+        typeof o.replacementName === "string" ? o.replacementName.trim() : undefined;
+      const replacementProvider =
+        typeof o.replacementProvider === "string"
+          ? o.replacementProvider.trim()
+          : undefined;
+      byId.set(id, {
+        source,
+        marketplaceServiceId,
+        replacementName: replacementName || undefined,
+        replacementProvider: replacementProvider || undefined,
+      });
     }
   }
   const filtered = filterWeddingChuppahExclusiveOptions(
@@ -446,18 +474,30 @@ export function normalizeInquiryServiceChoices(
     inquiryEventType,
     byId
   );
-  return filtered.map((o) => ({
-    id: o.id,
-    label: o.label,
-    source:
+  return filtered.map((o) => {
+    const choice = byId.get(o.id);
+    const source =
       !inquiryServiceAllowsExternalSource(o) ||
       o.id === "service:chuppaOutdoor" ||
       o.id === "service:chuppaCovered"
         ? "venue"
-        : (byId.get(o.id) ?? "venue"),
-    priceMode: o.priceMode,
-    extraPrice: o.extraPrice,
-  }));
+        : (choice?.source ?? "venue");
+    return {
+      id: o.id,
+      label: o.label,
+      source,
+      priceMode: o.priceMode,
+      extraPrice: o.extraPrice,
+      extraPriceMax: o.extraPriceMax,
+      ...(source === "external" && choice?.marketplaceServiceId
+        ? {
+            marketplaceServiceId: choice.marketplaceServiceId,
+            replacementName: choice.replacementName,
+            replacementProvider: choice.replacementProvider,
+          }
+        : {}),
+    };
+  });
 }
 
 export function formatInquiryPriceHint(

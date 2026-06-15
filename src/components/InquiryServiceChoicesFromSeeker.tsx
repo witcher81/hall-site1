@@ -24,6 +24,9 @@ export default function InquiryServiceChoicesFromSeeker({
       priceMode?: string;
       extraPrice?: number | null;
       extraPriceMax?: number | null;
+      replacementName?: string;
+      replacementProvider?: string;
+      marketplaceServiceId?: number;
     }[];
     if (!Array.isArray(arr) || arr.length === 0) return null;
     return (
@@ -51,6 +54,8 @@ export default function InquiryServiceChoicesFromSeeker({
               typeof row.id === "string" && !inquiryServiceAllowsExternalSource({ id: row.id });
             const marketplaceAddon =
               typeof row.id === "string" && row.id.startsWith("marketplace:");
+            const hasReplacement =
+              typeof row.replacementName === "string" && row.replacementName.trim();
             const via = marketplaceAddon ? (
               <span className="inline-flex shrink-0 rounded-full border border-[#D4C4B0] bg-[#FAF6EF] px-2.5 py-1 text-[11px] font-semibold text-[#4A453C]">
                 נוסף מהמאגר
@@ -58,6 +63,10 @@ export default function InquiryServiceChoicesFromSeeker({
             ) : venueOnly ? (
               <span className="inline-flex shrink-0 rounded-full border border-emerald-950/20 bg-emerald-950/[0.08] px-2.5 py-1 text-[11px] font-semibold text-emerald-950">
                 חלק מהאולם
+              </span>
+            ) : row.source === "external" && hasReplacement ? (
+              <span className="inline-flex shrink-0 rounded-full border border-[#D4C4B0] bg-[#FAF6EF] px-2.5 py-1 text-[11px] font-semibold text-[#4A453C]">
+                חלופה במאגר
               </span>
             ) : row.source === "venue" ? (
               <span className="inline-flex shrink-0 rounded-full border border-emerald-950/20 bg-emerald-950/[0.08] px-2.5 py-1 text-[11px] font-semibold text-emerald-950">
@@ -75,6 +84,15 @@ export default function InquiryServiceChoicesFromSeeker({
               >
                 <span className="min-w-0 flex-1 text-sm font-medium text-[#1A1612]">
                   {label}
+                  {hasReplacement ? (
+                    <span className="mt-0.5 block text-[11px] font-normal text-neutral-700">
+                      חלופה במאגר: {row.replacementName}
+                      {typeof row.replacementProvider === "string" &&
+                      row.replacementProvider.trim()
+                        ? ` · ${row.replacementProvider.trim()}`
+                        : ""}
+                    </span>
+                  ) : null}
                   <span className="mt-0.5 block text-[11px] font-normal text-neutral-600">
                     {priceHint}
                   </span>

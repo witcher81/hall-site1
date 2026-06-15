@@ -9,6 +9,7 @@ import {
 } from "@/lib/transactionalEmails";
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
 import { resolveInquiryAddonServiceChoices } from "@/lib/inquiryAddonFreelancers";
+import { enrichInquiryServiceChoicesWithReplacements } from "@/lib/inquiryVenueOptionReplacement";
 import {
   getInquiryGuestBounds,
   normalizeInquiryServiceChoices,
@@ -144,8 +145,21 @@ export async function POST(req: NextRequest) {
     body.serviceChoices,
     eventType
   );
+  const enrichedServiceRows = await enrichInquiryServiceChoicesWithReplacements(
+    serviceRows,
+    body.serviceChoices,
+    async (ids) =>
+      prisma.service.findMany({
+        where: { id: { in: ids } },
+        select: {
+          id: true,
+          name: true,
+          provider: { select: { name: true, businessName: true } },
+        },
+      })
+  );
   const addonRows = await resolveInquiryAddonServiceChoices(body.addonServiceIds);
-  const mergedServiceRows = [...serviceRows, ...addonRows];
+  const mergedServiceRows = [...enrichedServiceRows, ...addonRows];
   const serviceChoicesJson =
     mergedServiceRows.length > 0 ? JSON.stringify(mergedServiceRows) : null;
 
