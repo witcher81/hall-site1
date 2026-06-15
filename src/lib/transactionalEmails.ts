@@ -221,3 +221,57 @@ export function notifySeekerServiceRequestReplied(input: {
     "seekerServiceRequestReplied"
   );
 }
+
+export function notifyNegotiationOfferReceived(input: {
+  recipientEmail: string;
+  recipientName: string | null;
+  venueName: string;
+  href: string;
+}): void {
+  const site = getSiteUrl();
+  const url = input.href.startsWith("http") ? input.href : `${site}${input.href}`;
+  const greeting = input.recipientName?.trim()
+    ? `שלום ${escapeHtml(input.recipientName.trim())},`
+    : "שלום,";
+
+  const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;">התקבלה <strong>הצעת מחיר חדשה</strong> בהתמקחות עבור <strong>${escapeHtml(input.venueName)}</strong>.</p>
+    ${ctaButton(url, "לצפייה בהתמקחות")}`;
+
+  fireAndForget(
+    sendEmail({
+      to: input.recipientEmail,
+      subject: `הצעת מחיר חדשה — ${input.venueName}`,
+      html: emailShell("הצעת מחיר בהתמקחות", body),
+      text: `הצעת מחיר חדשה עבור ${input.venueName}. ${url}`,
+    }),
+    "negotiationOfferReceived"
+  );
+}
+
+export function notifyNegotiationOfferAccepted(input: {
+  recipientEmail: string;
+  recipientName: string | null;
+  venueName: string;
+  href: string;
+}): void {
+  const site = getSiteUrl();
+  const url = input.href.startsWith("http") ? input.href : `${site}${input.href}`;
+  const greeting = input.recipientName?.trim()
+    ? `שלום ${escapeHtml(input.recipientName.trim())},`
+    : "שלום,";
+
+  const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;">הצעת המחיר בהתמקחות עבור <strong>${escapeHtml(input.venueName)}</strong> <strong>אושרה</strong>.</p>
+    ${ctaButton(url, "לצפייה בהתמקחות")}`;
+
+  fireAndForget(
+    sendEmail({
+      to: input.recipientEmail,
+      subject: `הצעה התקבלה — ${input.venueName}`,
+      html: emailShell("הצעת מחיר התקבלה", body),
+      text: `הצעת מחיר התקבלה עבור ${input.venueName}. ${url}`,
+    }),
+    "negotiationOfferAccepted"
+  );
+}

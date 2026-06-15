@@ -15,6 +15,7 @@ import InquiryOfferOverview, {
   type MarketplaceAvailability,
 } from "@/components/venue-inquiry/InquiryOfferOverview";
 import InquiryFreelancerAddonsStep from "@/components/venue-inquiry/InquiryFreelancerAddonsStep";
+import InquirySendNotesSection from "@/components/venue-inquiry/InquirySendNotesSection";
 import InquiryWizardNav, {
   type InquiryWizardStep,
 } from "@/components/venue-inquiry/InquiryWizardNav";
@@ -1111,39 +1112,17 @@ export default function VenueInquiryClient({
                   לאחר השליחה הבקשה תמתין לאישור בעל האולם.
                 </p>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-emerald-950">
-                    הערות לבעל האולם (אופציונלי)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={form.message}
-                    onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                    className="mt-1 w-full rounded-xl border-2 border-neutral-200 px-3 py-2 outline-none focus:border-amber-400"
-                    placeholder="דגשים לאולם, תפריט, לוח זמנים..."
-                  />
-                </div>
-                {linkedSupplierCount > 0 ? (
-                  <div>
-                    <label className="block text-xs font-semibold text-emerald-950">
-                      הערות לספקים (אופציונלי)
-                    </label>
-                    <p className="mt-0.5 text-[11px] text-neutral-600">
-                      יישלחו ל-{linkedSupplierCount} ספקים שבחרתם (חלופות במאגר או ספקים נוספים).
-                    </p>
-                    <textarea
-                      rows={3}
-                      value={form.supplierMessage}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, supplierMessage: e.target.value }))
-                      }
-                      className="mt-1 w-full rounded-xl border-2 border-neutral-200 px-3 py-2 outline-none focus:border-amber-400"
-                      placeholder="דגשים לספקים — סגנון, שעות הגעה, העדפות..."
-                    />
-                  </div>
-                ) : null}
-              </div>
+              <InquirySendNotesSection
+                venueMessage={form.message}
+                supplierMessage={form.supplierMessage}
+                linkedSupplierCount={linkedSupplierCount}
+                onVenueMessageChange={(value) =>
+                  setForm((f) => ({ ...f, message: value }))
+                }
+                onSupplierMessageChange={(value) =>
+                  setForm((f) => ({ ...f, supplierMessage: value }))
+                }
+              />
             </div>
           ) : null}
 

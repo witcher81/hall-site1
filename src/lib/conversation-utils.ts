@@ -12,6 +12,14 @@ export function contextKeyService(serviceId: number) {
   return `service:${serviceId}`;
 }
 
+export function contextKeyInquiryVenue(inquiryId: number) {
+  return `inquiry:${inquiryId}:venue`;
+}
+
+export function contextKeyInquiryService(inquiryId: number, serviceId: number) {
+  return `inquiry:${inquiryId}:service:${serviceId}`;
+}
+
 /** הפרש קטן לפי id כדי שלא כל הסיכות יושבות באותה נקודה בעיר */
 export function jitterLatLng(
   id: number,

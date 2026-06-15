@@ -5,6 +5,8 @@ import InquiryServiceChoicesFromSeeker, {
   InquiryFreeTextFromSeeker,
   InquirySupplierNotesFromSeeker,
 } from "@/components/InquiryServiceChoicesFromSeeker";
+import InquiryNegotiationHub from "@/components/inquiry-negotiation/InquiryNegotiationHub";
+import NegotiationAcceptedSummary from "@/components/inquiry-negotiation/NegotiationAcceptedSummary";
 import {
   inquirySeekerProgressSteps,
   inquiryStatusBadgeClass,
@@ -153,6 +155,8 @@ export default function InquiryDetailSeekerClient({
             </p>
           )}
 
+          <NegotiationAcceptedSummary inquiryId={inquiry.id} />
+
           <InquiryEventSummaryLuxury
             eventType={inquiry.eventType}
             preferredDate={inquiry.preferredDate}
@@ -193,6 +197,8 @@ export default function InquiryDetailSeekerClient({
           )}
         </div>
       </article>
+
+      <InquiryNegotiationHub inquiryId={inquiry.id} className="mt-6" />
     </div>
   );
 }

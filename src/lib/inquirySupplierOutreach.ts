@@ -70,8 +70,9 @@ function buildSupplierRequestMessage(input: {
   return `${base}\n\n${parts.join(" · ")}`;
 }
 
-/** יוצר בקשות שירות לספקים שנבחרו בפנייה לאולם */
+/** יוצר בקשות שירות לספקים שנבחרו בפנייה לאולם — מחזיר מזהי הבקשות שנוצרו */
 export async function createSupplierRequestsForInquiry(input: {
+  inquiryId: number;
   userId: number;
   seekerName: string | null;
   venueName: string;
@@ -79,8 +80,8 @@ export async function createSupplierRequestsForInquiry(input: {
   preferredDate: string | null;
   supplierMessage: string | null;
   serviceIds: number[];
-}): Promise<void> {
-  if (input.serviceIds.length === 0) return;
+}): Promise<number[]> {
+  if (input.serviceIds.length === 0) return [];
 
   const services = await prisma.service.findMany({
     where: { id: { in: input.serviceIds } },
@@ -99,23 +100,27 @@ export async function createSupplierRequestsForInquiry(input: {
     preferredDate: input.preferredDate,
   });
 
+  const createdIds: number[] = [];
+
   for (const service of services) {
-    await prisma.serviceRequest.create({
+    const request = await prisma.serviceRequest.create({
       data: {
         userId: input.userId,
         serviceId: service.id,
+        inquiryId: input.inquiryId,
         message,
         eventType: input.eventType,
         preferredDate: input.preferredDate,
       },
     });
+    createdIds.push(request.id);
 
     await createNotification({
       userId: service.providerId,
       type: "NEW_REQUEST",
       title: "בקשה חדשה לספק",
       body: `התקבלה בקשה דרך הזמנת אולם «${input.venueName}» עבור «${service.name}».`,
-      href: "/dashboard/freelancer/requests",
+      href: `/dashboard/freelancer/requests?inquiryId=${input.inquiryId}`,
     });
 
     const providerEmail = service.provider.email;
@@ -131,4 +136,6 @@ export async function createSupplierRequestsForInquiry(input: {
       });
     }
   }
+
+  return createdIds;
 }

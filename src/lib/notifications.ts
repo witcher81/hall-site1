@@ -9,6 +9,8 @@ type CreateNotificationInput = {
     | "INQUIRY_APPROVED"
     | "INQUIRY_REJECTED"
     | "INQUIRY_AUTO_MESSAGE"
+    | "NEGOTIATION_MESSAGE"
+    | "NEGOTIATION_UPDATE"
     | "NEW_VENUE_IN_CITY"
     | "WELCOME";
   title: string;

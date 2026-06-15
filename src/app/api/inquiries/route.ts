@@ -10,6 +10,7 @@ import {
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
 import { resolveInquiryAddonServiceChoices } from "@/lib/inquiryAddonFreelancers";
 import { enrichInquiryServiceChoicesWithReplacements } from "@/lib/inquiryVenueOptionReplacement";
+import { bootstrapNegotiationForNewInquiry } from "@/lib/negotiationThreads";
 import {
   collectLinkedMarketplaceServiceIds,
   createSupplierRequestsForInquiry,
@@ -213,8 +214,10 @@ export async function POST(req: NextRequest) {
     throw e;
   }
 
+  let serviceRequestIds: number[] = [];
   if (linkedSupplierIds.length > 0) {
-    await createSupplierRequestsForInquiry({
+    serviceRequestIds = await createSupplierRequestsForInquiry({
+      inquiryId: inquiry.id,
       userId: user.id,
       seekerName: user.name,
       venueName: venue.name,
@@ -224,6 +227,16 @@ export async function POST(req: NextRequest) {
       serviceIds: linkedSupplierIds,
     });
   }
+
+  await bootstrapNegotiationForNewInquiry({
+    inquiryId: inquiry.id,
+    seekerUserId: user.id,
+    venueOwnerId: venue.ownerId,
+    venueId: venue.id,
+    venueMessage: message,
+    supplierMessage,
+    serviceRequestIds,
+  });
 
   await createNotification({
     userId: venue.ownerId,

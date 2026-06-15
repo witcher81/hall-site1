@@ -37,6 +37,7 @@ model User {
   services      Service[]
   inquiriesSent     Inquiry[]
   serviceRequestsSent ServiceRequest[]
+  negotiationOffers   NegotiationOffer[]
   favorites         Favorite[]
   venueReviews      VenueReview[]
   serviceReviews    ServiceReview[]
@@ -202,6 +203,9 @@ model Inquiry {
   serviceChoicesJson String?
   createdAt     DateTime @default(now())
 
+  negotiationThreads NegotiationThread[]
+  serviceRequests    ServiceRequest[]
+
   @@index([userId, venueId])
   @@index([venueId, createdAt])
 }
@@ -290,6 +294,7 @@ model Service {
   minPrice        Int?
   maxPrice        Int?
   serviceRequests ServiceRequest[]
+  negotiationThreads NegotiationThread[]
   conversations   Conversation[]
   plannedAsPhotographer EventPlan[] @relation("EventPlanPhotographer")
   plannedAsDj          EventPlan[] @relation("EventPlanDj")
@@ -423,6 +428,7 @@ model Conversation {
   serviceId      Int?
   service        Service?  @relation(fields: [serviceId], references: [id])
   messages       Message[]
+  negotiationThread NegotiationThread?
   participant1LastReadAt DateTime?
   participant2LastReadAt DateTime?
   createdAt      DateTime  @default(now())
@@ -451,6 +457,8 @@ model ServiceRequest {
   user         User     @relation(fields: [userId], references: [id])
   serviceId    Int
   service      Service  @relation(fields: [serviceId], references: [id])
+  inquiryId    Int?
+  inquiry      Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
   eventType    String?
   preferredDate String?
   message      String
@@ -458,6 +466,51 @@ model ServiceRequest {
   providerNote String?
   repliedAt    DateTime?
   createdAt    DateTime @default(now())
+
+  negotiationThread NegotiationThread?
+
+  @@index([inquiryId])
+  @@index([userId, createdAt])
+}
+
+model NegotiationThread {
+  id               Int      @id @default(autoincrement())
+  inquiryId        Int
+  inquiry          Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  kind             String   // VENUE | SUPPLIER
+  threadKey        String   // venue | service:{serviceId}
+  serviceId        Int?
+  service          Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  serviceRequestId Int?     @unique
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+  conversationId   Int      @unique
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  status           String   @default("OPEN") // OPEN | DEAL_ACCEPTED | CLOSED
+  offers           NegotiationOffer[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([inquiryId, threadKey])
+  @@index([inquiryId])
+}
+
+model NegotiationOffer {
+  id                Int      @id @default(autoincrement())
+  threadId          Int
+  thread            NegotiationThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorUserId      Int
+  author            User     @relation(fields: [authorUserId], references: [id])
+  authorRole        String   // SEEKER | VENUE_OWNER | FREELANCER
+  amountMinNis      Int?
+  amountMaxNis      Int?
+  message           String?
+  status            String   @default("PENDING") // PENDING | ACCEPTED | REJECTED | WITHDRAWN | SUPERSEDED
+  respondsToOfferId Int?
+  respondsToOffer   NegotiationOffer?  @relation("OfferResponse", fields: [respondsToOfferId], references: [id], onDelete: SetNull)
+  responses         NegotiationOffer[] @relation("OfferResponse")
+  createdAt         DateTime @default(now())
+
+  @@index([threadId, createdAt])
 }
 
 model VenueReview {

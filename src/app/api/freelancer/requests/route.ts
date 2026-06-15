@@ -35,10 +35,20 @@ export async function GET() {
       service: {
         select: { id: true, name: true },
       },
+      negotiationThread: {
+        select: { id: true, inquiryId: true },
+      },
     },
   });
 
-  return NextResponse.json({ requests, services });
+  return NextResponse.json({
+    requests: requests.map((r) => ({
+      ...r,
+      negotiationThreadId: r.negotiationThread?.id ?? null,
+      inquiryId: r.inquiryId ?? r.negotiationThread?.inquiryId ?? null,
+    })),
+    services,
+  });
 }
 
 /** סימון בקשה כ־נקראה או נענתה */

@@ -1,5 +1,6 @@
 "use client";
 
+import InquiryNegotiationHub from "@/components/inquiry-negotiation/InquiryNegotiationHub";
 import InquiryEventSummaryLuxury from "@/components/InquiryEventSummaryLuxury";
 import InquiryServiceChoicesFromSeeker, {
   InquiryFreeTextFromSeeker,
@@ -521,6 +522,12 @@ export default function InquiryDetailClient({ initial }: Props) {
           )}
         </div>
       </article>
+
+      <InquiryNegotiationHub
+        inquiryId={q.id}
+        venueOnly
+        className="mt-6"
+      />
     </div>
   );
 }
