@@ -1,20 +1,24 @@
 /**
- * יוצר שירותי פרילנסר דוגמה — כולל קבוצות של 3 באותה קטגוריה לבדיקת חלופות במאגר.
+ * יוצר שירותי פרילנסר דוגמה — נתונים מלאים + קבוצות השוואה באותה קטגוריה.
  * הרצה: node scripts/seed-sample-services.mjs
- * אידמפוטנטי — מדלג על שירותים שכבר קיימים לפי שם.
+ * בנייה מחדש: node scripts/seed-sample-services.mjs --rebuild
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import {
+  SERVICE_SEED_MARKER,
+  serviceIncludesPayload,
+  socialLinks,
+  starsToDb,
+  unsplash,
+} from "./seed-lib.mjs";
 
 const prisma = new PrismaClient();
 
-const SEED_MARKER = "[seed-sample-services]";
+const SEED_MARKER = SERVICE_SEED_MARKER;
 const SEED_PASSWORD = "SampleFreelancers2026!";
+const REBUILD = process.argv.includes("--rebuild");
 const CATEGORY_SEP = " / ";
-
-function unsplash(photoId) {
-  return `https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=1200&q=80`;
-}
 
 const U = {
   photographer: unsplash("1511285560929-80b456fea0bc"),
@@ -41,9 +45,48 @@ function category(primary, secondary) {
   return `${primary}${CATEGORY_SEP}${secondary}`;
 }
 
-/** ממיר כוכבים 1–5 לערך DB (×2) */
-function starsToDb(stars) {
-  return Math.round(stars * 2);
+/** משלים כלולים (חינם) ותוספות בתשלום אם חסרים */
+function enrichServiceDefaults(s) {
+  const included = Array.isArray(s.included)
+    ? s.included
+    : (s.customIncludes ?? []).map((label) => ({
+        label,
+        description: `כלול במחיר — ${label}`,
+      }));
+
+  const paidExtras = s.paidExtras ?? [
+    {
+      label: "שעת עבודה נוספת",
+      description: "הארכת זמן באירוע מעבר לחבילה",
+      exactPrice: Math.max(300, Math.round((s.minPrice ?? 3000) * 0.1)),
+    },
+    {
+      label: "חבילת שדרוג",
+      description: "ציוד/שירות מתקדם לפי צורך",
+      usePriceRange: true,
+      minPrice: Math.round((s.minPrice ?? 3000) * 0.18),
+      maxPrice: Math.round((s.minPrice ?? 3000) * 0.32),
+    },
+    {
+      label: "נסיעה מחוץ לאזור השירות",
+      description: "תוספת מרחק לפי מיקום האירוע",
+      exactPrice: 400,
+    },
+  ];
+
+  const descClean = (s.description ?? "").replace(SERVICE_SEED_MARKER, "").trim();
+
+  return {
+    ...s,
+    included,
+    paidExtras,
+    shortDescription:
+      s.shortDescription ?? (descClean.length > 120 ? `${descClean.slice(0, 117)}…` : descClean),
+    galleryImageUrls:
+      s.galleryImageUrls ??
+      [s.coverImageUrl, s.coverImageUrl2].filter(Boolean),
+    socialHandle: s.socialHandle ?? `demo.${s.name?.replace(/\s+/g, "").slice(0, 12).toLowerCase()}`,
+  };
 }
 
 /**
@@ -73,6 +116,10 @@ const COMPARISON_GROUPS = [
           coverImageUrl: U.dj2,
           description: `DJ לחתונות קטנות ואירועים ביתיים. מחיר נוח, ציוד בסיסי. ${SEED_MARKER}`,
           customIncludes: ["מוזיקה מותאמת", "מיקרופון"],
+          paidExtras: [
+            { label: "תאורת לייזר", description: "מופע תאורה מתקדם", exactPrice: 900 },
+            { label: "עשן ואפקטים", description: "מכונת עשן לרחבה", exactPrice: 650 },
+          ],
           reviews: [{ stars: 3.5, comment: "סבבה למחיר, ציוד בסיסי." }],
         },
       },
@@ -538,11 +585,17 @@ const ALL_ENTRIES = [
   ...STANDALONE_ENTRIES,
 ];
 
-function customIncludesJson(labels) {
-  return JSON.stringify({
-    included: labels.map((label) => ({ label, checked: true })),
-    paidExtras: [],
+async function wipeSeedServices() {
+  const services = await prisma.service.findMany({
+    where: { description: { contains: SEED_MARKER } },
+    select: { id: true },
   });
+  const ids = services.map((s) => s.id);
+  if (ids.length === 0) return 0;
+  await prisma.serviceRequest.deleteMany({ where: { serviceId: { in: ids } } });
+  await prisma.serviceFavorite.deleteMany({ where: { serviceId: { in: ids } } });
+  const r = await prisma.service.deleteMany({ where: { id: { in: ids } } });
+  return r.count;
 }
 
 async function getOrCreateFreelancer(entry) {
@@ -611,41 +664,54 @@ async function seedReviews(serviceId, reviews) {
 }
 
 async function main() {
+  if (REBUILD) {
+    const wiped = await wipeSeedServices();
+    console.log(`נמחקו ${wiped} שירותי דוגמה קיימים.`);
+  }
+
   let created = 0;
-  let skipped = 0;
+  let updated = 0;
 
   for (const entry of ALL_ENTRIES) {
-    const s = entry.service;
+    const s = enrichServiceDefaults(entry.service);
 
     const dup = await prisma.service.findFirst({
       where: { name: s.name, description: { contains: SEED_MARKER } },
     });
-    if (dup) {
-      await seedReviews(dup.id, s.reviews);
-      skipped += 1;
-      console.log("קיים:", s.name);
-      continue;
-    }
 
     const provider = await getOrCreateFreelancer(entry);
+    const payload = {
+      name: s.name,
+      category: s.category,
+      shortDescription: s.shortDescription,
+      description: s.description,
+      serviceArea: s.serviceArea,
+      experienceYears: s.experienceYears,
+      languages: s.languages,
+      responseTimeHint: s.responseTimeHint,
+      includesTravel: s.includesTravel,
+      includesEquipment: s.includesEquipment,
+      includesNote: s.includesNote,
+      customIncludesJson: serviceIncludesPayload(s.included, s.paidExtras),
+      socialLinksJson: socialLinks(s.socialHandle),
+      coverImageUrl: s.coverImageUrl,
+      galleryImageUrls:
+        s.galleryImageUrls.length > 0 ? JSON.stringify(s.galleryImageUrls) : null,
+      minPrice: s.minPrice,
+      maxPrice: s.maxPrice,
+    };
+
+    if (dup && !REBUILD) {
+      await prisma.service.update({ where: { id: dup.id }, data: payload });
+      await seedReviews(dup.id, s.reviews);
+      updated += 1;
+      console.log(`↻ עודכן: ${s.name} (id ${dup.id})`);
+      continue;
+    }
+    if (dup) continue;
+
     const service = await prisma.service.create({
-      data: {
-        providerId: provider.id,
-        name: s.name,
-        category: s.category,
-        description: s.description,
-        serviceArea: s.serviceArea,
-        experienceYears: s.experienceYears,
-        languages: s.languages,
-        responseTimeHint: s.responseTimeHint,
-        includesTravel: s.includesTravel,
-        includesEquipment: s.includesEquipment,
-        includesNote: s.includesNote,
-        customIncludesJson: customIncludesJson(s.customIncludes),
-        coverImageUrl: s.coverImageUrl,
-        minPrice: s.minPrice,
-        maxPrice: s.maxPrice,
-      },
+      data: { providerId: provider.id, ...payload },
     });
     await seedReviews(service.id, s.reviews);
     created += 1;
@@ -656,7 +722,7 @@ async function main() {
     where: { description: { contains: SEED_MARKER } },
   });
 
-  console.log(`\nסיום: נוצרו ${created} שירותים חדשים, דולגו ${skipped}. סה"כ דוגמה: ${total}`);
+  console.log(`\nסיום: נוצרו ${created}, עודכנו ${updated}. סה"כ דוגמה: ${total}`);
   console.log("\nקבוצות השוואה (3 בכל קטגוריה):");
   for (const g of COMPARISON_GROUPS) {
     console.log(`  • ${g.label}: ${g.entries.map((e) => e.service.name).join(" | ")}`);

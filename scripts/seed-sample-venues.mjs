@@ -1,22 +1,24 @@
 /**
- * יוצר 10 אולמות דוגמה עם שמות, נתונים ותמונות ציבוריות (Unsplash).
+ * יוצר 10 אולמות דוגמה עם נתונים מלאים (תמחור, תוספות, פרופילים לפי אירוע).
  * הרצה: node scripts/seed-sample-venues.mjs
- * תיקון תמונות קיימות: node scripts/seed-sample-venues.mjs --fix-images
- * אידמפוטנטי — מדלג אם כבר קיימים 10+ אולמות לבעל הדוגמה.
+ * בנייה מחדש: node scripts/seed-sample-venues.mjs --rebuild
+ * תיקון תמונות: node scripts/seed-sample-venues.mjs --fix-images
  */
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import {
+  VENUE_SEED_MARKER,
+  buildVenueGallery,
+  buildVenueRichPayload,
+  unsplash,
+} from "./seed-lib.mjs";
 
 const prisma = new PrismaClient();
 
 const SEED_OWNER_EMAIL = "sample-venues@hallshub.local";
-const SEED_MARKER = "[seed-sample-venues]";
+const SEED_MARKER = VENUE_SEED_MARKER;
 const FIX_IMAGES = process.argv.includes("--fix-images");
-
-/** מזהי Unsplash מאומתים — פורמט auto=format אמין יותר מ-?w= בלבד */
-function unsplash(photoId) {
-  return `https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=1200&q=80`;
-}
+const REBUILD = process.argv.includes("--rebuild");
 
 const U = {
   weddingHall: unsplash("1464366400600-7168b8af9bc3"),
@@ -71,6 +73,10 @@ const VENUES = [
     description:
       "אולם מרכזי בתל אביב לאירועי חתונה ובר/בת מצווה. עיצוב אלגנטי, מטבח כשר מהדרין, רחבת ריקודים מרווחת וחופה מקורה.",
     eventTypes: ["חתונה", "בר מצווה", "בת מצווה", "אירוע עסקי"],
+    soundMode: "extra",
+    soundPrice: 4200,
+    tableSetupMode: "included",
+    publicNotes: "מנה ראשונה חינם בחתונות עונת קיץ. אפשרות לתפריט טבעוני בתוספת תשלום.",
   },
   {
     name: "גן אירועים הדס הרצליה",
@@ -366,115 +372,122 @@ async function getOrCreateOwner() {
   return owner;
 }
 
-function galleryRows(venueId, coverImageUrl, galleryImageUrls) {
-  const urls = [coverImageUrl, ...galleryImageUrls];
-  const unique = [...new Set(urls)];
-  return unique.map((url) => ({ venueId, url, category: "HALL" }));
+function venueCreateData(ownerId, v) {
+  const rich = buildVenueRichPayload(v);
+  const gallery = buildVenueGallery(v);
+  const galleryUrls = gallery.map((g) => g.url);
+  return {
+    ownerId,
+    name: v.name,
+    city: v.city,
+    address: v.address,
+    venueType: v.venueType,
+    minGuests: v.minGuests,
+    maxGuests: v.maxGuests,
+    minPrice: v.minPrice,
+    maxPrice: v.maxPrice,
+    hallRentalMin: v.hallRentalMin,
+    hallRentalMax: v.hallRentalMax,
+    kashrut: v.kashrut,
+    parking: rich.parking,
+    parkingKind: v.parkingKind,
+    latitude: v.latitude,
+    longitude: v.longitude,
+    hasParkingNearby: rich.hasParkingNearby,
+    parkingLatitude: rich.parkingLatitude,
+    parkingLongitude: rich.parkingLongitude,
+    seaView: v.seaView,
+    boutique: v.boutique,
+    accessible: v.accessible,
+    hasChuppa: v.hasChuppa,
+    hasFood: v.hasFood,
+    hasDanceFloor: v.hasDanceFloor,
+    hasTableSetup: v.hasTableSetup,
+    hasSoundSystem: v.hasSoundSystem,
+    hasBridalRoom: v.hasBridalRoom,
+    hasChuppaOutdoor: rich.hasChuppaOutdoor,
+    hasChuppaCovered: rich.hasChuppaCovered,
+    hasVeganFood: rich.hasVeganFood,
+    coverImageUrl: v.coverImageUrl,
+    galleryImageUrls: JSON.stringify(galleryUrls.slice(1)),
+    description: `${v.description} ${SEED_MARKER}`,
+    eventTypes: JSON.stringify(v.eventTypes),
+    eventTypeProfilesJson: rich.eventTypeProfilesJson,
+    customAmenitiesJson: rich.customAmenitiesJson,
+    venueSoftAttributesJson: rich.venueSoftAttributesJson,
+    autoReplyMessage: rich.autoReplyMessage,
+    galleryImages: {
+      create: gallery.map(({ url, category }) => ({ url, category })),
+    },
+  };
 }
 
-async function updateVenueImages(venueId, v) {
-  await prisma.$transaction([
-    prisma.venue.update({
-      where: { id: venueId },
-      data: {
-        coverImageUrl: v.coverImageUrl,
-        galleryImageUrls: JSON.stringify(v.galleryImageUrls),
-      },
-    }),
-    prisma.venueGalleryImage.deleteMany({ where: { venueId } }),
-    prisma.venueGalleryImage.createMany({
-      data: galleryRows(venueId, v.coverImageUrl, v.galleryImageUrls),
-    }),
-  ]);
+async function wipeSeedVenues(ownerId) {
+  const venues = await prisma.venue.findMany({
+    where: { ownerId, description: { contains: SEED_MARKER } },
+    select: { id: true },
+  });
+  const ids = venues.map((x) => x.id);
+  if (ids.length === 0) return 0;
+  await prisma.inquiry.deleteMany({ where: { venueId: { in: ids } } });
+  await prisma.favorite.deleteMany({ where: { venueId: { in: ids } } });
+  await prisma.venueReview.deleteMany({ where: { venueId: { in: ids } } });
+  await prisma.venueAvailability.deleteMany({ where: { venueId: { in: ids } } });
+  await prisma.eventPackage.deleteMany({ where: { venueId: { in: ids } } });
+  const r = await prisma.venue.deleteMany({ where: { id: { in: ids } } });
+  return r.count;
+}
+
+async function upsertVenue(ownerId, v) {
+  const existing = await prisma.venue.findFirst({
+    where: { ownerId, name: v.name },
+  });
+  if (existing && !REBUILD) {
+    const data = venueCreateData(ownerId, v);
+    delete data.galleryImages;
+    delete data.ownerId;
+    await prisma.$transaction([
+      prisma.venueGalleryImage.deleteMany({ where: { venueId: existing.id } }),
+      prisma.venue.update({ where: { id: existing.id }, data }),
+      prisma.venueGalleryImage.createMany({
+        data: buildVenueGallery(v).map((g) => ({
+          venueId: existing.id,
+          url: g.url,
+          category: g.category,
+        })),
+      }),
+    ]);
+    return { action: "updated", venue: existing };
+  }
+  const venue = await prisma.venue.create({ data: venueCreateData(ownerId, v) });
+  return { action: "created", venue };
 }
 
 async function main() {
   const owner = await getOrCreateOwner();
 
-  if (FIX_IMAGES) {
-    let fixed = 0;
-    for (const v of VENUES) {
-      const venue = await prisma.venue.findFirst({
-        where: { ownerId: owner.id, name: v.name },
-      });
-      if (!venue) {
-        console.log("לא נמצא:", v.name);
-        continue;
-      }
-      await updateVenueImages(venue.id, v);
-      fixed += 1;
-      console.log(`✓ תמונות עודכנו: ${v.name} (id ${venue.id})`);
-    }
-    console.log(`\nסיום: עודכנו ${fixed} אולמות.`);
-    return;
-  }
-
-  const existingCount = await prisma.venue.count({
-    where: {
-      ownerId: owner.id,
-      description: { contains: SEED_MARKER },
-    },
-  });
-
-  if (existingCount >= VENUES.length) {
-    console.log(`כבר קיימים ${existingCount} אולמות דוגמה — מדלג.`);
-    console.log("לתיקון תמונות: npm run seed:venues:fix-images");
-    return;
+  if (REBUILD) {
+    const wiped = await wipeSeedVenues(owner.id);
+    console.log(`נמחקו ${wiped} אולמות דוגמה קיימים.`);
   }
 
   let created = 0;
+  let updated = 0;
   for (const v of VENUES) {
-    const dup = await prisma.venue.findFirst({
-      where: { ownerId: owner.id, name: v.name },
-    });
-    if (dup) {
-      console.log("קיים:", v.name);
-      continue;
+    const { action, venue } = await upsertVenue(owner.id, v);
+    if (action === "created") {
+      created += 1;
+      console.log(`+ ${venue.name} (id ${venue.id}) — ${v.city}`);
+    } else {
+      updated += 1;
+      console.log(`↻ עודכן: ${venue.name} (id ${venue.id})`);
     }
-
-    const venue = await prisma.venue.create({
-      data: {
-        ownerId: owner.id,
-        name: v.name,
-        city: v.city,
-        address: v.address,
-        venueType: v.venueType,
-        minGuests: v.minGuests,
-        maxGuests: v.maxGuests,
-        minPrice: v.minPrice,
-        maxPrice: v.maxPrice,
-        hallRentalMin: v.hallRentalMin,
-        hallRentalMax: v.hallRentalMax,
-        kashrut: v.kashrut,
-        parking: v.parkingKind === "adjacent" ? "חניה צמודה" : "חניון",
-        parkingKind: v.parkingKind,
-        latitude: v.latitude,
-        longitude: v.longitude,
-        seaView: v.seaView,
-        boutique: v.boutique,
-        accessible: v.accessible,
-        hasChuppa: v.hasChuppa,
-        hasFood: v.hasFood,
-        hasDanceFloor: v.hasDanceFloor,
-        hasTableSetup: v.hasTableSetup,
-        hasSoundSystem: v.hasSoundSystem,
-        hasBridalRoom: v.hasBridalRoom,
-        coverImageUrl: v.coverImageUrl,
-        galleryImageUrls: JSON.stringify(v.galleryImageUrls),
-        description: `${v.description} ${SEED_MARKER}`,
-        eventTypes: JSON.stringify(v.eventTypes),
-        galleryImages: {
-          create: galleryRows(0, v.coverImageUrl, v.galleryImageUrls).map(
-            ({ url, category }) => ({ url, category })
-          ),
-        },
-      },
-    });
-    created += 1;
-    console.log(`+ ${venue.name} (id ${venue.id}) — ${v.city}`);
   }
 
-  console.log(`\nסיום: נוצרו ${created} אולמות חדשים. סה"כ לבעל: ${existingCount + created}`);
+  const total = await prisma.venue.count({
+    where: { ownerId: owner.id, description: { contains: SEED_MARKER } },
+  });
+  console.log(`\nסיום: נוצרו ${created}, עודכנו ${updated}. סה"כ דוגמה: ${total}`);
   console.log(`התחברות בעל דוגמה: ${SEED_OWNER_EMAIL} / SampleVenues2026!`);
 }
 
