@@ -11,6 +11,10 @@ import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
 import { resolveInquiryAddonServiceChoices } from "@/lib/inquiryAddonFreelancers";
 import { enrichInquiryServiceChoicesWithReplacements } from "@/lib/inquiryVenueOptionReplacement";
 import {
+  collectLinkedMarketplaceServiceIds,
+  createSupplierRequestsForInquiry,
+} from "@/lib/inquirySupplierOutreach";
+import {
   getInquiryGuestBounds,
   normalizeInquiryServiceChoices,
   validateInquiryEventType,
@@ -18,6 +22,7 @@ import {
 import {
   USER_INPUT_MAX,
   validateGuestCount,
+  validateOptionalLongText,
   badRequest,
 } from "@/lib/userInputValidation";
 
@@ -36,6 +41,13 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const venueId = body.venueId != null ? Number(body.venueId) : NaN;
   let message = typeof body.message === "string" ? body.message.trim() : "";
+  const supplierMsgRes = validateOptionalLongText(
+    body.supplierMessage,
+    USER_INPUT_MAX.INQUIRY_MESSAGE,
+    "הערות לספקים"
+  );
+  if (!supplierMsgRes.ok) return badRequest(supplierMsgRes.error);
+  const supplierMessage = supplierMsgRes.value;
   const preferredDateRaw = (body.preferredDate as string)?.trim() || null;
   let eventType =
     typeof body.eventType === "string" ? body.eventType.trim() || null : null;
@@ -162,6 +174,11 @@ export async function POST(req: NextRequest) {
   const mergedServiceRows = [...enrichedServiceRows, ...addonRows];
   const serviceChoicesJson =
     mergedServiceRows.length > 0 ? JSON.stringify(mergedServiceRows) : null;
+  const linkedSupplierIds = collectLinkedMarketplaceServiceIds(
+    body.addonServiceIds,
+    mergedServiceRows,
+    body.serviceChoices
+  );
 
   if (!message || message.length < 10) {
     message = DEFAULT_INQUIRY_SEEKER_MESSAGE;
@@ -176,6 +193,7 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         venueId,
         message,
+        supplierMessage,
         eventType,
         preferredDate,
         guestCount: guestCount != null && Number.isFinite(guestCount) ? guestCount : null,
@@ -193,6 +211,18 @@ export async function POST(req: NextRequest) {
       );
     }
     throw e;
+  }
+
+  if (linkedSupplierIds.length > 0) {
+    await createSupplierRequestsForInquiry({
+      userId: user.id,
+      seekerName: user.name,
+      venueName: venue.name,
+      eventType,
+      preferredDate,
+      supplierMessage,
+      serviceIds: linkedSupplierIds,
+    });
   }
 
   await createNotification({

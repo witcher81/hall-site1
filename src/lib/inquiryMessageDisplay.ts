@@ -2,6 +2,10 @@
 export const DEFAULT_INQUIRY_SEEKER_MESSAGE =
   "פנייה מהאתר — אשמח לבדיקת זמינות והצעת מחיר.";
 
+/** ברירת מחדל לבקשות שירות לספקים דרך הזמנת אולם */
+export const DEFAULT_INQUIRY_SUPPLIER_MESSAGE =
+  "פנייה דרך הזמנת אולם — אשמח לפרטים והצעת מחיר.";
+
 /** תאריך יעד לתצוגה (ממחרוזת YYYY-MM-DD) */
 export function formatInquiryPreferredDateForDisplay(
   ymd: string | null | undefined

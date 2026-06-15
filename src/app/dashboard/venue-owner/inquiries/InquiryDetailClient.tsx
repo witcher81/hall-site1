@@ -3,6 +3,7 @@
 import InquiryEventSummaryLuxury from "@/components/InquiryEventSummaryLuxury";
 import InquiryServiceChoicesFromSeeker, {
   InquiryFreeTextFromSeeker,
+  InquirySupplierNotesFromSeeker,
 } from "@/components/InquiryServiceChoicesFromSeeker";
 import {
   canOwnerApprove,
@@ -22,6 +23,7 @@ export type VenueOwnerInquiryDetail = {
   preferredDate: string | null;
   guestCount: number | null;
   message: string;
+  supplierMessage?: string | null;
   serviceChoicesJson?: string | null;
   status: string;
   ownerNote?: string | null;
@@ -407,6 +409,7 @@ export default function InquiryDetailClient({ initial }: Props) {
             preferredDate={q.preferredDate}
             guestCount={q.guestCount}
           />
+          <InquirySupplierNotesFromSeeker supplierMessage={q.supplierMessage} />
 
           {(status === "REPLIED" || status === "APPROVED" || status === "REJECTED") &&
             (q.ownerNote || status === "REPLIED") && (

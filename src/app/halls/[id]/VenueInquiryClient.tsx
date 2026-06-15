@@ -103,6 +103,7 @@ export default function VenueInquiryClient({
     guestCount: "",
     eventType: "",
     message: "",
+    supplierMessage: "",
   });
   const [sourceById, setSourceById] = useState<Record<string, ServiceChoiceSource>>({});
   const [replacementByOptionId, setReplacementByOptionId] = useState<
@@ -436,6 +437,7 @@ export default function VenueInquiryClient({
         guestCount: draft.guestCount || f.guestCount,
         eventType: draft.eventType || f.eventType,
         message: prefill?.message || draft.message || f.message,
+        supplierMessage: draft.supplierMessage || f.supplierMessage,
       }));
       if (
         draft.stepId === "offers" ||
@@ -469,6 +471,7 @@ export default function VenueInquiryClient({
         guestCount: form.guestCount,
         eventType: form.eventType,
         message: form.message,
+        supplierMessage: form.supplierMessage,
         stepId,
         sourceById,
         replacementByOptionId,
@@ -544,6 +547,13 @@ export default function VenueInquiryClient({
     chuppahSingleOutdoor,
     chuppahSingleCovered,
   ]);
+
+  const linkedSupplierCount = useMemo(() => {
+    const ids = new Set<number>();
+    for (const f of addonFreelancers) ids.add(f.serviceId);
+    for (const r of Object.values(replacementByOptionId)) ids.add(r.serviceId);
+    return ids.size;
+  }, [addonFreelancers, replacementByOptionId]);
 
   function handleReplacementChange(
     id: string,
@@ -735,6 +745,7 @@ export default function VenueInquiryClient({
         body: JSON.stringify({
           venueId,
           message: form.message.trim(),
+          supplierMessage: form.supplierMessage.trim() || null,
           preferredDate: form.preferredDate.trim(),
           guestCount: num,
           eventType: form.eventType.trim() || null,
@@ -1100,15 +1111,38 @@ export default function VenueInquiryClient({
                   לאחר השליחה הבקשה תמתין לאישור בעל האולם.
                 </p>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-emerald-950">הערות (אופציונלי)</label>
-                <textarea
-                  rows={3}
-                  value={form.message}
-                  onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border-2 border-neutral-200 px-3 py-2 outline-none focus:border-amber-400"
-                  placeholder="דגשים מיוחדים..."
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-emerald-950">
+                    הערות לבעל האולם (אופציונלי)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={form.message}
+                    onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                    className="mt-1 w-full rounded-xl border-2 border-neutral-200 px-3 py-2 outline-none focus:border-amber-400"
+                    placeholder="דגשים לאולם, תפריט, לוח זמנים..."
+                  />
+                </div>
+                {linkedSupplierCount > 0 ? (
+                  <div>
+                    <label className="block text-xs font-semibold text-emerald-950">
+                      הערות לספקים (אופציונלי)
+                    </label>
+                    <p className="mt-0.5 text-[11px] text-neutral-600">
+                      יישלחו ל-{linkedSupplierCount} ספקים שבחרתם (חלופות במאגר או ספקים נוספים).
+                    </p>
+                    <textarea
+                      rows={3}
+                      value={form.supplierMessage}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, supplierMessage: e.target.value }))
+                      }
+                      className="mt-1 w-full rounded-xl border-2 border-neutral-200 px-3 py-2 outline-none focus:border-amber-400"
+                      placeholder="דגשים לספקים — סגנון, שעות הגעה, העדפות..."
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}

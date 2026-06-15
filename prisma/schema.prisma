@@ -191,6 +191,8 @@ model Inquiry {
   preferredDate String?  // תאריך משוער
   guestCount    Int?     // כמות אורחים
   message       String
+  /// הערות מהמבקש לספקים במאגר (חלופות / ספקים נוספים)
+  supplierMessage String?
   status        String   @default("NEW") // NEW, READ, REPLIED, APPROVED, REJECTED
   ownerNote     String?  // הערה/תשובה מבעל האולם
   repliedAt     DateTime? // מתי סומן כנענה

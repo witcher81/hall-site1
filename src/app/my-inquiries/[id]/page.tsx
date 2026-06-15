@@ -53,6 +53,7 @@ export default async function MyInquiryDetailPage({
           preferredDate: inquiry.preferredDate,
           guestCount: inquiry.guestCount,
           message: inquiry.message,
+          supplierMessage: inquiry.supplierMessage ?? null,
           serviceChoicesJson: inquiry.serviceChoicesJson ?? null,
           status: inquiry.status,
           ownerNote: inquiry.ownerNote ?? null,
