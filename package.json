@@ -17,6 +17,7 @@
     "seed:venues": "node scripts/seed-sample-venues.mjs",
     "seed:venues:fix-images": "node scripts/seed-sample-venues.mjs --fix-images",
     "seed:services": "node scripts/seed-sample-services.mjs",
+    "seed:services:fix-images": "node scripts/seed-sample-services.mjs --fix-images",
     "seed:rebuild-all": "node scripts/seed-sample-venues.mjs --rebuild && node scripts/seed-sample-services.mjs --rebuild",
     "dev": "next dev --webpack",
     "dev:turbo": "next dev --turbopack",

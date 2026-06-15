@@ -7,38 +7,40 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import {
   SERVICE_SEED_MARKER,
+  SEED_UNSPLASH,
   serviceIncludesPayload,
   socialLinks,
   starsToDb,
-  unsplash,
 } from "./seed-lib.mjs";
 
 const prisma = new PrismaClient();
 
 const SEED_MARKER = SERVICE_SEED_MARKER;
 const SEED_PASSWORD = "SampleFreelancers2026!";
+const FIX_IMAGES = process.argv.includes("--fix-images");
 const REBUILD = process.argv.includes("--rebuild");
 const CATEGORY_SEP = " / ";
 
+/** תמונות כיסוי מאומתות לפי סוג שירות */
 const U = {
-  photographer: unsplash("1511285560929-80b456fea0bc"),
-  photographer2: unsplash("1606216794074-735e91aa2c92"),
-  photographer3: unsplash("1522675619728-1e9f1badc78a"),
-  dj: unsplash("1470225620780-dba8ba36b745"),
-  dj2: unsplash("1571266028247-e4733b0bf584"),
-  dj3: unsplash("1514525253161-7a46d19cd819"),
-  catering: unsplash("1555244162-8038346c33e5"),
-  flowers: unsplash("1490759847868-88d4486c7df4"),
-  flowers2: unsplash("1487530811176-3780de880c2d"),
-  flowers3: unsplash("1519225421984-6554e2b1c99c"),
-  makeup: unsplash("1522337360788-8a13dcda1b3c"),
-  makeup2: unsplash("1487412947147-5cebf100ffdb"),
-  makeup3: unsplash("1596462502278-afd55f835098"),
-  planner: unsplash("1464366400600-7168b8af9bc3"),
-  cocktails: unsplash("1514362545857-3bc695c4a615"),
-  video: unsplash("1492691527719-9d1e07f534c4"),
-  mc: unsplash("1511795409834-ef04bbd61622"),
-  cake: unsplash("1583939003579-730e3918a45a"),
+  photographer: SEED_UNSPLASH.flowers,
+  photographer2: SEED_UNSPLASH.banquet,
+  photographer3: SEED_UNSPLASH.weddingTable,
+  dj: SEED_UNSPLASH.djParty,
+  dj2: SEED_UNSPLASH.dance,
+  dj3: SEED_UNSPLASH.djBooth,
+  catering: SEED_UNSPLASH.elegantDining,
+  flowers: SEED_UNSPLASH.gardenFlowers,
+  flowers2: SEED_UNSPLASH.flowers,
+  flowers3: SEED_UNSPLASH.chuppah,
+  makeup: SEED_UNSPLASH.champagne,
+  makeup2: SEED_UNSPLASH.weddingTable,
+  makeup3: SEED_UNSPLASH.luxuryInterior,
+  planner: SEED_UNSPLASH.weddingHall,
+  cocktails: SEED_UNSPLASH.rooftopBar,
+  video: SEED_UNSPLASH.modernHall,
+  mc: SEED_UNSPLASH.eventSetup,
+  cake: SEED_UNSPLASH.cake,
 };
 
 function category(primary, secondary) {
@@ -84,7 +86,9 @@ function enrichServiceDefaults(s) {
       s.shortDescription ?? (descClean.length > 120 ? `${descClean.slice(0, 117)}…` : descClean),
     galleryImageUrls:
       s.galleryImageUrls ??
-      [s.coverImageUrl, s.coverImageUrl2].filter(Boolean),
+      [s.coverImageUrl, s.coverImageUrl2].filter(Boolean).filter(
+        (url, i, arr) => url && arr.indexOf(url) === i
+      ),
     socialHandle: s.socialHandle ?? `demo.${s.name?.replace(/\s+/g, "").slice(0, 12).toLowerCase()}`,
   };
 }
@@ -664,6 +668,27 @@ async function seedReviews(serviceId, reviews) {
 }
 
 async function main() {
+  if (FIX_IMAGES) {
+    let fixed = 0;
+    for (const entry of ALL_ENTRIES) {
+      const s = enrichServiceDefaults(entry.service);
+      const result = await prisma.service.updateMany({
+        where: { name: s.name, description: { contains: SEED_MARKER } },
+        data: {
+          coverImageUrl: s.coverImageUrl,
+          galleryImageUrls:
+            s.galleryImageUrls.length > 0 ? JSON.stringify(s.galleryImageUrls) : null,
+        },
+      });
+      if (result.count > 0) {
+        fixed += 1;
+        console.log(`✓ תמונות: ${s.name}`);
+      }
+    }
+    console.log(`\nסיום: עודכנו ${fixed} שירותים.`);
+    return;
+  }
+
   if (REBUILD) {
     const wiped = await wipeSeedServices();
     console.log(`נמחקו ${wiped} שירותי דוגמה קיימים.`);

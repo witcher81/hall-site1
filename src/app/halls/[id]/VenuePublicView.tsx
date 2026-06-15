@@ -13,6 +13,7 @@ import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import ShareButton from "@/components/ShareButton";
 import LoginPromptModal from "@/components/LoginPromptModal";
 import {
+  galleryCategoryLabel,
   galleryCategoryMatchesFilter,
   normalizeGalleryCategory,
   type VenueGalleryFilterCategory,
@@ -509,6 +510,8 @@ export default function VenuePublicView({
 }) {
   const router = useRouter();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightboxSource, setLightboxSource] = useState<"visible" | "all">("visible");
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<VenueGalleryFilterCategory>("ALL");
@@ -525,6 +528,16 @@ export default function VenuePublicView({
       ),
     [venue.ownerContactPhone, venue.name, venue.city]
   );
+
+  const inquiryHref = useMemo(() => {
+    const path = `/halls/${venue.id}/inquiry`;
+    if (!user) {
+      return `/auth/login?redirect=${encodeURIComponent(path)}`;
+    }
+    return path;
+  }, [venue.id, user]);
+
+  const showInquiryCta = !user || user.role === "SEEKER";
 
   const handleCalendarDaySelect = (ymd: string) => {
     router.push(`/halls/${venue.id}/inquiry?date=${encodeURIComponent(ymd)}`);
@@ -569,6 +582,13 @@ export default function VenuePublicView({
       galleryCategoryMatchesFilter(img.category, activeCategory)
     );
   }, [allImages, activeCategory]);
+
+  useEffect(() => {
+    setHeroImageIndex(0);
+  }, [venue.id, allImages.length]);
+
+  const lightboxImages = lightboxSource === "all" ? allImages : visibleImages;
+  const heroImage = allImages[heroImageIndex] ?? allImages[0];
 
   const hasCheckedCustomAmenities =
     venue.customAmenities?.some((a) => a.checked) ?? false;
@@ -665,8 +685,12 @@ export default function VenuePublicView({
     generalIncludedOffers.length > 0 ||
     generalExtraOffers.length > 0;
 
-  const openLightbox = (index: number) => {
-    if (index >= 0 && index < visibleImages.length) setLightboxIndex(index);
+  const openLightbox = (index: number, source: "visible" | "all" = "visible") => {
+    const images = source === "all" ? allImages : visibleImages;
+    if (index >= 0 && index < images.length) {
+      setLightboxSource(source);
+      setLightboxIndex(index);
+    }
   };
 
   const closeLightbox = () => setLightboxIndex(null);
@@ -674,15 +698,25 @@ export default function VenuePublicView({
   const goPrev = () => {
     if (lightboxIndex === null) return;
     setLightboxIndex(
-      lightboxIndex === 0 ? visibleImages.length - 1 : lightboxIndex - 1
+      lightboxIndex === 0 ? lightboxImages.length - 1 : lightboxIndex - 1
     );
   };
 
   const goNext = () => {
     if (lightboxIndex === null) return;
     setLightboxIndex(
-      lightboxIndex === visibleImages.length - 1 ? 0 : lightboxIndex + 1
+      lightboxIndex === lightboxImages.length - 1 ? 0 : lightboxIndex + 1
     );
+  };
+
+  const goHeroPrev = () => {
+    if (allImages.length <= 1) return;
+    setHeroImageIndex((i) => (i === 0 ? allImages.length - 1 : i - 1));
+  };
+
+  const goHeroNext = () => {
+    if (allImages.length <= 1) return;
+    setHeroImageIndex((i) => (i === allImages.length - 1 ? 0 : i + 1));
   };
 
   return (
@@ -698,26 +732,91 @@ export default function VenuePublicView({
 
       <section className="site-card overflow-hidden text-right text-sm">
         <div className="venue-hero-band relative border-b border-neutral-200/80">
-          {venue.coverImageUrl ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (!venue.coverImageUrl || visibleImages.length === 0) return;
-                const idx = visibleImages.findIndex((img) => img.url === venue.coverImageUrl);
-                openLightbox(idx >= 0 ? idx : 0);
-              }}
-              className="group relative block aspect-[21/9] w-full overflow-hidden text-right focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-400"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={venue.coverImageUrl}
-                alt={venue.name}
-                className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-[1.02] group-hover:opacity-95"
-              />
-              <span className="absolute bottom-3 left-3 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
-                לחץ להגדלה
-              </span>
-            </button>
+          {allImages.length > 0 && heroImage ? (
+            <div className="relative aspect-[21/9] w-full overflow-hidden bg-neutral-900">
+              {(() => {
+                const video = parseGalleryVideoEmbed(heroImage.url);
+                if (video) {
+                  return (
+                    <iframe
+                      src={video.embedUrl}
+                      title={`${venue.name} וידאו`}
+                      className="h-full w-full object-cover"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  );
+                }
+                return (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={heroImage.url}
+                    alt={`${venue.name} תמונה ${heroImageIndex + 1}`}
+                    className="h-full w-full object-cover object-center"
+                  />
+                );
+              })()}
+
+              {allImages.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={goHeroPrev}
+                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 sm:right-4 sm:h-11 sm:w-11"
+                    aria-label="תמונה קודמת"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goHeroNext}
+                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 sm:left-4 sm:h-11 sm:w-11"
+                    aria-label="תמונה הבאה"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
+                  <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5">
+                    {allImages.map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setHeroImageIndex(idx)}
+                        className={`h-2 rounded-full transition ${
+                          idx === heroImageIndex
+                            ? "w-5 bg-white"
+                            : "w-2 bg-white/50 hover:bg-white/75"
+                        }`}
+                        aria-label={`תמונה ${idx + 1}`}
+                        aria-current={idx === heroImageIndex ? "true" : undefined}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="absolute bottom-3 right-3 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-sm tabular-nums">
+                    {heroImageIndex + 1} / {allImages.length}
+                  </p>
+                </>
+              ) : null}
+
+              {allImages.length > 1 ? (
+                <span className="absolute top-3 right-3 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
+                  {galleryCategoryLabel(heroImage.category)}
+                </span>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => openLightbox(heroImageIndex, "all")}
+                className="absolute bottom-3 left-3 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-sm transition hover:bg-black/60"
+              >
+                הגדלה
+              </button>
+            </div>
           ) : (
             <div className="flex aspect-[21/9] w-full flex-col items-center justify-center gap-2 p-6 text-center">
               <svg
@@ -738,6 +837,20 @@ export default function VenuePublicView({
             </div>
           )}
         </div>
+
+        {showInquiryCta ? (
+          <div className="border-b border-amber-200/70 bg-gradient-to-l from-amber-50 via-amber-100/60 to-amber-50 px-5 py-4 sm:px-8 sm:py-5">
+            <a
+              href={inquiryHref}
+              className="btn-primary flex min-h-[56px] w-full items-center justify-center rounded-2xl px-6 text-lg font-bold shadow-[0_10px_28px_rgba(201,162,39,0.35)] transition hover:shadow-[0_12px_32px_rgba(201,162,39,0.42)] sm:min-h-[60px] sm:text-xl"
+            >
+              שליחת בקשה
+            </a>
+            <p className="mt-2 text-center text-xs leading-relaxed text-neutral-600">
+              אשף קצר — פרטי אירוע, שירותים ושליחה לאישור בעל האולם
+            </p>
+          </div>
+        ) : null}
 
         <div className="flex flex-col justify-center p-5 sm:p-6 lg:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -1150,7 +1263,7 @@ export default function VenuePublicView({
       {/* ביקורות ודירוגים — למטה אחרי שליחת הבקשה */}
       <VenueReviewsSection venueId={venue.id} currentUserId={user?.id ?? null} />
 
-      {lightboxIndex !== null && visibleImages.length > 0 && (
+      {lightboxIndex !== null && lightboxImages.length > 0 && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
           role="dialog"
@@ -1168,7 +1281,7 @@ export default function VenuePublicView({
             </svg>
           </button>
 
-          {visibleImages.length > 1 && (
+          {lightboxImages.length > 1 && (
             <>
               <button
                 type="button"
@@ -1198,7 +1311,7 @@ export default function VenuePublicView({
             onClick={closeLightbox}
           >
             {(() => {
-              const current = visibleImages[lightboxIndex];
+              const current = lightboxImages[lightboxIndex];
               const video = current ? parseGalleryVideoEmbed(current.url) : null;
               if (video) {
                 return (
@@ -1225,7 +1338,7 @@ export default function VenuePublicView({
           </div>
 
           <p className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-4 py-2 text-sm text-white">
-            {lightboxIndex + 1} / {visibleImages.length}
+            {lightboxIndex + 1} / {lightboxImages.length}
           </p>
         </div>
       )}

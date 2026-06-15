@@ -7,6 +7,32 @@ export function unsplash(photoId) {
   return `https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=1200&q=80`;
 }
 
+/** מזהי Unsplash שעברו בדיקת HTTP 200 — משותף לאולמות ולשירותים */
+export const SEED_UNSPLASH = {
+  weddingHall: unsplash("1464366400600-7168b8af9bc3"),
+  weddingTable: unsplash("1519741497674-611481863552"),
+  eventSetup: unsplash("1511795409834-ef04bbd61622"),
+  flowers: unsplash("1511285560929-80b456fea0bc"),
+  rooftopBar: unsplash("1514933651103-005eec06c04b"),
+  djParty: unsplash("1470225620780-dba8ba36b745"),
+  mountainView: unsplash("1506905925346-21bda4d32df4"),
+  restaurant: unsplash("1414235077428-338989a2e8c0"),
+  elegantDining: unsplash("1551218808-94e220e084d2"),
+  outdoorGarden: unsplash("1559339352-11d035aa65de"),
+  resortPool: unsplash("1566073771259-6a8506099945"),
+  venueLights: unsplash("1571896349842-33c89424de2d"),
+  modernHall: unsplash("1600596542815-ffad4c1539a9"),
+  luxuryInterior: unsplash("1600585154340-be6161a56a0c"),
+  glassHall: unsplash("1600607687939-ce8a6c25118c"),
+  chuppah: unsplash("1520854221256-17451cc331bf"),
+  banquet: unsplash("1606216794074-735e91aa2c92"),
+  cake: unsplash("1583939003579-730e3918a45a"),
+  dance: unsplash("1537633552985-df8429e8048b"),
+  champagne: unsplash("1478146896981-b80fe463b330"),
+  gardenFlowers: unsplash("1487530811176-3780de880c2d"),
+  djBooth: unsplash("1514525253161-7a46d19cd819"),
+};
+
 export function starsToDb(stars) {
   return Math.round(stars * 2);
 }
