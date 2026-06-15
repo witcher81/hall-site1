@@ -14,6 +14,7 @@ import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
 import InquiryOfferOverview, {
   type MarketplaceAvailability,
 } from "@/components/venue-inquiry/InquiryOfferOverview";
+import InquiryFreelancerAddonsStep from "@/components/venue-inquiry/InquiryFreelancerAddonsStep";
 import InquiryWizardNav, {
   type InquiryWizardStep,
 } from "@/components/venue-inquiry/InquiryWizardNav";
@@ -26,6 +27,7 @@ import {
   type VenueInquiryAmenitiesInput,
 } from "@/lib/venueInquiryAmenities";
 import { aggregateDealSavings, type InquiryDealInsight } from "@/lib/inquiryDealInsights";
+import type { InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
 import {
   estimateInquiryOrderCost,
   formatNisRange,
@@ -51,6 +53,8 @@ function clampGuestCountString(
   if (max != null && num > max) next = max;
   return String(next);
 }
+
+type InquiryStepId = "event" | "offers" | "freelancers" | "send";
 
 export default function VenueInquiryClient({
   venueId,
@@ -96,10 +100,13 @@ export default function VenueInquiryClient({
     message: "",
   });
   const [sourceById, setSourceById] = useState<Record<string, ServiceChoiceSource>>({});
+  const [addonFreelancers, setAddonFreelancers] = useState<InquiryAddonFreelancerPick[]>(
+    []
+  );
   const [weddingChuppahPick, setWeddingChuppahPick] = useState<"outdoor" | "covered">(
     "outdoor"
   );
-  const [stepId, setStepId] = useState<"event" | "offers" | "send">("event");
+  const [stepId, setStepId] = useState<InquiryStepId>("event");
   const [marketplaceById, setMarketplaceById] = useState<
     Record<string, MarketplaceAvailability>
   >({});
@@ -168,12 +175,13 @@ export default function VenueInquiryClient({
     return [
       { id: "event", title: "פרטי האירוע" },
       { id: "offers", title: "מה באולם" },
+      { id: "freelancers", title: "ספקים נוספים" },
       { id: "send", title: "שליחה" },
     ];
   }, []);
 
   const stepOrder = useMemo(
-    () => wizardSteps.map((s) => s.id as "event" | "offers" | "send"),
+    () => wizardSteps.map((s) => s.id as InquiryStepId),
     [wizardSteps]
   );
 
@@ -399,8 +407,15 @@ export default function VenueInquiryClient({
         eventType: draft.eventType || f.eventType,
         message: prefill?.message || draft.message || f.message,
       }));
-      if (draft.stepId === "offers" || draft.stepId === "send") {
-        setStepId(draft.stepId);
+      if (
+        draft.stepId === "offers" ||
+        draft.stepId === "freelancers" ||
+        draft.stepId === "send"
+      ) {
+        setStepId(draft.stepId as InquiryStepId);
+      }
+      if (draft.addonFreelancers?.length) {
+        setAddonFreelancers(draft.addonFreelancers);
       }
     } else if (prefill?.message?.trim()) {
       setForm((f) => ({ ...f, message: prefill.message!.trim() }));
@@ -423,10 +438,11 @@ export default function VenueInquiryClient({
         message: form.message,
         stepId,
         sourceById,
+        addonFreelancers,
       });
     }, 500);
     return () => window.clearTimeout(t);
-  }, [venueId, form, stepId, sourceById]);
+  }, [venueId, form, stepId, sourceById, addonFreelancers]);
 
   useEffect(() => {
     if (!eventTypeMenuOpen) return;
@@ -582,6 +598,10 @@ export default function VenueInquiryClient({
       return;
     }
     if (stepId === "offers") {
+      setStepId("freelancers");
+      return;
+    }
+    if (stepId === "freelancers") {
       stepTransitionLockRef.current = true;
       setStepId("send");
       window.setTimeout(() => {
@@ -593,6 +613,10 @@ export default function VenueInquiryClient({
   function goBack() {
     setError(null);
     if (stepId === "send") {
+      setStepId("freelancers");
+      return;
+    }
+    if (stepId === "freelancers") {
       setStepId("offers");
       return;
     }
@@ -652,6 +676,7 @@ export default function VenueInquiryClient({
           guestCount: num,
           eventType: form.eventType.trim() || null,
           serviceChoices,
+          addonServiceIds: addonFreelancers.map((f) => f.serviceId),
         }),
       });
       const data = await res.json().catch(() => null);
@@ -687,7 +712,7 @@ export default function VenueInquiryClient({
       <section className="site-card-padded text-right text-sm">
         <h2 className="text-base font-semibold text-emerald-950">הזמנת אולם — {venueName}</h2>
         <p className="mt-1 text-xs text-neutral-600">
-          מלאו בשלבים: פרטי האירוע, מה האולם מציע (כלול / בתוספת תשלום), בחירות מקור ספקים, ושליחה.
+          מלאו בשלבים: פרטי האירוע, מה האולם מציע, ספקים נוספים מהמאגר (אופציונלי), ושליחה.
         </p>
 
         <div className="mt-4">
@@ -939,6 +964,13 @@ export default function VenueInquiryClient({
             </div>
           ) : null}
 
+          {stepId === "freelancers" ? (
+            <InquiryFreelancerAddonsStep
+              selected={addonFreelancers}
+              onChange={setAddonFreelancers}
+            />
+          ) : null}
+
           {stepId === "send" ? (
             <div className="space-y-4">
               <div className="rounded-xl border border-[#E8E0D4] bg-neutral-50 p-4 text-sm">
@@ -960,6 +992,11 @@ export default function VenueInquiryClient({
                     </strong>{" "}
                     מתוך {partition.choosable.length} פריטים לבחירה
                   </li>
+                  {addonFreelancers.length > 0 ? (
+                    <li>
+                      ספקים נוספים מהמאגר: <strong>{addonFreelancers.length}</strong>
+                    </li>
+                  ) : null}
                   {dealSavingsSummary.itemCount > 0 ? (
                     <li>
                       חיסכון אפשרי במאגר:{" "}

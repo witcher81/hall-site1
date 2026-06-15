@@ -7,7 +7,7 @@ import { inquiryProvidersHref } from "@/lib/venueInquiryFreelancerMatch";
 import type { InquiryServiceOption } from "@/lib/venueInquiryAmenities";
 import InquiryValueStars from "./InquiryValueStars";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type ApiPayload = {
   available: boolean;
@@ -57,21 +57,30 @@ export default function InquiryFreelancerAlternatives({
   hallPrice,
   prefetched,
 }: Props) {
-  const initial = useMemo(
-    () => (prefetched ? insightToPayload(prefetched) : null),
-    [prefetched]
-  );
-  const [data, setData] = useState<ApiPayload | null>(initial);
+  const [expanded, setExpanded] = useState(false);
+  const [data, setData] = useState<ApiPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    setExpanded(false);
+    setData(null);
+    setError(false);
+    setLoading(false);
+  }, [opt.id]);
+
+  useEffect(() => {
+    if (!expanded) return;
+
     if (prefetched) {
       setData(insightToPayload(prefetched));
       setLoading(false);
       setError(false);
       return;
     }
+
+    if (data) return;
+
     let cancelled = false;
     setLoading(true);
     setError(false);
@@ -97,10 +106,31 @@ export default function InquiryFreelancerAlternatives({
     return () => {
       cancelled = true;
     };
-  }, [opt.id, opt.label, hallPrice, prefetched]);
+  }, [expanded, opt.id, opt.label, hallPrice, prefetched, data]);
 
   const browseHref = inquiryProvidersHref(opt);
   const browseLabel = data?.browseCategory ?? "המאגר";
+  const previewCount = prefetched?.totalCount ?? data?.totalCount ?? 0;
+
+  if (!expanded) {
+    return (
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        className="mt-2 flex w-full items-center justify-between gap-2 rounded-lg border border-emerald-950/20 bg-white px-3 py-2.5 text-right transition hover:bg-emerald-50/80"
+        aria-expanded={false}
+      >
+        <span className="text-[11px] font-semibold text-emerald-950">
+          הצג המלצות במאגר — {opt.label}
+        </span>
+        {previewCount > 0 ? (
+          <span className="shrink-0 rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] font-medium text-emerald-950">
+            {previewCount} ספקים
+          </span>
+        ) : null}
+      </button>
+    );
+  }
 
   if (loading) {
     return (
@@ -128,9 +158,19 @@ export default function InquiryFreelancerAlternatives({
 
   return (
     <div className="mt-3 rounded-lg border border-emerald-950/20 bg-emerald-50/60 px-3 py-2.5">
-      <p className="text-[11px] font-semibold text-emerald-950">
-        המלצת ערך — {opt.label}
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] font-semibold text-emerald-950">
+          המלצת ערך — {opt.label}
+        </p>
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          className="shrink-0 rounded-md border border-neutral-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-neutral-700 transition hover:bg-neutral-50"
+          aria-expanded={true}
+        >
+          סגור
+        </button>
+      </div>
       <p className="mt-0.5 text-[10px] text-neutral-600">
         משווים מחיר מול דירוג (ביקורות אמיתיות או הערכה לפי ניסיון וביקוש) — לא רק הרשימה הזולה ביותר.
       </p>

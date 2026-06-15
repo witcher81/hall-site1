@@ -8,6 +8,7 @@ import {
   notifyVenueOwnerNewInquiry,
 } from "@/lib/transactionalEmails";
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
+import { resolveInquiryAddonServiceChoices } from "@/lib/inquiryAddonFreelancers";
 import {
   getInquiryGuestBounds,
   normalizeInquiryServiceChoices,
@@ -143,8 +144,10 @@ export async function POST(req: NextRequest) {
     body.serviceChoices,
     eventType
   );
+  const addonRows = await resolveInquiryAddonServiceChoices(body.addonServiceIds);
+  const mergedServiceRows = [...serviceRows, ...addonRows];
   const serviceChoicesJson =
-    serviceRows.length > 0 ? JSON.stringify(serviceRows) : null;
+    mergedServiceRows.length > 0 ? JSON.stringify(mergedServiceRows) : null;
 
   if (!message || message.length < 10) {
     message = DEFAULT_INQUIRY_SEEKER_MESSAGE;

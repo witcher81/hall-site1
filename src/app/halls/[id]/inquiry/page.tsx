@@ -105,7 +105,7 @@ export default async function VenueInquiryPage({
       <SitePageHeader
         kicker="בקשה להצעת מחיר"
         title={venue.name}
-        description={`${INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} בקשת הזמנה בשלבים: פרטי האירוע, מה האולם מציע, ושליחה לאישור.`}
+        description={`${INQUIRY_EXTERNAL_SOURCE_COPY.inquiryPageIntro} בקשת הזמנה בשלבים: פרטי האירוע, מה באולם, ספקים נוספים (אופציונלי), ושליחה לאישור.`}
       >
         <a
           href={`/halls/${venue.id}`}

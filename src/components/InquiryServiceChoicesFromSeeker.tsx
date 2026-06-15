@@ -49,7 +49,13 @@ export default function InquiryServiceChoicesFromSeeker({
             const priceHint = formatInquiryPriceHint(priceMode, extraPrice, extraPriceMax);
             const venueOnly =
               typeof row.id === "string" && !inquiryServiceAllowsExternalSource({ id: row.id });
-            const via = venueOnly ? (
+            const marketplaceAddon =
+              typeof row.id === "string" && row.id.startsWith("marketplace:");
+            const via = marketplaceAddon ? (
+              <span className="inline-flex shrink-0 rounded-full border border-[#D4C4B0] bg-[#FAF6EF] px-2.5 py-1 text-[11px] font-semibold text-[#4A453C]">
+                נוסף מהמאגר
+              </span>
+            ) : venueOnly ? (
               <span className="inline-flex shrink-0 rounded-full border border-emerald-950/20 bg-emerald-950/[0.08] px-2.5 py-1 text-[11px] font-semibold text-emerald-950">
                 חלק מהאולם
               </span>

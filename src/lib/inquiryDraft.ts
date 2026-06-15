@@ -1,4 +1,5 @@
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
+import type { InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
 
 const keyForVenue = (venueId: number) => `hh-inquiry-draft-${venueId}`;
 
@@ -9,6 +10,7 @@ export type InquiryDraft = {
   message: string;
   stepId: string;
   sourceById?: Record<string, "venue" | "external">;
+  addonFreelancers?: InquiryAddonFreelancerPick[];
   savedAt: number;
 };
 

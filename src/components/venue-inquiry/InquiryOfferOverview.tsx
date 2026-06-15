@@ -97,8 +97,8 @@ function OfferRow({
           )}
           {showDealHint ? (
             <p className="mt-2 rounded-md border border-emerald-950/20 bg-emerald-50/50 px-2.5 py-1.5 text-[10px] text-neutral-800">
-              במאגר יש הצעות זולות יותר — בחרו «ספק חיצוני» כדי לשמור את ההעדפה בפנייה, או השוו
-              להלן.
+              במאגר יש הצעות זולות יותר — בחרו «ספק חיצוני» כדי לשמור את ההעדפה בפנייה, או לחצו
+              «הצג המלצות במאגר» להשוואה.
             </p>
           ) : null}
           {showAlternatives ? (

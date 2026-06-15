@@ -23,7 +23,7 @@ export default function InquiryWizardNav({ steps, currentIndex, onGoTo }: Props)
           const active = i === currentIndex;
           const clickable = i <= currentIndex;
           return (
-            <li key={step.id} className="min-w-0 flex-1 sm:max-w-[24%]">
+            <li key={step.id} className="min-w-0 flex-1 sm:max-w-none">
               <button
                 type="button"
                 disabled={!clickable}
