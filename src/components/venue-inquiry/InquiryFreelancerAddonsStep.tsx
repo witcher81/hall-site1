@@ -2,12 +2,13 @@
 
 import {
   FREELANCER_SERVICE_CATEGORIES,
-  getSecondaryServicesForPrimary,
+  getPrimaryCategoryDescription,
+  parseServiceCategoryValue,
 } from "@/lib/freelancerServiceCategories";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import type { InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type PublicService = {
   id: number;
@@ -42,44 +43,168 @@ function toPick(s: PublicService): InquiryAddonFreelancerPick {
   };
 }
 
-export default function InquiryFreelancerAddonsStep({ selected, onChange }: Props) {
-  const [category, setCategory] = useState("");
-  const [secondary, setSecondary] = useState("");
-  const [services, setServices] = useState<PublicService[]>([]);
-  const [loading, setLoading] = useState(false);
+function groupServicesBySecondary(services: PublicService[]): [string, PublicService[]][] {
+  const map = new Map<string, PublicService[]>();
+  for (const s of services) {
+    const { secondary } = parseServiceCategoryValue(s.category ?? "");
+    const key = secondary || "שירותים בקטגוריה";
+    const list = map.get(key) ?? [];
+    list.push(s);
+    map.set(key, list);
+  }
+  return [...map.entries()].sort(([a], [b]) => a.localeCompare(b, "he"));
+}
 
-  const secondaryOptions = useMemo(
-    () => (category ? getSecondaryServicesForPrimary(category) : []),
-    [category]
+function ServiceRow({
+  service,
+  picked,
+  addDisabled,
+  onToggle,
+}: {
+  service: PublicService;
+  picked: boolean;
+  addDisabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <li
+      className={`rounded-lg border px-3 py-2.5 transition ${
+        picked ? "border-emerald-950/30 bg-emerald-50/70" : "border-neutral-200 bg-white"
+      }`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1 text-right">
+          <p className="text-sm font-medium text-neutral-900">{service.name}</p>
+          <p className="text-[11px] text-neutral-600">{providerLabel(service)}</p>
+          {service.shortDescription ? (
+            <p className="mt-0.5 line-clamp-2 text-[10px] text-neutral-500">
+              {service.shortDescription}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          {service.minPrice != null ? (
+            <span className="text-[11px] font-semibold tabular-nums text-emerald-950">
+              {formatFreelancerServicePriceShekelCompact(service.minPrice, service.maxPrice)}
+            </span>
+          ) : null}
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/services/${service.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-semibold text-emerald-950 underline-offset-2 hover:underline"
+            >
+              פרטים
+            </Link>
+            <button
+              type="button"
+              onClick={onToggle}
+              disabled={!picked && addDisabled}
+              className={`rounded-lg px-3 py-1 text-[11px] font-bold transition ${
+                picked
+                  ? "border border-emerald-950/25 bg-white text-emerald-950"
+                  : "bg-emerald-950 text-white hover:bg-emerald-900 disabled:opacity-50"
+              }`}
+            >
+              {picked ? "הסר" : "הוסף"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </li>
   );
+}
+
+function CategoryServiceGroups({
+  services,
+  selectedIds,
+  addDisabled,
+  onToggle,
+}: {
+  services: PublicService[];
+  selectedIds: Set<number>;
+  addDisabled: boolean;
+  onToggle: (service: PublicService) => void;
+}) {
+  const groups = groupServicesBySecondary(services);
+  return (
+    <div className="max-h-[min(360px,45vh)] space-y-4 overflow-y-auto pr-1">
+      {groups.map(([secondary, items]) => (
+        <div key={secondary}>
+          {groups.length > 1 ? (
+            <p className="mb-2 text-[11px] font-semibold text-neutral-700">{secondary}</p>
+          ) : null}
+          <ul className="space-y-2">
+            {items.map((s) => (
+              <ServiceRow
+                key={s.id}
+                service={s}
+                picked={selectedIds.has(s.id)}
+                addDisabled={addDisabled}
+                onToggle={() => onToggle(s)}
+              />
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function InquiryFreelancerAddonsStep({ selected, onChange }: Props) {
+  const [expandedPrimaries, setExpandedPrimaries] = useState<Set<string>>(() => new Set());
+  const [servicesByPrimary, setServicesByPrimary] = useState<Record<string, PublicService[]>>(
+    {}
+  );
+  const [loadingPrimary, setLoadingPrimary] = useState<string | null>(null);
+  const [loadErrorPrimary, setLoadErrorPrimary] = useState<string | null>(null);
 
   const selectedIds = useMemo(
     () => new Set(selected.map((s) => s.serviceId)),
     [selected]
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (category) params.set("category", category);
-    if (secondary) params.set("secondary", secondary);
-    const qs = params.toString();
-    fetch(`/api/services/public${qs ? `?${qs}` : ""}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("fetch"))))
-      .then((json: { services?: PublicService[] }) => {
-        if (!cancelled) setServices(json.services ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) setServices([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [category, secondary]);
+  const selectedCountByPrimary = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of selected) {
+      const { primary } = parseServiceCategoryValue(item.category ?? "");
+      if (!primary) continue;
+      counts.set(primary, (counts.get(primary) ?? 0) + 1);
+    }
+    return counts;
+  }, [selected]);
+
+  async function loadPrimaryServices(primary: string, force = false) {
+    if (!force && servicesByPrimary[primary] !== undefined) return;
+    setLoadingPrimary(primary);
+    setLoadErrorPrimary(null);
+    try {
+      const params = new URLSearchParams({ category: primary });
+      const res = await fetch(`/api/services/public?${params}`);
+      if (!res.ok) throw new Error("fetch");
+      const json = (await res.json()) as { services?: PublicService[] };
+      setServicesByPrimary((prev) => ({
+        ...prev,
+        [primary]: json.services ?? [],
+      }));
+    } catch {
+      setLoadErrorPrimary(primary);
+    } finally {
+      setLoadingPrimary(null);
+    }
+  }
+
+  function togglePrimary(primary: string) {
+    const willOpen = !expandedPrimaries.has(primary);
+    setExpandedPrimaries((prev) => {
+      const next = new Set(prev);
+      if (next.has(primary)) next.delete(primary);
+      else next.add(primary);
+      return next;
+    });
+    if (willOpen) void loadPrimaryServices(primary);
+  }
 
   function toggleService(service: PublicService) {
     if (selectedIds.has(service.id)) {
@@ -95,8 +220,8 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
       <div className="rounded-xl border border-emerald-950/15 bg-emerald-950/[0.04] px-4 py-3">
         <p className="text-sm font-semibold text-emerald-950">ספקים נוספים מהמאגר (אופציונלי)</p>
         <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
-          רוצים DJ, צילום, פרחים או כל שירות אחר מעבר למה שהאולם מציע? בחרו כאן — אפשר לדלג ולהמשיך
-          לשליחה בלי להוסיף.
+          בחרו קטגוריה כדי לראות ספקים — DJ, צילום, פרחים ועוד. אפשר לדלג ולהמשיך לשליחה בלי
+          להוסיף.
         </p>
       </div>
 
@@ -140,117 +265,106 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
         </div>
       ) : null}
 
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-4">
-        <p className="text-xs font-semibold text-emerald-950">חיפוש במאגר הספקים</p>
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-[11px] font-medium text-neutral-600">קטגוריה</label>
-            <select
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setSecondary("");
-              }}
-              className="mt-1 w-full min-h-[44px] rounded-xl border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-amber-400"
-            >
-              <option value="">כל הקטגוריות</option>
-              {FREELANCER_SERVICE_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[11px] font-medium text-neutral-600">תת-קטגוריה</label>
-            <select
-              value={secondary}
-              onChange={(e) => setSecondary(e.target.value)}
-              disabled={!category || secondaryOptions.length === 0}
-              className="mt-1 w-full min-h-[44px] rounded-xl border border-neutral-200 bg-white px-3 text-sm outline-none focus:border-amber-400 disabled:opacity-60"
-            >
-              <option value="">הכל בקטגוריה</option>
-              {secondaryOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+      <div className="space-y-2">
+        <p className="text-xs font-semibold text-emerald-950">קטגוריות במאגר</p>
+        <ul className="space-y-2">
+          {FREELANCER_SERVICE_CATEGORIES.map((primary) => {
+            const open = expandedPrimaries.has(primary);
+            const services = servicesByPrimary[primary];
+            const loading = loadingPrimary === primary;
+            const selectedInCategory = selectedCountByPrimary.get(primary) ?? 0;
+            const description = getPrimaryCategoryDescription(primary);
 
-      {loading ? (
-        <p className="text-center text-xs text-neutral-600">טוען שירותים מהמאגר…</p>
-      ) : services.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-200 bg-white px-4 py-6 text-center text-xs text-neutral-600">
-          לא נמצאו שירותים לפי הסינון. נסו קטגוריה אחרת או{" "}
-          <Link href="/providers" className="font-semibold text-emerald-950 underline">
-            חיפוש מלא במאגר
-          </Link>
-          .
-        </p>
-      ) : (
-        <ul className="max-h-[min(420px,50vh)] space-y-2 overflow-y-auto pr-1">
-          {services.map((s) => {
-            const picked = selectedIds.has(s.id);
             return (
               <li
-                key={s.id}
-                className={`rounded-xl border px-3 py-2.5 transition ${
-                  picked
-                    ? "border-emerald-950/30 bg-emerald-50/70"
-                    : "border-neutral-200 bg-white"
+                key={primary}
+                className={`overflow-hidden rounded-xl border transition ${
+                  open ? "border-amber-400/50 bg-white shadow-sm" : "border-neutral-200 bg-neutral-50/80"
                 }`}
               >
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1 text-right">
-                    <p className="text-sm font-medium text-neutral-900">{s.name}</p>
-                    <p className="text-[11px] text-neutral-600">{providerLabel(s)}</p>
-                    {s.shortDescription ? (
-                      <p className="mt-0.5 line-clamp-2 text-[10px] text-neutral-500">
-                        {s.shortDescription}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    {s.minPrice != null ? (
-                      <span className="text-[11px] font-semibold tabular-nums text-emerald-950">
-                        {formatFreelancerServicePriceShekelCompact(s.minPrice, s.maxPrice)}
+                <button
+                  type="button"
+                  onClick={() => togglePrimary(primary)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-right"
+                  aria-expanded={open}
+                >
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs transition ${
+                      open ? "bg-amber-400 text-white" : "bg-emerald-950/10 text-emerald-950"
+                    }`}
+                    aria-hidden
+                  >
+                    <svg
+                      className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-emerald-950">{primary}</span>
+                    {description ? (
+                      <span className="mt-0.5 block text-[10px] leading-snug text-neutral-600">
+                        {description}
                       </span>
                     ) : null}
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/services/${s.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-semibold text-emerald-950 underline-offset-2 hover:underline"
-                      >
-                        פרטים
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => toggleService(s)}
-                        disabled={!picked && selected.length >= 20}
-                        className={`rounded-lg px-3 py-1 text-[11px] font-bold transition ${
-                          picked
-                            ? "border border-emerald-950/25 bg-white text-emerald-950"
-                            : "bg-emerald-950 text-white hover:bg-emerald-900 disabled:opacity-50"
-                        }`}
-                      >
-                        {picked ? "הסר" : "הוסף"}
-                      </button>
-                    </div>
+                  </span>
+                  {selectedInCategory > 0 ? (
+                    <span className="shrink-0 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-white">
+                      {selectedInCategory} נבחרו
+                    </span>
+                  ) : null}
+                </button>
+
+                {open ? (
+                  <div className="border-t border-neutral-200/80 bg-white px-3 py-3">
+                    {loading ? (
+                      <p className="py-4 text-center text-xs text-neutral-600">
+                        טוען ספקים בקטגוריה…
+                      </p>
+                    ) : loadErrorPrimary === primary ? (
+                      <p className="py-4 text-center text-xs text-red-700">
+                        לא הצלחנו לטעון.{" "}
+                        <button
+                          type="button"
+                          onClick={() => void loadPrimaryServices(primary, true)}
+                          className="font-semibold underline"
+                        >
+                          נסו שוב
+                        </button>
+                      </p>
+                    ) : services === undefined || services.length === 0 ? (
+                      <p className="py-4 text-center text-xs text-neutral-600">
+                        אין שירותים בקטגוריה זו כרגע במאגר.
+                      </p>
+                    ) : (
+                      <CategoryServiceGroups
+                        services={services}
+                        selectedIds={selectedIds}
+                        addDisabled={selected.length >= 20}
+                        onToggle={toggleService}
+                      />
+                    )}
                   </div>
-                </div>
+                ) : null}
               </li>
             );
           })}
         </ul>
-      )}
+      </div>
 
       <p className="text-center text-[11px] text-neutral-500">
-        <Link href="/providers" className="font-semibold text-emerald-950 underline-offset-2 hover:underline">
+        <Link
+          href="/providers"
+          className="font-semibold text-emerald-950 underline-offset-2 hover:underline"
+        >
           מעבר לחיפוש מלא במאגר הספקים
         </Link>
       </p>
