@@ -14,6 +14,7 @@ export type InquiryDraft = {
   sourceById?: Record<string, "venue" | "external">;
   replacementByOptionId?: Record<string, InquiryVenueOptionReplacement>;
   addonFreelancers?: InquiryAddonFreelancerPick[];
+  selectedSupplierServiceIds?: number[];
   savedAt: number;
 };
 

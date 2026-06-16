@@ -16,6 +16,10 @@ import {
   createSupplierRequestsForInquiry,
 } from "@/lib/inquirySupplierOutreach";
 import {
+  filterSupplierIdsToLinked,
+  parseSupplierServiceIds,
+} from "@/lib/inquiryLinkedSuppliers";
+import {
   getInquiryGuestBounds,
   normalizeInquiryServiceChoices,
   validateInquiryEventType,
@@ -180,6 +184,10 @@ export async function POST(req: NextRequest) {
     mergedServiceRows,
     body.serviceChoices
   );
+  const outreachSupplierIds = filterSupplierIdsToLinked(
+    parseSupplierServiceIds(body.supplierServiceIds),
+    linkedSupplierIds
+  );
 
   if (!message || message.length < 10) {
     message = DEFAULT_INQUIRY_SEEKER_MESSAGE;
@@ -215,7 +223,7 @@ export async function POST(req: NextRequest) {
   }
 
   let serviceRequestIds: number[] = [];
-  if (linkedSupplierIds.length > 0) {
+  if (outreachSupplierIds.length > 0) {
     serviceRequestIds = await createSupplierRequestsForInquiry({
       inquiryId: inquiry.id,
       userId: user.id,
@@ -224,7 +232,7 @@ export async function POST(req: NextRequest) {
       eventType,
       preferredDate,
       supplierMessage,
-      serviceIds: linkedSupplierIds,
+      serviceIds: outreachSupplierIds,
     });
   }
 

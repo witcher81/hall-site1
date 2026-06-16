@@ -29,6 +29,7 @@ import {
 } from "@/lib/venueInquiryAmenities";
 import { aggregateDealSavings, type InquiryDealInsight } from "@/lib/inquiryDealInsights";
 import type { InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
+import { buildInquiryLinkedSuppliers } from "@/lib/inquiryLinkedSuppliers";
 import type { InquiryVenueOptionReplacement } from "@/lib/inquiryVenueOptionReplacement";
 import {
   estimateInquiryOrderCost,
@@ -111,6 +112,9 @@ export default function VenueInquiryClient({
     Record<string, InquiryVenueOptionReplacement>
   >({});
   const [addonFreelancers, setAddonFreelancers] = useState<InquiryAddonFreelancerPick[]>(
+    []
+  );
+  const [selectedSupplierServiceIds, setSelectedSupplierServiceIds] = useState<number[]>(
     []
   );
   const [weddingChuppahPick, setWeddingChuppahPick] = useState<"outdoor" | "covered">(
@@ -450,6 +454,9 @@ export default function VenueInquiryClient({
       if (draft.addonFreelancers?.length) {
         setAddonFreelancers(draft.addonFreelancers);
       }
+      if (draft.selectedSupplierServiceIds?.length) {
+        setSelectedSupplierServiceIds(draft.selectedSupplierServiceIds);
+      }
       if (draft.replacementByOptionId) {
         pendingReplacementByIdRef.current = draft.replacementByOptionId;
       }
@@ -477,10 +484,32 @@ export default function VenueInquiryClient({
         sourceById,
         replacementByOptionId,
         addonFreelancers,
+        selectedSupplierServiceIds,
       });
     }, 500);
     return () => window.clearTimeout(t);
-  }, [venueId, form, stepId, sourceById, replacementByOptionId, addonFreelancers]);
+  }, [venueId, form, stepId, sourceById, replacementByOptionId, addonFreelancers, selectedSupplierServiceIds]);
+
+  const linkedSuppliers = useMemo(
+    () =>
+      buildInquiryLinkedSuppliers({
+        addonFreelancers,
+        replacementByOptionId,
+      }),
+    [addonFreelancers, replacementByOptionId]
+  );
+
+  useEffect(() => {
+    const linkedIds = linkedSuppliers.map((s) => s.serviceId);
+    setSelectedSupplierServiceIds((prev) => {
+      const kept = prev.filter((id) => linkedIds.includes(id));
+      for (const id of linkedIds) {
+        if (!kept.includes(id)) kept.push(id);
+      }
+      if (kept.length === 0) return linkedIds;
+      return kept;
+    });
+  }, [linkedSuppliers]);
 
   useEffect(() => {
     if (!eventTypeMenuOpen) return;
@@ -548,13 +577,6 @@ export default function VenueInquiryClient({
     chuppahSingleOutdoor,
     chuppahSingleCovered,
   ]);
-
-  const linkedSupplierCount = useMemo(() => {
-    const ids = new Set<number>();
-    for (const f of addonFreelancers) ids.add(f.serviceId);
-    for (const r of Object.values(replacementByOptionId)) ids.add(r.serviceId);
-    return ids.size;
-  }, [addonFreelancers, replacementByOptionId]);
 
   function handleReplacementChange(
     id: string,
@@ -747,6 +769,9 @@ export default function VenueInquiryClient({
           venueId,
           message: form.message.trim(),
           supplierMessage: form.supplierMessage.trim() || null,
+          supplierServiceIds: selectedSupplierServiceIds.filter((id) =>
+            linkedSuppliers.some((s) => s.serviceId === id)
+          ),
           preferredDate: form.preferredDate.trim(),
           guestCount: num,
           eventType: form.eventType.trim() || null,
@@ -1115,13 +1140,15 @@ export default function VenueInquiryClient({
               <InquirySendNotesSection
                 venueMessage={form.message}
                 supplierMessage={form.supplierMessage}
-                linkedSupplierCount={linkedSupplierCount}
+                linkedSuppliers={linkedSuppliers}
+                selectedSupplierIds={selectedSupplierServiceIds}
                 onVenueMessageChange={(value) =>
                   setForm((f) => ({ ...f, message: value }))
                 }
                 onSupplierMessageChange={(value) =>
                   setForm((f) => ({ ...f, supplierMessage: value }))
                 }
+                onSelectedSupplierIdsChange={setSelectedSupplierServiceIds}
               />
             </div>
           ) : null}
