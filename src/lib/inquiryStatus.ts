@@ -50,8 +50,9 @@ export function inquiryStatusLabelSeeker(status: string): string {
   const s = normalizeInquiryStatus(status);
   switch (s) {
     case "NEW":
-    case "READ":
       return "ממתין לאישור";
+    case "READ":
+      return "נצפתה — ממתין לאישור";
     case "APPROVED":
       return "אושרה";
     case "REJECTED":
@@ -87,7 +88,7 @@ export function inquiryStatusBadgeClass(status: string): string {
     case "NEW":
       return "bg-[#FFF9E6] text-emerald-950";
     case "READ":
-      return "bg-neutral-100 text-neutral-800";
+      return "bg-sky-50 text-sky-900";
     case "APPROVED":
       return "bg-emerald-100 text-emerald-900";
     case "REJECTED":

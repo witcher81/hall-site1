@@ -163,19 +163,44 @@ function SupplierMessagesModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="supplier-picker-title"
     >
-      <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/40"
+        aria-label="יציאה"
+        onClick={onClose}
+      />
+      <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
         <div className="border-b border-neutral-100 px-4 py-3.5 sm:px-5">
-          <h3 id="supplier-picker-title" className="font-serif text-base font-semibold text-emerald-950">
-            הודעות לספקים
-          </h3>
-          <p className="mt-0.5 text-[11px] text-neutral-600">
-            סמנו ספקים וכתבו לכל אחד הודעה אישית. ספק שלא נבחר יישאר בבקשה בלי הודעה נפרדת.
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h3 id="supplier-picker-title" className="font-serif text-base font-semibold text-emerald-950">
+                הודעות לספקים
+              </h3>
+              <p className="mt-0.5 text-[11px] text-neutral-600">
+                סמנו ספקים וכתבו לכל אחד הודעה אישית. ספק שלא נבחר יישאר בבקשה בלי הודעה נפרדת.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="יציאה"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-500 transition hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-800"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 border-b border-neutral-100 px-4 py-2.5 sm:px-5">
@@ -257,13 +282,22 @@ function SupplierMessagesModal({
               </>
             ) : null}
           </p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full rounded-xl bg-emerald-950 py-2.5 text-sm font-semibold text-white hover:bg-[#164d3d]"
-          >
-            סיום
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-neutral-200 py-2.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
+            >
+              יציאה
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-xl bg-emerald-950 py-2.5 text-sm font-semibold text-white hover:bg-[#164d3d]"
+            >
+              סיום
+            </button>
+          </div>
         </div>
       </div>
     </div>

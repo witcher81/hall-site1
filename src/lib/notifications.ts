@@ -6,6 +6,7 @@ type CreateNotificationInput = {
   type:
     | "NEW_REQUEST"
     | "INQUIRY_REPLIED"
+    | "INQUIRY_VIEWED"
     | "INQUIRY_APPROVED"
     | "INQUIRY_REJECTED"
     | "INQUIRY_AUTO_MESSAGE"

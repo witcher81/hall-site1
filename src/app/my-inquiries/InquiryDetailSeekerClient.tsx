@@ -150,9 +150,15 @@ export default function InquiryDetailSeekerClient({
             </p>
           )}
 
-          {(status === "NEW" || status === "READ") && (
+          {status === "NEW" && (
             <p className="mt-4 rounded-xl border border-amber-200/80 bg-[#FFFCF5] px-4 py-3 text-xs text-neutral-800">
               הבקשה נשלחה וממתינה לאישור בעל האולם.
+            </p>
+          )}
+
+          {status === "READ" && (
+            <p className="mt-4 rounded-xl border border-emerald-200/80 bg-emerald-50/70 px-4 py-3 text-xs text-emerald-950">
+              בעל האולם ראה את הבקשה שלכם ויענה בהקדם האפשרי. ההזמנה עדיין ממתינה לאישור סופי.
             </p>
           )}
 

@@ -117,6 +117,33 @@ export const INQUIRY_EXTERNAL_SOURCE_COPY = {
     "בדף נפרד תמלאו תאריך, כמות אורחים, סוג אירוע (אופציונלי) ובחירה לכל שירות — דרך האולם או להביא ספק חיצוני כשהאולם מאפשר.",
 } as const;
 
+/** טקסטים לחלפת הצעת האולם בספק מהמאגר — לפי האם הפריט כלול או בתוספת */
+export function inquiryReplacementCopy(priceMode: "included" | "extra") {
+  if (priceMode === "included") {
+    return {
+      venueDefaultTitle: "כלול במחיר מהאולם",
+      venueDefaultSubtitle: "רוצים משהו אחר? אפשר להביא ספק חיצוני בתשלום.",
+      expandAlternatives: "להביא ספק אחר בתשלום",
+      expandAlternativesSelected: "להחליף לספק אחר בתשלום",
+      selectReplacement: "להביא בתשלום",
+      selectedNote: "חלופה בתשלום במקום מה שהאולם מציע בחינם",
+      panelIntro:
+        "גללו ובחרו ספק בתשלום — הבחירה מחליפה את מה שהאולם מציע בחינם לפריט זה.",
+      upgradeBadge: "אפשר חלופה בתשלום",
+    } as const;
+  }
+  return {
+    venueDefaultTitle: "מה שהאולם מציע",
+    venueDefaultSubtitle: "ברירת מחדל — אפשר להחליף בספק מהמאגר.",
+    expandAlternatives: "גללו ובחרו חלופה במאגר",
+    expandAlternativesSelected: "החליפו חלופה אחרת במאגר",
+    selectReplacement: "בחר במקום האולם",
+    selectedNote: "חלופה במאגר במקום הצעת האולם",
+    panelIntro: "גללו ברשימה ובחרו ספק — הבחירה מחליפה את מה שהאולם מציע לפריט הזה.",
+    upgradeBadge: null,
+  } as const;
+}
+
 export function initialBuiltinSeekerExternalMap(): Record<
   BuiltinAmenityKeyFull,
   boolean

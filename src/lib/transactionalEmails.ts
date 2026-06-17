@@ -113,6 +113,33 @@ export function notifySeekerInquiryReplied(input: {
   );
 }
 
+export function notifySeekerInquiryViewed(input: {
+  seekerEmail: string;
+  seekerName: string | null;
+  venueName: string;
+  inquiryId: number;
+}): void {
+  const site = getSiteUrl();
+  const href = `${site}/my-inquiries/${input.inquiryId}`;
+  const greeting = input.seekerName?.trim()
+    ? `שלום ${escapeHtml(input.seekerName.trim())},`
+    : "שלום,";
+
+  const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;">בעל האולם <strong>${escapeHtml(input.venueName)}</strong> ראה את בקשת ההזמנה שלך ויענה בהקדם האפשרי.</p>
+    ${ctaButton(href, "למעקב ההזמנה")}`;
+
+  fireAndForget(
+    sendEmail({
+      to: input.seekerEmail,
+      subject: `הבקשה נצפתה — ${input.venueName}`,
+      html: emailShell("בעל האולם ראה את הבקשה", body),
+      text: `בעל האולם ראה את הבקשה עבור ${input.venueName}. ${href}`,
+    }),
+    "seekerInquiryViewed"
+  );
+}
+
 export function notifySeekerInquiryApproved(input: {
   seekerEmail: string;
   seekerName: string | null;

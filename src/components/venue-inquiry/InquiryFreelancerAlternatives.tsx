@@ -5,6 +5,7 @@ import type { InquiryDealInsight, InquiryDealServiceRow } from "@/lib/inquiryDea
 import type { MarketplaceRecommendation } from "@/lib/marketplaceValueScore";
 import { inquiryProvidersHref } from "@/lib/venueInquiryFreelancerMatch";
 import type { InquiryServiceOption } from "@/lib/venueInquiryAmenities";
+import { inquiryReplacementCopy } from "@/lib/venueAmenitySeekerExternal";
 import type { InquiryVenueOptionReplacement } from "@/lib/inquiryVenueOptionReplacement";
 import { replacementFromDealRow } from "@/lib/inquiryVenueOptionReplacement";
 import InquiryValueStars from "./InquiryValueStars";
@@ -54,6 +55,7 @@ type Props = {
   prefetched?: InquiryDealInsight | null;
   selectedReplacement: InquiryVenueOptionReplacement | null;
   onSelectReplacement: (replacement: InquiryVenueOptionReplacement | null) => void;
+  priceMode?: "included" | "extra";
 };
 
 export default function InquiryFreelancerAlternatives({
@@ -62,6 +64,7 @@ export default function InquiryFreelancerAlternatives({
   prefetched,
   selectedReplacement,
   onSelectReplacement,
+  priceMode = "extra",
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [data, setData] = useState<ApiPayload | null>(null);
@@ -117,19 +120,26 @@ export default function InquiryFreelancerAlternatives({
   const browseHref = inquiryProvidersHref(opt);
   const browseLabel = data?.browseCategory ?? prefetched?.browseCategory ?? "המאגר";
   const previewCount = prefetched?.totalCount ?? data?.totalCount ?? 0;
+  const copy = inquiryReplacementCopy(priceMode);
 
   if (!expanded) {
     return (
       <button
         type="button"
         onClick={() => setExpanded(true)}
-        className="mt-2 flex w-full items-center justify-between gap-2 rounded-lg border border-emerald-950/20 bg-white px-3 py-2.5 text-right transition hover:bg-emerald-50/80"
+        className={`mt-2 flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2.5 text-right transition ${
+          priceMode === "included"
+            ? "border-amber-300/60 bg-amber-50/80 hover:bg-amber-50"
+            : "border-emerald-950/20 bg-white hover:bg-emerald-50/80"
+        }`}
         aria-expanded={false}
       >
-        <span className="text-[11px] font-semibold text-emerald-950">
-          {selectedReplacement
-            ? "החליפו חלופה אחרת במאגר"
-            : `גללו ובחרו חלופה במאגר — ${opt.label}`}
+        <span
+          className={`text-[11px] font-semibold ${
+            priceMode === "included" ? "text-amber-950" : "text-emerald-950"
+          }`}
+        >
+          {selectedReplacement ? copy.expandAlternativesSelected : copy.expandAlternatives}
         </span>
         {previewCount > 0 ? (
           <span className="shrink-0 rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] font-medium text-emerald-950">
@@ -158,9 +168,7 @@ export default function InquiryFreelancerAlternatives({
           סגור
         </button>
       </div>
-      <p className="mt-0.5 text-[10px] text-neutral-600">
-        גללו ברשימה ובחרו ספק — הבחירה מחליפה את מה שהאולם מציע לפריט הזה.
-      </p>
+      <p className="mt-0.5 text-[10px] text-neutral-600">{copy.panelIntro}</p>
 
       {loading ? (
         <p className="mt-3 py-4 text-center text-[11px] text-neutral-600">
@@ -269,7 +277,7 @@ export default function InquiryFreelancerAlternatives({
                                 : "bg-emerald-950 text-white hover:bg-emerald-900"
                             }`}
                           >
-                            {picked ? "נבחר ✓" : "בחר במקום האולם"}
+                            {picked ? "נבחר ✓" : copy.selectReplacement}
                           </button>
                         </div>
                       </div>

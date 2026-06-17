@@ -7,6 +7,7 @@ import {
   notifySeekerInquiryApproved,
   notifySeekerInquiryRejected,
   notifySeekerInquiryReplied,
+  notifySeekerInquiryViewed,
 } from "@/lib/transactionalEmails";
 import { bookVenueDateForInquiry } from "@/lib/inquiryBookDate";
 import {
@@ -106,6 +107,32 @@ async function notifySeekerRejected(inquiry: {
     (await userWantsEmailFromDb(inquiry.userId, "inquiryReply"))
   ) {
     notifySeekerInquiryRejected({
+      seekerEmail: inquiry.user.email,
+      seekerName: inquiry.user.name,
+      venueName: inquiry.venue.name,
+      inquiryId: inquiry.id,
+    });
+  }
+}
+
+async function notifySeekerViewed(inquiry: {
+  userId: number;
+  id: number;
+  user: { email: string; name: string | null };
+  venue: { name: string };
+}) {
+  await createNotification({
+    userId: inquiry.userId,
+    type: "INQUIRY_VIEWED",
+    title: "בעל האולם ראה את הבקשה",
+    body: `«${inquiry.venue.name}» צפה בבקשת ההזמנה שלכם ויענה בהקדם האפשרי.`,
+    href: `/my-inquiries/${inquiry.id}`,
+  });
+  if (
+    inquiry.user.email &&
+    (await userWantsEmailFromDb(inquiry.userId, "inquiryReply"))
+  ) {
+    notifySeekerInquiryViewed({
       seekerEmail: inquiry.user.email,
       seekerName: inquiry.user.name,
       venueName: inquiry.venue.name,
@@ -279,6 +306,10 @@ export async function PATCH(req: NextRequest) {
       repliedAt: status === "REPLIED" ? new Date() : inquiry.repliedAt,
     },
   });
+
+  if (status === "READ" && inquiry.status === "NEW") {
+    await notifySeekerViewed(inquiry);
+  }
 
   if (status === "REPLIED" && inquiry.status !== "REPLIED") {
     await createNotification({

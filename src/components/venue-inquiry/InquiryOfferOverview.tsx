@@ -6,7 +6,7 @@ import {
   type InquiryServiceOption,
   type ServiceChoiceSource,
 } from "@/lib/venueInquiryAmenities";
-import { INQUIRY_EXTERNAL_SOURCE_COPY } from "@/lib/venueAmenitySeekerExternal";
+import { INQUIRY_EXTERNAL_SOURCE_COPY, inquiryReplacementCopy } from "@/lib/venueAmenitySeekerExternal";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import { PARKING_KIND_LABELS, type ParkingKind } from "@/lib/venueParkingKind";
 import type { InquiryDealInsight } from "@/lib/inquiryDealInsights";
@@ -45,12 +45,19 @@ function OfferRow({
     marketplace?.available === true && (marketplace.totalCount ?? 0) > 0;
   const showExternalChoice = configAllowsExternal && hasMarketplace;
   const hallPrice = inquiryServiceHallComparePrice(opt);
+  const replacementCopy = inquiryReplacementCopy(opt.priceMode);
+  const isIncludedFree = opt.priceMode === "included";
 
   return (
     <li className="rounded-lg border border-[#E8E0D6]/80 bg-white px-3 py-2.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-medium text-neutral-900">{opt.label}</span>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
+          {isIncludedFree && showExternalChoice && replacementCopy.upgradeBadge ? (
+            <span className="rounded-full border border-amber-300/70 bg-amber-50 px-2 py-0.5 text-[9px] font-semibold text-amber-950">
+              {replacementCopy.upgradeBadge}
+            </span>
+          ) : null}
           <InquiryDealInsightBadge insight={dealInsight} />
           <InquiryServicePriceBadge opt={opt} />
         </div>
@@ -76,7 +83,7 @@ function OfferRow({
                       <p className="text-sm font-medium text-emerald-950">{replacement.name}</p>
                       <p className="text-[11px] text-neutral-600">{replacement.providerName}</p>
                       <p className="mt-0.5 text-[10px] text-neutral-500">
-                        חלופה במאגר במקום הצעת האולם
+                        {replacementCopy.selectedNote}
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -100,8 +107,12 @@ function OfferRow({
                 ) : (
                   <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
                     <div className="text-right">
-                      <p className="text-sm font-medium text-neutral-900">מה שהאולם מציע</p>
-                      <p className="text-[10px] text-neutral-600">ברירת מחדל — אפשר להחליף ממאגר הספקים</p>
+                      <p className="text-sm font-medium text-neutral-900">
+                        {replacementCopy.venueDefaultTitle}
+                      </p>
+                      <p className="text-[10px] text-neutral-600">
+                        {replacementCopy.venueDefaultSubtitle}
+                      </p>
                     </div>
                     <InquiryServicePriceBadge opt={opt} />
                   </div>
@@ -114,6 +125,7 @@ function OfferRow({
                 prefetched={dealInsight}
                 selectedReplacement={replacement}
                 onSelectReplacement={onReplacementChange}
+                priceMode={opt.priceMode}
               />
             </>
           ) : (
@@ -262,8 +274,10 @@ export default function InquiryOfferOverview({
 
       {hasChoosable ? (
         <p className="text-[11px] leading-relaxed text-neutral-600">
-          לכל פריט בתוספת (או כלול) שמאפשר חלופה — ברירת המחדל היא מה שהאולם מציע. אפשר לגלול
-          ברשימת הספקים במאגר ולבחור חלופה שתחליף את הצעת האולם.
+          בפריטים <strong className="font-semibold">כלולים במחיר</strong> — ברירת המחדל היא מה
+          שהאולם מציע בחינם. אפשר גם{" "}
+          <strong className="font-semibold">להביא ספק אחר בתשלום</strong> מהמאגר. בפריטים בתוספת
+          תשלום — אפשר להחליף בספק חיצוני כשזמין.
         </p>
       ) : null}
 
@@ -274,8 +288,13 @@ export default function InquiryOfferOverview({
 
       <div className="grid gap-4 md:grid-cols-2">
         <section className="overflow-hidden rounded-xl border-2 border-dashed border-emerald-950/25 bg-emerald-950/[0.03]">
-          <div className="border-b border-emerald-950/15 bg-emerald-950/[0.08] px-3 py-2 text-center text-xs font-semibold text-emerald-950">
-            כלול במחיר
+          <div className="border-b border-emerald-950/15 bg-emerald-950/[0.08] px-3 py-2 text-center">
+            <p className="text-xs font-semibold text-emerald-950">כלול במחיר</p>
+            {hasChoosable && included.some((o) => inquiryServiceAllowsExternalSource(o)) ? (
+              <p className="mt-0.5 text-[10px] font-normal text-emerald-950/75">
+                אפשר להשאיר מהאולם או להביא חלופה בתשלום
+              </p>
+            ) : null}
           </div>
           <div className="p-3">
             <OfferList
