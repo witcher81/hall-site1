@@ -85,6 +85,19 @@ export default function VenueInquiryClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const rebookMode = searchParams.get("rebook");
+  const rebookBanner =
+    rebookMode === "date"
+      ? {
+          title: "בקשה לתאריך אחר",
+          body: "פרטי הבקשה הקודמת נטענו — בחרו תאריך חדש ושלחו שוב.",
+        }
+      : rebookMode === "edit"
+        ? {
+            title: "עריכת בקשה ושליחה מחדש",
+            body: "עדכנו ספקים, חלופות או הודעות — ואז שלחו בקשה חדשה.",
+          }
+        : null;
   const dateInputRef = useRef<HTMLInputElement>(null);
   const eventTypeMenuRef = useRef<HTMLDivElement>(null);
   /** Blocks accidental submit when "המשך" is replaced by "שלח" under the same click. */
@@ -845,6 +858,13 @@ export default function VenueInquiryClient({
         <p className="mt-1 text-xs text-neutral-600">
           מלאו בשלבים: פרטי האירוע, מה האולם מציע, ספקים נוספים מהמאגר (אופציונלי), ושליחה.
         </p>
+
+        {rebookBanner ? (
+          <div className="mt-4 rounded-xl border border-amber-300/60 bg-amber-50/80 px-4 py-3">
+            <p className="text-sm font-semibold text-emerald-950">{rebookBanner.title}</p>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-700">{rebookBanner.body}</p>
+          </div>
+        ) : null}
 
         <div className="mt-4">
           <InquiryWizardNav

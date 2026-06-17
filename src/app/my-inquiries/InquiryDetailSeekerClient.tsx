@@ -14,6 +14,8 @@ import {
   normalizeInquiryStatus,
 } from "@/lib/inquiryStatus";
 import Link from "next/link";
+import InquirySeekerRebookPanel from "@/components/inquiry/InquirySeekerRebookPanel";
+import type { InquiryRebookSnapshot } from "@/lib/inquiryRebook";
 
 export type SeekerInquiryDetail = {
   id: number;
@@ -50,6 +52,14 @@ export default function InquiryDetailSeekerClient({
 }) {
   const status = normalizeInquiryStatus(inquiry.status);
   const steps = inquirySeekerProgressSteps(inquiry.status);
+  const rebookSnapshot: InquiryRebookSnapshot = {
+    preferredDate: inquiry.preferredDate,
+    guestCount: inquiry.guestCount,
+    eventType: inquiry.eventType,
+    message: inquiry.message,
+    serviceChoicesJson: inquiry.serviceChoicesJson ?? null,
+    supplierMessagesJson: inquiry.supplierMessagesJson ?? null,
+  };
 
   return (
     <div className="mt-6 text-right text-sm">
@@ -145,9 +155,24 @@ export default function InquiryDetailSeekerClient({
           )}
 
           {status === "REJECTED" && (
-            <p className="mt-4 rounded-xl border border-red-200 bg-red-50/60 px-4 py-3 text-xs text-red-900">
-              בקשת ההזמנה נדחתה. אפשר לחפש אולמות נוספים או לשלוח בקשה לתאריך אחר.
-            </p>
+            <>
+              <p className="mt-4 rounded-xl border border-red-200 bg-red-50/60 px-4 py-3 text-xs text-red-900">
+                בקשת ההזמנה נדחתה. אפשר לחפש אולמות נוספים או לשלוח בקשה חדשה לתאריך אחר.
+              </p>
+              <InquirySeekerRebookPanel
+                venueId={inquiry.venueId}
+                snapshot={rebookSnapshot}
+                showDateChange
+              />
+            </>
+          )}
+
+          {status === "REPLIED" && (
+            <InquirySeekerRebookPanel
+              venueId={inquiry.venueId}
+              snapshot={rebookSnapshot}
+              showDateChange={false}
+            />
           )}
 
           {status === "NEW" && (

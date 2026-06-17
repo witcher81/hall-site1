@@ -53,3 +53,12 @@ export function clearInquiryDraft(venueId: number): void {
     /* ignore */
   }
 }
+
+/** מחליף טיוטה קיימת בנתונים מפנייה קודמת (שליחה מחדש / עריכה) */
+export function seedInquiryDraftFromSnapshot(
+  venueId: number,
+  draft: Omit<InquiryDraft, "savedAt">
+): void {
+  clearInquiryDraft(venueId);
+  saveInquiryDraft(venueId, draft);
+}
