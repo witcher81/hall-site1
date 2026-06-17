@@ -95,6 +95,25 @@ export default function FreelancerRequestsClient() {
     }
   }
 
+  async function declineRequest(id: number) {
+    if (
+      !window.confirm(
+        "לבטל את השתתפותך באירוע? המזמין ובעל האולם יקבלו התראה."
+      )
+    ) {
+      return;
+    }
+    const res = await fetch("/api/freelancer/requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action: "decline" }),
+    });
+    if (!res.ok) return;
+    setRequests((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: "CANCELLED" } : r))
+    );
+  }
+
   function openNegotiation(r: Req) {
     if (!r.inquiryId) return;
     setNegotiationInquiryId(r.inquiryId);
@@ -167,7 +186,9 @@ export default function FreelancerRequestsClient() {
                     ? "border-[#C9A227]/40 bg-[#FFF9E6]"
                     : r.status === "REPLIED"
                       ? "border-emerald-200/80 bg-emerald-50/90"
-                      : "border-neutral-200 bg-white"
+                      : r.status === "CANCELLED"
+                        ? "border-neutral-200 bg-neutral-50 opacity-80"
+                        : "border-neutral-200 bg-white"
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -201,7 +222,12 @@ export default function FreelancerRequestsClient() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {r.inquiryId ? (
+                    {r.status === "CANCELLED" ? (
+                      <span className="rounded-full bg-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700">
+                        בוטלה
+                      </span>
+                    ) : null}
+                    {r.inquiryId && r.status !== "CANCELLED" ? (
                       <button
                         type="button"
                         onClick={() => openNegotiation(r)}
@@ -210,6 +236,15 @@ export default function FreelancerRequestsClient() {
                         הצעת מחיר חדשה
                       </button>
                     ) : null}
+                    {r.status !== "CANCELLED" && (
+                      <button
+                        type="button"
+                        onClick={() => declineRequest(r.id)}
+                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-800 hover:bg-red-100"
+                      >
+                        ביטול השתתפות
+                      </button>
+                    )}
                     {r.status === "NEW" && (
                       <>
                         <button

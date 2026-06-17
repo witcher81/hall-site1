@@ -8,6 +8,7 @@ import InquiryServiceChoicesFromSeeker, {
 } from "@/components/InquiryServiceChoicesFromSeeker";
 import {
   canOwnerApprove,
+  canOwnerCancelApproved,
   canOwnerReject,
   inquiryStatusBadgeClass,
   inquiryStatusLabelOwner,
@@ -44,7 +45,7 @@ export default function InquiryDetailClient({ initial }: Props) {
   const [repliedNote, setRepliedNote] = useState("");
   const [openingChat, setOpeningChat] = useState(false);
   const [pending, setPending] = useState<
-    null | "READ" | "REPLIED" | "APPROVE" | "REJECT"
+    null | "READ" | "REPLIED" | "APPROVE" | "REJECT" | "CANCEL"
   >(null);
   const [decisionNote, setDecisionNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +82,46 @@ export default function InquiryDetailClient({ initial }: Props) {
       setInquiry((prev) => ({
         ...prev,
         status: nextStatus,
+        ownerNote: decisionNote.trim() || prev.ownerNote,
+        repliedAt: new Date().toISOString(),
+      }));
+      setDecisionNote("");
+      router.refresh();
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function runCancelApproved() {
+    if (
+      !window.confirm(
+        "לבטל את ההזמנה שאושרה? המזמין, הספקים והתאריך בלוח יעודכנו — כולם יקבלו התראה."
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    setPending("CANCEL");
+    try {
+      const res = await fetch("/api/venue-owner/inquiries", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: q.id,
+          action: "cancel",
+          ownerNote: decisionNote.trim() || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(
+          typeof data?.error === "string" ? data.error : "הביטול נכשל. נסו שוב."
+        );
+        return;
+      }
+      setInquiry((prev) => ({
+        ...prev,
+        status: "REJECTED",
         ownerNote: decisionNote.trim() || prev.ownerNote,
         repliedAt: new Date().toISOString(),
       }));
@@ -378,12 +419,24 @@ export default function InquiryDetailClient({ initial }: Props) {
               )}
 
               {status === "APPROVED" && (
-                <Link
-                  href={`/dashboard/venue-owner/venues/${q.venueId}`}
-                  className="block rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-center text-xs font-semibold text-emerald-900 hover:bg-emerald-100/80"
-                >
-                  ללוח זמינות האולם →
-                </Link>
+                <div className="w-full space-y-2">
+                  <Link
+                    href={`/dashboard/venue-owner/venues/${q.venueId}`}
+                    className="block rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-center text-xs font-semibold text-emerald-900 hover:bg-emerald-100/80"
+                  >
+                    ללוח זמינות האולם →
+                  </Link>
+                  {canOwnerCancelApproved(q.status) && (
+                    <button
+                      type="button"
+                      onClick={runCancelApproved}
+                      disabled={pending !== null}
+                      className="w-full rounded-full border border-red-300 bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-800 transition hover:bg-red-100 disabled:opacity-60"
+                    >
+                      {pending === "CANCEL" ? "מבטל..." : "ביטול ההזמנה שאושרה"}
+                    </button>
+                  )}
+                </div>
               )}
 
               {(q.status === "NEW" || q.status === "READ") && (

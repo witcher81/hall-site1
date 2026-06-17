@@ -5,6 +5,9 @@ import { createNotification } from "@/lib/notifications";
 import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import { notifySeekerServiceRequestReplied } from "@/lib/transactionalEmails";
 import {
+  notifyFreelancerDeclinedService,
+} from "@/lib/inquiryCancellation";
+import {
   USER_INPUT_MAX,
   badRequest,
   validateOptionalLongText,
@@ -51,7 +54,7 @@ export async function GET() {
   });
 }
 
-/** סימון בקשה כ־נקראה או נענתה */
+/** סימון בקשה כ־נקראה, נענתה או ביטול השתתפות */
 export async function PATCH(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user || user.role !== "FREELANCER") {
@@ -60,6 +63,61 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const id = body.id != null ? Number(body.id) : NaN;
+  const action =
+    typeof body.action === "string" ? body.action.trim().toLowerCase() : "";
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
+  }
+
+  const serviceRequest = await prisma.serviceRequest.findFirst({
+    where: { id },
+    include: {
+      service: { select: { providerId: true, name: true } },
+      user: { select: { id: true, email: true, name: true } },
+      inquiry: {
+        select: {
+          id: true,
+          venue: {
+            select: {
+              name: true,
+              ownerId: true,
+              owner: { select: { id: true, email: true, name: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!serviceRequest || serviceRequest.service.providerId !== user.id) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (action === "decline") {
+    if (serviceRequest.status === "CANCELLED") {
+      return NextResponse.json({ ok: true, status: "CANCELLED" });
+    }
+    await prisma.serviceRequest.update({
+      where: { id },
+      data: { status: "CANCELLED" },
+    });
+    if (serviceRequest.inquiry) {
+      await notifyFreelancerDeclinedService({
+        inquiryId: serviceRequest.inquiry.id,
+        actorUserId: user.id,
+        serviceName: serviceRequest.service.name,
+        venueName: serviceRequest.inquiry.venue.name,
+        seeker: serviceRequest.user,
+        owner: {
+          id: serviceRequest.inquiry.venue.owner.id,
+          email: serviceRequest.inquiry.venue.owner.email,
+          name: serviceRequest.inquiry.venue.owner.name,
+        },
+      });
+    }
+    return NextResponse.json({ ok: true, status: "CANCELLED" });
+  }
+
   const statusRaw = (body.status as string)?.toUpperCase();
   const status =
     statusRaw === "REPLIED" ? "REPLIED" : statusRaw === "READ" ? "READ" : "NEW";
@@ -74,32 +132,15 @@ export async function PATCH(req: NextRequest) {
     providerNote = noteRes.value;
   }
 
-  if (!Number.isInteger(id) || id <= 0) {
-    return NextResponse.json({ error: "Invalid request id" }, { status: 400 });
-  }
-
-  const serviceRequest = await prisma.serviceRequest.findFirst({
+  await prisma.serviceRequest.update({
     where: { id },
-    include: {
-      service: { select: { providerId: true, name: true } },
-      user: { select: { email: true, name: true } },
+    data: {
+      status,
+      providerNote:
+        status === "REPLIED" ? providerNote : serviceRequest.providerNote,
+      repliedAt: status === "REPLIED" ? new Date() : serviceRequest.repliedAt,
     },
   });
-  if (!serviceRequest || serviceRequest.service.providerId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  const delegate = (prisma as { serviceRequest?: { update: (arg: object) => Promise<unknown> } }).serviceRequest;
-  if (delegate) {
-    await delegate.update({
-      where: { id },
-      data: {
-        status,
-        providerNote: status === "REPLIED" ? providerNote : (serviceRequest as { providerNote?: string | null }).providerNote,
-        repliedAt: status === "REPLIED" ? new Date() : (serviceRequest as { repliedAt?: Date | null }).repliedAt,
-      },
-    });
-  }
 
   if (status === "REPLIED" && serviceRequest.status !== "REPLIED") {
     await createNotification({

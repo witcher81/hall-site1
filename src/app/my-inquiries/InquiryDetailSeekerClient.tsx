@@ -7,7 +7,9 @@ import InquiryServiceChoicesFromSeeker, {
 } from "@/components/InquiryServiceChoicesFromSeeker";
 import InquiryNegotiationHub from "@/components/inquiry-negotiation/InquiryNegotiationHub";
 import NegotiationAcceptedSummary from "@/components/inquiry-negotiation/NegotiationAcceptedSummary";
+import InquirySeekerRebookPanel from "@/components/inquiry/InquirySeekerRebookPanel";
 import {
+  canSeekerCancel,
   inquirySeekerProgressSteps,
   inquiryStatusBadgeClass,
   inquiryStatusLabelSeeker,
@@ -17,7 +19,8 @@ import {
   normalizeInquiryStatus,
 } from "@/lib/inquiryStatus";
 import Link from "next/link";
-import InquirySeekerRebookPanel from "@/components/inquiry/InquirySeekerRebookPanel";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { InquiryRebookSnapshot } from "@/lib/inquiryRebook";
 
 export type SeekerInquiryDetail = {
@@ -53,6 +56,9 @@ export default function InquiryDetailSeekerClient({
 }: {
   inquiry: SeekerInquiryDetail;
 }) {
+  const router = useRouter();
+  const [cancelPending, setCancelPending] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const status = normalizeInquiryStatus(inquiry.status);
   const steps = inquirySeekerProgressSteps(inquiry.status);
   const rebookSnapshot: InquiryRebookSnapshot = {
@@ -63,6 +69,33 @@ export default function InquiryDetailSeekerClient({
     serviceChoicesJson: inquiry.serviceChoicesJson ?? null,
     supplierMessagesJson: inquiry.supplierMessagesJson ?? null,
   };
+
+  async function cancelInquiry() {
+    if (
+      !window.confirm(
+        "לבטל את הבקשה? בעל האולם והספקים שקיבלו בקשה יקבלו התראה."
+      )
+    ) {
+      return;
+    }
+    setCancelError(null);
+    setCancelPending(true);
+    try {
+      const res = await fetch(`/api/inquiries/${inquiry.id}/cancel`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setCancelError(
+          typeof data?.error === "string" ? data.error : "הביטול נכשל. נסו שוב."
+        );
+        return;
+      }
+      router.refresh();
+    } finally {
+      setCancelPending(false);
+    }
+  }
 
   return (
     <div className="mt-6 text-right text-sm">
@@ -124,8 +157,24 @@ export default function InquiryDetailSeekerClient({
               >
                 עמוד האולם
               </Link>
+              {canSeekerCancel(inquiry.status) && (
+                <button
+                  type="button"
+                  onClick={cancelInquiry}
+                  disabled={cancelPending}
+                  className="inline-flex items-center justify-center rounded-full border border-red-300 bg-red-50 px-4 py-2 text-xs font-semibold text-red-800 transition hover:bg-red-100 disabled:opacity-60"
+                >
+                  {cancelPending ? "מבטל..." : "ביטול הבקשה"}
+                </button>
+              )}
             </div>
           </div>
+
+          {cancelError && (
+            <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+              {cancelError}
+            </p>
+          )}
 
           <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
             {steps.map((step) => (

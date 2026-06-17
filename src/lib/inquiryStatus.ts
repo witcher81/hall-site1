@@ -46,6 +46,15 @@ export function canOwnerReject(status: string): boolean {
   return canOwnerApprove(status);
 }
 
+export function canSeekerCancel(status: string): boolean {
+  const s = normalizeInquiryStatus(status);
+  return s === "NEW" || s === "READ" || s === "REPLIED" || s === "APPROVED";
+}
+
+export function canOwnerCancelApproved(status: string): boolean {
+  return normalizeInquiryStatus(status) === "APPROVED";
+}
+
 export function inquiryStatusLabelSeeker(status: string): string {
   const s = normalizeInquiryStatus(status);
   switch (s) {

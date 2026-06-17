@@ -31,3 +31,15 @@ export async function bookVenueDateForInquiry(
 
   return { ok: true };
 }
+
+/** שחרור תאריך שסומן תפוס באישור הזמנה (ביטול לאחר אישור) */
+export async function releaseVenueDateForInquiry(
+  venueId: number,
+  preferredDate: string | null | undefined
+): Promise<void> {
+  const date = inquiryPreferredDateToUtc(preferredDate);
+  if (!date) return;
+  await prisma.venueAvailability.deleteMany({
+    where: { venueId, date, status: "BOOKED" },
+  });
+}

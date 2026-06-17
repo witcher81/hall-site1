@@ -249,6 +249,63 @@ export function notifySeekerServiceRequestReplied(input: {
   );
 }
 
+export function notifyInquiryEventCancelledEmail(input: {
+  recipientEmail: string;
+  recipientName: string | null;
+  venueName: string;
+  summary: string;
+  href: string;
+}): void {
+  const site = getSiteUrl();
+  const url = input.href.startsWith("http") ? input.href : `${site}${input.href}`;
+  const greeting = input.recipientName?.trim()
+    ? `שלום ${escapeHtml(input.recipientName.trim())},`
+    : "שלום,";
+
+  const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;">${escapeHtml(input.summary)}</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;color:#525252;">אולם: <strong>${escapeHtml(input.venueName)}</strong></p>
+    ${ctaButton(url, "לצפייה בפרטים")}`;
+
+  fireAndForget(
+    sendEmail({
+      to: input.recipientEmail,
+      subject: `ההזמנה בוטלה — ${input.venueName}`,
+      html: emailShell("ההזמנה בוטלה", body),
+      text: `${input.summary} ${url}`,
+    }),
+    "inquiryEventCancelled"
+  );
+}
+
+export function notifySupplierDeclinedEmail(input: {
+  recipientEmail: string;
+  recipientName: string | null;
+  venueName: string;
+  serviceName: string;
+  href: string;
+}): void {
+  const site = getSiteUrl();
+  const url = input.href.startsWith("http") ? input.href : `${site}${input.href}`;
+  const greeting = input.recipientName?.trim()
+    ? `שלום ${escapeHtml(input.recipientName.trim())},`
+    : "שלום,";
+
+  const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
+    <p style="margin:0 0 12px 0;line-height:1.6;">הספק <strong>${escapeHtml(input.serviceName)}</strong> ביטל את השתתפותו באירוע באולם <strong>${escapeHtml(input.venueName)}</strong>.</p>
+    ${ctaButton(url, "לצפייה בפרטים")}`;
+
+  fireAndForget(
+    sendEmail({
+      to: input.recipientEmail,
+      subject: `ספק ביטל השתתפות — ${input.serviceName}`,
+      html: emailShell("ספק ביטל השתתפות", body),
+      text: `הספק ${input.serviceName} ביטל השתתפות באירוע ב־${input.venueName}. ${url}`,
+    }),
+    "supplierDeclined"
+  );
+}
+
 export function notifyNegotiationOfferReceived(input: {
   recipientEmail: string;
   recipientName: string | null;

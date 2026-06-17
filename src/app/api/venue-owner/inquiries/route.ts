@@ -11,6 +11,10 @@ import {
 } from "@/lib/transactionalEmails";
 import { bookVenueDateForInquiry } from "@/lib/inquiryBookDate";
 import {
+  finalizeInquiryCancellation,
+  notifyInquiryCancelled,
+} from "@/lib/inquiryCancellation";
+import {
   canOwnerApprove,
   canOwnerReject,
   normalizeInquiryStatus,
@@ -219,7 +223,50 @@ export async function PATCH(req: NextRequest) {
     });
     if (inquiry.status !== "REJECTED") {
       await notifySeekerRejected(inquiry);
+      await notifyInquiryCancelled({
+        inquiryId: id,
+        actorUserId: user.id,
+        actor: "VENUE_OWNER",
+        skipSeeker: true,
+      });
+      await finalizeInquiryCancellation({
+        inquiryId: id,
+        releaseBookedDate: false,
+      });
     }
+    return NextResponse.json({ ok: true, status: "REJECTED" });
+  }
+
+  if (action === "cancel") {
+    const noteParsed = parseOwnerNote(body);
+    if (noteParsed === null) {
+      return badRequest("הערה ארוכה מדי");
+    }
+    if (normalizeInquiryStatus(inquiry.status) !== "APPROVED") {
+      return NextResponse.json(
+        { error: "ניתן לבטל רק הזמנה שאושרה. לפניות שטרם אושרו — השתמשו בדחייה." },
+        { status: 400 }
+      );
+    }
+    await prisma.inquiry.update({
+      where: { id },
+      data: {
+        status: "REJECTED",
+        ownerNote: noteParsed ?? inquiry.ownerNote,
+        repliedAt: new Date(),
+      },
+    });
+    await notifyInquiryCancelled({
+      inquiryId: id,
+      actorUserId: user.id,
+      actor: "VENUE_OWNER",
+    });
+    await finalizeInquiryCancellation({
+      inquiryId: id,
+      releaseBookedDate: true,
+      venueId: inquiry.venue.id,
+      preferredDate: inquiry.preferredDate,
+    });
     return NextResponse.json({ ok: true, status: "REJECTED" });
   }
 
