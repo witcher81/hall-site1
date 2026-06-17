@@ -78,7 +78,10 @@ export async function createSupplierRequestsForInquiry(input: {
   venueName: string;
   eventType: string | null;
   preferredDate: string | null;
-  supplierMessage: string | null;
+  /** הודעה אחת לכל הספקים — legacy */
+  supplierMessage?: string | null;
+  /** הודעה לפי מזהה שירות */
+  messagesByServiceId?: Map<number, string>;
   serviceIds: number[];
 }): Promise<number[]> {
   if (input.serviceIds.length === 0) return [];
@@ -93,16 +96,19 @@ export async function createSupplierRequestsForInquiry(input: {
     },
   });
 
-  const message = buildSupplierRequestMessage({
-    supplierMessage: input.supplierMessage,
-    venueName: input.venueName,
-    eventType: input.eventType,
-    preferredDate: input.preferredDate,
-  });
-
   const createdIds: number[] = [];
 
   for (const service of services) {
+    const personalNote =
+      input.messagesByServiceId?.get(service.id)?.trim() ||
+      input.supplierMessage?.trim() ||
+      null;
+    const message = buildSupplierRequestMessage({
+      supplierMessage: personalNote,
+      venueName: input.venueName,
+      eventType: input.eventType,
+      preferredDate: input.preferredDate,
+    });
     const request = await prisma.serviceRequest.create({
       data: {
         userId: input.userId,

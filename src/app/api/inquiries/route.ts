@@ -20,6 +20,13 @@ import {
   parseSupplierServiceIds,
 } from "@/lib/inquiryLinkedSuppliers";
 import {
+  legacySingleSupplierMessageEntries,
+  parseSupplierMessagesPayload,
+  serializeStoredSupplierMessages,
+  supplierMessagesMapFromStored,
+} from "@/lib/inquirySupplierMessages";
+import type { StoredServiceChoice } from "@/lib/venueInquiryAmenities";
+import {
   getInquiryGuestBounds,
   normalizeInquiryServiceChoices,
   validateInquiryEventType,
@@ -32,6 +39,23 @@ import {
 } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
+
+function buildSupplierNameMap(rows: StoredServiceChoice[]): Map<number, string> {
+  const map = new Map<number, string>();
+  for (const row of rows) {
+    if (
+      typeof row.marketplaceServiceId === "number" &&
+      Number.isInteger(row.marketplaceServiceId) &&
+      row.marketplaceServiceId > 0
+    ) {
+      map.set(
+        row.marketplaceServiceId,
+        row.replacementName?.trim() || row.label.trim() || `ספק #${row.marketplaceServiceId}`
+      );
+    }
+  }
+  return map;
+}
 
 /** שליחת פנייה לאולם – משתמש מחובר בלבד */
 export async function POST(req: NextRequest) {
@@ -184,10 +208,50 @@ export async function POST(req: NextRequest) {
     mergedServiceRows,
     body.serviceChoices
   );
-  const outreachSupplierIds = filterSupplierIdsToLinked(
+  const supplierNameById = buildSupplierNameMap(mergedServiceRows);
+  let outreachSupplierIds = filterSupplierIdsToLinked(
     parseSupplierServiceIds(body.supplierServiceIds),
     linkedSupplierIds
   );
+
+  const parsedSupplierMessages = parseSupplierMessagesPayload(
+    body.supplierMessages,
+    linkedSupplierIds,
+    supplierNameById
+  );
+  if (!parsedSupplierMessages.ok) {
+    return badRequest(parsedSupplierMessages.error);
+  }
+
+  let storedSupplierMessages = parsedSupplierMessages.entries;
+  if (
+    body.supplierMessages != null &&
+    outreachSupplierIds.length === 0 &&
+    storedSupplierMessages.length > 0
+  ) {
+    outreachSupplierIds = storedSupplierMessages.map((e) => e.serviceId);
+  }
+  if (
+    storedSupplierMessages.length === 0 &&
+    supplierMessage &&
+    outreachSupplierIds.length > 0
+  ) {
+    storedSupplierMessages = legacySingleSupplierMessageEntries(
+      supplierMessage,
+      outreachSupplierIds,
+      supplierNameById
+    );
+  }
+
+  const supplierMessagesJson = serializeStoredSupplierMessages(storedSupplierMessages);
+  const messagesByServiceId = supplierMessagesMapFromStored(storedSupplierMessages);
+  const legacySupplierMessage =
+    storedSupplierMessages.length === 1 &&
+    outreachSupplierIds.length === storedSupplierMessages.length
+      ? storedSupplierMessages[0]?.message ?? null
+      : supplierMessage && storedSupplierMessages.length === 0
+        ? supplierMessage
+        : null;
 
   if (!message || message.length < 10) {
     message = DEFAULT_INQUIRY_SEEKER_MESSAGE;
@@ -202,7 +266,8 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         venueId,
         message,
-        supplierMessage,
+        supplierMessage: legacySupplierMessage,
+        supplierMessagesJson,
         eventType,
         preferredDate,
         guestCount: guestCount != null && Number.isFinite(guestCount) ? guestCount : null,
@@ -231,7 +296,8 @@ export async function POST(req: NextRequest) {
       venueName: venue.name,
       eventType,
       preferredDate,
-      supplierMessage,
+      messagesByServiceId,
+      supplierMessage: legacySupplierMessage,
       serviceIds: outreachSupplierIds,
     });
   }
@@ -242,7 +308,8 @@ export async function POST(req: NextRequest) {
     venueOwnerId: venue.ownerId,
     venueId: venue.id,
     venueMessage: message,
-    supplierMessage,
+    supplierMessage: legacySupplierMessage,
+    messagesByServiceId,
     serviceRequestIds,
   });
 

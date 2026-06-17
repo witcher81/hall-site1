@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { InquiryLinkedSupplier } from "@/lib/inquiryLinkedSuppliers";
 
 function IconVenue({ className }: { className?: string }) {
@@ -53,17 +53,19 @@ function NoteCard({
   accent,
   headerAction,
   footerNote,
+  children,
 }: {
   icon: ReactNode;
   title: string;
   badge?: string;
   description: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  placeholder?: string;
   accent: "emerald" | "amber";
   headerAction?: ReactNode;
   footerNote?: string;
+  children?: ReactNode;
 }) {
   const accentStyles =
     accent === "emerald"
@@ -111,13 +113,17 @@ function NoteCard({
           ) : null}
         </div>
         {headerAction ? <div className="mt-3">{headerAction}</div> : null}
-        <textarea
-          rows={4}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={`mt-4 w-full resize-y rounded-xl border border-neutral-200/90 bg-white/95 px-3.5 py-3 text-sm leading-relaxed text-neutral-800 outline-none transition placeholder:text-neutral-400 ${accentStyles.focus}`}
-          placeholder={placeholder}
-        />
+        {children ? (
+          <div className="mt-4">{children}</div>
+        ) : (
+          <textarea
+            rows={4}
+            value={value ?? ""}
+            onChange={(e) => onChange?.(e.target.value)}
+            className={`mt-4 w-full resize-y rounded-xl border border-neutral-200/90 bg-white/95 px-3.5 py-3 text-sm leading-relaxed text-neutral-800 outline-none transition placeholder:text-neutral-400 ${accentStyles.focus}`}
+            placeholder={placeholder}
+          />
+        )}
         <p className="mt-2 text-[10px] text-neutral-500">
           {footerNote ?? "אופציונלי — אפשר להשאיר ריק"}
         </p>
@@ -126,18 +132,22 @@ function NoteCard({
   );
 }
 
-function SupplierPickerModal({
+function SupplierMessagesModal({
   open,
   suppliers,
   selectedIds,
+  messagesByServiceId,
   onClose,
-  onChange,
+  onSelectedChange,
+  onMessageChange,
 }: {
   open: boolean;
   suppliers: InquiryLinkedSupplier[];
   selectedIds: number[];
+  messagesByServiceId: Record<number, string>;
   onClose: () => void;
-  onChange: (ids: number[]) => void;
+  onSelectedChange: (ids: number[]) => void;
+  onMessageChange: (serviceId: number, message: string) => void;
 }) {
   const allSelected = suppliers.length > 0 && selectedIds.length === suppliers.length;
 
@@ -145,9 +155,9 @@ function SupplierPickerModal({
 
   function toggle(id: number) {
     if (selectedIds.includes(id)) {
-      onChange(selectedIds.filter((x) => x !== id));
+      onSelectedChange(selectedIds.filter((x) => x !== id));
     } else {
-      onChange([...selectedIds, id]);
+      onSelectedChange([...selectedIds, id]);
     }
   }
 
@@ -158,20 +168,20 @@ function SupplierPickerModal({
       aria-modal="true"
       aria-labelledby="supplier-picker-title"
     >
-      <div className="flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
+      <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
         <div className="border-b border-neutral-100 px-4 py-3.5 sm:px-5">
           <h3 id="supplier-picker-title" className="font-serif text-base font-semibold text-emerald-950">
-            בחירת ספקים להודעה
+            הודעות לספקים
           </h3>
           <p className="mt-0.5 text-[11px] text-neutral-600">
-            סמנו למי לשלוח את ההערות לספקים. שאר הספקים יישארו בבקשה בלי הודעה נפרדת.
+            סמנו ספקים וכתבו לכל אחד הודעה אישית. ספק שלא נבחר יישאר בבקשה בלי הודעה נפרדת.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2 border-b border-neutral-100 px-4 py-2.5 sm:px-5">
           <button
             type="button"
-            onClick={() => onChange(suppliers.map((s) => s.serviceId))}
+            onClick={() => onSelectedChange(suppliers.map((s) => s.serviceId))}
             className={`rounded-full px-3 py-1 text-[11px] font-semibold transition ${
               allSelected
                 ? "bg-emerald-950 text-white"
@@ -182,40 +192,52 @@ function SupplierPickerModal({
           </button>
           <button
             type="button"
-            onClick={() => onChange([])}
+            onClick={() => onSelectedChange([])}
             className="rounded-full border border-neutral-200 bg-white px-3 py-1 text-[11px] font-semibold text-neutral-700 hover:border-amber-400/50"
           >
             נקה בחירה
           </button>
         </div>
 
-        <ul className="flex-1 overflow-y-auto px-2 py-2 sm:px-3">
+        <ul className="flex-1 space-y-2 overflow-y-auto px-2 py-2 sm:px-3">
           {suppliers.map((s) => {
             const checked = selectedIds.includes(s.serviceId);
+            const message = messagesByServiceId[s.serviceId] ?? "";
             return (
               <li key={s.serviceId}>
-                <label
-                  className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition ${
+                <div
+                  className={`rounded-xl border px-3 py-3 transition ${
                     checked
                       ? "border-amber-300/70 bg-amber-50/60"
-                      : "border-transparent hover:bg-neutral-50"
+                      : "border-transparent bg-neutral-50/40"
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggle(s.serviceId)}
-                    className="mt-1 h-4 w-4 shrink-0 rounded border-neutral-300 text-emerald-950 focus:ring-amber-400"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium text-emerald-950">{s.name}</span>
-                    <span className="mt-0.5 block text-[11px] text-neutral-600">
-                      {s.providerName}
-                      <span className="mx-1 text-neutral-400">·</span>
-                      {s.source === "addon" ? "ספק נוסף" : "חלופה במאגר"}
+                  <label className="flex cursor-pointer items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggle(s.serviceId)}
+                      className="mt-1 h-4 w-4 shrink-0 rounded border-neutral-300 text-emerald-950 focus:ring-amber-400"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium text-emerald-950">{s.name}</span>
+                      <span className="mt-0.5 block text-[11px] text-neutral-600">
+                        {s.providerName}
+                        <span className="mx-1 text-neutral-400">·</span>
+                        {s.source === "addon" ? "ספק נוסף" : "חלופה במאגר"}
+                      </span>
                     </span>
-                  </span>
-                </label>
+                  </label>
+                  {checked ? (
+                    <textarea
+                      rows={3}
+                      value={message}
+                      onChange={(e) => onMessageChange(s.serviceId, e.target.value)}
+                      placeholder="הודעה אישית לספק זה..."
+                      className="mt-3 w-full resize-y rounded-xl border border-neutral-200/90 bg-white px-3 py-2.5 text-sm leading-relaxed text-neutral-800 outline-none transition placeholder:text-neutral-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+                    />
+                  ) : null}
+                </div>
               </li>
             );
           })}
@@ -224,6 +246,16 @@ function SupplierPickerModal({
         <div className="border-t border-neutral-100 px-4 py-3 sm:px-5">
           <p className="mb-3 text-center text-[11px] text-neutral-600">
             נבחרו <strong>{selectedIds.length}</strong> מתוך {suppliers.length}
+            {selectedIds.length > 0 ? (
+              <>
+                {" "}
+                ·{" "}
+                <strong>
+                  {selectedIds.filter((id) => (messagesByServiceId[id] ?? "").trim()).length}
+                </strong>{" "}
+                עם הודעה
+              </>
+            ) : null}
           </p>
           <button
             type="button"
@@ -240,39 +272,53 @@ function SupplierPickerModal({
 
 type Props = {
   venueMessage: string;
-  supplierMessage: string;
   linkedSuppliers: InquiryLinkedSupplier[];
   selectedSupplierIds: number[];
+  supplierMessagesByServiceId: Record<number, string>;
   onVenueMessageChange: (value: string) => void;
-  onSupplierMessageChange: (value: string) => void;
   onSelectedSupplierIdsChange: (ids: number[]) => void;
+  onSupplierMessagesChange: (messages: Record<number, string>) => void;
 };
 
 export default function InquirySendNotesSection({
   venueMessage,
-  supplierMessage,
   linkedSuppliers,
   selectedSupplierIds,
+  supplierMessagesByServiceId,
   onVenueMessageChange,
-  onSupplierMessageChange,
   onSelectedSupplierIdsChange,
+  onSupplierMessagesChange,
 }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const hasSuppliers = linkedSuppliers.length > 0;
 
   const selectedCount = useMemo(
-    () => selectedSupplierIds.filter((id) => linkedSuppliers.some((s) => s.serviceId === id)).length,
+    () =>
+      selectedSupplierIds.filter((id) => linkedSuppliers.some((s) => s.serviceId === id)).length,
     [selectedSupplierIds, linkedSuppliers]
   );
 
+  const messagesCount = useMemo(
+    () =>
+      selectedSupplierIds.filter((id) => (supplierMessagesByServiceId[id] ?? "").trim()).length,
+    [selectedSupplierIds, supplierMessagesByServiceId]
+  );
+
   const allSelected = hasSuppliers && selectedCount === linkedSuppliers.length;
+
+  function handleMessageChange(serviceId: number, message: string) {
+    onSupplierMessagesChange({
+      ...supplierMessagesByServiceId,
+      [serviceId]: message,
+    });
+  }
 
   return (
     <section className="overflow-hidden rounded-2xl border border-[#E8E0D4] bg-gradient-to-b from-[#FFFCF7] to-white shadow-[0_8px_32px_rgba(15,59,46,0.07)]">
       <div className="border-b border-[#C9A227]/20 bg-emerald-950/[0.04] px-4 py-3.5 sm:px-5">
         <p className="font-serif text-base font-semibold text-emerald-950">הודעות אישיות</p>
         <p className="mt-0.5 text-[11px] text-neutral-600">
-          דגשים נפרדים לבעל האולם ולספקים — כל אחד יראה רק את מה שרלוונטי אליו.
+          דגשים נפרדים לבעל האולם ולכל ספק — כל אחד יראה רק את מה שרלוונטי אליו.
         </p>
       </div>
 
@@ -293,7 +339,7 @@ export default function InquirySendNotesSection({
           <NoteCard
             accent="amber"
             icon={<IconSuppliers className="h-5 w-5" />}
-            title="הערות לספקים"
+            title="הודעות לספקים"
             badge={
               allSelected
                 ? `${linkedSuppliers.length} ספקים`
@@ -301,19 +347,18 @@ export default function InquirySendNotesSection({
             }
             description={
               selectedCount > 0
-                ? `ההודעה תישלח ל-${selectedCount} ספקים שבחרתם.`
-                : "לא נבחרו ספקים — ההודעה לא תישלח לאף ספק."
+                ? messagesCount > 0
+                  ? `${messagesCount} הודעות אישיות ל-${selectedCount} ספקים שנבחרו.`
+                  : `נבחרו ${selectedCount} ספקים — כתבו לכל אחד הודעה במסך הבחירה.`
+                : "לא נבחרו ספקים — לא תישלח הודעה נפרדת."
             }
-            value={supplierMessage}
-            onChange={onSupplierMessageChange}
-            placeholder="לדוגמה: סגנון רומנטי, הגעה לפני האורחים, צבעים לבן וזהב..."
             headerAction={
               <button
                 type="button"
                 onClick={() => setPickerOpen(true)}
                 className="flex w-full items-center justify-between gap-2 rounded-xl border border-amber-300/60 bg-white/90 px-3 py-2.5 text-right text-xs font-semibold text-amber-950 shadow-sm transition hover:border-amber-400 hover:bg-amber-50/80"
               >
-                <span>בחרו ספקים לשליחה</span>
+                <span>ערכו הודעות לספקים</span>
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] tabular-nums">
                   {allSelected ? "כולם" : `${selectedCount} נבחרו`}
                 </span>
@@ -321,10 +366,35 @@ export default function InquirySendNotesSection({
             }
             footerNote={
               selectedCount === 0
-                ? "בחרו לפחות ספק אחד כדי לשלוח הודעה — או השאירו ריק."
-                : "אופציונלי — אפשר להשאיר ריק"
+                ? "בחרו ספקים וכתבו הודעה — או השאירו ריק."
+                : "הודעה ריקה תישלח עם נוסח ברירת מחדל."
             }
-          />
+          >
+            {selectedCount > 0 ? (
+              <ul className="space-y-2">
+                {linkedSuppliers
+                  .filter((s) => selectedSupplierIds.includes(s.serviceId))
+                  .map((s) => {
+                    const text = (supplierMessagesByServiceId[s.serviceId] ?? "").trim();
+                    return (
+                      <li
+                        key={s.serviceId}
+                        className="rounded-xl border border-amber-200/60 bg-white/90 px-3 py-2.5"
+                      >
+                        <p className="text-xs font-semibold text-emerald-950">{s.name}</p>
+                        <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
+                          {text || "ללא הודעה אישית — יישלח נוסח ברירת מחדל"}
+                        </p>
+                      </li>
+                    );
+                  })}
+              </ul>
+            ) : (
+              <p className="rounded-xl border border-dashed border-amber-200/70 bg-white/70 px-3 py-4 text-center text-[11px] text-neutral-600">
+                לחצו «ערכו הודעות לספקים» כדי לבחור ספקים ולכתוב לכל אחד הודעה נפרדת.
+              </p>
+            )}
+          </NoteCard>
         ) : (
           <div className="flex items-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/80 px-4 py-5 text-center lg:col-span-1">
             <p className="w-full text-[11px] leading-relaxed text-neutral-600">
@@ -338,12 +408,14 @@ export default function InquirySendNotesSection({
         )}
       </div>
 
-      <SupplierPickerModal
+      <SupplierMessagesModal
         open={pickerOpen}
         suppliers={linkedSuppliers}
         selectedIds={selectedSupplierIds}
+        messagesByServiceId={supplierMessagesByServiceId}
         onClose={() => setPickerOpen(false)}
-        onChange={onSelectedSupplierIdsChange}
+        onSelectedChange={onSelectedSupplierIdsChange}
+        onMessageChange={handleMessageChange}
       />
     </section>
   );

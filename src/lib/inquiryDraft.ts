@@ -9,7 +9,9 @@ export type InquiryDraft = {
   guestCount: string;
   eventType: string;
   message: string;
+  /** @deprecated legacy single supplier note */
   supplierMessage?: string;
+  supplierMessagesByServiceId?: Record<number, string>;
   stepId: string;
   sourceById?: Record<string, "venue" | "external">;
   replacementByOptionId?: Record<string, InquiryVenueOptionReplacement>;

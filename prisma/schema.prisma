@@ -192,8 +192,10 @@ model Inquiry {
   preferredDate String?  // תאריך משוער
   guestCount    Int?     // כמות אורחים
   message       String
-  /// הערות מהמבקש לספקים במאגר (חלופות / ספקים נוספים)
+  /// הערות מהמבקש לספקים במאגר (חלופות / ספקים נוספים) — legacy, הודעה אחת
   supplierMessage String?
+  /// הערות נפרדות לכל ספק — JSON: [{ serviceId, serviceName, message }]
+  supplierMessagesJson String?
   status        String   @default("NEW") // NEW, READ, REPLIED, APPROVED, REJECTED
   ownerNote     String?  // הערה/תשובה מבעל האולם
   repliedAt     DateTime? // מתי סומן כנענה

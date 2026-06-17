@@ -105,7 +105,6 @@ export default function VenueInquiryClient({
     guestCount: "",
     eventType: "",
     message: "",
-    supplierMessage: "",
   });
   const [sourceById, setSourceById] = useState<Record<string, ServiceChoiceSource>>({});
   const [replacementByOptionId, setReplacementByOptionId] = useState<
@@ -117,6 +116,9 @@ export default function VenueInquiryClient({
   const [selectedSupplierServiceIds, setSelectedSupplierServiceIds] = useState<number[]>(
     []
   );
+  const [supplierMessagesByServiceId, setSupplierMessagesByServiceId] = useState<
+    Record<number, string>
+  >({});
   const [weddingChuppahPick, setWeddingChuppahPick] = useState<"outdoor" | "covered">(
     "outdoor"
   );
@@ -442,7 +444,6 @@ export default function VenueInquiryClient({
         guestCount: draft.guestCount || f.guestCount,
         eventType: draft.eventType || f.eventType,
         message: prefill?.message || draft.message || f.message,
-        supplierMessage: draft.supplierMessage || f.supplierMessage,
       }));
       if (
         draft.stepId === "offers" ||
@@ -456,6 +457,21 @@ export default function VenueInquiryClient({
       }
       if (draft.selectedSupplierServiceIds?.length) {
         setSelectedSupplierServiceIds(draft.selectedSupplierServiceIds);
+      }
+      if (draft.supplierMessagesByServiceId) {
+        setSupplierMessagesByServiceId(draft.supplierMessagesByServiceId);
+      } else if (draft.supplierMessage?.trim()) {
+        const legacyIds =
+          draft.selectedSupplierServiceIds?.length
+            ? draft.selectedSupplierServiceIds
+            : [];
+        if (legacyIds.length > 0) {
+          const legacy: Record<number, string> = {};
+          for (const id of legacyIds) {
+            legacy[id] = draft.supplierMessage;
+          }
+          setSupplierMessagesByServiceId(legacy);
+        }
       }
       if (draft.replacementByOptionId) {
         pendingReplacementByIdRef.current = draft.replacementByOptionId;
@@ -479,16 +495,25 @@ export default function VenueInquiryClient({
         guestCount: form.guestCount,
         eventType: form.eventType,
         message: form.message,
-        supplierMessage: form.supplierMessage,
         stepId,
         sourceById,
         replacementByOptionId,
         addonFreelancers,
         selectedSupplierServiceIds,
+        supplierMessagesByServiceId,
       });
     }, 500);
     return () => window.clearTimeout(t);
-  }, [venueId, form, stepId, sourceById, replacementByOptionId, addonFreelancers, selectedSupplierServiceIds]);
+  }, [
+    venueId,
+    form,
+    stepId,
+    sourceById,
+    replacementByOptionId,
+    addonFreelancers,
+    selectedSupplierServiceIds,
+    supplierMessagesByServiceId,
+  ]);
 
   const linkedSuppliers = useMemo(
     () =>
@@ -768,7 +793,13 @@ export default function VenueInquiryClient({
         body: JSON.stringify({
           venueId,
           message: form.message.trim(),
-          supplierMessage: form.supplierMessage.trim() || null,
+          supplierMessages: selectedSupplierServiceIds
+            .filter((id) => linkedSuppliers.some((s) => s.serviceId === id))
+            .map((serviceId) => ({
+              serviceId,
+              message: (supplierMessagesByServiceId[serviceId] ?? "").trim(),
+            }))
+            .filter((entry) => entry.message),
           supplierServiceIds: selectedSupplierServiceIds.filter((id) =>
             linkedSuppliers.some((s) => s.serviceId === id)
           ),
@@ -1139,16 +1170,14 @@ export default function VenueInquiryClient({
               </div>
               <InquirySendNotesSection
                 venueMessage={form.message}
-                supplierMessage={form.supplierMessage}
                 linkedSuppliers={linkedSuppliers}
                 selectedSupplierIds={selectedSupplierServiceIds}
+                supplierMessagesByServiceId={supplierMessagesByServiceId}
                 onVenueMessageChange={(value) =>
                   setForm((f) => ({ ...f, message: value }))
                 }
-                onSupplierMessageChange={(value) =>
-                  setForm((f) => ({ ...f, supplierMessage: value }))
-                }
                 onSelectedSupplierIdsChange={setSelectedSupplierServiceIds}
+                onSupplierMessagesChange={setSupplierMessagesByServiceId}
               />
             </div>
           ) : null}

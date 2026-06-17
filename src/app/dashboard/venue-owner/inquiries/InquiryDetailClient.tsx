@@ -25,6 +25,7 @@ export type VenueOwnerInquiryDetail = {
   guestCount: number | null;
   message: string;
   supplierMessage?: string | null;
+  supplierMessagesJson?: string | null;
   serviceChoicesJson?: string | null;
   status: string;
   ownerNote?: string | null;
@@ -410,7 +411,10 @@ export default function InquiryDetailClient({ initial }: Props) {
             preferredDate={q.preferredDate}
             guestCount={q.guestCount}
           />
-          <InquirySupplierNotesFromSeeker supplierMessage={q.supplierMessage} />
+          <InquirySupplierNotesFromSeeker
+            supplierMessage={q.supplierMessage}
+            supplierMessagesJson={q.supplierMessagesJson}
+          />
 
           {(status === "REPLIED" || status === "APPROVED" || status === "REJECTED") &&
             (q.ownerNote || status === "REPLIED") && (

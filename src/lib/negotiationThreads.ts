@@ -1,5 +1,9 @@
 import "server-only";
 
+import {
+  parseStoredSupplierMessagesJson,
+  supplierMessagesMapFromStored,
+} from "@/lib/inquirySupplierMessages";
 import { prisma } from "@/lib/prisma";
 import {
   contextKeyInquiryService,
@@ -209,6 +213,10 @@ export async function ensureThreadsForInquiry(inquiryId: number): Promise<void> 
     },
   });
 
+  const supplierMessagesByServiceId = supplierMessagesMapFromStored(
+    parseStoredSupplierMessagesJson(inquiry.supplierMessagesJson)
+  );
+
   for (const sr of serviceRequests) {
     await ensureSupplierNegotiationThread({
       inquiryId: inquiry.id,
@@ -217,7 +225,9 @@ export async function ensureThreadsForInquiry(inquiryId: number): Promise<void> 
       venueId: inquiry.venue.id,
       serviceId: sr.service.id,
       serviceRequestId: sr.id,
-      openingMessage: inquiry.supplierMessage,
+      openingMessage:
+        supplierMessagesByServiceId.get(sr.service.id) ??
+        inquiry.supplierMessage,
     });
   }
 
@@ -281,7 +291,8 @@ export async function bootstrapNegotiationForNewInquiry(input: {
   venueOwnerId: number;
   venueId: number;
   venueMessage: string;
-  supplierMessage: string | null;
+  supplierMessage?: string | null;
+  messagesByServiceId?: Map<number, string>;
   serviceRequestIds: number[];
 }): Promise<void> {
   await ensureVenueNegotiationThread({
@@ -309,7 +320,10 @@ export async function bootstrapNegotiationForNewInquiry(input: {
       venueId: input.venueId,
       serviceId: sr.service.id,
       serviceRequestId: sr.id,
-      openingMessage: input.supplierMessage,
+      openingMessage:
+        input.messagesByServiceId?.get(sr.service.id) ??
+        input.supplierMessage ??
+        null,
     });
   }
 }
