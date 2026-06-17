@@ -32,6 +32,8 @@ function OfferRow({
   marketplace,
   marketplaceLoading,
   dealInsight,
+  extraSelected,
+  onExtraSelectedChange,
 }: {
   opt: InquiryServiceOption;
   replacement: InquiryVenueOptionReplacement | null;
@@ -39,7 +41,11 @@ function OfferRow({
   marketplace?: MarketplaceAvailability;
   marketplaceLoading?: boolean;
   dealInsight?: InquiryDealInsight;
+  extraSelected?: boolean;
+  onExtraSelectedChange?: (selected: boolean) => void;
 }) {
+  const isExtraOption = opt.priceMode === "extra";
+  const wantsExtra = !isExtraOption || extraSelected === true;
   const configAllowsExternal = inquiryServiceAllowsExternalSource(opt);
   const hasMarketplace =
     marketplace?.available === true && (marketplace.totalCount ?? 0) > 0;
@@ -49,9 +55,29 @@ function OfferRow({
   const isIncludedFree = opt.priceMode === "included";
 
   return (
-    <li className="rounded-lg border border-[#E8E0D6]/80 bg-white px-3 py-2.5">
+    <li
+      className={`rounded-lg border px-3 py-2.5 ${
+        isExtraOption && !wantsExtra
+          ? "border-neutral-200/80 bg-neutral-50/60"
+          : "border-[#E8E0D6]/80 bg-white"
+      }`}
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-medium text-neutral-900">{opt.label}</span>
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          {isExtraOption && onExtraSelectedChange ? (
+            <label className="flex cursor-pointer items-center gap-2 text-right">
+              <input
+                type="checkbox"
+                checked={extraSelected === true}
+                onChange={(e) => onExtraSelectedChange(e.target.checked)}
+                className="h-4 w-4 shrink-0 rounded border-neutral-300 text-emerald-950 focus:ring-amber-400"
+              />
+              <span className="text-sm font-medium text-neutral-900">{opt.label}</span>
+            </label>
+          ) : (
+            <span className="text-sm font-medium text-neutral-900">{opt.label}</span>
+          )}
+        </div>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           {isIncludedFree && showExternalChoice && replacementCopy.upgradeBadge ? (
             <span className="rounded-full border border-amber-300/70 bg-amber-50 px-2 py-0.5 text-[9px] font-semibold text-amber-950">
@@ -63,7 +89,13 @@ function OfferRow({
         </div>
       </div>
 
-      {configAllowsExternal ? (
+      {isExtraOption && !wantsExtra ? (
+        <p className="mt-2 text-[11px] text-neutral-600">
+          לא נבחר — לא ייכלל בהזמנה. סמנו את התיבה אם מעוניינים בתוספת בתשלום.
+        </p>
+      ) : null}
+
+      {wantsExtra && configAllowsExternal ? (
         <>
           {marketplaceLoading ? (
             <p className="mt-2 text-[11px] text-[#9A928A]">בודקים אם יש ספקים במאגר…</p>
@@ -135,11 +167,11 @@ function OfferRow({
             </p>
           )}
         </>
-      ) : (
+      ) : wantsExtra ? (
         <p className="mt-1 text-[11px] text-neutral-600">
           {INQUIRY_EXTERNAL_SOURCE_COPY.venueOnlyLine}
         </p>
-      )}
+      ) : null}
     </li>
   );
 }
@@ -152,6 +184,9 @@ function OfferList({
   marketplaceById,
   marketplaceLoading,
   dealInsightsById,
+  selectedExtraIds,
+  onExtraSelectedChange,
+  extraSection = false,
 }: {
   items: InquiryServiceOption[];
   emptyText: string;
@@ -160,6 +195,9 @@ function OfferList({
   marketplaceById: Record<string, MarketplaceAvailability>;
   marketplaceLoading: boolean;
   dealInsightsById: Record<string, InquiryDealInsight>;
+  selectedExtraIds?: Record<string, boolean>;
+  onExtraSelectedChange?: (id: string, selected: boolean) => void;
+  extraSection?: boolean;
 }) {
   if (items.length === 0) {
     return <p className="py-4 text-center text-[11px] text-[#9A928A]">{emptyText}</p>;
@@ -175,6 +213,12 @@ function OfferList({
           marketplace={marketplaceById[opt.id]}
           marketplaceLoading={marketplaceLoading}
           dealInsight={dealInsightsById[opt.id]}
+          extraSelected={extraSection ? selectedExtraIds?.[opt.id] === true : undefined}
+          onExtraSelectedChange={
+            extraSection && onExtraSelectedChange
+              ? (selected) => onExtraSelectedChange(opt.id, selected)
+              : undefined
+          }
         />
       ))}
     </ul>
@@ -191,6 +235,8 @@ type Props = {
   weddingFoodNote?: boolean;
   replacementByOptionId: Record<string, InquiryVenueOptionReplacement | undefined>;
   onReplacementChange: (id: string, replacement: InquiryVenueOptionReplacement | null) => void;
+  selectedExtraIds: Record<string, boolean>;
+  onExtraSelectedChange: (id: string, selected: boolean) => void;
   marketplaceById: Record<string, MarketplaceAvailability>;
   marketplaceLoading: boolean;
   dealInsightsById: Record<string, InquiryDealInsight>;
@@ -213,6 +259,8 @@ export default function InquiryOfferOverview({
   weddingFoodNote,
   replacementByOptionId,
   onReplacementChange,
+  selectedExtraIds,
+  onExtraSelectedChange,
   marketplaceById,
   marketplaceLoading,
   dealInsightsById,
@@ -277,7 +325,7 @@ export default function InquiryOfferOverview({
           בפריטים <strong className="font-semibold">כלולים במחיר</strong> — ברירת המחדל היא מה
           שהאולם מציע בחינם. אפשר גם{" "}
           <strong className="font-semibold">להביא ספק אחר בתשלום</strong> מהמאגר. בפריטים בתוספת
-          תשלום — אפשר להחליף בספק חיצוני כשזמין.
+          תשלום — סמנו מה שמעניין אתכם; רק מה שתבחרו ייכלל בבקשה.
         </p>
       ) : null}
 
@@ -309,8 +357,11 @@ export default function InquiryOfferOverview({
           </div>
         </section>
         <section className="overflow-hidden rounded-xl border-2 border-dashed border-[#C9A227]/35 bg-amber-50/50">
-          <div className="border-b border-[#C9A227]/25 bg-amber-400/10 px-3 py-2 text-center text-xs font-semibold text-[#8B6914]">
-            בתוספת תשלום
+          <div className="border-b border-[#C9A227]/25 bg-amber-400/10 px-3 py-2 text-center">
+            <p className="text-xs font-semibold text-[#8B6914]">בתוספת תשלום</p>
+            <p className="mt-0.5 text-[10px] font-normal text-[#8B6914]/90">
+              סמנו רק את מה שתרצו להוסיף להזמנה
+            </p>
           </div>
           <div className="p-3">
             <OfferList
@@ -321,6 +372,9 @@ export default function InquiryOfferOverview({
               marketplaceById={marketplaceById}
               marketplaceLoading={marketplaceLoading}
               dealInsightsById={dealInsightsById}
+              selectedExtraIds={selectedExtraIds}
+              onExtraSelectedChange={onExtraSelectedChange}
+              extraSection
             />
           </div>
         </section>

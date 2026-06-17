@@ -27,6 +27,7 @@ export default function InquiryServiceChoicesFromSeeker({
       replacementName?: string;
       replacementProvider?: string;
       marketplaceServiceId?: number;
+      paidExtrasSelected?: Array<{ label?: string }>;
     }[];
     if (!Array.isArray(arr) || arr.length === 0) return null;
     return (
@@ -91,6 +92,15 @@ export default function InquiryServiceChoicesFromSeeker({
                       row.replacementProvider.trim()
                         ? ` · ${row.replacementProvider.trim()}`
                         : ""}
+                    </span>
+                  ) : null}
+                  {Array.isArray(row.paidExtrasSelected) && row.paidExtrasSelected.length > 0 ? (
+                    <span className="mt-1 block text-[11px] text-neutral-700">
+                      תוספות בתשלום:{" "}
+                      {row.paidExtrasSelected
+                        .map((p) => (typeof p.label === "string" ? p.label.trim() : ""))
+                        .filter(Boolean)
+                        .join(" · ")}
                     </span>
                   ) : null}
                   <span className="mt-0.5 block text-[11px] font-normal text-neutral-600">

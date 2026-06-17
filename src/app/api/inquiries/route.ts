@@ -8,7 +8,7 @@ import {
   notifyVenueOwnerNewInquiry,
 } from "@/lib/transactionalEmails";
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
-import { resolveInquiryAddonServiceChoices } from "@/lib/inquiryAddonFreelancers";
+import { resolveInquiryAddonServiceChoices, storedServiceChoicesFromAddonPicks, type InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
 import { enrichInquiryServiceChoicesWithReplacements } from "@/lib/inquiryVenueOptionReplacement";
 import { bootstrapNegotiationForNewInquiry } from "@/lib/negotiationThreads";
 import {
@@ -55,6 +55,66 @@ function buildSupplierNameMap(rows: StoredServiceChoice[]): Map<number, string> 
     }
   }
   return map;
+}
+
+function parseAddonFreelancerPicks(raw: unknown): InquiryAddonFreelancerPick[] {
+  if (!Array.isArray(raw)) return [];
+  const out: InquiryAddonFreelancerPick[] = [];
+  for (const item of raw) {
+    if (typeof item !== "object" || item === null) continue;
+    const o = item as Record<string, unknown>;
+    const serviceId = Number(o.serviceId);
+    if (!Number.isInteger(serviceId) || serviceId <= 0) continue;
+    const name = typeof o.name === "string" ? o.name.trim() : "";
+    const providerName =
+      typeof o.providerName === "string" ? o.providerName.trim() : "";
+    const category = typeof o.category === "string" ? o.category : null;
+    const minPrice =
+      typeof o.minPrice === "number" && Number.isFinite(o.minPrice)
+        ? Math.trunc(o.minPrice)
+        : null;
+    const maxPrice =
+      typeof o.maxPrice === "number" && Number.isFinite(o.maxPrice)
+        ? Math.trunc(o.maxPrice)
+        : null;
+    let selectedPaidExtras: InquiryAddonFreelancerPick["selectedPaidExtras"];
+    if (Array.isArray(o.selectedPaidExtras)) {
+      selectedPaidExtras = [];
+      for (const pe of o.selectedPaidExtras) {
+        if (typeof pe !== "object" || pe === null) continue;
+        const p = pe as Record<string, unknown>;
+        const label = typeof p.label === "string" ? p.label.trim() : "";
+        if (!label) continue;
+        selectedPaidExtras.push({
+          label,
+          description: typeof p.description === "string" ? p.description.trim() : undefined,
+          exactPrice:
+            typeof p.exactPrice === "number" && Number.isFinite(p.exactPrice)
+              ? Math.trunc(p.exactPrice)
+              : null,
+          minPrice:
+            typeof p.minPrice === "number" && Number.isFinite(p.minPrice)
+              ? Math.trunc(p.minPrice)
+              : null,
+          maxPrice:
+            typeof p.maxPrice === "number" && Number.isFinite(p.maxPrice)
+              ? Math.trunc(p.maxPrice)
+              : null,
+        });
+      }
+    }
+    out.push({
+      serviceId,
+      name: name || "שירות במאגר",
+      providerName: providerName || "ספק",
+      category,
+      minPrice,
+      maxPrice,
+      ...(selectedPaidExtras?.length ? { selectedPaidExtras } : {}),
+    });
+    if (out.length >= 20) break;
+  }
+  return out;
 }
 
 /** שליחת פנייה לאולם – משתמש מחובר בלבד */
@@ -199,7 +259,11 @@ export async function POST(req: NextRequest) {
         },
       })
   );
-  const addonRows = await resolveInquiryAddonServiceChoices(body.addonServiceIds);
+  const addonPicks = parseAddonFreelancerPicks(body.addonFreelancers);
+  const addonRows =
+    addonPicks.length > 0
+      ? storedServiceChoicesFromAddonPicks(addonPicks)
+      : await resolveInquiryAddonServiceChoices(body.addonServiceIds);
   const mergedServiceRows = [...enrichedServiceRows, ...addonRows];
   const serviceChoicesJson =
     mergedServiceRows.length > 0 ? JSON.stringify(mergedServiceRows) : null;

@@ -12,6 +12,10 @@ import {
   isServiceRequestCancelled,
 } from "@/lib/serviceRequestStatus";
 import {
+  buildServiceRequestEventContext,
+  inquiryEventContextSelect,
+} from "@/lib/serviceRequestEventContext";
+import {
   USER_INPUT_MAX,
   badRequest,
   validateOptionalLongText,
@@ -43,13 +47,13 @@ export async function GET() {
         select: { id: true, name: true },
       },
       inquiry: {
-        select: { id: true, status: true },
+        select: inquiryEventContextSelect,
       },
       negotiationThread: {
         select: {
           id: true,
           inquiryId: true,
-          inquiry: { select: { id: true, status: true } },
+          inquiry: { select: inquiryEventContextSelect },
         },
       },
     },
@@ -64,10 +68,13 @@ export async function GET() {
       const inquiryStatus =
         r.inquiry?.status ?? r.negotiationThread?.inquiry?.status ?? null;
       const cancelled = isServiceRequestCancelled(r.status, inquiryStatus);
+      const inquiryForContext = r.inquiry ?? r.negotiationThread?.inquiry ?? null;
+      const eventContext = buildServiceRequestEventContext(inquiryForContext);
       return {
         ...r,
         inquiryId,
         inquiryStatus,
+        eventContext,
         status: cancelled ? "CANCELLED" : r.status,
         negotiationThreadId: r.negotiationThread?.id ?? null,
       };

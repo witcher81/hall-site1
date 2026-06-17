@@ -3,6 +3,14 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { StoredServiceChoice } from "@/lib/venueInquiryAmenities";
 
+export type InquiryAddonPaidExtraPick = {
+  label: string;
+  description?: string;
+  exactPrice?: number | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+};
+
 export type InquiryAddonFreelancerPick = {
   serviceId: number;
   name: string;
@@ -10,6 +18,8 @@ export type InquiryAddonFreelancerPick = {
   category: string | null;
   minPrice: number | null;
   maxPrice: number | null;
+  /** תוספות בתשלום שנבחרו מהספק */
+  selectedPaidExtras?: InquiryAddonPaidExtraPick[];
 };
 
 const MAX_ADDON_SERVICES = 20;
@@ -24,6 +34,28 @@ export function parseAddonServiceIds(raw: unknown): number[] {
     if (ids.length >= MAX_ADDON_SERVICES) break;
   }
   return ids;
+}
+
+export function storedServiceChoicesFromAddonPicks(
+  picks: InquiryAddonFreelancerPick[]
+): StoredServiceChoice[] {
+  return picks.map((p) => ({
+    id: `marketplace:${p.serviceId}`,
+    label: p.name.trim() || "שירות במאגר",
+    source: "external" as const,
+    priceMode: "extra" as const,
+    extraPrice: p.minPrice,
+    extraPriceMax:
+      p.maxPrice != null && p.minPrice != null && p.maxPrice > p.minPrice
+        ? p.maxPrice
+        : p.maxPrice ?? null,
+    marketplaceServiceId: p.serviceId,
+    replacementName: p.name,
+    replacementProvider: p.providerName,
+    ...(p.selectedPaidExtras?.length
+      ? { paidExtrasSelected: p.selectedPaidExtras }
+      : {}),
+  }));
 }
 
 export async function resolveInquiryAddonServiceChoices(

@@ -18,6 +18,7 @@ type ParsedServiceRow = {
   id?: string;
   label?: string;
   source?: string;
+  priceMode?: string;
   extraPrice?: number | null;
   extraPriceMax?: number | null;
   marketplaceServiceId?: number;
@@ -35,22 +36,30 @@ function parseServiceChoices(json: string | null): {
   sourceById: Record<string, ServiceChoiceSource>;
   replacementByOptionId: Record<string, InquiryVenueOptionReplacement>;
   addonFreelancers: InquiryAddonFreelancerPick[];
+  selectedExtraOptionIds: string[];
 } {
   const sourceById: Record<string, ServiceChoiceSource> = {};
   const replacementByOptionId: Record<string, InquiryVenueOptionReplacement> = {};
   const addonFreelancers: InquiryAddonFreelancerPick[] = [];
+  const selectedExtraOptionIds: string[] = [];
 
   if (!json?.trim()) {
-    return { sourceById, replacementByOptionId, addonFreelancers };
+    return { sourceById, replacementByOptionId, addonFreelancers, selectedExtraOptionIds };
   }
 
   try {
     const arr = JSON.parse(json) as ParsedServiceRow[];
-    if (!Array.isArray(arr)) return { sourceById, replacementByOptionId, addonFreelancers };
+    if (!Array.isArray(arr)) {
+      return { sourceById, replacementByOptionId, addonFreelancers, selectedExtraOptionIds };
+    }
 
     for (const row of arr) {
       const id = typeof row.id === "string" ? row.id : "";
       if (!id) continue;
+
+      if (row.priceMode === "extra") {
+        selectedExtraOptionIds.push(id);
+      }
 
       const addonId = parseMarketplaceIdFromRowId(id);
       if (addonId) {
@@ -103,7 +112,7 @@ function parseServiceChoices(json: string | null): {
     /* ignore malformed JSON */
   }
 
-  return { sourceById, replacementByOptionId, addonFreelancers };
+  return { sourceById, replacementByOptionId, addonFreelancers, selectedExtraOptionIds };
 }
 
 export type InquiryRebookMode = "date" | "edit";
@@ -113,9 +122,8 @@ export function buildInquiryDraftFromSnapshot(
   snapshot: InquiryRebookSnapshot,
   mode: InquiryRebookMode
 ): Omit<InquiryDraft, "savedAt"> {
-  const { sourceById, replacementByOptionId, addonFreelancers } = parseServiceChoices(
-    snapshot.serviceChoicesJson
-  );
+  const { sourceById, replacementByOptionId, addonFreelancers, selectedExtraOptionIds } =
+    parseServiceChoices(snapshot.serviceChoicesJson);
 
   const supplierMessagesByServiceId: Record<number, string> = {};
   for (const entry of parseStoredSupplierMessagesJson(snapshot.supplierMessagesJson)) {
@@ -147,6 +155,8 @@ export function buildInquiryDraftFromSnapshot(
     sourceById: Object.keys(sourceById).length > 0 ? sourceById : undefined,
     replacementByOptionId:
       Object.keys(replacementByOptionId).length > 0 ? replacementByOptionId : undefined,
+    selectedExtraOptionIds:
+      selectedExtraOptionIds.length > 0 ? selectedExtraOptionIds : undefined,
     addonFreelancers: addonFreelancers.length > 0 ? addonFreelancers : undefined,
     selectedSupplierServiceIds,
   };

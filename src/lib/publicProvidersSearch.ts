@@ -2,6 +2,10 @@ import "server-only";
 
 import { buildServiceCategoryWhere } from "@/lib/serviceCategoryQuery";
 import { prisma } from "@/lib/prisma";
+import {
+  parseServiceIncludesBundle,
+  type ServicePaidExtraItem,
+} from "@/lib/serviceIncludes";
 
 export type PublicProviderServiceItem = {
   id: number;
@@ -16,6 +20,7 @@ export type PublicProviderServiceItem = {
   minPrice: number | null;
   maxPrice: number | null;
   providerId: number;
+  paidExtras: ServicePaidExtraItem[];
   provider: {
     id: number;
     name: string | null;
@@ -65,5 +70,22 @@ export async function searchPublicProviders(
     },
   });
 
-  return { services };
+  return {
+    services: services.map((s) => ({
+      id: s.id,
+      name: s.name,
+      category: s.category,
+      shortDescription: s.shortDescription,
+      description: s.description,
+      serviceArea: s.serviceArea,
+      experienceYears: s.experienceYears,
+      languages: s.languages,
+      coverImageUrl: s.coverImageUrl,
+      minPrice: s.minPrice,
+      maxPrice: s.maxPrice,
+      providerId: s.providerId,
+      paidExtras: parseServiceIncludesBundle(s.customIncludesJson).paidExtras,
+      provider: s.provider,
+    })),
+  };
 }

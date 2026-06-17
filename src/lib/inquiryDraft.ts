@@ -17,6 +17,8 @@ export type InquiryDraft = {
   replacementByOptionId?: Record<string, InquiryVenueOptionReplacement>;
   addonFreelancers?: InquiryAddonFreelancerPick[];
   selectedSupplierServiceIds?: number[];
+  /** מזהי פריטי אולם בתוספת תשלום שהמזמין בחר */
+  selectedExtraOptionIds?: string[];
   savedAt: number;
 };
 

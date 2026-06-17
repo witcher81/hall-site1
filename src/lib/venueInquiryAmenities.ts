@@ -394,6 +394,14 @@ export type StoredServiceChoice = {
   marketplaceServiceId?: number;
   replacementName?: string;
   replacementProvider?: string;
+  /** תוספות בתשלום שנבחרו מספק במאגר */
+  paidExtrasSelected?: Array<{
+    label: string;
+    description?: string;
+    exactPrice?: number | null;
+    minPrice?: number | null;
+    maxPrice?: number | null;
+  }>;
 };
 
 type ParsedChoiceInput = {
@@ -474,7 +482,12 @@ export function normalizeInquiryServiceChoices(
     inquiryEventType,
     byId
   );
-  return filtered.map((o) => {
+  return filtered
+    .filter((o) => {
+      if (o.priceMode === "extra") return byId.has(o.id);
+      return true;
+    })
+    .map((o) => {
     const choice = byId.get(o.id);
     const source =
       !inquiryServiceAllowsExternalSource(o) ||

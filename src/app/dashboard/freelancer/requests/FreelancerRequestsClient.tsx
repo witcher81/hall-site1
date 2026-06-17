@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import InquiryNegotiationHub from "@/components/inquiry-negotiation/InquiryNegotiationHub";
 import ServiceRequestMessageBody from "@/components/service-requests/ServiceRequestMessageBody";
+import ServiceRequestEventContextCard from "@/components/service-requests/ServiceRequestEventContextCard";
 import { formatInquiryPreferredDateForDisplay } from "@/lib/inquiryMessageDisplay";
+import type { ServiceRequestEventContext } from "@/lib/serviceRequestEventContext";
 import {
   serviceRequestCancelledDetail,
   serviceRequestStatusLabel,
@@ -20,6 +22,7 @@ type Req = {
   preferredDate: string | null;
   status: string;
   inquiryStatus?: string | null;
+  eventContext?: ServiceRequestEventContext | null;
   providerNote: string | null;
   repliedAt: string | null;
   createdAt: string;
@@ -308,7 +311,12 @@ export default function FreelancerRequestsClient() {
                   </p>
                 )}
 
-                {(r.eventType || r.preferredDate) && (
+                {r.eventContext ? (
+                  <ServiceRequestEventContextCard
+                    context={r.eventContext}
+                    className="mt-3"
+                  />
+                ) : (r.eventType || r.preferredDate) ? (
                   <p className="mt-2 text-xs text-neutral-600">
                     {r.eventType && <span>סוג אירוע: {r.eventType}</span>}
                     {r.preferredDate && (
@@ -319,7 +327,7 @@ export default function FreelancerRequestsClient() {
                       </span>
                     )}
                   </p>
-                )}
+                ) : null}
 
                 <ServiceRequestMessageBody message={r.message} />
 

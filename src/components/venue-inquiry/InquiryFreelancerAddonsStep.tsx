@@ -7,6 +7,7 @@ import {
 } from "@/lib/freelancerServiceCategories";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import type { InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
+import type { ServicePaidExtraItem } from "@/lib/serviceIncludes";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -17,11 +18,81 @@ type PublicService = {
   shortDescription: string | null;
   minPrice: number | null;
   maxPrice: number | null;
+  paidExtras: ServicePaidExtraItem[];
   provider: {
     name: string | null;
     businessName: string | null;
   };
 };
+
+function paidExtraPriceLabel(p: ServicePaidExtraItem): string {
+  if (p.exactPrice != null) return `₪${p.exactPrice.toLocaleString("he-IL")}`;
+  if (p.minPrice != null && p.maxPrice != null && p.minPrice !== p.maxPrice) {
+    return `₪${p.minPrice.toLocaleString("he-IL")}–₪${p.maxPrice.toLocaleString("he-IL")}`;
+  }
+  if (p.minPrice != null) return `החל מ־₪${p.minPrice.toLocaleString("he-IL")}`;
+  if (p.maxPrice != null) return `עד ₪${p.maxPrice.toLocaleString("he-IL")}`;
+  return "";
+}
+
+function PaidExtrasPicker({
+  extras,
+  selected,
+  onChange,
+}: {
+  extras: ServicePaidExtraItem[];
+  selected: ServicePaidExtraItem[];
+  onChange: (next: ServicePaidExtraItem[]) => void;
+}) {
+  const list = extras.filter((p) => p.label.trim());
+  if (list.length === 0) return null;
+
+  const selectedLabels = new Set(selected.map((p) => p.label.trim()));
+
+  return (
+    <div className="mt-2 rounded-lg border border-amber-200/70 bg-amber-50/50 px-2.5 py-2">
+      <p className="text-[10px] font-semibold text-amber-950">תוספות בתשלום מהספק</p>
+      <p className="mt-0.5 text-[10px] text-neutral-600">סמנו רק מה שתרצו להוסיף</p>
+      <ul className="mt-2 space-y-1.5">
+        {list.map((p) => {
+          const label = p.label.trim();
+          const checked = selectedLabels.has(label);
+          return (
+            <li key={label}>
+              <label className="flex cursor-pointer items-start gap-2 text-right">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      onChange([...selected, p]);
+                    } else {
+                      onChange(selected.filter((x) => x.label.trim() !== label));
+                    }
+                  }}
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-emerald-950"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="text-[11px] font-medium text-neutral-900">{label}</span>
+                  {paidExtraPriceLabel(p) ? (
+                    <span className="mr-1 text-[10px] font-semibold text-emerald-950">
+                      · {paidExtraPriceLabel(p)}
+                    </span>
+                  ) : null}
+                  {p.description?.trim() ? (
+                    <span className="mt-0.5 block text-[10px] text-neutral-500">
+                      {p.description.trim()}
+                    </span>
+                  ) : null}
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 type Props = {
   selected: InquiryAddonFreelancerPick[];
@@ -59,12 +130,16 @@ function ServiceRow({
   service,
   picked,
   addDisabled,
+  selectedPaidExtras,
   onToggle,
+  onPaidExtrasChange,
 }: {
   service: PublicService;
   picked: boolean;
   addDisabled: boolean;
+  selectedPaidExtras: ServicePaidExtraItem[];
   onToggle: () => void;
+  onPaidExtrasChange: (extras: ServicePaidExtraItem[]) => void;
 }) {
   return (
     <li
@@ -112,6 +187,13 @@ function ServiceRow({
           </div>
         </div>
       </div>
+      {picked ? (
+        <PaidExtrasPicker
+          extras={service.paidExtras}
+          selected={selectedPaidExtras}
+          onChange={onPaidExtrasChange}
+        />
+      ) : null}
     </li>
   );
 }
@@ -119,13 +201,17 @@ function ServiceRow({
 function CategoryServiceGroups({
   services,
   selectedIds,
+  selectedByServiceId,
   addDisabled,
   onToggle,
+  onPaidExtrasChange,
 }: {
   services: PublicService[];
   selectedIds: Set<number>;
+  selectedByServiceId: Map<number, InquiryAddonFreelancerPick>;
   addDisabled: boolean;
   onToggle: (service: PublicService) => void;
+  onPaidExtrasChange: (serviceId: number, extras: ServicePaidExtraItem[]) => void;
 }) {
   const groups = groupServicesBySecondary(services);
   return (
@@ -142,7 +228,11 @@ function CategoryServiceGroups({
                 service={s}
                 picked={selectedIds.has(s.id)}
                 addDisabled={addDisabled}
+                selectedPaidExtras={
+                  selectedByServiceId.get(s.id)?.selectedPaidExtras ?? []
+                }
                 onToggle={() => onToggle(s)}
+                onPaidExtrasChange={(extras) => onPaidExtrasChange(s.id, extras)}
               />
             ))}
           </ul>
@@ -162,6 +252,11 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
 
   const selectedIds = useMemo(
     () => new Set(selected.map((s) => s.serviceId)),
+    [selected]
+  );
+
+  const selectedByServiceId = useMemo(
+    () => new Map(selected.map((s) => [s.serviceId, s])),
     [selected]
   );
 
@@ -186,7 +281,10 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
       const json = (await res.json()) as { services?: PublicService[] };
       setServicesByPrimary((prev) => ({
         ...prev,
-        [primary]: json.services ?? [],
+        [primary]: (json.services ?? []).map((s) => ({
+          ...s,
+          paidExtras: s.paidExtras ?? [],
+        })),
       }));
     } catch {
       setLoadErrorPrimary(primary);
@@ -212,7 +310,15 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
       return;
     }
     if (selected.length >= 20) return;
-    onChange([...selected, toPick(service)]);
+    onChange([...selected, { ...toPick(service), selectedPaidExtras: [] }]);
+  }
+
+  function updatePaidExtras(serviceId: number, extras: ServicePaidExtraItem[]) {
+    onChange(
+      selected.map((s) =>
+        s.serviceId === serviceId ? { ...s, selectedPaidExtras: extras } : s
+      )
+    );
   }
 
   return (
@@ -220,8 +326,8 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
       <div className="rounded-xl border border-emerald-950/15 bg-emerald-950/[0.04] px-4 py-3">
         <p className="text-sm font-semibold text-emerald-950">ספקים נוספים מהמאגר (אופציונלי)</p>
         <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
-          בחרו קטגוריה כדי לראות ספקים — DJ, צילום, פרחים ועוד. אפשר לדלג ולהמשיך לשליחה בלי
-          להוסיף.
+          בחרו קטגוריה כדי לראות ספקים — DJ, צילום, פרחים ועוד. אחרי הוספת ספק אפשר לסמן גם
+          תוספות בתשלום שלו. אפשר לדלג ולהמשיך בלי להוסיף.
         </p>
       </div>
 
@@ -239,6 +345,11 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
                 <div className="min-w-0 flex-1 text-right">
                   <p className="text-sm font-medium text-neutral-900">{item.name}</p>
                   <p className="text-[11px] text-neutral-600">{item.providerName}</p>
+                  {item.selectedPaidExtras?.length ? (
+                    <p className="mt-0.5 text-[10px] text-neutral-600">
+                      תוספות: {item.selectedPaidExtras.map((p) => p.label).join(" · ")}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   {item.minPrice != null ? (
@@ -348,8 +459,10 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
                       <CategoryServiceGroups
                         services={services}
                         selectedIds={selectedIds}
+                        selectedByServiceId={selectedByServiceId}
                         addDisabled={selected.length >= 20}
                         onToggle={toggleService}
+                        onPaidExtrasChange={updatePaidExtras}
                       />
                     )}
                   </div>

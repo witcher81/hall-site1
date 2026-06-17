@@ -109,6 +109,7 @@ export default function VenueInquiryClient({
     string,
     InquiryVenueOptionReplacement
   > | null>(null);
+  const pendingSelectedExtraIdsRef = useRef<string[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -123,6 +124,7 @@ export default function VenueInquiryClient({
   const [replacementByOptionId, setReplacementByOptionId] = useState<
     Record<string, InquiryVenueOptionReplacement>
   >({});
+  const [selectedExtraIds, setSelectedExtraIds] = useState<Record<string, boolean>>({});
   const [addonFreelancers, setAddonFreelancers] = useState<InquiryAddonFreelancerPick[]>(
     []
   );
@@ -221,6 +223,30 @@ export default function VenueInquiryClient({
       setStepId(stepOrder[stepOrder.length - 1] ?? "event");
     }
   }, [stepId, stepOrder]);
+
+  const extraOptionsKey = useMemo(
+    () => partition.extra.map((o) => o.id).join("\n"),
+    [partition.extra]
+  );
+
+  useEffect(() => {
+    setSelectedExtraIds((prev) => {
+      const next: Record<string, boolean> = {};
+      const pending = pendingSelectedExtraIdsRef.current;
+      const pendingSet = pending ? new Set(pending) : null;
+      for (const o of partition.extra) {
+        if (pendingSet) {
+          next[o.id] = pendingSet.has(o.id);
+        } else if (o.id in prev) {
+          next[o.id] = prev[o.id];
+        } else {
+          next[o.id] = false;
+        }
+      }
+      if (pending) pendingSelectedExtraIdsRef.current = null;
+      return next;
+    });
+  }, [extraOptionsKey, partition.extra]);
 
   const choosableKey = useMemo(
     () => partition.choosable.map((o) => o.id).join("\n"),
@@ -489,6 +515,9 @@ export default function VenueInquiryClient({
       if (draft.replacementByOptionId) {
         pendingReplacementByIdRef.current = draft.replacementByOptionId;
       }
+      if (draft.selectedExtraOptionIds?.length) {
+        pendingSelectedExtraIdsRef.current = draft.selectedExtraOptionIds;
+      }
     } else if (prefill?.message?.trim()) {
       setForm((f) => ({ ...f, message: prefill.message!.trim() }));
     }
@@ -511,6 +540,9 @@ export default function VenueInquiryClient({
         stepId,
         sourceById,
         replacementByOptionId,
+        selectedExtraOptionIds: Object.entries(selectedExtraIds)
+          .filter(([, on]) => on)
+          .map(([id]) => id),
         addonFreelancers,
         selectedSupplierServiceIds,
         supplierMessagesByServiceId,
@@ -523,6 +555,7 @@ export default function VenueInquiryClient({
     stepId,
     sourceById,
     replacementByOptionId,
+    selectedExtraIds,
     addonFreelancers,
     selectedSupplierServiceIds,
     supplierMessagesByServiceId,
@@ -607,6 +640,7 @@ export default function VenueInquiryClient({
     eventTypeTrimmed,
     partition,
     replacementByOptionId,
+    selectedExtraIds,
     weddingChuppahPick,
     serviceOptions,
     venueAmenities.eventTypeProfilesJson,
@@ -629,6 +663,19 @@ export default function VenueInquiryClient({
     setSourceById((prev) => ({ ...prev, [id]: replacement ? "external" : "venue" }));
   }
 
+  function handleExtraSelectedChange(id: string, selected: boolean) {
+    setSelectedExtraIds((prev) => ({ ...prev, [id]: selected }));
+    if (!selected) {
+      setReplacementByOptionId((prev) => {
+        if (!prev[id]) return prev;
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setSourceById((prev) => ({ ...prev, [id]: "venue" }));
+    }
+  }
+
   function buildServiceChoicesPayload(): Array<{
     id: string;
     source: ServiceChoiceSource;
@@ -638,7 +685,9 @@ export default function VenueInquiryClient({
     replacementName?: string;
     replacementProvider?: string;
   }> {
-    const restChoices = allRestServices.map((o) => {
+    const restChoices = allRestServices
+      .filter((o) => o.priceMode !== "extra" || selectedExtraIds[o.id] === true)
+      .map((o) => {
       const replacement = replacementByOptionId[o.id];
       const source = replacement
         ? "external"
@@ -821,6 +870,7 @@ export default function VenueInquiryClient({
           eventType: form.eventType.trim() || null,
           serviceChoices,
           addonServiceIds: addonFreelancers.map((f) => f.serviceId),
+          addonFreelancers,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -1098,6 +1148,8 @@ export default function VenueInquiryClient({
                   weddingFoodNote={weddingForm}
                   replacementByOptionId={replacementByOptionId}
                   onReplacementChange={handleReplacementChange}
+                  selectedExtraIds={selectedExtraIds}
+                  onExtraSelectedChange={handleExtraSelectedChange}
                   marketplaceById={marketplaceById}
                   marketplaceLoading={marketplaceLoading}
                   dealInsightsById={dealInsightsById}
