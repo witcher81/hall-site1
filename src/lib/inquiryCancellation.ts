@@ -134,6 +134,23 @@ export async function finalizeInquiryCancellation(input: {
     data: { status: "CANCELLED" },
   });
 
+  const threadLinks = await prisma.negotiationThread.findMany({
+    where: {
+      inquiryId: input.inquiryId,
+      serviceRequestId: { not: null },
+    },
+    select: { serviceRequestId: true },
+  });
+  const linkedIds = threadLinks
+    .map((t) => t.serviceRequestId)
+    .filter((id): id is number => id != null);
+  if (linkedIds.length > 0) {
+    await prisma.serviceRequest.updateMany({
+      where: { id: { in: linkedIds }, status: { not: "CANCELLED" } },
+      data: { status: "CANCELLED" },
+    });
+  }
+
   if (input.releaseBookedDate && input.venueId != null) {
     await releaseVenueDateForInquiry(input.venueId, input.preferredDate);
   }
@@ -285,4 +302,33 @@ export async function notifyFreelancerDeclinedService(input: {
   }
 
   await Promise.all(tasks);
+}
+
+/** תיקון בקשות ישנות שלא סומנו CANCELLED כשההזמנה לאולם כבר נדחתה */
+export async function syncCancelledServiceRequestsForEndedInquiries(
+  requests: Array<{
+    id: number;
+    status: string;
+    inquiry?: { status: string } | null;
+    negotiationThread?: { inquiry?: { status: string } | null } | null;
+  }>
+): Promise<void> {
+  const idsToSync = requests
+    .filter((r) => {
+      const inquiryStatus =
+        r.inquiry?.status ?? r.negotiationThread?.inquiry?.status ?? null;
+      return (
+        r.status !== "CANCELLED" &&
+        inquiryStatus != null &&
+        inquiryStatus.toUpperCase() === "REJECTED"
+      );
+    })
+    .map((r) => r.id);
+
+  if (idsToSync.length === 0) return;
+
+  await prisma.serviceRequest.updateMany({
+    where: { id: { in: idsToSync } },
+    data: { status: "CANCELLED" },
+  });
 }

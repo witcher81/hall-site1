@@ -5,6 +5,10 @@ import { useSearchParams } from "next/navigation";
 import InquiryNegotiationHub from "@/components/inquiry-negotiation/InquiryNegotiationHub";
 import ServiceRequestMessageBody from "@/components/service-requests/ServiceRequestMessageBody";
 import { formatInquiryPreferredDateForDisplay } from "@/lib/inquiryMessageDisplay";
+import {
+  serviceRequestCancelledDetail,
+  serviceRequestStatusLabel,
+} from "@/lib/serviceRequestStatus";
 
 type Req = {
   id: number;
@@ -15,6 +19,7 @@ type Req = {
   eventType: string | null;
   preferredDate: string | null;
   status: string;
+  inquiryStatus?: string | null;
   providerNote: string | null;
   repliedAt: string | null;
   createdAt: string;
@@ -27,6 +32,7 @@ const STATUS_FILTER = [
   { value: "NEW", label: "חדשות" },
   { value: "READ", label: "נקראו" },
   { value: "REPLIED", label: "נענו" },
+  { value: "CANCELLED", label: "בוטלו" },
 ];
 
 export default function FreelancerRequestsClient() {
@@ -178,24 +184,50 @@ export default function FreelancerRequestsClient() {
           </div>
 
           <div className="space-y-4">
-            {filtered.map((r) => (
+            {filtered.map((r) => {
+              const cancelled = r.status === "CANCELLED";
+              const statusLabel = serviceRequestStatusLabel(
+                r.status,
+                r.inquiryStatus
+              );
+              const cancelledDetail = serviceRequestCancelledDetail(
+                r.status,
+                r.inquiryStatus
+              );
+
+              return (
               <article
                 key={r.id}
                 className={`rounded-2xl border p-4 shadow-[0_12px_40px_rgba(15,59,46,0.06)] ${
-                  r.status === "NEW"
+                  cancelled
+                    ? "border-red-200/70 bg-red-50/40"
+                    : r.status === "NEW"
                     ? "border-[#C9A227]/40 bg-[#FFF9E6]"
                     : r.status === "REPLIED"
                       ? "border-emerald-200/80 bg-emerald-50/90"
-                      : r.status === "CANCELLED"
-                        ? "border-neutral-200 bg-neutral-50 opacity-80"
-                        : "border-neutral-200 bg-white"
+                      : "border-neutral-200 bg-white"
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-semibold tracking-wide text-amber-800">
-                      בקשה להצעת מחיר
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-[10px] font-semibold tracking-wide text-amber-800">
+                        בקשה להצעת מחיר
+                      </p>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          cancelled
+                            ? "bg-red-100 text-red-800"
+                            : r.status === "NEW"
+                              ? "bg-[#FFF9E6] text-emerald-950"
+                              : r.status === "REPLIED"
+                                ? "bg-emerald-100 text-emerald-900"
+                                : "bg-neutral-100 text-neutral-700"
+                        }`}
+                      >
+                        {statusLabel}
+                      </span>
+                    </div>
                     <p className="mt-0.5 font-semibold text-emerald-950">
                       {r.service.name}
                       <span className="mr-2 text-neutral-600">·</span>
@@ -222,12 +254,7 @@ export default function FreelancerRequestsClient() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {r.status === "CANCELLED" ? (
-                      <span className="rounded-full bg-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700">
-                        בוטלה
-                      </span>
-                    ) : null}
-                    {r.inquiryId && r.status !== "CANCELLED" ? (
+                    {!cancelled && r.inquiryId ? (
                       <button
                         type="button"
                         onClick={() => openNegotiation(r)}
@@ -236,7 +263,7 @@ export default function FreelancerRequestsClient() {
                         הצעת מחיר חדשה
                       </button>
                     ) : null}
-                    {r.status !== "CANCELLED" && (
+                    {!cancelled && (
                       <button
                         type="button"
                         onClick={() => declineRequest(r.id)}
@@ -245,7 +272,7 @@ export default function FreelancerRequestsClient() {
                         ביטול השתתפות
                       </button>
                     )}
-                    {r.status === "NEW" && (
+                    {!cancelled && r.status === "NEW" && (
                       <>
                         <button
                           type="button"
@@ -263,7 +290,7 @@ export default function FreelancerRequestsClient() {
                         </button>
                       </>
                     )}
-                    {r.status === "READ" && (
+                    {!cancelled && r.status === "READ" && (
                       <button
                         type="button"
                         onClick={() => setRepliedId(repliedId === r.id ? null : r.id)}
@@ -274,6 +301,12 @@ export default function FreelancerRequestsClient() {
                     )}
                   </div>
                 </div>
+
+                {cancelledDetail && (
+                  <p className="mt-3 rounded-xl border border-red-200/80 bg-red-50/80 px-3 py-2 text-xs font-medium text-red-900">
+                    {cancelledDetail}
+                  </p>
+                )}
 
                 {(r.eventType || r.preferredDate) && (
                   <p className="mt-2 text-xs text-neutral-600">
@@ -340,7 +373,8 @@ export default function FreelancerRequestsClient() {
                   </div>
                 )}
               </article>
-            ))}
+            );
+            })}
           </div>
 
           {filtered.length === 0 && (

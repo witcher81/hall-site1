@@ -6,7 +6,11 @@ import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import { notifySeekerServiceRequestReplied } from "@/lib/transactionalEmails";
 import {
   notifyFreelancerDeclinedService,
+  syncCancelledServiceRequestsForEndedInquiries,
 } from "@/lib/inquiryCancellation";
+import {
+  isServiceRequestCancelled,
+} from "@/lib/serviceRequestStatus";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -38,18 +42,36 @@ export async function GET() {
       service: {
         select: { id: true, name: true },
       },
+      inquiry: {
+        select: { id: true, status: true },
+      },
       negotiationThread: {
-        select: { id: true, inquiryId: true },
+        select: {
+          id: true,
+          inquiryId: true,
+          inquiry: { select: { id: true, status: true } },
+        },
       },
     },
   });
 
+  await syncCancelledServiceRequestsForEndedInquiries(requests);
+
   return NextResponse.json({
-    requests: requests.map((r) => ({
-      ...r,
-      negotiationThreadId: r.negotiationThread?.id ?? null,
-      inquiryId: r.inquiryId ?? r.negotiationThread?.inquiryId ?? null,
-    })),
+    requests: requests.map((r) => {
+      const inquiryId =
+        r.inquiryId ?? r.negotiationThread?.inquiryId ?? r.inquiry?.id ?? null;
+      const inquiryStatus =
+        r.inquiry?.status ?? r.negotiationThread?.inquiry?.status ?? null;
+      const cancelled = isServiceRequestCancelled(r.status, inquiryStatus);
+      return {
+        ...r,
+        inquiryId,
+        inquiryStatus,
+        status: cancelled ? "CANCELLED" : r.status,
+        negotiationThreadId: r.negotiationThread?.id ?? null,
+      };
+    }),
     services,
   });
 }
