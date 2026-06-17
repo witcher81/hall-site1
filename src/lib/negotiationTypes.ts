@@ -1,4 +1,4 @@
-/** סוגי שרשור התמקחות */
+/** סוגי שרשור הצעות מחיר */
 export type NegotiationThreadKind = "VENUE" | "SUPPLIER";
 
 export type NegotiationThreadStatus = "OPEN" | "DEAL_ACCEPTED" | "CLOSED";

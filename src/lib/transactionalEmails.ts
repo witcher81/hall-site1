@@ -262,14 +262,14 @@ export function notifyNegotiationOfferReceived(input: {
     : "שלום,";
 
   const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
-    <p style="margin:0 0 12px 0;line-height:1.6;">התקבלה <strong>הצעת מחיר חדשה</strong> בהתמקחות עבור <strong>${escapeHtml(input.venueName)}</strong>.</p>
-    ${ctaButton(url, "לצפייה בהתמקחות")}`;
+    <p style="margin:0 0 12px 0;line-height:1.6;">התקבלה <strong>הצעת מחיר חדשה</strong> עבור <strong>${escapeHtml(input.venueName)}</strong>.</p>
+    ${ctaButton(url, "לצפייה בהצעות המחיר")}`;
 
   fireAndForget(
     sendEmail({
       to: input.recipientEmail,
       subject: `הצעת מחיר חדשה — ${input.venueName}`,
-      html: emailShell("הצעת מחיר בהתמקחות", body),
+      html: emailShell("הצעת מחיר חדשה", body),
       text: `הצעת מחיר חדשה עבור ${input.venueName}. ${url}`,
     }),
     "negotiationOfferReceived"
@@ -289,8 +289,8 @@ export function notifyNegotiationOfferAccepted(input: {
     : "שלום,";
 
   const body = `<p style="margin:0 0 12px 0;line-height:1.6;">${greeting}</p>
-    <p style="margin:0 0 12px 0;line-height:1.6;">הצעת המחיר בהתמקחות עבור <strong>${escapeHtml(input.venueName)}</strong> <strong>אושרה</strong>.</p>
-    ${ctaButton(url, "לצפייה בהתמקחות")}`;
+    <p style="margin:0 0 12px 0;line-height:1.6;">הצעת המחיר עבור <strong>${escapeHtml(input.venueName)}</strong> <strong>אושרה</strong>.</p>
+    ${ctaButton(url, "לצפייה בהצעות המחיר")}`;
 
   fireAndForget(
     sendEmail({

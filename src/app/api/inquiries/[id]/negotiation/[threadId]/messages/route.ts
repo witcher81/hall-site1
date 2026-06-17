@@ -80,8 +80,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
         createNotification({
           userId,
           type: "NEGOTIATION_MESSAGE",
-          title: "הודעה חדשה בהתמקחות",
-          body: "התקבלה הודעה חדשה בשרשור ההתמקחות.",
+          title: "הודעה חדשה בהצעת מחיר",
+          body: "התקבלה הודעה חדשה בשרשור הצעת המחיר.",
           href:
             userId === thread.inquiry.userId
               ? `/my-inquiries/${inquiryId}`

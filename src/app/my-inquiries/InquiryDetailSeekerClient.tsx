@@ -11,6 +11,9 @@ import {
   inquirySeekerProgressSteps,
   inquiryStatusBadgeClass,
   inquiryStatusLabelSeeker,
+  inquiryStepIconChar,
+  inquiryStepIconClass,
+  inquiryStepPillClass,
   normalizeInquiryStatus,
 } from "@/lib/inquiryStatus";
 import Link from "next/link";
@@ -128,20 +131,12 @@ export default function InquiryDetailSeekerClient({
             {steps.map((step) => (
               <div
                 key={step.id}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${
-                  step.active
-                    ? "bg-amber-400 text-white"
-                    : step.done
-                      ? "bg-emerald-100 text-emerald-900"
-                      : "bg-neutral-100 text-neutral-500"
-                }`}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${inquiryStepPillClass(step)}`}
               >
                 <span
-                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] ${
-                    step.done ? "bg-emerald-700 text-white" : "bg-neutral-300 text-neutral-600"
-                  }`}
+                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] ${inquiryStepIconClass(step)}`}
                 >
-                  {step.done ? "✓" : "·"}
+                  {inquiryStepIconChar(step)}
                 </span>
                 {step.label}
               </div>

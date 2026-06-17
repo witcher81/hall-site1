@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import InquiryNegotiationHub from "@/components/inquiry-negotiation/InquiryNegotiationHub";
+import ServiceRequestMessageBody from "@/components/service-requests/ServiceRequestMessageBody";
+import { formatInquiryPreferredDateForDisplay } from "@/lib/inquiryMessageDisplay";
 
 type Req = {
   id: number;
@@ -113,7 +115,7 @@ export default function FreelancerRequestsClient() {
       {negotiationInquiryId ? (
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-emerald-950">התמקחות עם המחפש</p>
+            <p className="text-sm font-semibold text-emerald-950">הצעת מחיר חדשה עם המחפש</p>
             <button
               type="button"
               onClick={() => {
@@ -170,7 +172,10 @@ export default function FreelancerRequestsClient() {
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-emerald-950">
+                    <p className="text-[10px] font-semibold tracking-wide text-amber-800">
+                      בקשה להצעת מחיר
+                    </p>
+                    <p className="mt-0.5 font-semibold text-emerald-950">
                       {r.service.name}
                       <span className="mr-2 text-neutral-600">·</span>
                       <span className="text-neutral-800">{r.user.name || r.user.email}</span>
@@ -202,7 +207,7 @@ export default function FreelancerRequestsClient() {
                         onClick={() => openNegotiation(r)}
                         className="rounded-full border border-amber-400 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-950 hover:bg-amber-100"
                       >
-                        התמקחות
+                        הצעת מחיר חדשה
                       </button>
                     ) : null}
                     {r.status === "NEW" && (
@@ -239,12 +244,16 @@ export default function FreelancerRequestsClient() {
                   <p className="mt-2 text-xs text-neutral-600">
                     {r.eventType && <span>סוג אירוע: {r.eventType}</span>}
                     {r.preferredDate && (
-                      <span className="mr-3">תאריך: {r.preferredDate}</span>
+                      <span className="mr-3">
+                        תאריך:{" "}
+                        {formatInquiryPreferredDateForDisplay(r.preferredDate) ||
+                          r.preferredDate}
+                      </span>
                     )}
                   </p>
                 )}
 
-                <p className="mt-2 text-neutral-900">{r.message}</p>
+                <ServiceRequestMessageBody message={r.message} />
 
                 {repliedId === r.id && (
                   <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">

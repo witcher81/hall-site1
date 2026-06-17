@@ -105,6 +105,8 @@ export type InquiryStatusStep = {
   label: string;
   done: boolean;
   active: boolean;
+  /** צבע השלב הסופי — אושרה / נדחתה */
+  variant?: "default" | "success" | "danger";
 };
 
 /** פס התקדמות למחפש */
@@ -118,7 +120,13 @@ export function inquirySeekerProgressSteps(status: string): InquiryStatusStep[] 
     return [
       { id: "submitted", label: "נשלחה", done: true, active: false },
       { id: "viewed", label: "נצפתה", done: viewed, active: false },
-      { id: "rejected", label: "נדחתה", done: true, active: true },
+      {
+        id: "rejected",
+        label: "נדחתה",
+        done: true,
+        active: true,
+        variant: "danger",
+      },
     ];
   }
 
@@ -127,9 +135,49 @@ export function inquirySeekerProgressSteps(status: string): InquiryStatusStep[] 
     { id: "viewed", label: "נצפתה", done: viewed, active: viewed && !decided },
     {
       id: "approved",
-      label: "אושרה",
+      label: s === "APPROVED" ? "אושרה" : "ממתינה",
       done: s === "APPROVED",
       active: s === "APPROVED",
+      variant: s === "APPROVED" ? "success" : "default",
     },
   ];
+}
+
+export function inquiryStepPillClass(step: InquiryStatusStep): string {
+  if (step.variant === "danger" && (step.active || step.done)) {
+    return step.active
+      ? "bg-red-500 text-white shadow-sm"
+      : "bg-red-100 text-red-900";
+  }
+  if (step.variant === "success" && (step.active || step.done)) {
+    return step.active
+      ? "bg-emerald-600 text-white shadow-sm"
+      : "bg-emerald-100 text-emerald-900";
+  }
+  if (step.active) {
+    return "bg-amber-400 text-white";
+  }
+  if (step.done) {
+    return "bg-emerald-100 text-emerald-900";
+  }
+  return "bg-neutral-100 text-neutral-500";
+}
+
+export function inquiryStepIconClass(step: InquiryStatusStep): string {
+  if (step.variant === "danger" && (step.active || step.done)) {
+    return step.active ? "bg-red-800 text-white" : "bg-red-600 text-white";
+  }
+  if (step.variant === "success" && step.done) {
+    return "bg-emerald-700 text-white";
+  }
+  if (step.done) {
+    return "bg-emerald-700 text-white";
+  }
+  return "bg-neutral-300 text-neutral-600";
+}
+
+export function inquiryStepIconChar(step: InquiryStatusStep): string {
+  if (step.id === "rejected" && step.active) return "✕";
+  if (step.done) return "✓";
+  return "·";
 }

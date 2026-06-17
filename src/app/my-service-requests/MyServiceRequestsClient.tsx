@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ServiceRequestMessageBody from "@/components/service-requests/ServiceRequestMessageBody";
+import { formatInquiryPreferredDateForDisplay } from "@/lib/inquiryMessageDisplay";
 
 type Req = {
   id: number;
@@ -96,11 +98,15 @@ export default function MyServiceRequestsClient() {
               <p className="mt-1 text-xs text-neutral-600">
                 {r.eventType && <span>סוג אירוע: {r.eventType}</span>}
                 {r.preferredDate && (
-                  <span className="mr-3">תאריך: {r.preferredDate}</span>
+                  <span className="mr-3">
+                    תאריך:{" "}
+                    {formatInquiryPreferredDateForDisplay(r.preferredDate) ||
+                      r.preferredDate}
+                  </span>
                 )}
               </p>
             )}
-            <p className="mt-2 text-neutral-900">{r.message}</p>
+            <ServiceRequestMessageBody message={r.message} />
             {r.status === "REPLIED" && (r.providerNote || r.repliedAt) && (
               <div className="mt-3 rounded-lg border border-emerald-200/80 bg-white/90 p-3 text-xs">
                 {r.providerNote && (

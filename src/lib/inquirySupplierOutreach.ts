@@ -2,7 +2,7 @@ import "server-only";
 
 import { createNotification } from "@/lib/notifications";
 import { userWantsEmailFromDb } from "@/lib/emailNotifications";
-import { DEFAULT_INQUIRY_SUPPLIER_MESSAGE } from "@/lib/inquiryMessageDisplay";
+import { buildSupplierRequestMessage } from "@/lib/serviceRequestMessageDisplay";
 import { parseAddonServiceIds } from "@/lib/inquiryAddonFreelancers";
 import { notifyFreelancerNewServiceRequest } from "@/lib/transactionalEmails";
 import { prisma } from "@/lib/prisma";
@@ -55,19 +55,6 @@ export function collectLinkedMarketplaceServiceIds(
   }
 
   return [...ids];
-}
-
-function buildSupplierRequestMessage(input: {
-  supplierMessage: string | null;
-  venueName: string;
-  eventType: string | null;
-  preferredDate: string | null;
-}): string {
-  const base = input.supplierMessage?.trim() || DEFAULT_INQUIRY_SUPPLIER_MESSAGE;
-  const parts = [`בקשה דרך הזמנת אולם «${input.venueName}»`];
-  if (input.preferredDate) parts.push(`תאריך: ${input.preferredDate}`);
-  if (input.eventType) parts.push(`סוג אירוע: ${input.eventType}`);
-  return `${base}\n\n${parts.join(" · ")}`;
 }
 
 /** יוצר בקשות שירות לספקים שנבחרו בפנייה לאולם — מחזיר מזהי הבקשות שנוצרו */

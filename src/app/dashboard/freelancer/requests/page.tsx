@@ -9,7 +9,7 @@ export default async function FreelancerRequestsPage() {
       </p>
       <h1 className="mt-1 text-xl font-semibold text-emerald-950">בקשות שהתקבלו</h1>
       <p className="mt-1 text-sm text-neutral-600">
-        בקשות ממחפשי אולמות לשירותים שלך — התמקחות, הצעות מחיר ומענה.
+        בקשות ממחפשי אולמות לשירותים שלך — הצעת מחיר חדשה, מענה והודעות.
       </p>
       <Suspense
         fallback={

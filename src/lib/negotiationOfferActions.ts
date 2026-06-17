@@ -137,7 +137,7 @@ export async function acceptNegotiationOffer(input: {
     inquiryId: thread.inquiryId,
     actorUserId: input.actorUserId,
     title: "הצעת מחיר התקבלה",
-    body: "אחד הצדדים אישר הצעת מחיר בהתמקחות.",
+    body: "אחד הצדדים אישר הצעת מחיר.",
     href: seekerHref,
   });
 
@@ -238,7 +238,7 @@ export async function notifyNewOffer(input: {
     inquiryId: input.inquiryId,
     actorUserId: input.actorUserId,
     title: "הצעת מחיר חדשה",
-    body: `${input.actorName?.trim() || "צד בהתמקחות"} שלח הצעת מחיר.`,
+    body: `${input.actorName?.trim() || "צד בשיחה"} שלח הצעת מחיר חדשה.`,
     href: `/my-inquiries/${input.inquiryId}`,
   });
 

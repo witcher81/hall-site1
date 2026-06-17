@@ -27,7 +27,7 @@ export default function NegotiationAcceptedSummary({
 
   return (
     <div className="mt-4 rounded-xl border border-emerald-300 bg-gradient-to-l from-emerald-50 to-amber-50/40 px-4 py-3">
-      <p className="text-xs font-semibold text-emerald-950">הצעות שאושרו בהתמקחות</p>
+      <p className="text-xs font-semibold text-emerald-950">הצעות מחיר שאושרו</p>
       <ul className="mt-2 space-y-1 text-xs text-neutral-800">
         {accepted.map((t) => (
           <li key={t.id}>
@@ -42,7 +42,7 @@ export default function NegotiationAcceptedSummary({
         ))}
       </ul>
       <p className="mt-2 text-[10px] text-neutral-600">
-        לאישור סופי של התאריך באולם — המשיכו למטה בהתמקחות או המתינו לאישור בעל האולם.
+        לאישור סופי של התאריך באולם — המשיכו למטה בהצעות המחיר או המתינו לאישור בעל האולם.
       </p>
     </div>
   );

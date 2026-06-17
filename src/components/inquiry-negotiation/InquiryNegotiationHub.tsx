@@ -234,13 +234,13 @@ export default function InquiryNegotiationHub({
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setError(data?.error || "טעינת ההתמקחות נכשלה");
+        setError(data?.error || "טעינת הצעות המחיר נכשלה");
         return;
       }
       setHub(data.hub ?? null);
       setError(null);
     } catch {
-      setError("טעינת ההתמקחות נכשלה");
+      setError("טעינת הצעות המחיר נכשלה");
     } finally {
       setLoading(false);
     }
@@ -372,7 +372,7 @@ export default function InquiryNegotiationHub({
   if (loading) {
     return (
       <div className={`rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600 ${className}`}>
-        טוען התמקחות...
+        טוען הצעות מחיר...
       </div>
     );
   }
@@ -380,7 +380,7 @@ export default function InquiryNegotiationHub({
   if (!hub || threads.length === 0) {
     return (
       <div className={`rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-6 text-center text-sm text-neutral-600 ${className}`}>
-        שרשור התמקחות ייווצר לאחר שליחת הבקשה.
+        שרשור הצעת המחיר ייווצר לאחר שליחת הבקשה.
       </div>
     );
   }
@@ -390,9 +390,9 @@ export default function InquiryNegotiationHub({
       className={`overflow-hidden rounded-2xl border border-[#E8E0D4] bg-white shadow-[0_8px_32px_rgba(15,59,46,0.07)] ${className}`}
     >
       <div className="border-b border-[#C9A227]/20 bg-emerald-950/[0.04] px-4 py-3.5 sm:px-5">
-        <p className="font-serif text-base font-semibold text-emerald-950">התמקחות</p>
+        <p className="font-serif text-base font-semibold text-emerald-950">הצעות מחיר</p>
         <p className="mt-0.5 text-[11px] text-neutral-600">
-          הודעות והצעות מחיר — אפשר לנהל משא ומתן עם כל צד בנפרד.
+          הודעות והצעות מחיר חדשה — אפשר לנהל משא ומתן עם כל צד בנפרד.
         </p>
       </div>
 
