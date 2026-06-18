@@ -19,7 +19,8 @@ export type ServiceIncludesBundle = {
   paidExtras: ServicePaidExtraItem[];
 };
 
-const MAX_ITEMS = 20;
+export const MAX_SERVICE_INCLUDE_ITEMS = 50;
+const MAX_ITEMS = MAX_SERVICE_INCLUDE_ITEMS;
 const MAX_LABEL_LEN = 80;
 const MAX_ITEM_DESC_LEN = 280;
 const MAX_PRICE = 2_147_483_647;

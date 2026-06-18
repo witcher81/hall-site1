@@ -1,5 +1,7 @@
 "use client";
 
+import DashboardMain from "@/components/dashboard/DashboardMain";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { useRouter } from "next/navigation";
 import {
   FormEvent,
@@ -778,8 +780,7 @@ export default function NewVenuePage() {
 
   if (creating) {
     return (
-      <div className="site-page">
-        <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+      <DashboardMain className="flex min-h-[50vh] max-w-3xl items-center justify-center">
           <section className="w-full rounded-2xl border border-neutral-200 bg-white p-7 text-center shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[#C9A227]/35 border-t-[#0F3B2E]" />
             <h2 className="text-xl font-semibold text-emerald-950">בונים את האולם שלך…</h2>
@@ -790,31 +791,20 @@ export default function NewVenuePage() {
               זה יכול לקחת כמה שניות, במיוחד אם העלית הרבה תמונות.
             </p>
           </section>
-        </main>
-      </div>
+      </DashboardMain>
     );
   }
 
   return (
-    <div className="site-page">
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
-          <div className="text-right">
-            <h1 className="text-xl font-semibold text-emerald-950">
-              יצירת אולם חדש
-            </h1>
-            <p className="mt-1 text-xs text-neutral-600">
-              מלא/י את פרטי האולם. לאחר השמירה תועבר/י חזרה לרשימת האולמות שלך.
-            </p>
-          </div>
-          <a
-            href="/dashboard/venue-owner"
-            className="text-sm text-emerald-950 underline-offset-4 hover:text-[#174D3B] hover:underline"
-          >
-            חזרה לאולמות שלי
-          </a>
-        </header>
-
+    <>
+      <DashboardPageHero
+        role="venue-owner"
+        title="יצירת אולם חדש"
+        description="מלא/י את פרטי האולם. לאחר השמירה תועבר/י חזרה לרשימת האולמות שלך."
+        backHref="/dashboard/venue-owner"
+        backLabel="חזרה לאולמות שלי"
+      />
+      <DashboardMain className="max-w-3xl">
         <form
           onSubmit={handleSubmit}
           className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white shadow-[0_12px_40px_rgba(15,59,46,0.08)] p-6 text-right text-sm"
@@ -1675,8 +1665,8 @@ export default function NewVenuePage() {
             </button>
           </div>
         </form>
-      </main>
-    </div>
+      </DashboardMain>
+    </>
   );
 }
 

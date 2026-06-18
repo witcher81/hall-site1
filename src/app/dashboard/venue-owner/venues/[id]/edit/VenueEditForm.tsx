@@ -1,5 +1,7 @@
 "use client";
 
+import DashboardMain from "@/components/dashboard/DashboardMain";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
@@ -870,28 +872,15 @@ export default function VenueEditForm({
   }
 
   return (
-    <div className="site-page">
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
-          <div className="text-right">
-            <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-              HALLS HUB
-            </p>
-            <h1 className="mt-1 text-xl font-semibold text-emerald-950">
-              עריכת אולם
-            </h1>
-            <p className="mt-1 text-xs text-neutral-600">
-              עדכן את פרטי האולם. שדות ריקים בתמונות – נשארות התמונות הקיימות.
-            </p>
-          </div>
-          <a
-            href={`/dashboard/venue-owner/venues/${venueId}`}
-            className="text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
-          >
-            חזרה לאולם
-          </a>
-        </header>
-
+    <>
+      <DashboardPageHero
+        role="venue-owner"
+        title="עריכת אולם"
+        description="עדכן את פרטי האולם. שדות ריקים בתמונות – נשארות התמונות הקיימות."
+        backHref={`/dashboard/venue-owner/venues/${venueId}`}
+        backLabel="חזרה לאולם"
+      />
+      <DashboardMain className="max-w-3xl">
         <form
           onSubmit={handleSubmit}
           className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white shadow-[0_12px_40px_rgba(15,59,46,0.08)] p-6 text-right text-sm"
@@ -1806,7 +1795,7 @@ export default function VenueEditForm({
             </button>
           </div>
         </form>
-      </main>
-    </div>
+      </DashboardMain>
+    </>
   );
 }

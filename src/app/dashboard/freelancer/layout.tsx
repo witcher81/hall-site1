@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import DashboardNav from "./DashboardNav";
+import DashboardNav from "@/components/dashboard/DashboardNav";
 
 export const runtime = "nodejs";
 
@@ -18,8 +18,11 @@ export default async function FreelancerLayout({
   });
 
   return (
-    <div className="site-page">
-      <DashboardNav user={{ name: dbUser?.name ?? null, email: dbUser?.email ?? "" }} />
+    <div className="site-page dashboard-area">
+      <DashboardNav
+        role="freelancer"
+        user={{ name: dbUser?.name ?? null, email: dbUser?.email ?? "" }}
+      />
       {children}
     </div>
   );

@@ -1,6 +1,8 @@
 "use client";
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
+import DashboardMain from "@/components/dashboard/DashboardMain";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
@@ -30,9 +32,6 @@ export default function NewServicePage() {
     serviceArea: "",
     experienceYears: "",
     languages: "",
-    includesTravel: false,
-    includesEquipment: false,
-    includesNote: "",
     exactPrice: "",
     priceUseRange: false,
     minPrice: "",
@@ -91,9 +90,9 @@ export default function NewServicePage() {
         "socialLinks",
         JSON.stringify(socialLinks.filter((l) => l.url.trim()))
       );
-      fd.append("includesTravel", String(form.includesTravel));
-      fd.append("includesEquipment", String(form.includesEquipment));
-      fd.append("includesNote", form.includesNote.trim());
+      fd.append("includesTravel", "false");
+      fd.append("includesEquipment", "false");
+      fd.append("includesNote", "");
       fd.append(
         "customIncludesJson",
         JSON.stringify({
@@ -139,27 +138,15 @@ export default function NewServicePage() {
     "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
-        <div className="text-right">
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-            HALLS HUB
-          </p>
-          <h1 className="mt-1 text-xl font-semibold text-emerald-950">
-            הוספת שירות חדש
-          </h1>
-          <p className="mt-1 text-xs text-neutral-600">
-            מלא/י את פרטי השירות. לאחר השמירה תועבר/י לרשימת השירותים.
-          </p>
-        </div>
-        <a
-          href="/dashboard/freelancer"
-          className="text-sm text-neutral-600 underline-offset-4 hover:text-emerald-950 hover:underline"
-        >
-          חזרה לשירותים שלי
-        </a>
-      </header>
-
+    <>
+      <DashboardPageHero
+        role="freelancer"
+        title="הוספת שירות חדש"
+        description="מלא/י את פרטי השירות. לאחר השמירה תועבר/י לרשימת השירותים."
+        backHref="/dashboard/freelancer"
+        backLabel="חזרה לשירותים שלי"
+      />
+      <DashboardMain width="narrow">
       <form
         onSubmit={handleSubmit}
         className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
@@ -254,16 +241,6 @@ export default function NewServicePage() {
         />
 
         <ServiceIncludesEditor
-          includesTravel={form.includesTravel}
-          onIncludesTravel={(v) => setForm((f) => ({ ...f, includesTravel: v }))}
-          includesEquipment={form.includesEquipment}
-          onIncludesEquipment={(v) =>
-            setForm((f) => ({ ...f, includesEquipment: v }))
-          }
-          includesNote={form.includesNote}
-          onIncludesNoteChange={(v) =>
-            setForm((f) => ({ ...f, includesNote: v }))
-          }
           customIncludes={customIncludes}
           onCustomIncludesChange={setCustomIncludes}
           paidExtras={paidExtras}
@@ -410,6 +387,7 @@ export default function NewServicePage() {
           </button>
         </div>
       </form>
-    </main>
+      </DashboardMain>
+    </>
   );
 }

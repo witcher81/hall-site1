@@ -182,12 +182,15 @@ export default function HomeHeader({
       if (personalRef.current && !personalRef.current.contains(t)) {
         setPersonalOpen(false);
       }
+      if (menuRef.current && !menuRef.current.contains(t)) {
+        setMenuOpen(false);
+      }
     }
-    if (personalOpen) {
+    if (personalOpen || menuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [personalOpen]);
+  }, [personalOpen, menuOpen]);
 
   return (
     <header className="site-header relative z-50 border-b border-slate-800 bg-emerald-950 backdrop-blur-sm">

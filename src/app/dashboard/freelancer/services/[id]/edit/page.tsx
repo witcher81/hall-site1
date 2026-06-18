@@ -3,6 +3,8 @@ import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServic
 import { prisma } from "@/lib/prisma";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
+import DashboardMain from "@/components/dashboard/DashboardMain";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ServiceEditForm from "./ServiceEditForm";
 
 export const runtime = "nodejs";
@@ -26,25 +28,15 @@ export default async function ServiceEditPage({
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex items-center justify-between gap-4 border-b border-neutral-200 pb-4">
-        <div className="text-right">
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-            HALLS HUB
-          </p>
-          <h1 className="mt-1 text-xl font-semibold text-emerald-950">
-            עריכת שירות: {service.name}
-          </h1>
-        </div>
-        <a
-          href={`/dashboard/freelancer/services/${service.id}`}
-          className="text-sm text-neutral-600 underline-offset-4 hover:text-emerald-950 hover:underline"
-        >
-          חזרה לשירות
-        </a>
-      </header>
-
-      <ServiceEditForm
+    <>
+      <DashboardPageHero
+        role="freelancer"
+        title={`עריכת שירות: ${service.name}`}
+        backHref={`/dashboard/freelancer/services/${service.id}`}
+        backLabel="חזרה לשירות"
+      />
+      <DashboardMain width="narrow">
+        <ServiceEditForm
         serviceId={service.id}
         initial={{
           name: service.name,
@@ -67,6 +59,7 @@ export default async function ServiceEditPage({
           maxPrice: service.maxPrice ?? "",
         }}
       />
-    </main>
+      </DashboardMain>
+    </>
   );
 }

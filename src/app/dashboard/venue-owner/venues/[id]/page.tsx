@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import DashboardMain from "@/components/dashboard/DashboardMain";
 import {
   isVenueBoostDemoPurchaseEnabled,
   isVenueBoostPurchaseUiEnabled,
@@ -102,7 +103,8 @@ export default async function VenueDetailsPage({
   const boostDemoEnabled = isVenueBoostDemoPurchaseEnabled();
 
   return (
-    <VenueDetailsClient
+    <DashboardMain width="wide" className="pb-16">
+      <VenueDetailsClient
       boostPurchaseEnabled={boostPurchaseEnabled}
       boostStripeEnabled={boostStripeEnabled}
       boostDemoEnabled={boostDemoEnabled}
@@ -124,7 +126,8 @@ export default async function VenueDetailsPage({
           : [],
         boostExpiresAt: venue.boostExpiresAt?.toISOString() ?? null,
       }}
-    />
+      />
+    </DashboardMain>
   );
 }
 

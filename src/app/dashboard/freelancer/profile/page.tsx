@@ -2,6 +2,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
+import DashboardMain from "@/components/dashboard/DashboardMain";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import FreelancerProfileForm from "./FreelancerProfileForm";
 
 export default async function FreelancerProfilePage() {
@@ -26,19 +28,14 @@ export default async function FreelancerProfilePage() {
   if (!dbUser) redirect("/auth/login");
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-10">
-      <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-        HALLS HUB
-      </p>
-      <h1 className="mt-1 text-2xl font-bold text-emerald-950">
-        פרטי העסק / השירות שלך
-      </h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        עדכן שם, טלפון, פרטי עסק וקישורי רשתות חברתיות – יופיעו ללקוחות בחיפוש
-        ובעמוד הספק.
-      </p>
-
-      <FreelancerProfileForm
+    <>
+      <DashboardPageHero
+        role="freelancer"
+        title="פרטי העסק / השירות שלך"
+        description="עדכן שם, טלפון, פרטי עסק וקישורי רשתות חברתיות – יופיעו ללקוחות בחיפוש ובעמוד הספק."
+      />
+      <DashboardMain width="narrow" className="max-w-lg">
+        <FreelancerProfileForm
         initial={{
           name: dbUser.name ?? "",
           phone: dbUser.phone ?? "",
@@ -48,6 +45,7 @@ export default async function FreelancerProfilePage() {
           socialLinks: parseSocialLinksJson(dbUser.socialLinksJson),
         }}
       />
-    </main>
+      </DashboardMain>
+    </>
   );
 }

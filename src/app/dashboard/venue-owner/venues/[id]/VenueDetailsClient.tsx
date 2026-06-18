@@ -322,7 +322,7 @@ export default function VenueDetailsClient({
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 pb-16 text-neutral-900 sm:px-6 lg:px-8">
+    <div className="pb-4 text-neutral-900">
       {/* הירו במותג – כמו דף הבית */}
       <div className="overflow-hidden rounded-2xl bg-gradient-to-b from-emerald-950 to-emerald-900 text-white shadow-[0_20px_50px_rgba(15,59,46,0.28)]">
         <div className="p-6 sm:p-8">
@@ -824,7 +824,7 @@ export default function VenueDetailsClient({
             </p>
           </div>
         )}
-    </main>
+    </div>
   );
 }
 

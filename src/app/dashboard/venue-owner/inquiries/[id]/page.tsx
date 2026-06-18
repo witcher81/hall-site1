@@ -1,5 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
+import DashboardMain from "@/components/dashboard/DashboardMain";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import InquiryDetailClient from "../InquiryDetailClient";
 import { getInquiryByIdForOwner } from "../inquiriesData";
 
@@ -21,17 +23,17 @@ export default async function VenueOwnerInquiryDetailPage({
   if (!inquiry) notFound();
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-8 lg:px-10">
-      <header className="border-b border-neutral-200 pb-4">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-          HALLS HUB
-        </p>
-        <h1 className="mt-1 text-xl font-semibold text-emerald-950">פנייה לאולם</h1>
-        <p className="mt-1 text-xs text-neutral-600">
-          פרטי הפנייה, שירותים והערות — כמו בדף אולם בודד.
-        </p>
-      </header>
-      <InquiryDetailClient initial={inquiry} />
-    </main>
+    <>
+      <DashboardPageHero
+        role="venue-owner"
+        title="פנייה לאולם"
+        description="פרטי הפנייה, שירותים והערות — כמו בדף אולם בודד."
+        backHref="/dashboard/venue-owner/inquiries"
+        backLabel="חזרה לרשימת הפניות"
+      />
+      <DashboardMain width="wide">
+        <InquiryDetailClient initial={inquiry} />
+      </DashboardMain>
+    </>
   );
 }

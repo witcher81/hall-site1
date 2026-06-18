@@ -2,46 +2,37 @@
 
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 
-import type {
-  ServiceCustomInclude,
-  ServicePaidExtraItem,
+import {
+  MAX_SERVICE_INCLUDE_ITEMS,
+  type ServiceCustomInclude,
+  type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
+import { type Dispatch, type SetStateAction } from "react";
 
 type Props = {
-  includesTravel: boolean;
-  onIncludesTravel: (v: boolean) => void;
-  includesEquipment: boolean;
-  onIncludesEquipment: (v: boolean) => void;
-  includesNote: string;
-  onIncludesNoteChange: (v: string) => void;
   /** פריטים הכלולים במחיר המוצג — לכל פריט שם + הסבר (אופציונלי) */
   customIncludes: ServiceCustomInclude[];
   onCustomIncludesChange: (v: ServiceCustomInclude[]) => void;
   /** שדרוגים / תוספות בתשלום נפרד */
   paidExtras: ServicePaidExtraItem[];
-  onPaidExtrasChange: (v: ServicePaidExtraItem[]) => void;
+  onPaidExtrasChange: Dispatch<SetStateAction<ServicePaidExtraItem[]>>;
 };
 
-const MAX_FREE = 20;
-const MAX_PAID = 20;
 const MAX_LABEL = 80;
 const MAX_ITEM_DESC = 280;
-const MAX_NOTE = 500;
+
+type PaidExtraPatch =
+  | Partial<ServicePaidExtraItem>
+  | ((row: ServicePaidExtraItem) => Partial<ServicePaidExtraItem>);
 
 export default function ServiceIncludesEditor({
-  includesTravel,
-  onIncludesTravel,
-  includesEquipment,
-  onIncludesEquipment,
-  includesNote,
-  onIncludesNoteChange,
   customIncludes,
   onCustomIncludesChange,
   paidExtras,
   onPaidExtrasChange,
 }: Props) {
   function addFreeItem() {
-    if (customIncludes.length >= MAX_FREE) return;
+    if (customIncludes.length >= MAX_SERVICE_INCLUDE_ITEMS) return;
     onCustomIncludesChange([
       ...customIncludes,
       { label: "", checked: true, description: "" },
@@ -64,7 +55,7 @@ export default function ServiceIncludesEditor({
   }
 
   function addPaidExtra() {
-    if (paidExtras.length >= MAX_PAID) return;
+    if (paidExtras.length >= MAX_SERVICE_INCLUDE_ITEMS) return;
     onPaidExtrasChange([
       ...paidExtras,
       {
@@ -78,12 +69,13 @@ export default function ServiceIncludesEditor({
     ]);
   }
 
-  function updatePaidExtra(
-    index: number,
-    patch: Partial<ServicePaidExtraItem>
-  ) {
-    onPaidExtrasChange(
-      paidExtras.map((row, i) => (i === index ? { ...row, ...patch } : row))
+  function updatePaidExtra(index: number, patch: PaidExtraPatch) {
+    onPaidExtrasChange((prev) =>
+      prev.map((row, i) => {
+        if (i !== index) return row;
+        const nextPatch = typeof patch === "function" ? patch(row) : patch;
+        return { ...row, ...nextPatch };
+      })
     );
   }
 
@@ -99,8 +91,6 @@ export default function ServiceIncludesEditor({
     return Math.trunc(n);
   }
 
-  const checkbox =
-    "rounded border-neutral-200 text-emerald-950 focus:ring-amber-400/40";
   const input =
     "w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
   const textarea =
@@ -113,61 +103,10 @@ export default function ServiceIncludesEditor({
           מה כלול בשירות
         </h3>
         <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
-          פירטו מה הלקוח מקבל במחיר שמוצג — אפשר להוסיף פריטים עם הסבר קצר לכל אחד.
+          פירטו מה הלקוח מקבל במחיר שמוצג — לכל פריט שם והסבר קצר.
         </p>
 
-        <div className="mt-3 space-y-2 text-xs text-neutral-800">
-          <label className="flex flex-wrap items-start gap-2">
-            <input
-              type="checkbox"
-              className={checkbox}
-              checked={includesTravel}
-              onChange={(e) => onIncludesTravel(e.target.checked)}
-            />
-            <span>
-              <span className="font-medium">כולל נסיעות</span>
-              <span className="mr-1 text-neutral-600">
-                — הגעה לאולם / לאזור השירות ללא תוספת תשלום (במסגרת המחיר).
-              </span>
-            </span>
-          </label>
-          <label className="flex flex-wrap items-start gap-2">
-            <input
-              type="checkbox"
-              className={checkbox}
-              checked={includesEquipment}
-              onChange={(e) => onIncludesEquipment(e.target.checked)}
-            />
-            <span>
-              <span className="font-medium">כולל ציוד</span>
-              <span className="mr-1 text-neutral-600">
-                — ציוד בסיסי שאתה מספק במסגרת ההצעה (ללא עלות נוספת).
-              </span>
-            </span>
-          </label>
-        </div>
-
-        <div className="mt-3">
-          <label className="block text-[11px] font-medium text-neutral-600">
-            הסבר קצר על מה שכלול
-          </label>
-          <textarea
-            dir="rtl"
-            rows={3}
-            maxLength={MAX_NOTE}
-            value={includesNote}
-            onChange={(e) =>
-              onIncludesNoteChange(e.target.value.slice(0, MAX_NOTE))
-            }
-            placeholder="למשל: החבילה כוללת צילום עד 6 שעות, גלריה מעובדת ועותק דיגיטלי."
-            className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none placeholder:text-[#9A948C] focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40"
-          />
-          <p className="mt-0.5 text-[10px] text-[#9A948C]">
-            {includesNote.length}/{MAX_NOTE} תווים — יוצג למחפשים מתחת לרשימת &quot;מה כלול&quot;.
-          </p>
-        </div>
-
-        <div className="mt-4 border-t border-neutral-200/60 pt-3">
+        <div className="mt-4">
           <p className="text-[11px] font-medium text-neutral-600">
             מה ניתן במחיר המוצג (ללא תוספת תשלום)
           </p>
@@ -223,10 +162,10 @@ export default function ServiceIncludesEditor({
           <button
             type="button"
             onClick={addFreeItem}
-            disabled={customIncludes.length >= MAX_FREE}
+            disabled={customIncludes.length >= MAX_SERVICE_INCLUDE_ITEMS}
             className="mt-2 rounded-full border border-dashed border-emerald-950/35 bg-white px-3 py-1.5 text-[11px] font-medium text-emerald-950 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            + הוסף פריט ללא תוספת תשלום ({customIncludes.length}/{MAX_FREE})
+            + הוסף פריט ללא תוספת תשלום ({customIncludes.length})
           </button>
         </div>
       </div>
@@ -285,28 +224,29 @@ export default function ServiceIncludesEditor({
                   <OptionalPriceRangeFields
                     useRange={row.usePriceRange === true}
                     onUseRangeChange={(useRange) => {
-                      if (useRange) {
-                        const ex = row.exactPrice;
-                        updatePaidExtra(index, {
-                          usePriceRange: true,
-                          exactPrice: null,
-                          minPrice: ex ?? row.minPrice ?? null,
-                          maxPrice: ex ?? row.maxPrice ?? null,
-                        });
-                      } else {
+                      updatePaidExtra(index, (row) => {
+                        if (useRange) {
+                          const ex = row.exactPrice;
+                          return {
+                            usePriceRange: true,
+                            exactPrice: null,
+                            minPrice: ex ?? row.minPrice ?? null,
+                            maxPrice: ex ?? row.maxPrice ?? null,
+                          };
+                        }
                         const exact =
                           row.minPrice != null &&
                           row.maxPrice != null &&
                           row.minPrice === row.maxPrice
                             ? row.minPrice
                             : row.minPrice ?? row.maxPrice ?? null;
-                        updatePaidExtra(index, {
+                        return {
                           usePriceRange: false,
                           exactPrice: exact,
                           minPrice: null,
                           maxPrice: null,
-                        });
-                      }
+                        };
+                      });
                     }}
                     minPrice={
                       row.usePriceRange
@@ -327,17 +267,15 @@ export default function ServiceIncludesEditor({
                           : ""
                     }
                     onChange={(min, max) => {
-                      const current = paidExtras[index];
-                      if (current?.usePriceRange) {
-                        updatePaidExtra(index, {
-                          minPrice: parsePriceInput(min),
-                          maxPrice: parsePriceInput(max),
-                        });
-                      } else {
-                        updatePaidExtra(index, {
-                          exactPrice: parsePriceInput(min),
-                        });
-                      }
+                      updatePaidExtra(index, (row) => {
+                        if (row.usePriceRange) {
+                          return {
+                            minPrice: parsePriceInput(min),
+                            maxPrice: parsePriceInput(max),
+                          };
+                        }
+                        return { exactPrice: parsePriceInput(min) };
+                      });
                     }}
                     singleLabel="מחיר מדויק (₪)"
                     singlePlaceholder="למשל: 500"
@@ -364,10 +302,10 @@ export default function ServiceIncludesEditor({
           <button
             type="button"
             onClick={addPaidExtra}
-            disabled={paidExtras.length >= MAX_PAID}
+            disabled={paidExtras.length >= MAX_SERVICE_INCLUDE_ITEMS}
             className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            + הוסף תוספת בתשלום ({paidExtras.length}/{MAX_PAID})
+            + הוסף תוספת בתשלום ({paidExtras.length})
           </button>
         </div>
       </div>

@@ -138,6 +138,137 @@ body {
   color: #d97706;
 }
 
+/* אזור אישי — בעל אולם / פרילנסר */
+.dashboard-area {
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, #023528 0%, #023528 11rem, var(--background) 11rem);
+}
+
+.dashboard-nav-link {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgb(248 246 240 / 0.82);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.dashboard-nav-link:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.dashboard-nav-link-active {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  color: #022c22;
+  font-weight: 700;
+  box-shadow:
+    0 4px 14px rgb(0 0 0 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+
+.dashboard-nav-link-active:hover {
+  color: #022c22;
+  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 100%);
+}
+
+.dashboard-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid rgb(251 191 36 / 0.35);
+  background: rgb(251 191 36 / 0.12);
+  padding: 0.2rem 0.65rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fcd34d;
+}
+
+.dashboard-nav-home {
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(248 246 240 / 0.92);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.dashboard-nav-home:hover {
+  border-color: rgb(255 255 255 / 0.45);
+  background: rgb(255 255 255 / 0.08);
+}
+
+.dashboard-hero {
+  position: relative;
+  padding: 1.35rem 0 1.85rem;
+}
+
+.dashboard-hero-kicker {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: rgb(251 191 36 / 0.88);
+}
+
+.dashboard-hero-title {
+  margin-top: 0.5rem;
+  font-size: 1.625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #fff;
+}
+
+@media (min-width: 640px) {
+  .dashboard-hero-title {
+    font-size: 2rem;
+  }
+}
+
+.dashboard-hero-lead {
+  margin-top: 0.5rem;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: rgb(248 246 240 / 0.78);
+}
+
+.dashboard-hero-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  background: rgb(255 255 255 / 0.06);
+  padding: 0.45rem 0.95rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(248 246 240 / 0.95);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.dashboard-hero-back:hover {
+  border-color: rgb(251 191 36 / 0.55);
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+}
+
+.dashboard-main {
+  padding-top: 1.25rem;
+  padding-bottom: 2.5rem;
+}
+
 .site-card {
   border-radius: 1rem;
   border: 1px solid rgb(229 229 229 / 0.85);

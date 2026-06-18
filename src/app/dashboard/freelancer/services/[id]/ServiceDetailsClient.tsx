@@ -73,18 +73,8 @@ export default function ServiceDetailsClient({
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-4">
-        <div className="text-right">
-          <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-            HALLS HUB
-          </p>
-          <h1 className="mt-1 text-xl font-semibold text-emerald-950">{service.name}</h1>
-          {service.category && (
-            <p className="mt-1 text-xs text-neutral-600">{service.category}</p>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
+    <div className="text-right text-sm text-neutral-900">
+      <div className="mb-4 flex flex-wrap justify-end gap-2">
           <a
             href={`/services/${service.id}`}
             target="_blank"
@@ -121,8 +111,7 @@ export default function ServiceDetailsClient({
           >
             חזרה
           </a>
-        </div>
-      </header>
+      </div>
 
       {deleteError && (
         <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-right text-xs text-red-800">
@@ -229,6 +218,6 @@ export default function ServiceDetailsClient({
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

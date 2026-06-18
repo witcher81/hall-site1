@@ -61,9 +61,6 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     serviceArea: initial.serviceArea,
     experienceYears: String(initial.experienceYears ?? ""),
     languages: initial.languages ?? "",
-    includesTravel: initial.includesTravel,
-    includesEquipment: initial.includesEquipment,
-    includesNote: initial.includesNote ?? "",
     exactPrice: initialPrice.exactPrice,
     priceUseRange: initialPrice.priceUseRange,
     minPrice: initialPrice.minPrice,
@@ -128,9 +125,9 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         "socialLinks",
         JSON.stringify(socialLinks.filter((l) => l.url.trim()))
       );
-      fd.append("includesTravel", String(form.includesTravel));
-      fd.append("includesEquipment", String(form.includesEquipment));
-      fd.append("includesNote", form.includesNote.trim());
+      fd.append("includesTravel", "false");
+      fd.append("includesEquipment", "false");
+      fd.append("includesNote", "");
       fd.append(
         "customIncludesJson",
         JSON.stringify({
@@ -262,16 +259,6 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       />
 
       <ServiceIncludesEditor
-        includesTravel={form.includesTravel}
-        onIncludesTravel={(v) => setForm((f) => ({ ...f, includesTravel: v }))}
-        includesEquipment={form.includesEquipment}
-        onIncludesEquipment={(v) =>
-          setForm((f) => ({ ...f, includesEquipment: v }))
-        }
-        includesNote={form.includesNote}
-        onIncludesNoteChange={(v) =>
-          setForm((f) => ({ ...f, includesNote: v }))
-        }
         customIncludes={customIncludes}
         onCustomIncludesChange={setCustomIncludes}
         paidExtras={paidExtras}

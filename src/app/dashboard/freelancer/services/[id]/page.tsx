@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
+import DashboardMain from "@/components/dashboard/DashboardMain";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import ServiceDetailsClient from "./ServiceDetailsClient";
 
 export const runtime = "nodejs";
@@ -42,9 +44,18 @@ export default async function ServiceDetailsPage({
   );
 
   return (
-    <ServiceDetailsClient
-      providerId={user.id}
-      service={{
+    <>
+      <DashboardPageHero
+        role="freelancer"
+        title={service.name}
+        description={service.category ?? undefined}
+        backHref="/dashboard/freelancer"
+        backLabel="חזרה לשירותים"
+      />
+      <DashboardMain width="narrow">
+        <ServiceDetailsClient
+          providerId={user.id}
+          service={{
         id: service.id,
         name: service.name,
         category: service.category,
@@ -65,6 +76,8 @@ export default async function ServiceDetailsPage({
         minPrice: service.minPrice,
         maxPrice: service.maxPrice,
       }}
-    />
+        />
+      </DashboardMain>
+    </>
   );
 }
