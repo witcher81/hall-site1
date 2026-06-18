@@ -15,6 +15,8 @@ export type PublicPackageListItem = {
   bundlePriceFrom: number | null;
   bundlePriceTo: number | null;
   badgeLabel: string | null;
+  tier: string | null;
+  sortOrder: number;
   venue: {
     id: number;
     name: string;
@@ -52,6 +54,8 @@ export async function searchPublicPackages(
       bundlePriceFrom: true,
       bundlePriceTo: true,
       badgeLabel: true,
+      tier: true,
+      sortOrder: true,
       venue: {
         select: {
           id: true,

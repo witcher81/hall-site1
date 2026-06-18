@@ -5,6 +5,7 @@ export type PackagesListSort = "order" | "price_low" | "price_high";
 export type PackagesSearchInput = {
   q: string;
   city: string;
+  venueId: string;
   minGuests: string;
   maxGuests: string;
   bundleMin: string;
@@ -29,6 +30,7 @@ export function parsePackagesSearchParams(
   return {
     q: pick("q").trim(),
     city: pick("city").trim(),
+    venueId: pick("venueId").trim(),
     minGuests: pick("minGuests").trim() || legacyGuests,
     maxGuests: pick("maxGuests").trim(),
     bundleMin: pick("bundleMin").trim(),
@@ -55,6 +57,11 @@ export function buildEventPackageWhere(
         { services: { some: { service: { category: { contains: q } } } } },
       ],
     });
+  }
+
+  const venueId = Number(input.venueId);
+  if (Number.isInteger(venueId) && venueId > 0) {
+    conditions.push({ venueId });
   }
 
   const city = input.city.trim();

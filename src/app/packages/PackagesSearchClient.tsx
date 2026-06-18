@@ -12,6 +12,12 @@ import CityDatalist from "@/components/CityDatalist";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
+import {
+  PACKAGE_TIER_LABELS,
+  PACKAGE_TIERS,
+  parsePackageTier,
+  type PackageTier,
+} from "@/lib/eventPackageTypes";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PackagesListSort } from "@/lib/packagesFilter";
 
@@ -65,6 +71,8 @@ type PackageRow = {
   bundlePriceFrom: number | null;
   bundlePriceTo: number | null;
   badgeLabel: string | null;
+  tier: string | null;
+  sortOrder: number;
   venue: {
     id: number;
     name: string;
@@ -106,53 +114,87 @@ function PackagesResultsSkeleton() {
 function PackageResultCard({ pkg }: { pkg: PackageRow }) {
   const img = pkg.venue.coverImageUrl ?? "/globe.svg";
   const parts = [pkg.venue.name, ...pkg.services.map((s) => s.service.name)];
+  const tier = parsePackageTier(pkg.tier);
 
   return (
-    <Link
-      href={`/packages/${pkg.id}`}
-      className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white text-right shadow-sm transition hover:shadow-md"
-    >
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F5EFE3]">
-        {pkg.badgeLabel && (
-          <span className="absolute right-2 top-2 z-10 rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-amber-400 shadow-sm">
-            {pkg.badgeLabel}
-          </span>
-        )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={img} alt="" className="h-full w-full object-cover" />
-      </div>
-      <div className="p-4">
-        <h2 className="font-semibold text-neutral-900">{pkg.title}</h2>
-        {pkg.subtitle && (
-          <p className="mt-0.5 text-xs text-neutral-600">{pkg.subtitle}</p>
-        )}
-        <p className="mt-2 text-xs text-neutral-600">
-          <span className="font-semibold text-emerald-950">{pkg.venue.city}</span>
-          {" · "}
-          {parts.slice(0, 3).join(" · ")}
-          {parts.length > 3 ? "…" : ""}
-        </p>
-        {(pkg.venue.minGuests != null || pkg.venue.maxGuests != null) && (
-          <p className="mt-1 text-[11px] text-neutral-600">
-            קיבולת אולם: עד {pkg.venue.maxGuests ?? "?"} אורחים
-            {pkg.venue.minGuests != null ? ` (מינ׳ ${pkg.venue.minGuests})` : ""}
+    <article className="overflow-hidden rounded-2xl border border-neutral-200 bg-white text-right shadow-sm transition hover:shadow-md">
+      <Link href={`/packages/${pkg.id}`} className="block">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F5EFE3]">
+          {pkg.badgeLabel && (
+            <span className="absolute right-2 top-2 z-10 rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-amber-400 shadow-sm">
+              {pkg.badgeLabel}
+            </span>
+          )}
+          {tier ? (
+            <span className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-emerald-950 shadow-sm">
+              {PACKAGE_TIER_LABELS[tier]}
+            </span>
+          ) : null}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={img} alt="" className="h-full w-full object-cover" />
+        </div>
+        <div className="p-4">
+          <h2 className="font-semibold text-neutral-900">{pkg.title}</h2>
+          {pkg.subtitle && (
+            <p className="mt-0.5 text-xs text-neutral-600">{pkg.subtitle}</p>
+          )}
+          <p className="mt-2 text-xs text-neutral-600">
+            <span className="font-semibold text-emerald-950">{pkg.venue.city}</span>
+            {" · "}
+            {parts.slice(0, 3).join(" · ")}
+            {parts.length > 3 ? "…" : ""}
           </p>
-        )}
-        <p className="mt-2 text-sm font-semibold text-amber-600">
-          {formatBundlePrice(pkg.bundlePriceFrom, pkg.bundlePriceTo)}
-        </p>
-        <span className="mt-3 inline-block text-sm font-medium text-emerald-950">
-          לפרטים והזמנה ←
-        </span>
+          {(pkg.venue.minGuests != null || pkg.venue.maxGuests != null) && (
+            <p className="mt-1 text-[11px] text-neutral-600">
+              קיבולת אולם: עד {pkg.venue.maxGuests ?? "?"} אורחים
+              {pkg.venue.minGuests != null ? ` (מינ׳ ${pkg.venue.minGuests})` : ""}
+            </p>
+          )}
+          <p className="mt-2 text-sm font-semibold text-amber-600">
+            {formatBundlePrice(pkg.bundlePriceFrom, pkg.bundlePriceTo)}
+          </p>
+          <span className="mt-3 inline-block text-sm font-medium text-emerald-950">
+            לפרטים והזמנה ←
+          </span>
+        </div>
+      </Link>
+      <div className="border-t border-neutral-100 px-4 pb-4 pt-2">
+        <Link
+          href={`/event-builder?packageId=${pkg.id}`}
+          className="text-xs font-semibold text-amber-700 hover:underline"
+        >
+          התאם חבילה אישית
+        </Link>
       </div>
-    </Link>
+    </article>
   );
+}
+
+function groupPackagesByTier(packages: PackageRow[]): PackageRow[][] {
+  const byTier = new Map<PackageTier | "other", PackageRow[]>();
+  for (const pkg of packages) {
+    const tier = parsePackageTier(pkg.tier);
+    const key: PackageTier | "other" =
+      tier && PACKAGE_TIERS.includes(tier) ? tier : "other";
+    const list = byTier.get(key) ?? [];
+    list.push(pkg);
+    byTier.set(key, list);
+  }
+  const groups: PackageRow[][] = [];
+  for (const tier of PACKAGE_TIERS) {
+    const list = byTier.get(tier);
+    if (list?.length) groups.push(list);
+  }
+  const other = byTier.get("other");
+  if (other?.length) groups.push(other);
+  return groups;
 }
 
 function hasActiveFilters(sp: URLSearchParams): boolean {
   return (
     Boolean(sp.get("q")) ||
     Boolean(sp.get("city")) ||
+    Boolean(sp.get("venueId")) ||
     Boolean(sp.get("minGuests")) ||
     Boolean(sp.get("maxGuests")) ||
     Boolean(sp.get("bundleMin")) ||
@@ -400,10 +442,19 @@ export default function PackagesSearchClient({
             </>
           ) : (
             <>
-              <p className="font-medium text-emerald-950">עדיין אין חבילות פעילות</p>
+              <p className="font-medium text-emerald-950">עדיין אין חבילות מפורסמות</p>
               <p className="mt-2">
-                אפשר להוסיף דוגמה עם{" "}
-                <code className="rounded bg-neutral-50 px-1">npm run seed:packages</code>.
+                בעלי אולמות יוצרים ומפרסמים חבילות בדשבורד:{" "}
+                <Link
+                  href="/dashboard/venue-owner/packages"
+                  className="font-semibold text-emerald-950 underline"
+                >
+                  ניהול חבילות
+                </Link>
+                . אחרי פרסום הן יופיעו כאן וגם בעמוד האולם.
+              </p>
+              <p className="mt-2 text-xs text-neutral-500">
+                מחפשים אולם? התחילו מחיפוש ואז «בניית חבילה» או «התאם חבילה» בעמוד האולם.
               </p>
             </>
           )}
@@ -415,20 +466,36 @@ export default function PackagesSearchClient({
           </Link>
         </div>
       ) : (
-        <section className="space-y-3">
+        <section className="space-y-8">
           <div className="text-right">
             <h2 className="text-lg font-bold text-emerald-950">
               תוצאות ({packages.length})
             </h2>
             <p className="mt-1 text-xs text-neutral-600">
-              חבילות שמתאימות לסינון שלך — לחיצה לפרטים מלאים ופנייה לאולם.
+              חבילות שמתאימות לסינון — לחיצה לפרטים, «התאם חבילה» לעריכה אישית לפני שליחה.
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {packages.map((pkg) => (
-              <PackageResultCard key={pkg.id} pkg={pkg} />
-            ))}
-          </div>
+          {groupPackagesByTier(packages).map((group, gi) => {
+            const tier = group[0] ? parsePackageTier(group[0].tier) : null;
+            const heading =
+              tier && PACKAGE_TIERS.includes(tier)
+                ? `שכבת ${PACKAGE_TIER_LABELS[tier]}`
+                : gi === 0 && group.length === packages.length
+                  ? null
+                  : "חבילות נוספות";
+            return (
+              <div key={gi} className="space-y-3">
+                {heading ? (
+                  <h3 className="text-sm font-bold text-emerald-950">{heading}</h3>
+                ) : null}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {group.map((pkg) => (
+                    <PackageResultCard key={pkg.id} pkg={pkg} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </section>
       )}
     </div>

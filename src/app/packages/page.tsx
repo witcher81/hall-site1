@@ -30,11 +30,17 @@ export default async function PackagesPage({ searchParams }: PageProps) {
     <SitePageShell mainWidth="wide">
       <SitePageHeader
         title="חבילות אירוע"
-        description='אולם ושירותים במקום אחד — בדומה ל"טיסה + מלון": מסננים כמו בחיפוש אולמות (עיר, אורחים, מחיר), והתוצאות מתעדכנות אוטומטית.'
+        description='תבניות מוכנות מבעלי אולמות — בסיס / משודרג / פרימיום. בוחרים חבילה, מתאימים אישית, ושולחים בקשה לאולם.'
       />
       <p className="site-page-lead -mt-4 text-xs">
-        עריכת חבילות חדשות מתבצעת כרגע בצד השרת (מנהל מערכת). לפניות לעדכון חבילות — דרך
-        תמיכת האתר.
+        בעל אולם?{" "}
+        <a
+          href="/dashboard/venue-owner/packages"
+          className="font-semibold text-emerald-950 underline"
+        >
+          צרו ופרסמו חבילות
+        </a>{" "}
+        מהדשבורד — הן יופיעו כאן ובעמוד האולם שלכם.
       </p>
 
       <div className="mt-4 rounded-2xl border border-amber-300/50 bg-amber-50/80 px-4 py-3 text-right text-sm text-neutral-800 backdrop-blur-sm">
