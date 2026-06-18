@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
-import { assertThreadAccess } from "@/lib/negotiationAuth";
+import { assertThreadAccess, assertThreadOpenForNegotiation } from "@/lib/negotiationAuth";
 import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
@@ -33,6 +33,11 @@ export async function POST(req: NextRequest, context: RouteContext) {
   }
   if (access.thread.inquiryId !== inquiryId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const open = assertThreadOpenForNegotiation(access.thread);
+  if (!open.ok) {
+    return NextResponse.json({ error: open.error }, { status: open.status });
   }
 
   const body = (await req.json().catch(() => null)) as { body?: string } | null;

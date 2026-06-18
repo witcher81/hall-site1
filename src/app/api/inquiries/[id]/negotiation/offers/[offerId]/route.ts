@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { assertOfferAccess } from "@/lib/negotiationAuth";
+import { assertOfferAccess, assertThreadOpenForNegotiation } from "@/lib/negotiationAuth";
 import {
   acceptNegotiationOffer,
   rejectNegotiationOffer,
@@ -42,6 +42,11 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   }
   if (access.thread.inquiryId !== inquiryId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const open = assertThreadOpenForNegotiation(access.thread);
+  if (!open.ok) {
+    return NextResponse.json({ error: open.error }, { status: open.status });
   }
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;

@@ -449,7 +449,7 @@ export default function InquiryNegotiationHub({
             )}
           </div>
 
-          {pendingOfferForMe && pendingOfferForMe.type === "offer" ? (
+          {pendingOfferForMe && pendingOfferForMe.type === "offer" && activeThread.status === "OPEN" ? (
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
@@ -481,7 +481,7 @@ export default function InquiryNegotiationHub({
             </div>
           ) : null}
 
-          {activeThread.status !== "DEAL_ACCEPTED" ? (
+          {activeThread.status === "OPEN" ? (
             <div className="mt-4 space-y-2">
               <textarea
                 rows={2}
@@ -512,6 +512,10 @@ export default function InquiryNegotiationHub({
                 </button>
               </div>
             </div>
+          ) : activeThread.status === "CLOSED" ? (
+            <p className="mt-4 rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+              ההתמקחות נסגרה — לא ניתן לשלוח הודעות או הצעות מחיר.
+            </p>
           ) : (
             <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-900">
               הוסכם על הצעה בשרשור זה. לשינויים נוספים — צרו קשר ישיר או שלחו הודעה בצ&apos;אט הכללי.

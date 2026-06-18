@@ -28,6 +28,20 @@ export default function VenueOwnerProfileForm({ email, mode, initial }: Props) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (mode === "onboarding") {
+      if (!form.businessName.trim()) {
+        setError("נא למלא שם עסק");
+        return;
+      }
+      if (!form.phone.trim()) {
+        setError("נא למלא טלפון אישי");
+        return;
+      }
+      if (!form.businessPhone.trim()) {
+        setError("נא למלא טלפון עסקי");
+        return;
+      }
+    }
     setLoading(true);
     setError(null);
     try {

@@ -8,7 +8,7 @@ import {
   notifyVenueOwnerNewInquiry,
 } from "@/lib/transactionalEmails";
 import { DEFAULT_INQUIRY_SEEKER_MESSAGE } from "@/lib/inquiryMessageDisplay";
-import { resolveInquiryAddonServiceChoices, storedServiceChoicesFromAddonPicks, type InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
+import { resolveInquiryAddonServiceChoices, storedServiceChoicesFromAddonPicks, validateAddonFreelancerPaidExtras, type InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
 import { enrichInquiryServiceChoicesWithReplacements } from "@/lib/inquiryVenueOptionReplacement";
 import { bootstrapNegotiationForNewInquiry } from "@/lib/negotiationThreads";
 import {
@@ -260,6 +260,10 @@ export async function POST(req: NextRequest) {
       })
   );
   const addonPicks = parseAddonFreelancerPicks(body.addonFreelancers);
+  const paidExtrasCheck = await validateAddonFreelancerPaidExtras(addonPicks);
+  if (!paidExtrasCheck.ok) {
+    return badRequest(paidExtrasCheck.error);
+  }
   const addonRows =
     addonPicks.length > 0
       ? storedServiceChoicesFromAddonPicks(addonPicks)

@@ -142,6 +142,29 @@ export async function assertThreadAccess(
   return { ok: false, status: 403, error: "אין הרשאה לשרשור זה" };
 }
 
+/** חסימת פעולות כשהשרשור נסגר או שההסכם כבר נחתם */
+export function assertThreadOpenForNegotiation(thread: {
+  status: string;
+}):
+  | { ok: true }
+  | { ok: false; status: number; error: string } {
+  if (thread.status === "CLOSED") {
+    return {
+      ok: false,
+      status: 400,
+      error: "ההתמקחות נסגרה — לא ניתן לשלוח הודעות או הצעות.",
+    };
+  }
+  if (thread.status === "DEAL_ACCEPTED") {
+    return {
+      ok: false,
+      status: 400,
+      error: "ההצעה כבר אושרה — לא ניתן לשנות את ההתמקחות.",
+    };
+  }
+  return { ok: true };
+}
+
 export async function assertOfferAccess(
   offerId: number,
   user: Pick<User, "id" | "role">

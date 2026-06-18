@@ -37,6 +37,9 @@ const INQUIRY_STATUS: Record<string, string> = {
   NEW: "חדשה",
   READ: "נצפתה",
   REPLIED: "נענתה",
+  APPROVED: "אושרה",
+  REJECTED: "נדחתה",
+  CANCELLED: "בוטלה",
 };
 
 export default function VenueOwnerDashboardClient({ initial }: Props) {

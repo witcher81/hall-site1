@@ -20,7 +20,7 @@ export default async function MyInquiriesPage({
   const inquiries = await prisma.inquiry.findMany({
     where: {
       userId: user.id,
-      ...(pendingOnly ? { status: { in: ["NEW", "READ"] } } : {}),
+      ...(pendingOnly ? { status: { in: ["NEW", "READ", "REPLIED"] } } : {}),
     },
     orderBy: { createdAt: "desc" },
     include: {

@@ -41,6 +41,16 @@ export default function FreelancerProfileForm({ email, mode, initial }: Props) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (mode === "onboarding") {
+      if (!form.businessName.trim()) {
+        setError("נא למלא שם מותג / עסק");
+        return;
+      }
+      if (!form.phone.trim()) {
+        setError("נא למלא טלפון");
+        return;
+      }
+    }
     setLoading(true);
     setError(null);
     try {

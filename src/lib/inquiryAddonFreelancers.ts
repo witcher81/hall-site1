@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
+import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
 import type { StoredServiceChoice } from "@/lib/venueInquiryAmenities";
 
 export type InquiryAddonPaidExtraPick = {
@@ -93,4 +94,40 @@ export async function resolveInquiryAddonServiceChoices(
           ? s.maxPrice
           : s.maxPrice ?? null,
     }));
+}
+
+/** מאמת תוספות בתשלום שנבחרו מול מה שהספק הגדיר בשירות */
+export async function validateAddonFreelancerPaidExtras(
+  picks: InquiryAddonFreelancerPick[]
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const withExtras = picks.filter((p) => p.selectedPaidExtras?.length);
+  if (withExtras.length === 0) return { ok: true };
+
+  const services = await prisma.service.findMany({
+    where: { id: { in: withExtras.map((p) => p.serviceId) } },
+    select: { id: true, name: true, customIncludesJson: true },
+  });
+  const byId = new Map(services.map((s) => [s.id, s]));
+
+  for (const pick of withExtras) {
+    const service = byId.get(pick.serviceId);
+    if (!service) {
+      return { ok: false, error: "אחד מהשירותים שנבחרו לא נמצא" };
+    }
+    const allowedLabels = new Set(
+      parseServiceIncludesBundle(service.customIncludesJson).paidExtras.map((e) =>
+        e.label.trim()
+      )
+    );
+    for (const extra of pick.selectedPaidExtras ?? []) {
+      if (!allowedLabels.has(extra.label.trim())) {
+        return {
+          ok: false,
+          error: `תוספת «${extra.label}» אינה זמינה לשירות «${service.name}»`,
+        };
+      }
+    }
+  }
+
+  return { ok: true };
 }

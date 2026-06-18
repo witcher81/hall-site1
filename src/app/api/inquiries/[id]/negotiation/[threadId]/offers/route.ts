@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { assertThreadAccess } from "@/lib/negotiationAuth";
+import { assertThreadAccess, assertThreadOpenForNegotiation } from "@/lib/negotiationAuth";
 import { parseNegotiationOfferAmounts } from "@/lib/negotiationFormat";
 import { notifyNewOffer } from "@/lib/negotiationOfferActions";
 import {
@@ -39,8 +39,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
   if (access.thread.inquiryId !== inquiryId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  if (access.thread.status === "DEAL_ACCEPTED") {
-    return badRequest("כבר אושרה הצעה בשרשור זה");
+  const open = assertThreadOpenForNegotiation(access.thread);
+  if (!open.ok) {
+    return NextResponse.json({ error: open.error }, { status: open.status });
   }
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;

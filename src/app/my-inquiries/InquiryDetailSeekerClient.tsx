@@ -16,6 +16,7 @@ import {
   inquiryStepIconChar,
   inquiryStepIconClass,
   inquiryStepPillClass,
+  isInquiryRejectedOrCancelled,
   normalizeInquiryStatus,
 } from "@/lib/inquiryStatus";
 import Link from "next/link";
@@ -110,7 +111,7 @@ export default function InquiryDetailSeekerClient({
         className={`mt-4 overflow-hidden rounded-2xl border shadow-[0_12px_48px_rgba(15,59,46,0.08)] ${
           status === "APPROVED"
             ? "border-emerald-200/90 bg-gradient-to-b from-emerald-50/95 to-white"
-            : status === "REJECTED"
+            : isInquiryRejectedOrCancelled(status)
               ? "border-red-200/80 bg-gradient-to-b from-red-50/40 to-white"
               : "border-neutral-200 bg-white"
         }`}
@@ -202,6 +203,19 @@ export default function InquiryDetailSeekerClient({
             <>
               <p className="mt-4 rounded-xl border border-red-200 bg-red-50/60 px-4 py-3 text-xs text-red-900">
                 בקשת ההזמנה נדחתה. אפשר לחפש אולמות נוספים או לשלוח בקשה חדשה לתאריך אחר.
+              </p>
+              <InquirySeekerRebookPanel
+                venueId={inquiry.venueId}
+                snapshot={rebookSnapshot}
+                showDateChange
+              />
+            </>
+          )}
+
+          {status === "CANCELLED" && (
+            <>
+              <p className="mt-4 rounded-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-xs text-neutral-800">
+                ביטלתם את הבקשה. אפשר לשלוח בקשה חדשה לאותו אולם או לחפש אולמים נוספים.
               </p>
               <InquirySeekerRebookPanel
                 venueId={inquiry.venueId}

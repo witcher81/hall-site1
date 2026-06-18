@@ -9,6 +9,7 @@ import {
 } from "@/lib/transactionalEmails";
 import type { NegotiationAuthorRole } from "@/lib/negotiationTypes";
 import { threadKindFromDb } from "@/lib/negotiationThreads";
+import { assertThreadOpenForNegotiation } from "@/lib/negotiationAuth";
 
 async function notifyOfferParties(input: {
   threadId: number;
@@ -94,6 +95,11 @@ export async function acceptNegotiationOffer(input: {
   }
   if (offer.authorUserId === input.actorUserId) {
     return { ok: false, error: "לא ניתן לאשר הצעה משלך" };
+  }
+
+  const open = assertThreadOpenForNegotiation(offer.thread);
+  if (!open.ok) {
+    return { ok: false, error: open.error };
   }
 
   const thread = offer.thread;
@@ -200,7 +206,7 @@ export async function rejectNegotiationOffer(input: {
       id: true,
       status: true,
       authorUserId: true,
-      thread: { select: { id: true, inquiryId: true } },
+      thread: { select: { id: true, inquiryId: true, status: true } },
     },
   });
   if (!offer || offer.status !== "PENDING") {
@@ -208,6 +214,11 @@ export async function rejectNegotiationOffer(input: {
   }
   if (offer.authorUserId === input.actorUserId) {
     return { ok: false, error: "לא ניתן לדחות הצעה משלך" };
+  }
+
+  const open = assertThreadOpenForNegotiation(offer.thread);
+  if (!open.ok) {
+    return { ok: false, error: open.error };
   }
 
   await prisma.negotiationOffer.update({

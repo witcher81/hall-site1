@@ -1,4 +1,4 @@
-import type { InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
+import type { InquiryAddonFreelancerPick, InquiryAddonPaidExtraPick } from "@/lib/inquiryAddonFreelancers";
 import type { InquiryDraft } from "@/lib/inquiryDraft";
 import { parseStoredSupplierMessagesJson } from "@/lib/inquirySupplierMessages";
 import type { InquiryVenueOptionReplacement } from "@/lib/inquiryVenueOptionReplacement";
@@ -24,7 +24,44 @@ type ParsedServiceRow = {
   marketplaceServiceId?: number;
   replacementName?: string;
   replacementProvider?: string;
+  paidExtrasSelected?: Array<{
+    label?: string;
+    description?: string;
+    exactPrice?: number | null;
+    minPrice?: number | null;
+    maxPrice?: number | null;
+  }>;
 };
+
+function parsePaidExtrasFromRow(
+  row: ParsedServiceRow
+): InquiryAddonPaidExtraPick[] | undefined {
+  if (!Array.isArray(row.paidExtrasSelected) || row.paidExtrasSelected.length === 0) {
+    return undefined;
+  }
+  const out: InquiryAddonPaidExtraPick[] = [];
+  for (const pe of row.paidExtrasSelected) {
+    const label = typeof pe.label === "string" ? pe.label.trim() : "";
+    if (!label) continue;
+    out.push({
+      label,
+      description: typeof pe.description === "string" ? pe.description.trim() : undefined,
+      exactPrice:
+        typeof pe.exactPrice === "number" && Number.isFinite(pe.exactPrice)
+          ? Math.trunc(pe.exactPrice)
+          : null,
+      minPrice:
+        typeof pe.minPrice === "number" && Number.isFinite(pe.minPrice)
+          ? Math.trunc(pe.minPrice)
+          : null,
+      maxPrice:
+        typeof pe.maxPrice === "number" && Number.isFinite(pe.maxPrice)
+          ? Math.trunc(pe.maxPrice)
+          : null,
+    });
+  }
+  return out.length > 0 ? out : undefined;
+}
 
 function parseMarketplaceIdFromRowId(id: string): number | null {
   if (!id.startsWith("marketplace:")) return null;
@@ -63,6 +100,7 @@ function parseServiceChoices(json: string | null): {
 
       const addonId = parseMarketplaceIdFromRowId(id);
       if (addonId) {
+        const selectedPaidExtras = parsePaidExtrasFromRow(row);
         addonFreelancers.push({
           serviceId: addonId,
           name: (row.label || "").trim() || "שירות במאגר",
@@ -76,6 +114,7 @@ function parseServiceChoices(json: string | null): {
             typeof row.extraPriceMax === "number" && Number.isFinite(row.extraPriceMax)
               ? Math.trunc(row.extraPriceMax)
               : null,
+          ...(selectedPaidExtras?.length ? { selectedPaidExtras } : {}),
         });
         continue;
       }

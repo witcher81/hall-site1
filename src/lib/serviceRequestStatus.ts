@@ -1,4 +1,4 @@
-import { normalizeInquiryStatus } from "@/lib/inquiryStatus";
+import { normalizeInquiryStatus, isInquiryRejectedOrCancelled } from "@/lib/inquiryStatus";
 
 /** בקשה לספק בוטלה — ישירות או כי ההזמנה לאולם נדחתה/בוטלה */
 export function isServiceRequestCancelled(
@@ -7,7 +7,8 @@ export function isServiceRequestCancelled(
 ): boolean {
   if (serviceRequestStatus === "CANCELLED") return true;
   if (!inquiryStatus) return false;
-  return normalizeInquiryStatus(inquiryStatus) === "REJECTED";
+  const s = normalizeInquiryStatus(inquiryStatus);
+  return s === "REJECTED" || s === "CANCELLED";
 }
 
 export function serviceRequestStatusLabel(
@@ -26,7 +27,7 @@ export function serviceRequestStatusLabel(
         return serviceRequestStatus;
     }
   }
-  if (serviceRequestStatus === "CANCELLED" && inquiryStatus !== "REJECTED") {
+  if (serviceRequestStatus === "CANCELLED" && !isInquiryRejectedOrCancelled(inquiryStatus ?? "")) {
     return "ביטלת השתתפות";
   }
   return "ההזמנה בוטלה";
@@ -37,7 +38,10 @@ export function serviceRequestCancelledDetail(
   inquiryStatus?: string | null
 ): string | null {
   if (!isServiceRequestCancelled(serviceRequestStatus, inquiryStatus)) return null;
-  if (serviceRequestStatus === "CANCELLED" && normalizeInquiryStatus(inquiryStatus) !== "REJECTED") {
+  if (
+    serviceRequestStatus === "CANCELLED" &&
+    !isInquiryRejectedOrCancelled(inquiryStatus ?? "")
+  ) {
     return "ביטלת את ההשתתפות באירוע זה.";
   }
   return "ההזמנה לאולם בוטלה — אין צורך להמשיך לטפל בבקשה.";

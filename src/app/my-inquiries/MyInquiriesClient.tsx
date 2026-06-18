@@ -4,6 +4,7 @@ import InquiryEventSummaryLuxury from "@/components/InquiryEventSummaryLuxury";
 import {
   inquiryStatusBadgeClass,
   inquiryStatusLabelSeeker,
+  isInquiryRejectedOrCancelled,
 } from "@/lib/inquiryStatus";
 import Link from "next/link";
 
@@ -77,7 +78,7 @@ export default function MyInquiriesClient({
           className={`block overflow-hidden rounded-2xl border shadow-[0_8px_32px_rgba(15,59,46,0.06)] transition hover:border-amber-400/50 hover:shadow-md ${
             q.status === "APPROVED"
               ? "border-emerald-200/90 bg-gradient-to-b from-emerald-50/95 to-white"
-              : q.status === "REJECTED"
+              : isInquiryRejectedOrCancelled(q.status)
                 ? "border-red-200/70 bg-white"
                 : "border-neutral-200 bg-white"
           }`}

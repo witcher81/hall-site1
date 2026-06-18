@@ -234,17 +234,17 @@ export default function ServiceIncludesEditor({
                             maxPrice: ex ?? row.maxPrice ?? null,
                           };
                         }
+                        const min = row.minPrice ?? row.exactPrice ?? null;
+                        const max = row.maxPrice ?? row.exactPrice ?? min;
                         const exact =
-                          row.minPrice != null &&
-                          row.maxPrice != null &&
-                          row.minPrice === row.maxPrice
-                            ? row.minPrice
-                            : row.minPrice ?? row.maxPrice ?? null;
+                          min != null && max != null && min === max
+                            ? min
+                            : min ?? max ?? null;
                         return {
                           usePriceRange: false,
                           exactPrice: exact,
-                          minPrice: null,
-                          maxPrice: null,
+                          minPrice: min,
+                          maxPrice: max,
                         };
                       });
                     }}

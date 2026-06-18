@@ -7,7 +7,8 @@ export type InquiryStatus =
   | "READ"
   | "REPLIED"
   | "APPROVED"
-  | "REJECTED";
+  | "REJECTED"
+  | "CANCELLED";
 
 const VALID_STATUSES = new Set<string>([
   "NEW",
@@ -15,6 +16,7 @@ const VALID_STATUSES = new Set<string>([
   "REPLIED",
   "APPROVED",
   "REJECTED",
+  "CANCELLED",
 ]);
 
 export function normalizeInquiryStatus(raw: string | null | undefined): InquiryStatus {
@@ -34,7 +36,12 @@ export function inquiryPreferredDateToUtc(raw: string | null | undefined): Date 
 
 export function isTerminalInquiryStatus(status: string): boolean {
   const s = normalizeInquiryStatus(status);
-  return s === "APPROVED" || s === "REJECTED";
+  return s === "APPROVED" || s === "REJECTED" || s === "CANCELLED";
+}
+
+export function isInquiryRejectedOrCancelled(status: string): boolean {
+  const s = normalizeInquiryStatus(status);
+  return s === "REJECTED" || s === "CANCELLED";
 }
 
 export function canOwnerApprove(status: string): boolean {
@@ -48,7 +55,12 @@ export function canOwnerReject(status: string): boolean {
 
 export function canSeekerCancel(status: string): boolean {
   const s = normalizeInquiryStatus(status);
-  return s === "NEW" || s === "READ" || s === "REPLIED" || s === "APPROVED";
+  return (
+    s === "NEW" ||
+    s === "READ" ||
+    s === "REPLIED" ||
+    s === "APPROVED"
+  );
 }
 
 export function canOwnerCancelApproved(status: string): boolean {
@@ -66,6 +78,8 @@ export function inquiryStatusLabelSeeker(status: string): string {
       return "אושרה";
     case "REJECTED":
       return "נדחתה";
+    case "CANCELLED":
+      return "בוטלה על ידך";
     case "REPLIED":
       return "נענתה (ללא אישור)";
     default:
@@ -84,6 +98,8 @@ export function inquiryStatusLabelOwner(status: string): string {
       return "אושרה";
     case "REJECTED":
       return "נדחתה";
+    case "CANCELLED":
+      return "בוטלה";
     case "REPLIED":
       return "נענתה";
     default:
@@ -102,6 +118,8 @@ export function inquiryStatusBadgeClass(status: string): string {
       return "bg-emerald-100 text-emerald-900";
     case "REJECTED":
       return "bg-red-50 text-red-800";
+    case "CANCELLED":
+      return "bg-neutral-200 text-neutral-800";
     case "REPLIED":
       return "bg-sky-50 text-sky-900";
     default:
@@ -123,7 +141,22 @@ export function inquirySeekerProgressSteps(status: string): InquiryStatusStep[] 
   const s = normalizeInquiryStatus(status);
   const submitted = true;
   const viewed = s !== "NEW";
-  const decided = s === "APPROVED" || s === "REJECTED";
+  const decided =
+    s === "APPROVED" || s === "REJECTED" || s === "CANCELLED";
+
+  if (s === "CANCELLED") {
+    return [
+      { id: "submitted", label: "נשלחה", done: true, active: false },
+      { id: "viewed", label: "נצפתה", done: viewed, active: false },
+      {
+        id: "cancelled",
+        label: "בוטלה על ידך",
+        done: true,
+        active: true,
+        variant: "danger",
+      },
+    ];
+  }
 
   if (s === "REJECTED") {
     return [
@@ -186,7 +219,7 @@ export function inquiryStepIconClass(step: InquiryStatusStep): string {
 }
 
 export function inquiryStepIconChar(step: InquiryStatusStep): string {
-  if (step.id === "rejected" && step.active) return "✕";
+  if ((step.id === "rejected" || step.id === "cancelled") && step.active) return "✕";
   if (step.done) return "✓";
   return "·";
 }

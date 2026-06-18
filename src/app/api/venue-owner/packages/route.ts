@@ -59,6 +59,21 @@ export async function POST(req: NextRequest) {
         .filter((n: number) => Number.isInteger(n) && n > 0)
     : [];
 
+  if (serviceIds.length > 0) {
+    const found = await prisma.service.findMany({
+      where: { id: { in: serviceIds } },
+      select: { id: true },
+    });
+    const foundIds = new Set(found.map((s) => s.id));
+    const missing = serviceIds.filter((id) => !foundIds.has(id));
+    if (missing.length > 0) {
+      return NextResponse.json(
+        { error: "אחד או יותר מהשירותים שנבחרו לא קיימים במערכת" },
+        { status: 400 }
+      );
+    }
+  }
+
   const pkg = await prisma.eventPackage.create({
     data: {
       venueId,

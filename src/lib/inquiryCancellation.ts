@@ -320,7 +320,8 @@ export async function syncCancelledServiceRequestsForEndedInquiries(
       return (
         r.status !== "CANCELLED" &&
         inquiryStatus != null &&
-        inquiryStatus.toUpperCase() === "REJECTED"
+        (inquiryStatus.toUpperCase() === "REJECTED" ||
+          inquiryStatus.toUpperCase() === "CANCELLED")
       );
     })
     .map((r) => r.id);

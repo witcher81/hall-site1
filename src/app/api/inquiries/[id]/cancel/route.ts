@@ -51,7 +51,7 @@ export async function POST(_req: NextRequest, context: RouteContext) {
 
   await prisma.inquiry.update({
     where: { id },
-    data: { status: "REJECTED", repliedAt: new Date() },
+    data: { status: "CANCELLED", repliedAt: new Date() },
   });
 
   await notifyInquiryCancelled({
@@ -67,5 +67,5 @@ export async function POST(_req: NextRequest, context: RouteContext) {
     preferredDate: inquiry.preferredDate,
   });
 
-  return NextResponse.json({ ok: true, status: "REJECTED" });
+  return NextResponse.json({ ok: true, status: "CANCELLED" });
 }

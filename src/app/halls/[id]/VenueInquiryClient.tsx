@@ -648,6 +648,7 @@ export default function VenueInquiryClient({
     chuppahBoth,
     chuppahSingleOutdoor,
     chuppahSingleCovered,
+    sourceById,
   ]);
 
   function handleReplacementChange(
