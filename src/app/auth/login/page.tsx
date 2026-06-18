@@ -13,6 +13,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const afterLogin = safeInternalPath(searchParams.get("redirect"));
+  const isCheckout = searchParams.get("checkout") === "1";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -63,6 +64,11 @@ function LoginForm() {
           HALLS HUB
         </p>
         <h1 className="mt-1 text-xl font-semibold text-emerald-950">התחברות</h1>
+        {isCheckout ? (
+          <p className="mt-2 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-950">
+            התחברו כדי להשלים את ההזמנה שמילאתם כאורח.
+          </p>
+        ) : null}
         <a
           href="/"
           className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ISRAELI_MOBILE_PREFIXES } from "@/lib/israeliPhone";
 import TurnstileWidget from "@/components/TurnstileWidget";
@@ -14,6 +14,7 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const afterRegister = safeInternalPath(searchParams.get("redirect"));
+  const isCheckout = searchParams.get("checkout") === "1";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [role, setRole] = useState<
@@ -22,10 +23,17 @@ function RegisterForm() {
   const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
 
+  useEffect(() => {
+    if (isCheckout) {
+      setRole("SEEKER");
+    }
+  }, [isCheckout]);
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    if (!role) {
+    const effectiveRole = isCheckout ? "SEEKER" : role;
+    if (!effectiveRole) {
       setError("נא לבחור סוג משתמש");
       return;
     }
@@ -49,7 +57,7 @@ function RegisterForm() {
           name,
           email,
           password,
-          role,
+          role: effectiveRole,
           phonePrefix,
           phoneDigits,
           turnstileToken,
@@ -87,6 +95,11 @@ function RegisterForm() {
           HALLS HUB
         </p>
         <h1 className="mt-1 text-xl font-semibold text-emerald-950">הרשמה</h1>
+        {isCheckout ? (
+          <p className="mt-2 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-950">
+            כמעט סיימתם — צרו חשבון מחפש כדי לאשר את ההזמנה. (תשלום יתווסף בהמשך.)
+          </p>
+        ) : null}
         <a
           href="/"
           className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"
@@ -176,31 +189,37 @@ function RegisterForm() {
             />
           </div>
 
-          <div>
-            <p className="block text-xs font-medium text-neutral-600">
-              סוג משתמש
-            </p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {(["SEEKER", "VENUE_OWNER", "FREELANCER"] as const).map(
-                (r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRole(r)}
-                    className={`w-full rounded-full border px-3 py-1.5 text-center text-xs transition ${
-                      role === r
-                        ? "border-[#C9A227] bg-[#FFF9E6] font-semibold text-emerald-950"
-                        : "border-neutral-200 bg-white text-neutral-600 hover:border-amber-400/50"
-                    }`}
-                  >
-                    {r === "SEEKER" && "מחפש אולמות"}
-                    {r === "VENUE_OWNER" && "בעל/ת אולם"}
-                    {r === "FREELANCER" && "פרילנסר"}
-                  </button>
-                )
-              )}
+          {isCheckout ? (
+            <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-3 py-2 text-xs text-emerald-950">
+              סוג חשבון: <strong>מחפש אולמות</strong> (נדרש להשלמת הזמנה)
             </div>
-          </div>
+          ) : (
+            <div>
+              <p className="block text-xs font-medium text-neutral-600">
+                סוג משתמש
+              </p>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {(["SEEKER", "VENUE_OWNER", "FREELANCER"] as const).map(
+                  (r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setRole(r)}
+                      className={`w-full rounded-full border px-3 py-1.5 text-center text-xs transition ${
+                        role === r
+                          ? "border-[#C9A227] bg-[#FFF9E6] font-semibold text-emerald-950"
+                          : "border-neutral-200 bg-white text-neutral-600 hover:border-amber-400/50"
+                      }`}
+                    >
+                      {r === "SEEKER" && "מחפש אולמות"}
+                      {r === "VENUE_OWNER" && "בעל/ת אולם"}
+                      {r === "FREELANCER" && "פרילנסר"}
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+          )}
 
           <label className="flex cursor-pointer items-start gap-2 text-xs text-neutral-700">
             <input
@@ -230,14 +249,21 @@ function RegisterForm() {
           {error && <p className="text-xs text-red-700">{error}</p>}
           <button
             type="submit"
-            disabled={loading || !role || !acceptedLegal}
+            disabled={loading || (!isCheckout && !role) || !acceptedLegal}
             className="w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
           >
             {loading ? "נרשם..." : "הרשמה"}
           </button>
           <p className="text-xs text-neutral-600">
             כבר יש לך משתמש?{" "}
-            <a href="/auth/login" className="font-semibold text-emerald-950 hover:underline">
+            <a
+              href={
+                isCheckout && afterRegister
+                  ? `/auth/login?redirect=${encodeURIComponent(afterRegister)}&checkout=1`
+                  : "/auth/login"
+              }
+              className="font-semibold text-emerald-950 hover:underline"
+            >
               התחברות
             </a>
           </p>

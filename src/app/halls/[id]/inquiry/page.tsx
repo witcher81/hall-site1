@@ -27,10 +27,7 @@ export default async function VenueInquiryPage({
   if (!Number.isInteger(venueId) || venueId <= 0) {
     redirect("/halls");
   }
-  if (!user) {
-    redirect(`/auth/login?redirect=${encodeURIComponent(`/halls/${venueId}/inquiry`)}`);
-  }
-  if (user.role !== "SEEKER") {
+  if (user && user.role !== "SEEKER") {
     redirect(`/halls/${venueId}`);
   }
 
@@ -130,6 +127,7 @@ export default async function VenueInquiryPage({
           presetLabels={presetLabels}
           kashrutLabel={kashrutLabel}
           eventTypeProfiles={eventTypeProfiles}
+          isGuest={!user}
         />
       </Suspense>
     </SitePageShell>

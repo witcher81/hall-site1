@@ -1235,19 +1235,26 @@ export default function VenuePublicView({
           ) : null}
         </p>
         {!user ? (
-          <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <div className="mt-5">
             <a
-              href={`/auth/login?redirect=${encodeURIComponent(`/halls/${venue.id}/inquiry`)}`}
-              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl bg-amber-400 px-5 text-base font-bold text-white shadow-lg transition hover:bg-amber-300"
+              href={`/halls/${venue.id}/inquiry`}
+              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-amber-400 px-5 text-base font-bold text-white shadow-lg transition hover:bg-amber-300 sm:max-w-md"
             >
-              התחברות ושליחת בקשה
+              התחלת הזמנה (ללא התחברות)
             </a>
-            <a
-              href={`/auth/register?redirect=${encodeURIComponent(`/halls/${venue.id}/inquiry`)}`}
-              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border-2 border-emerald-950/25 bg-white px-5 text-base font-semibold text-emerald-950 transition hover:bg-neutral-50"
-            >
-              הרשמה מהירה
-            </a>
+            <p className="mt-3 text-xs text-neutral-600">
+              אפשר למלא את כל הפרטים כאורח. יצירת חשבון תידרש רק לפני אישור ההזמנה
+              (ותשלום — בקרוב).
+            </p>
+            <p className="mt-2 text-xs text-neutral-600">
+              כבר יש לכם חשבון?{" "}
+              <a
+                href={`/auth/login?redirect=${encodeURIComponent(`/halls/${venue.id}/inquiry`)}`}
+                className="font-semibold text-emerald-950 underline hover:text-[#174D3B]"
+              >
+                התחברות
+              </a>
+            </p>
           </div>
         ) : user.role !== "SEEKER" ? (
           <p className="mt-4 text-sm text-neutral-600">

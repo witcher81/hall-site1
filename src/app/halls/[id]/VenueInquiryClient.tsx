@@ -36,6 +36,13 @@ import {
   formatNisRange,
 } from "@/lib/inquiryCostEstimate";
 import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
+import {
+  checkoutAuthHref,
+  clearPendingCheckout,
+  loadPendingCheckout,
+  savePendingCheckout,
+  type PendingVenueInquiryPayload,
+} from "@/lib/guestCheckout";
 import { partitionInquiryServices } from "@/lib/venueInquiryOfferGroups";
 import { inquiryServiceHallComparePrice } from "@/lib/venueInquiryFreelancerMatch";
 import { type ParkingKind } from "@/lib/venueParkingKind";
@@ -70,6 +77,7 @@ export default function VenueInquiryClient({
   presetLabels,
   kashrutLabel,
   eventTypeProfiles,
+  isGuest = false,
 }: {
   venueId: number;
   venueName: string;
@@ -82,6 +90,8 @@ export default function VenueInquiryClient({
   presetLabels?: string[];
   kashrutLabel?: string | null;
   eventTypeProfiles?: Record<string, PublicEventTypeProfile>;
+  /** אורח — ממלא טופס; חשבון נדרש רק לפני אישור/תשלום */
+  isGuest?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -102,6 +112,7 @@ export default function VenueInquiryClient({
   const eventTypeMenuRef = useRef<HTMLDivElement>(null);
   /** Blocks accidental submit when "המשך" is replaced by "שלח" under the same click. */
   const stepTransitionLockRef = useRef(false);
+  const resumeCheckoutAttemptedRef = useRef(false);
   const pendingSourceByIdRef = useRef<Record<string, ServiceChoiceSource> | null>(
     null
   );
@@ -830,6 +841,85 @@ export default function VenueInquiryClient({
     setStepId(target);
   }
 
+  async function postInquiry(payload: PendingVenueInquiryPayload): Promise<boolean> {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error || "שליחת הפנייה נכשלה");
+        return false;
+      }
+      setSuccess(true);
+      clearInquiryDraft(venueId);
+      clearPendingCheckout();
+      const inquiryId = data?.inquiry?.id;
+      setTimeout(() => {
+        router.push(
+          inquiryId ? `/my-inquiries/${inquiryId}` : "/my-inquiries"
+        );
+      }, 900);
+      return true;
+    } catch {
+      setError("שגיאה בלתי צפויה");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function buildInquiryPayload(): PendingVenueInquiryPayload | null {
+    const eventErr = validateEventStep();
+    if (eventErr) {
+      setError(eventErr);
+      setStepId("event");
+      return null;
+    }
+    const num = Number(form.guestCount);
+    return {
+      venueId,
+      message: form.message.trim(),
+      supplierMessages: selectedSupplierServiceIds
+        .filter((id) => linkedSuppliers.some((s) => s.serviceId === id))
+        .map((serviceId) => ({
+          serviceId,
+          message: (supplierMessagesByServiceId[serviceId] ?? "").trim(),
+        }))
+        .filter((entry) => entry.message),
+      supplierServiceIds: selectedSupplierServiceIds.filter((id) =>
+        linkedSuppliers.some((s) => s.serviceId === id)
+      ),
+      preferredDate: form.preferredDate.trim(),
+      guestCount: num,
+      eventType: form.eventType.trim() || null,
+      serviceChoices: buildServiceChoicesPayload(),
+      addonServiceIds: addonFreelancers.map((f) => f.serviceId),
+      addonFreelancers,
+    };
+  }
+
+  const resumePendingCheckout = useCallback(async () => {
+    if (isGuest || resumeCheckoutAttemptedRef.current) return;
+    if (searchParams.get("resumeCheckout") !== "1") return;
+    const pending = loadPendingCheckout();
+    if (!pending || pending.kind !== "venue-inquiry" || pending.venueId !== venueId) {
+      return;
+    }
+    resumeCheckoutAttemptedRef.current = true;
+    setError(null);
+    setSuccess(false);
+    setStepId("send");
+    await postInquiry(pending.payload);
+  }, [isGuest, searchParams, venueId]);
+
+  useEffect(() => {
+    void resumePendingCheckout();
+  }, [resumePendingCheckout]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (stepId !== "send" || stepTransitionLockRef.current) {
@@ -838,60 +928,22 @@ export default function VenueInquiryClient({
     setError(null);
     setSuccess(false);
 
-    const eventErr = validateEventStep();
-    if (eventErr) {
-      setError(eventErr);
-      setStepId("event");
+    const payload = buildInquiryPayload();
+    if (!payload) return;
+
+    if (isGuest) {
+      savePendingCheckout({
+        kind: "venue-inquiry",
+        venueId,
+        payload,
+      });
+      router.push(
+        checkoutAuthHref(`/halls/${venueId}/inquiry?resumeCheckout=1`, "register")
+      );
       return;
     }
 
-    const num = Number(form.guestCount);
-    const serviceChoices = buildServiceChoicesPayload();
-
-    setLoading(true);
-    try {
-      const res = await fetch("/api/inquiries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          venueId,
-          message: form.message.trim(),
-          supplierMessages: selectedSupplierServiceIds
-            .filter((id) => linkedSuppliers.some((s) => s.serviceId === id))
-            .map((serviceId) => ({
-              serviceId,
-              message: (supplierMessagesByServiceId[serviceId] ?? "").trim(),
-            }))
-            .filter((entry) => entry.message),
-          supplierServiceIds: selectedSupplierServiceIds.filter((id) =>
-            linkedSuppliers.some((s) => s.serviceId === id)
-          ),
-          preferredDate: form.preferredDate.trim(),
-          guestCount: num,
-          eventType: form.eventType.trim() || null,
-          serviceChoices,
-          addonServiceIds: addonFreelancers.map((f) => f.serviceId),
-          addonFreelancers,
-        }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError(data?.error || "שליחת הפנייה נכשלה");
-        setLoading(false);
-        return;
-      }
-      setSuccess(true);
-      clearInquiryDraft(venueId);
-      const inquiryId = data?.inquiry?.id;
-      setTimeout(() => {
-        router.push(
-          inquiryId ? `/my-inquiries/${inquiryId}` : "/my-inquiries"
-        );
-      }, 900);
-    } catch {
-      setError("שגיאה בלתי צפויה");
-    }
-    setLoading(false);
+    await postInquiry(payload);
   }
 
   return (
@@ -1238,8 +1290,15 @@ export default function VenueInquiryClient({
                   </div>
                 ) : null}
                 <p className="mt-3 text-[11px] text-neutral-600">
-                  לאחר השליחה הבקשה תמתין לאישור בעל האולם.
+                  {isGuest
+                    ? "בשלב הבא תתבקשו ליצור חשבון (או להתחבר) כדי לאשר את ההזמנה. תשלום יתווסף בהמשך."
+                    : "לאחר השליחה הבקשה תמתין לאישור בעל האולם."}
                 </p>
+                {isGuest ? (
+                  <p className="mt-2 rounded-lg border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-[11px] text-amber-950">
+                    אתם במצב אורח — אפשר למלא את כל הפרטים עכשיו. רק לפני אישור סופי נדרש חשבון מחפש.
+                  </p>
+                ) : null}
               </div>
               <InquirySendNotesSection
                 venueMessage={form.message}
@@ -1289,7 +1348,11 @@ export default function VenueInquiryClient({
                 disabled={loading}
                 className="min-h-[52px] flex-1 rounded-2xl bg-amber-400 px-6 text-base font-bold text-white shadow-lg hover:bg-amber-300 disabled:opacity-60 sm:max-w-xs sm:ml-auto"
               >
-                {loading ? "שולח..." : "שלח בקשה לאולם"}
+                {loading
+                  ? "שולח..."
+                  : isGuest
+                    ? "אישור והמשך ליצירת חשבון"
+                    : "שלח בקשה לאולם"}
               </button>
             )}
           </div>

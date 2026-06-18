@@ -18,7 +18,14 @@ import type {
   ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson, type SocialLink } from "@/lib/socialLinks";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  checkoutAuthHref,
+  clearPendingCheckout,
+  loadPendingCheckout,
+  savePendingCheckout,
+} from "@/lib/guestCheckout";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Provider = {
   id: number;
@@ -70,7 +77,10 @@ export default function SingleServiceView({
   canWriteServiceReview: boolean;
   initialIsFavorite?: boolean;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const resumeCheckoutAttemptedRef = useRef(false);
   const [requestSent, setRequestSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +158,60 @@ export default function SingleServiceView({
     return d >= todayDate;
   }
 
+  async function postServiceRequest(body: {
+    serviceId: number;
+    preferredDate: string;
+    eventType?: string;
+    message: string;
+  }): Promise<boolean> {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/service-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(data?.error || "שליחת הבקשה נכשלה");
+        return false;
+      }
+      clearPendingCheckout();
+      setRequestSent(true);
+      return true;
+    } catch {
+      setError("שגיאה בלתי צפויה");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const resumePendingCheckout = useCallback(async () => {
+    if (!seekerLoggedIn || resumeCheckoutAttemptedRef.current) return;
+    if (searchParams.get("resumeCheckout") !== "1") return;
+    const pending = loadPendingCheckout();
+    if (
+      !pending ||
+      pending.kind !== "service-request" ||
+      pending.serviceId !== service.id
+    ) {
+      return;
+    }
+    resumeCheckoutAttemptedRef.current = true;
+    setError(null);
+    setForm({
+      preferredDate: pending.payload.preferredDate,
+      eventType: pending.payload.eventType ?? "",
+      message: pending.payload.message,
+    });
+    await postServiceRequest(pending.payload);
+  }, [seekerLoggedIn, searchParams, service.id]);
+
+  useEffect(() => {
+    void resumePendingCheckout();
+  }, [resumePendingCheckout]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -163,29 +227,30 @@ export default function SingleServiceView({
       setError("הודעה חייבת להכיל לפחות 10 תווים");
       return;
     }
-    setLoading(true);
-    try {
-      const res = await fetch("/api/service-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          serviceId: service.id,
-          preferredDate: form.preferredDate.trim(),
-          eventType: form.eventType.trim() || undefined,
-          message: form.message.trim(),
-        }),
+
+    const payload = {
+      serviceId: service.id,
+      preferredDate: form.preferredDate.trim(),
+      eventType: form.eventType.trim() || undefined,
+      message: form.message.trim(),
+    };
+
+    if (!seekerLoggedIn) {
+      savePendingCheckout({
+        kind: "service-request",
+        serviceId: service.id,
+        payload,
       });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError(data?.error || "שליחת הבקשה נכשלה");
-        setLoading(false);
-        return;
-      }
-      setRequestSent(true);
-    } catch {
-      setError("שגיאה בלתי צפויה");
+      router.push(
+        checkoutAuthHref(
+          `/services/${service.id}?resumeCheckout=1`,
+          "register"
+        )
+      );
+      return;
     }
-    setLoading(false);
+
+    await postServiceRequest(payload);
   }
 
   const freeIncludes = service.customIncludes.filter(
@@ -619,17 +684,14 @@ export default function SingleServiceView({
           <h2 className="text-base font-semibold text-emerald-950">שליחת בקשה לשירות</h2>
           <p className="mt-1 text-xs text-neutral-600">{service.name}</p>
         </div>
-        {!seekerLoggedIn ? (
-          <p className="mt-2 text-sm text-neutral-600">
-            <a href="/auth/login" className="text-emerald-950 underline hover:text-[#174D3B]">התחבר</a>
-            {" "}או{" "}
-            <a href="/auth/register" className="text-emerald-950 underline hover:text-[#174D3B]">הירשם</a>
-            {" "}כמחפש אולמות כדי לשלוח בקשה.
-          </p>
-        ) : requestSent ? (
-          <p className="mt-2 text-sm font-medium text-emerald-950">הבקשה נשלחה. הספק ייצור איתך קשר.</p>
-        ) : (
+        {!requestSent ? (
           <form onSubmit={handleSubmit} className="mt-4 space-y-3 text-sm">
+            {!seekerLoggedIn ? (
+              <p className="rounded-lg border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-950">
+                אפשר למלא את הבקשה כאורח. יצירת חשבון מחפש תידרש רק לפני אישור סופי
+                (ותשלום — בקרוב).
+              </p>
+            ) : null}
             <div>
               <label className="block text-xs font-medium text-neutral-600">תאריך האירוע *</label>
               <div className="mt-1 flex gap-2">
@@ -685,9 +747,17 @@ export default function SingleServiceView({
               disabled={loading}
               className="rounded-xl bg-emerald-950 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-60"
             >
-              {loading ? "שולח..." : "שליחת בקשה"}
+              {loading
+                ? "שולח..."
+                : seekerLoggedIn
+                  ? "שליחת בקשה"
+                  : "אישור והמשך ליצירת חשבון"}
             </button>
           </form>
+        ) : (
+          <p className="mt-2 text-sm font-medium text-emerald-950">
+            הבקשה נשלחה. הספק ייצור איתך קשר.
+          </p>
         )}
       </section>
 

@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
+import { Suspense } from "react";
 import SingleServiceView from "./SingleServiceView";
 
 /** דף ציבורי לשירות בודד — מציג שירות אחד בלבד + טופס שליחת בקשה אליו. */
@@ -90,7 +91,8 @@ export default async function PublicSingleServicePage({
 
   return (
     <SitePageShell mainWidth="narrow">
-      <SingleServiceView
+      <Suspense fallback={<p className="py-12 text-center text-sm text-neutral-600">טוען...</p>}>
+        <SingleServiceView
         provider={{
           id: service.provider.id,
           name: service.provider.name,
@@ -126,6 +128,7 @@ export default async function PublicSingleServicePage({
         canWriteServiceReview={canWriteServiceReview}
         initialIsFavorite={isServiceFavorite}
       />
+      </Suspense>
     </SitePageShell>
   );
 }
