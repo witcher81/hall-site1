@@ -1,4 +1,5 @@
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
+import type { InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
 import type { ServiceChoiceSource } from "@/lib/venueInquiryAmenities";
 import type { SeekerBundleItem } from "@/lib/seekerEventBundleTypes";
 
@@ -7,6 +8,14 @@ const keyForVenue = (venueId: number) => `hh-inquiry-prefill-${venueId}`;
 export type InquiryPrefillPayload = {
   sourceById?: Record<string, ServiceChoiceSource>;
   message?: string;
+  eventType?: string;
+  guestCount?: string;
+  selectedExtraOptionIds?: string[];
+  addonFreelancers?: InquiryAddonFreelancerPick[];
+  eventPackageId?: number;
+  seekerBundleId?: number;
+  priceEstimateMin?: number;
+  priceEstimateMax?: number;
 };
 
 export function buildInquiryPrefillFromBundleItems(

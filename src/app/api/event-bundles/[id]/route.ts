@@ -99,6 +99,8 @@ export async function PUT(
   }
 
   const venueId = toOptionalId(body.venueId);
+  const sourcePackageId =
+    body.sourcePackageId !== undefined ? toOptionalId(body.sourcePackageId) : existing.sourcePackageId;
   const guestCount = toOptionalGuestCount(body.guestCount);
   const budgetMin = toOptionalId(body.budgetMin);
   const budgetMax = toOptionalId(body.budgetMax);
@@ -125,6 +127,14 @@ export async function PUT(
     if (!v) return NextResponse.json({ error: "אולם לא נמצא" }, { status: 400 });
   }
 
+  if (sourcePackageId != null) {
+    const pkg = await prisma.eventPackage.findFirst({
+      where: { id: sourcePackageId, isPublished: true },
+      select: { id: true },
+    });
+    if (!pkg) return NextResponse.json({ error: "חבילת מקור לא נמצאה" }, { status: 400 });
+  }
+
   const row = await prisma.seekerEventBundle.update({
     where: { id },
     data: {
@@ -136,6 +146,7 @@ export async function PUT(
       budgetMin,
       budgetMax,
       venueId,
+      sourcePackageId,
       buildMode,
       status,
       itemsJson: serializeBundleItems(

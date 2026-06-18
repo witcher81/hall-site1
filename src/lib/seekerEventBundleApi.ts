@@ -6,7 +6,7 @@ import {
 } from "@/lib/seekerEventBundleTypes";
 
 export const BUNDLE_BUILD_MODES = new Set(["manual", "auto"]);
-export const BUNDLE_STATUSES = new Set(["draft", "ready"]);
+export const BUNDLE_STATUSES = new Set(["draft", "ready", "submitted"]);
 
 export type SeekerEventBundleRow = {
   id: number;
@@ -18,6 +18,7 @@ export type SeekerEventBundleRow = {
   budgetMin: number | null;
   budgetMax: number | null;
   venueId: number | null;
+  sourcePackageId: number | null;
   buildMode: string;
   status: string;
   itemsJson: string;
@@ -43,6 +44,7 @@ export function bundleToJson(row: SeekerEventBundleRow) {
     budgetMax: row.budgetMax,
     venueId: row.venueId,
     venue: row.venue,
+    sourcePackageId: row.sourcePackageId,
     buildMode: row.buildMode,
     status: row.status,
     items,

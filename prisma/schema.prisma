@@ -203,6 +203,12 @@ model Inquiry {
   autoReplyApplied Boolean @default(false)
   /// בחירות מחפש: לכל שירות שהאולם מציע — דרך האולם או מקור חיצוני (JSON)
   serviceChoicesJson String?
+  /// חבילת קטלוג שממנה נגזרה הבקשה (אופציונלי)
+  eventPackageId   Int?
+  eventPackage     EventPackage? @relation(fields: [eventPackageId], references: [id], onDelete: SetNull)
+  /// חבילה אישית של המחפש (אופציונלי)
+  seekerBundleId   Int?
+  seekerBundle     SeekerEventBundle? @relation(fields: [seekerBundleId], references: [id], onDelete: SetNull)
   createdAt     DateTime @default(now())
 
   negotiationThreads NegotiationThread[]
@@ -210,6 +216,8 @@ model Inquiry {
 
   @@index([userId, venueId])
   @@index([venueId, createdAt])
+  @@index([eventPackageId])
+  @@index([seekerBundleId])
 }
 
 model Favorite {
@@ -328,9 +336,21 @@ model EventPackage {
   bundlePriceTo    Int?
   /// תווית קטנה לכרטיס, למשל: "חיסכון" / "מובילים"
   badgeLabel       String?
+  /// basic | standard | premium
+  tier             String?
+  /// JSON: מערך סוגי אירוע
+  eventTypesJson   String?
+  guestMin         Int?
+  guestMax         Int?
+  /// JSON: [{ venueOptionId }] — פריטי אולם כלולים בחבילה
+  venueIncludesJson String?
+  /// JSON: [{ role, mode, serviceId?, allowAlternatives? }]
+  serviceSlotsJson String?
   isPublished      Boolean               @default(true)
   sortOrder        Int                   @default(0)
   services         EventPackageService[]
+  inquiries        Inquiry[]
+  sourceBundles    SeekerEventBundle[]
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
 
@@ -365,10 +385,14 @@ model SeekerEventBundle {
   venue       Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
   /// manual | auto
   buildMode   String   @default("manual")
-  /// draft | ready
+  /// draft | ready | submitted
   status      String   @default("draft")
+  /// נגזר מתבנית EventPackage (אופציונלי)
+  sourcePackageId Int?
+  sourcePackage   EventPackage? @relation(fields: [sourcePackageId], references: [id], onDelete: SetNull)
   /// JSON: SeekerBundleItem[]
   itemsJson   String   @default("[]")
+  inquiries   Inquiry[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

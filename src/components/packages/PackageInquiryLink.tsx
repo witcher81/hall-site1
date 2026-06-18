@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { saveInquiryPrefill } from "@/lib/inquiryPrefill";
+import { saveInquiryPrefill, type InquiryPrefillPayload } from "@/lib/inquiryPrefill";
 
 type Props = {
   venueId: number;
   href: string;
-  message: string;
+  prefill: InquiryPrefillPayload;
   className?: string;
   children: React.ReactNode;
 };
@@ -14,7 +14,7 @@ type Props = {
 export default function PackageInquiryLink({
   venueId,
   href,
-  message,
+  prefill,
   className,
   children,
 }: Props) {
@@ -23,7 +23,7 @@ export default function PackageInquiryLink({
       href={href}
       className={className}
       onClick={() => {
-        saveInquiryPrefill(venueId, { message });
+        saveInquiryPrefill(venueId, prefill);
       }}
     >
       {children}

@@ -141,6 +141,14 @@ export async function POST(req: NextRequest) {
   let eventType =
     typeof body.eventType === "string" ? body.eventType.trim() || null : null;
   const guestCount = body.guestCount != null && body.guestCount !== "" ? Number(body.guestCount) : null;
+  const eventPackageId =
+    body.eventPackageId != null && body.eventPackageId !== ""
+      ? Number(body.eventPackageId)
+      : null;
+  const seekerBundleId =
+    body.seekerBundleId != null && body.seekerBundleId !== ""
+      ? Number(body.seekerBundleId)
+      : null;
 
   if (!Number.isInteger(venueId) || venueId <= 0) {
     return NextResponse.json({ error: "נא לבחור אולם" }, { status: 400 });
@@ -170,6 +178,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "נא לציין כמות אורחים תקינה" }, { status: 400 });
   }
 
+  if (
+    eventPackageId != null &&
+    (!Number.isInteger(eventPackageId) || eventPackageId <= 0)
+  ) {
+    return badRequest("מזהה חבילה לא תקין");
+  }
+  if (
+    seekerBundleId != null &&
+    (!Number.isInteger(seekerBundleId) || seekerBundleId <= 0)
+  ) {
+    return badRequest("מזהה חבילה אישית לא תקין");
+  }
+
   const venue = await prisma.venue.findUnique({
     where: { id: venueId },
     select: {
@@ -194,6 +215,26 @@ export async function POST(req: NextRequest) {
   });
   if (!venue) {
     return NextResponse.json({ error: "אולם לא נמצא" }, { status: 404 });
+  }
+
+  if (eventPackageId != null) {
+    const pkg = await prisma.eventPackage.findFirst({
+      where: { id: eventPackageId, venueId },
+      select: { id: true },
+    });
+    if (!pkg) {
+      return badRequest("החבילה שנבחרה אינה שייכת לאולם זה");
+    }
+  }
+
+  if (seekerBundleId != null) {
+    const bundle = await prisma.seekerEventBundle.findFirst({
+      where: { id: seekerBundleId, userId: user.id },
+      select: { id: true },
+    });
+    if (!bundle) {
+      return badRequest("חבילת האירוע האישית לא נמצאה");
+    }
   }
 
   const eventTypeError = validateInquiryEventType(venue.eventTypes, eventType);
@@ -340,6 +381,8 @@ export async function POST(req: NextRequest) {
         preferredDate,
         guestCount: guestCount != null && Number.isFinite(guestCount) ? guestCount : null,
         serviceChoicesJson,
+        eventPackageId: eventPackageId ?? undefined,
+        seekerBundleId: seekerBundleId ?? undefined,
       },
     });
   } catch (e) {
@@ -353,6 +396,13 @@ export async function POST(req: NextRequest) {
       );
     }
     throw e;
+  }
+
+  if (seekerBundleId != null) {
+    await prisma.seekerEventBundle.updateMany({
+      where: { id: seekerBundleId, userId: user.id },
+      data: { status: "submitted" },
+    });
   }
 
   let serviceRequestIds: number[] = [];

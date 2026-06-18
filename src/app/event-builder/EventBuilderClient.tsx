@@ -10,6 +10,7 @@ import {
   saveInquiryPrefill,
 } from "@/lib/inquiryPrefill";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type VenuePick = { id: number; name: string; city: string };
@@ -22,6 +23,7 @@ type BundleJson = {
   guestCount: number | null;
   area: string | null;
   venueId: number | null;
+  sourcePackageId: number | null;
   venue: { id: number; name: string; city: string } | null;
   buildMode: string;
   status: string;
@@ -52,6 +54,7 @@ function itemKindLabel(kind: SeekerBundleItem["kind"]): string {
 }
 
 export default function EventBuilderClient() {
+  const router = useRouter();
   const [bundles, setBundles] = useState<BundleJson[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [editingId, setEditingId] = useState<number | "new" | null>(null);
@@ -65,7 +68,8 @@ export default function EventBuilderClient() {
   const [venueName, setVenueName] = useState<string | null>(null);
   const [items, setItems] = useState<SeekerBundleItem[]>([]);
   const [buildMode, setBuildMode] = useState<"manual" | "auto">("manual");
-  const [status, setStatus] = useState<"draft" | "ready">("draft");
+  const [status, setStatus] = useState<"draft" | "ready" | "submitted">("draft");
+  const [sourcePackageId, setSourcePackageId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [autoBuilding, setAutoBuilding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +79,7 @@ export default function EventBuilderClient() {
   const [venueSuggestions, setVenueSuggestions] = useState<VenuePick[]>([]);
   const [venueSearchLoading, setVenueSearchLoading] = useState(false);
   const prefilledVenue = useRef(false);
+  const prefilledPackage = useRef(false);
 
   const totals = useMemo(() => estimateBundleTotal(items), [items]);
 
@@ -101,6 +106,54 @@ export default function EventBuilderClient() {
     setVenueIdInput(vid);
     void resolveVenueName(id);
     setEditingId("new");
+  }, []);
+
+  useEffect(() => {
+    if (prefilledPackage.current || typeof window === "undefined") return;
+    const pid = new URLSearchParams(window.location.search).get("packageId");
+    if (!pid || !/^\d+$/.test(pid)) return;
+    const id = Number(pid);
+    if (!Number.isInteger(id) || id <= 0) return;
+    prefilledPackage.current = true;
+    setEditingId("new");
+    fetch(`/api/packages/${id}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(
+        (json: {
+          package: {
+            id: number;
+            title: string;
+            guestMin: number | null;
+            eventTypes: string[];
+          };
+          venue: { id: number; name: string };
+          bundleItems: SeekerBundleItem[];
+          inquiryPrefill?: {
+            eventType?: string;
+            guestCount?: string;
+            priceEstimateMin?: number;
+            priceEstimateMax?: number;
+          };
+        }) => {
+          setTitle(json.package.title);
+          setSourcePackageId(json.package.id);
+          setVenueIdInput(String(json.venue.id));
+          setVenueName(json.venue.name);
+          setItems(json.bundleItems ?? []);
+          const et =
+            json.inquiryPrefill?.eventType ||
+            json.package.eventTypes?.[0] ||
+            "חתונה";
+          setEventType(et);
+          const guests =
+            json.inquiryPrefill?.guestCount ||
+            (json.package.guestMin != null ? String(json.package.guestMin) : "");
+          if (guests) setGuestCount(guests);
+          setBuildMode("manual");
+          setStatus("draft");
+        }
+      )
+      .catch(() => setError("לא ניתן לטעון את החבילה"));
   }, []);
 
   useEffect(() => {
@@ -140,6 +193,7 @@ export default function EventBuilderClient() {
     setItems([]);
     setBuildMode("manual");
     setStatus("draft");
+    setSourcePackageId(null);
     setError(null);
   }
 
@@ -159,7 +213,14 @@ export default function EventBuilderClient() {
     setVenueName(b.venue?.name ?? null);
     setItems(b.items);
     setBuildMode(b.buildMode === "auto" ? "auto" : "manual");
-    setStatus(b.status === "ready" ? "ready" : "draft");
+    setStatus(
+      b.status === "submitted"
+        ? "submitted"
+        : b.status === "ready"
+          ? "ready"
+          : "draft"
+    );
+    setSourcePackageId(b.sourcePackageId ?? null);
     setError(null);
   }
 
@@ -266,7 +327,7 @@ export default function EventBuilderClient() {
     setItems((prev) => prev.filter((i) => i.id !== id));
   }
 
-  async function saveBundle() {
+  async function saveBundle(): Promise<number | null> {
     setSaving(true);
     setError(null);
     const payload = {
@@ -276,8 +337,9 @@ export default function EventBuilderClient() {
       guestCount: guestCount.trim() ? Number(guestCount) : null,
       area: area.trim() || null,
       venueId: venueIdInput.trim() ? Number(venueIdInput) : null,
+      sourcePackageId,
       buildMode,
-      status,
+      status: status === "submitted" ? "ready" : status,
       items,
     };
 
@@ -294,15 +356,39 @@ export default function EventBuilderClient() {
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setError(data?.error || "שמירה נכשלה");
-        return;
+        return null;
       }
-      setEditingId(null);
+      const savedId = data?.bundle?.id as number | undefined;
+      if (savedId) setEditingId(savedId);
       loadBundles();
+      return savedId ?? null;
     } catch {
       setError("שגיאה בשמירה");
+      return null;
     } finally {
       setSaving(false);
     }
+  }
+
+  async function goToInquiry(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!inquiryHref || !Number.isInteger(venueIdNum) || venueIdNum <= 0) return;
+    let bundleId = typeof editingId === "number" ? editingId : null;
+    if (!bundleId) {
+      bundleId = await saveBundle();
+      if (!bundleId) return;
+    }
+    const prefill = {
+      ...buildInquiryPrefillFromBundleItems(items),
+      seekerBundleId: bundleId,
+      eventPackageId: sourcePackageId ?? undefined,
+      eventType: eventType.trim() || undefined,
+      guestCount: guestCount.trim() || undefined,
+      priceEstimateMin: totals.from > 0 ? totals.from : undefined,
+      priceEstimateMax: totals.to > 0 ? totals.to : undefined,
+    };
+    saveInquiryPrefill(venueIdNum, prefill);
+    router.push(inquiryHref);
   }
 
   async function deleteBundle(id: number) {
@@ -560,6 +646,7 @@ export default function EventBuilderClient() {
               type="radio"
               checked={status === "draft"}
               onChange={() => setStatus("draft")}
+              disabled={status === "submitted"}
             />
             טיוטה
           </label>
@@ -568,25 +655,24 @@ export default function EventBuilderClient() {
               type="radio"
               checked={status === "ready"}
               onChange={() => setStatus("ready")}
+              disabled={status === "submitted"}
             />
             מוכן לסגירה
           </label>
+          {status === "submitted" ? (
+            <span className="text-xs font-semibold text-emerald-800">נשלח עם פנייה לאולם</span>
+          ) : null}
         </section>
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
           {inquiryHref ? (
-            <Link
+            <a
               href={inquiryHref}
               className="btn-primary min-h-[48px] px-6 text-center"
-              onClick={() => {
-                saveInquiryPrefill(
-                  venueIdNum,
-                  buildInquiryPrefillFromBundleItems(items)
-                );
-              }}
+              onClick={(e) => void goToInquiry(e)}
             >
               שליחת פנייה לאולם
-            </Link>
+            </a>
           ) : (
             <p className="text-xs text-neutral-600 sm:self-center">
               בחרו אולם כדי לשלוח פנייה עם הפרטים שמילאתם.
@@ -594,8 +680,8 @@ export default function EventBuilderClient() {
           )}
           <button
             type="button"
-            disabled={saving}
-            onClick={() => void saveBundle()}
+            disabled={saving || status === "submitted"}
+            onClick={() => void saveBundle().then(() => {})}
             className="btn-secondary min-h-[48px] px-8 disabled:opacity-60"
           >
             {saving ? "שומר…" : "שמירת החבילה"}

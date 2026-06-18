@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { packageRowToClient, parseEventPackageWriteBody, prismaDataFromPackageWrite } from "@/lib/eventPackageForm";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -11,6 +12,24 @@ async function assertVenueOwner(userId: number, venueId: number) {
   });
   return venue != null;
 }
+
+async function validateServiceIds(serviceIds: number[]) {
+  if (serviceIds.length === 0) return { ok: true as const };
+  const found = await prisma.service.findMany({
+    where: { id: { in: serviceIds } },
+    select: { id: true },
+  });
+  const foundIds = new Set(found.map((s) => s.id));
+  const missing = serviceIds.filter((id) => !foundIds.has(id));
+  if (missing.length > 0) {
+    return { ok: false as const, error: "אחד או יותר מהשירותים שנבחרו לא קיימים במערכת" };
+  }
+  return { ok: true as const };
+}
+
+const packageInclude = {
+  services: { select: { serviceId: true } },
+} as const;
 
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -29,12 +48,10 @@ export async function GET(req: NextRequest) {
   const packages = await prisma.eventPackage.findMany({
     where: { venueId },
     orderBy: { sortOrder: "asc" },
-    include: {
-      services: { select: { serviceId: true } },
-    },
+    include: packageInclude,
   });
 
-  return NextResponse.json({ packages });
+  return NextResponse.json({ packages: packages.map(packageRowToClient) });
 }
 
 export async function POST(req: NextRequest) {
@@ -43,52 +60,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const venueId = Number(body.venueId);
-  const title = typeof body.title === "string" ? body.title.trim().slice(0, 200) : "";
-  if (!Number.isInteger(venueId) || venueId <= 0 || !title) {
-    return NextResponse.json({ error: "חובה venueId וכותרת" }, { status: 400 });
+  if (!Number.isInteger(venueId) || venueId <= 0) {
+    return NextResponse.json({ error: "חובה venueId" }, { status: 400 });
   }
   if (!(await assertVenueOwner(user.id, venueId))) {
     return NextResponse.json({ error: "אולם לא נמצא" }, { status: 404 });
   }
 
-  const serviceIds: number[] = Array.isArray(body.serviceIds)
-    ? body.serviceIds
-        .map((x: unknown) => Number(x))
-        .filter((n: number) => Number.isInteger(n) && n > 0)
-    : [];
-
-  if (serviceIds.length > 0) {
-    const found = await prisma.service.findMany({
-      where: { id: { in: serviceIds } },
-      select: { id: true },
-    });
-    const foundIds = new Set(found.map((s) => s.id));
-    const missing = serviceIds.filter((id) => !foundIds.has(id));
-    if (missing.length > 0) {
-      return NextResponse.json(
-        { error: "אחד או יותר מהשירותים שנבחרו לא קיימים במערכת" },
-        { status: 400 }
-      );
-    }
+  const parsed = parseEventPackageWriteBody(body);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+  if (!parsed.data.title) {
+    return NextResponse.json({ error: "חובה כותרת" }, { status: 400 });
   }
 
+  const serviceIds = parsed.data.serviceIds ?? [];
+  const svcCheck = await validateServiceIds(serviceIds);
+  if (!svcCheck.ok) return NextResponse.json({ error: svcCheck.error }, { status: 400 });
+
+  const data = prismaDataFromPackageWrite(parsed.data);
   const pkg = await prisma.eventPackage.create({
     data: {
       venueId,
-      title,
-      subtitle:
-        typeof body.subtitle === "string" ? body.subtitle.trim().slice(0, 300) : null,
-      description:
-        typeof body.description === "string" ? body.description.trim().slice(0, 5000) : null,
-      bundlePriceFrom:
-        body.bundlePriceFrom != null ? Number(body.bundlePriceFrom) || null : null,
-      bundlePriceTo:
-        body.bundlePriceTo != null ? Number(body.bundlePriceTo) || null : null,
-      badgeLabel:
-        typeof body.badgeLabel === "string" ? body.badgeLabel.trim().slice(0, 80) : null,
-      isPublished: body.isPublished !== false,
+      title: parsed.data.title,
+      ...data,
       services: {
         create: serviceIds.map((serviceId) => ({ serviceId })),
       },
@@ -104,7 +100,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const id = Number(body.id);
   if (!Number.isInteger(id) || id <= 0) {
     return NextResponse.json({ error: "מזהה לא תקין" }, { status: 400 });
@@ -118,14 +114,30 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "חבילה לא נמצאה" }, { status: 404 });
   }
 
-  await prisma.eventPackage.update({
-    where: { id },
-    data: {
-      title: typeof body.title === "string" ? body.title.trim().slice(0, 200) : undefined,
-      subtitle:
-        typeof body.subtitle === "string" ? body.subtitle.trim().slice(0, 300) : undefined,
-      isPublished: typeof body.isPublished === "boolean" ? body.isPublished : undefined,
-    },
+  const parsed = parseEventPackageWriteBody(body);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+
+  const serviceIds = parsed.data.serviceIds;
+  if (serviceIds) {
+    const svcCheck = await validateServiceIds(serviceIds);
+    if (!svcCheck.ok) return NextResponse.json({ error: svcCheck.error }, { status: 400 });
+  }
+
+  const data = prismaDataFromPackageWrite(parsed.data);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.eventPackage.update({
+      where: { id },
+      data,
+    });
+    if (serviceIds) {
+      await tx.eventPackageService.deleteMany({ where: { packageId: id } });
+      if (serviceIds.length > 0) {
+        await tx.eventPackageService.createMany({
+          data: serviceIds.map((serviceId) => ({ packageId: id, serviceId })),
+        });
+      }
+    }
   });
 
   return NextResponse.json({ ok: true });

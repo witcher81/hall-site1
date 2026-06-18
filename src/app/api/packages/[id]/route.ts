@@ -1,7 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  buildInquiryPrefillFromPackage,
+  packageToBundleItems,
+} from "@/lib/eventPackagePrefill";
+import { packageRowToClient } from "@/lib/eventPackageForm";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+
+const venueSelect = {
+  id: true,
+  name: true,
+  city: true,
+  address: true,
+  coverImageUrl: true,
+  minGuests: true,
+  maxGuests: true,
+  minPrice: true,
+  maxPrice: true,
+  hallRentalMin: true,
+  hallRentalMax: true,
+  description: true,
+  eventTypes: true,
+  hasChuppa: true,
+  hasChuppaOutdoor: true,
+  hasChuppaCovered: true,
+  hasFood: true,
+  hasDanceFloor: true,
+  hasTableSetup: true,
+  hasSoundSystem: true,
+  customAmenitiesJson: true,
+  venueSoftAttributesJson: true,
+  eventTypeProfilesJson: true,
+} as const;
 
 export async function GET(
   _req: NextRequest,
@@ -16,22 +47,7 @@ export async function GET(
   const pkg = await prisma.eventPackage.findFirst({
     where: { id: pid, isPublished: true },
     include: {
-      venue: {
-        select: {
-          id: true,
-          name: true,
-          city: true,
-          address: true,
-          coverImageUrl: true,
-          minGuests: true,
-          maxGuests: true,
-          minPrice: true,
-          maxPrice: true,
-          hallRentalMin: true,
-          hallRentalMax: true,
-          description: true,
-        },
-      },
+      venue: { select: venueSelect },
       services: {
         include: {
           service: {
@@ -63,5 +79,58 @@ export async function GET(
     return NextResponse.json({ error: "לא נמצא" }, { status: 404 });
   }
 
-  return NextResponse.json({ package: pkg });
+  const pkgForPrefill = {
+    id: pkg.id,
+    title: pkg.title,
+    subtitle: pkg.subtitle,
+    bundlePriceFrom: pkg.bundlePriceFrom,
+    bundlePriceTo: pkg.bundlePriceTo,
+    guestMin: pkg.guestMin,
+    guestMax: pkg.guestMax,
+    eventTypesJson: pkg.eventTypesJson,
+    venueIncludesJson: pkg.venueIncludesJson,
+    serviceSlotsJson: pkg.serviceSlotsJson,
+    services: pkg.services.map((r) => ({
+      serviceId: r.serviceId,
+      service: r.service,
+    })),
+  };
+
+  const venueForPrefill = {
+    id: pkg.venue.id,
+    name: pkg.venue.name,
+    minGuests: pkg.venue.minGuests,
+    hallRentalMin: pkg.venue.hallRentalMin,
+    hallRentalMax: pkg.venue.hallRentalMax,
+    minPrice: pkg.venue.minPrice,
+    maxPrice: pkg.venue.maxPrice,
+    hasChuppa: pkg.venue.hasChuppa,
+    hasChuppaOutdoor: pkg.venue.hasChuppaOutdoor,
+    hasChuppaCovered: pkg.venue.hasChuppaCovered,
+    hasFood: pkg.venue.hasFood,
+    hasDanceFloor: pkg.venue.hasDanceFloor,
+    hasTableSetup: pkg.venue.hasTableSetup,
+    hasSoundSystem: pkg.venue.hasSoundSystem,
+    customAmenitiesJson: pkg.venue.customAmenitiesJson,
+    venueSoftAttributesJson: pkg.venue.venueSoftAttributesJson,
+    eventTypeProfilesJson: pkg.venue.eventTypeProfilesJson,
+    eventTypes: pkg.venue.eventTypes,
+  };
+
+  const bundleItems = packageToBundleItems(pkgForPrefill, venueForPrefill);
+  const inquiryPrefill = buildInquiryPrefillFromPackage(pkgForPrefill, venueForPrefill);
+
+  return NextResponse.json({
+    package: packageRowToClient({
+      ...pkg,
+      services: pkg.services.map((r) => ({ serviceId: r.serviceId })),
+    }),
+    venue: {
+      id: pkg.venue.id,
+      name: pkg.venue.name,
+      city: pkg.venue.city,
+    },
+    bundleItems,
+    inquiryPrefill,
+  });
 }

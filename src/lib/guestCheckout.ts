@@ -11,6 +11,10 @@ export type PendingVenueInquiryPayload = {
   serviceChoices: unknown[];
   addonServiceIds: number[];
   addonFreelancers: unknown[];
+  eventPackageId?: number | null;
+  seekerBundleId?: number | null;
+  priceEstimateMin?: number | null;
+  priceEstimateMax?: number | null;
 };
 
 export type PendingServiceRequestPayload = {

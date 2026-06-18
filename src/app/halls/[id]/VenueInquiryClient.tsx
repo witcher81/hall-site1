@@ -157,6 +157,10 @@ export default function VenueInquiryClient({
     Record<string, InquiryDealInsight>
   >({});
   const [dealInsightsLoading, setDealInsightsLoading] = useState(false);
+  const [eventPackageId, setEventPackageId] = useState<number | null>(null);
+  const [seekerBundleId, setSeekerBundleId] = useState<number | null>(null);
+  const [priceEstimateMin, setPriceEstimateMin] = useState<number | null>(null);
+  const [priceEstimateMax, setPriceEstimateMax] = useState<number | null>(null);
 
   const eventTypeTrimmed = form.eventType.trim() || null;
 
@@ -529,8 +533,19 @@ export default function VenueInquiryClient({
       if (draft.selectedExtraOptionIds?.length) {
         pendingSelectedExtraIdsRef.current = draft.selectedExtraOptionIds;
       }
-    } else if (prefill?.message?.trim()) {
-      setForm((f) => ({ ...f, message: prefill.message!.trim() }));
+    } else if (prefill) {
+      setForm((f) => ({
+        ...f,
+        message: prefill.message?.trim() || f.message,
+        guestCount: prefill.guestCount || f.guestCount,
+        eventType: prefill.eventType || f.eventType,
+      }));
+      if (prefill.addonFreelancers?.length) {
+        setAddonFreelancers(prefill.addonFreelancers);
+      }
+      if (prefill.selectedExtraOptionIds?.length) {
+        pendingSelectedExtraIdsRef.current = prefill.selectedExtraOptionIds;
+      }
     }
     if (draft?.sourceById || prefill?.sourceById) {
       pendingSourceByIdRef.current = {
@@ -538,6 +553,10 @@ export default function VenueInquiryClient({
         ...prefill?.sourceById,
       };
     }
+    if (prefill?.eventPackageId) setEventPackageId(prefill.eventPackageId);
+    if (prefill?.seekerBundleId) setSeekerBundleId(prefill.seekerBundleId);
+    if (prefill?.priceEstimateMin != null) setPriceEstimateMin(prefill.priceEstimateMin);
+    if (prefill?.priceEstimateMax != null) setPriceEstimateMax(prefill.priceEstimateMax);
     if (prefill) clearInquiryPrefill(venueId);
   }, [searchParams, applyDateFromQuery, venueId]);
 
@@ -899,6 +918,10 @@ export default function VenueInquiryClient({
       serviceChoices: buildServiceChoicesPayload(),
       addonServiceIds: addonFreelancers.map((f) => f.serviceId),
       addonFreelancers,
+      eventPackageId,
+      seekerBundleId,
+      priceEstimateMin,
+      priceEstimateMax,
     };
   }
 

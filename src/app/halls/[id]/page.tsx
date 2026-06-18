@@ -251,6 +251,20 @@ export default async function HallPublicPage({
     .filter((r) => r.on)
     .map((r) => r.label);
 
+  const venuePackages = await prisma.eventPackage.findMany({
+    where: { venueId: venue.id, isPublished: true },
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      title: true,
+      subtitle: true,
+      tier: true,
+      badgeLabel: true,
+      bundlePriceFrom: true,
+      bundlePriceTo: true,
+    },
+  });
+
   let isFavorite = false;
   if (user) {
     try {
@@ -311,6 +325,7 @@ export default async function HallPublicPage({
             venue.owner?.businessPhone?.trim() ||
             venue.owner?.phone?.trim() ||
             null,
+          packages: venuePackages.length > 0 ? venuePackages : undefined,
         }}
       />
     </SitePageShell>

@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import VenuePackagesSection, {
+  type VenuePackageCard,
+} from "@/components/venues/VenuePackagesSection";
 import { normalizeHalfStarRating } from "@/lib/reviewRating";
 import { recordVenueRecentlyViewed } from "@/lib/recentlyViewedVenues";
 import { useEngagedVenueView } from "@/lib/useEngagedViewAnalytics";
@@ -71,6 +74,7 @@ type Venue = {
   /** פרופיל לפי סוג אירוע — מ־eventTypeProfilesJson בשרת */
   eventTypeProfiles?: Record<string, PublicEventTypeProfile>;
   ownerContactPhone?: string | null;
+  packages?: VenuePackageCard[];
 };
 
 /** שבב שירות — שם בולט + תג סטטוס מחיר (כלול / בתוספת) */
@@ -1203,6 +1207,12 @@ export default function VenuePublicView({
           />
         </div>
       )}
+
+      {venue.packages?.length ? (
+        <div className="mt-6">
+          <VenuePackagesSection venueId={venue.id} packages={venue.packages} />
+        </div>
+      ) : null}
 
       <section
         id="venue-inquiry"

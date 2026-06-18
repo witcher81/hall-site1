@@ -3,7 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
-import { inferEventTypeFromPackageText } from "@/lib/packageInquiryPrefill";
+import {
+  buildInquiryPrefillFromPackage,
+  estimatePackagePriceRange,
+} from "@/lib/eventPackagePrefill";
+import { PACKAGE_TIER_LABELS, parsePackageTier } from "@/lib/eventPackageTypes";
 import { prisma } from "@/lib/prisma";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
 import PackageInquiryLink from "@/components/packages/PackageInquiryLink";
@@ -44,7 +48,22 @@ export default async function PackageDetailPage({ params }: PageProps) {
           coverImageUrl: true,
           minGuests: true,
           maxGuests: true,
+          minPrice: true,
+          maxPrice: true,
+          hallRentalMin: true,
+          hallRentalMax: true,
           description: true,
+          eventTypes: true,
+          hasChuppa: true,
+          hasChuppaOutdoor: true,
+          hasChuppaCovered: true,
+          hasFood: true,
+          hasDanceFloor: true,
+          hasTableSetup: true,
+          hasSoundSystem: true,
+          customAmenitiesJson: true,
+          venueSoftAttributesJson: true,
+          eventTypeProfilesJson: true,
         },
       },
       services: {
@@ -72,33 +91,60 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
   if (!pkg) notFound();
 
+  const pkgForPrefill = {
+    id: pkg.id,
+    title: pkg.title,
+    subtitle: pkg.subtitle,
+    bundlePriceFrom: pkg.bundlePriceFrom,
+    bundlePriceTo: pkg.bundlePriceTo,
+    guestMin: pkg.guestMin,
+    guestMax: pkg.guestMax,
+    eventTypesJson: pkg.eventTypesJson,
+    venueIncludesJson: pkg.venueIncludesJson,
+    serviceSlotsJson: pkg.serviceSlotsJson,
+    services: pkg.services.map((r) => ({
+      serviceId: r.serviceId,
+      service: r.service,
+    })),
+  };
+
+  const venueForPrefill = {
+    id: pkg.venue.id,
+    name: pkg.venue.name,
+    minGuests: pkg.venue.minGuests,
+    hallRentalMin: pkg.venue.hallRentalMin,
+    hallRentalMax: pkg.venue.hallRentalMax,
+    minPrice: pkg.venue.minPrice,
+    maxPrice: pkg.venue.maxPrice,
+    hasChuppa: pkg.venue.hasChuppa,
+    hasChuppaOutdoor: pkg.venue.hasChuppaOutdoor,
+    hasChuppaCovered: pkg.venue.hasChuppaCovered,
+    hasFood: pkg.venue.hasFood,
+    hasDanceFloor: pkg.venue.hasDanceFloor,
+    hasTableSetup: pkg.venue.hasTableSetup,
+    hasSoundSystem: pkg.venue.hasSoundSystem,
+    customAmenitiesJson: pkg.venue.customAmenitiesJson,
+    venueSoftAttributesJson: pkg.venue.venueSoftAttributesJson,
+    eventTypeProfilesJson: pkg.venue.eventTypeProfilesJson,
+    eventTypes: pkg.venue.eventTypes,
+  };
+
+  const inquiryPrefill = buildInquiryPrefillFromPackage(pkgForPrefill, venueForPrefill);
+  const priceRange = estimatePackagePriceRange(pkgForPrefill);
+  const tier = parsePackageTier(pkg.tier);
+
   const vImg = pkg.venue.coverImageUrl || "/globe.svg";
 
-  const servicePriceMin = pkg.services.reduce(
-    (sum, row) => sum + (row.service.minPrice ?? 0),
-    0
-  );
-  const servicePriceMax = pkg.services.reduce(
-    (sum, row) => sum + (row.service.maxPrice ?? row.service.minPrice ?? 0),
-    0
-  );
-  const hallMin = pkg.bundlePriceFrom ?? null;
-  const hallMax = pkg.bundlePriceTo ?? null;
-  const estimatedMin =
-    (hallMin ?? 0) + (servicePriceMin > 0 ? servicePriceMin : 0);
-  const estimatedMax =
-    (hallMax ?? hallMin ?? 0) + (servicePriceMax > 0 ? servicePriceMax : 0);
+  const estimatedMin = priceRange.min;
+  const estimatedMax = priceRange.max;
   const hasEstimate = estimatedMin > 0 || estimatedMax > 0;
 
-  const packageServicesNote = pkg.services.map((r) => r.service.name).join(", ");
-  const inquiryMessage = `מעוניין/ת בחבילה "${pkg.title}"${packageServicesNote ? ` הכוללת: ${packageServicesNote}` : ""}.`;
-  const inferredEventType = inferEventTypeFromPackageText(pkg.title, pkg.subtitle);
-  const inquiryParams = new URLSearchParams({ message: inquiryMessage });
-  if (inferredEventType) inquiryParams.set("eventType", inferredEventType);
-  if (pkg.venue.minGuests != null && pkg.venue.minGuests > 0) {
-    inquiryParams.set("guests", String(pkg.venue.minGuests));
-  }
+  const inquiryParams = new URLSearchParams();
+  if (inquiryPrefill.message) inquiryParams.set("message", inquiryPrefill.message);
+  if (inquiryPrefill.eventType) inquiryParams.set("eventType", inquiryPrefill.eventType);
+  if (inquiryPrefill.guestCount) inquiryParams.set("guests", inquiryPrefill.guestCount);
   const inquiryHref = `/halls/${pkg.venue.id}/inquiry?${inquiryParams.toString()}`;
+  const customizeHref = `/event-builder?packageId=${pkg.id}`;
 
   return (
     <SitePageShell mainWidth="narrow">
@@ -124,6 +170,11 @@ export default async function PackageDetailPage({ params }: PageProps) {
         <div className="space-y-4 p-6 text-right">
           <div>
             <h1 className="site-page-title">{pkg.title}</h1>
+            {tier ? (
+              <span className="mt-2 inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-900">
+                שכבה: {PACKAGE_TIER_LABELS[tier]}
+              </span>
+            ) : null}
             {pkg.subtitle && (
               <p className="mt-1 text-sm text-neutral-600">{pkg.subtitle}</p>
             )}
@@ -204,11 +255,17 @@ export default async function PackageDetailPage({ params }: PageProps) {
             <PackageInquiryLink
               venueId={pkg.venue.id}
               href={inquiryHref}
-              message={inquiryMessage}
+              prefill={inquiryPrefill}
               className="btn-primary min-h-[52px] flex-1 sm:min-w-[200px]"
             >
               בקש הצעה
             </PackageInquiryLink>
+            <Link
+              href={customizeHref}
+              className="btn-secondary min-h-[52px] flex-1 sm:min-w-[200px]"
+            >
+              התאם חבילה
+            </Link>
             <Link
               href={`/halls/${pkg.venue.id}`}
               className="btn-secondary min-h-[52px] flex-1 sm:min-w-[180px]"
