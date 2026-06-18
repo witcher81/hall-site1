@@ -1,28 +1,27 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import IsraeliMobilePhoneInput from "@/components/IsraeliMobilePhoneInput";
-import SocialLinksEditor from "@/components/SocialLinksEditor";
-import { isValidIsraeliPhone, normalizePhoneInput } from "@/lib/phone";
+import BusinessProfileFields from "@/components/business-profile/BusinessProfileFields";
+import {
+  getBusinessProfilePageCopy,
+  type BusinessProfileValues,
+} from "@/lib/businessProfile";
+import { isValidIsraeliPhone } from "@/lib/phone";
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 
 type Props = {
-  initial: {
-    name: string;
-    phone: string;
-    businessName: string;
-    businessPhone: string;
-    businessAddress: string;
-    socialLinks: SocialLink[];
-  };
+  email: string;
+  mode: "onboarding" | "edit";
+  initial: BusinessProfileValues & { socialLinks: SocialLink[] };
 };
 
-export default function FreelancerProfileForm({ initial }: Props) {
+export default function FreelancerProfileForm({ email, mode, initial }: Props) {
   const router = useRouter();
+  const copy = getBusinessProfilePageCopy("freelancer", mode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<BusinessProfileValues>({
     name: initial.name,
     phone: initial.phone,
     businessName: initial.businessName,
@@ -72,138 +71,47 @@ export default function FreelancerProfileForm({ initial }: Props) {
     }
   }
 
-  const input =
-    "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
-  const mobileSelect =
-    "shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
-  const mobileRest =
-    "min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-8 space-y-5 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
-    >
-      <div>
-        <label className="block text-sm font-medium text-neutral-600">
-          שם מלא (איש קשר)
-        </label>
-        <input
-          type="text"
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          className={input}
-          placeholder="השם שיופיע ללקוחות"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-600">
-          טלפון אישי (נייד)
-        </label>
-        <IsraeliMobilePhoneInput
-          value={form.phone}
-          onChange={(phone) => setForm((f) => ({ ...f, phone }))}
-          forceMobile
-          selectClassName={mobileSelect}
-          inputClassName={mobileRest}
-        />
-        <p className="mt-1 text-xs text-neutral-600">
-          בחרו קידומת והזינו 7 ספרות (סה״כ 10 ספרות כולל 0)
-        </p>
-      </div>
-
-      <hr className="border-neutral-200" />
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-600">
-          שם העסק / המותג
-        </label>
-        <input
-          type="text"
-          value={form.businessName}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, businessName: e.target.value }))
-          }
-          className={input}
-          placeholder="למשל: סטודיו צילום XYZ"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-600">
-          טלפון עסקי
-        </label>
-        <input
-          type="tel"
-          inputMode="numeric"
-          maxLength={10}
-          value={form.businessPhone}
-          onChange={(e) =>
-            setForm((f) => ({
-              ...f,
-              businessPhone: normalizePhoneInput(e.target.value),
-            }))
-          }
-          className={input}
-          placeholder="03-xxxxxxx או 05xxxxxxxx"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-600">
-          כתובת (כללית)
-        </label>
-        <input
-          type="text"
-          value={form.businessAddress}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, businessAddress: e.target.value }))
-          }
-          className={input}
-          placeholder="עיר, אזור שירות"
-        />
-      </div>
-
-      <hr className="border-neutral-200" />
-
-      <SocialLinksEditor
-        value={socialRows}
-        onChange={setSocialRows}
-        title="רשתות חברתיות"
-        description="הוסיפו קישורים לעמודים שלכם — במסך חיפוש הספקים יופיעו אייקון הרשת והטקסט (למשל שם משתמש), בלחיצה יפתח הקישור."
-        addButtonText="+ הוסף רשת חברתית"
+    <form onSubmit={handleSubmit} className="mt-2 space-y-5">
+      <BusinessProfileFields
+        role="freelancer"
+        email={email}
+        mode={mode}
+        values={form}
+        onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+        socialLinks={socialRows}
+        onSocialLinksChange={setSocialRows}
       />
 
-      {error && (
+      {error ? (
         <p className="text-sm text-red-700" role="alert">
           {error}
         </p>
-      )}
-      {hasInvalidSocialLinks && (
+      ) : null}
+      {hasInvalidSocialLinks ? (
         <p className="text-sm text-red-700" role="alert">
           יש קישורי רשת לא תקינים. תקן/י אותם לפני שמירה.
         </p>
-      )}
-      {hasInvalidPhone && (
+      ) : null}
+      {hasInvalidPhone ? (
         <p className="text-sm text-red-700" role="alert">
-          מספר הטלפון לא תקין. יש להזין מספר ישראלי תקין (9-10 ספרות בלבד).
+          מספר הטלפון לא תקין. יש להזין מספר ישראלי תקין (9–10 ספרות).
         </p>
-      )}
+      ) : null}
 
-      <div className="flex flex-col gap-3 pt-2 sm:flex-row-reverse">
+      <div className="flex flex-col gap-3 pt-1 sm:flex-row-reverse">
         <button
           type="submit"
           disabled={loading || hasInvalidSocialLinks || hasInvalidPhone}
           className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
         >
-          {loading ? "שומר..." : "שמירה"}
+          {loading ? "שומר..." : copy.submitLabel}
         </button>
         <a
           href="/dashboard/freelancer"
-          className="rounded-full border border-neutral-200 bg-neutral-50 px-6 py-2.5 text-center text-sm font-medium text-emerald-950 hover:bg-neutral-50"
+          className="rounded-full border border-neutral-300 bg-white px-6 py-2.5 text-center text-sm font-semibold text-emerald-950 hover:bg-neutral-50"
         >
-          חזרה לשירותים שלי
+          {copy.cancelLabel}
         </a>
       </div>
     </form>

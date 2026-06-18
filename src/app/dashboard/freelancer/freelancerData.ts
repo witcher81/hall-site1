@@ -4,7 +4,7 @@ export async function getFreelancerDashboardData(providerId: number) {
   const [dbUser, services] = await Promise.all([
     prisma.user.findUnique({
       where: { id: providerId },
-      select: { name: true, email: true, phone: true },
+      select: { name: true, email: true, phone: true, businessName: true },
     }),
     prisma.service.findMany({
       where: { providerId },

@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { isVenueOwnerBusinessProfileIncomplete } from "@/lib/businessProfile";
 import { redirect } from "next/navigation";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -13,10 +14,9 @@ export default async function VenueOwnerDashboardPage() {
 
   const { dbUser, venues, recentInquiries } = await getVenueOwnerDashboardData(user.id);
 
-  const profileIncomplete =
-    !dbUser?.businessName?.trim() ||
-    !dbUser?.businessPhone?.trim() ||
-    !dbUser?.phone?.trim();
+  const profileIncomplete = dbUser
+    ? isVenueOwnerBusinessProfileIncomplete(dbUser)
+    : true;
 
   return (
     <>

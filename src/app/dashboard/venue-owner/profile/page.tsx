@@ -1,4 +1,8 @@
 import { getCurrentUser } from "@/lib/auth";
+import {
+  getBusinessProfilePageCopy,
+  isVenueOwnerBusinessProfileIncomplete,
+} from "@/lib/businessProfile";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import DashboardMain from "@/components/dashboard/DashboardMain";
@@ -25,15 +29,22 @@ export default async function VenueOwnerProfilePage() {
 
   if (!dbUser) redirect("/auth/login");
 
+  const mode = isVenueOwnerBusinessProfileIncomplete(dbUser)
+    ? "onboarding"
+    : "edit";
+  const copy = getBusinessProfilePageCopy("venue-owner", mode);
+
   return (
     <>
       <DashboardPageHero
         role="venue-owner"
-        title="השלם את פרטי העסק שלך"
-        description="לפני שניצור אולמות, נצטרך כמה פרטים בסיסיים עליך ועל העסק. אפשר לעדכן אותם גם אחר כך."
+        title={copy.title}
+        description={copy.description}
       />
-      <DashboardMain width="narrow" className="max-w-lg">
+      <DashboardMain width="narrow" className="max-w-xl">
         <VenueOwnerProfileForm
+          email={dbUser.email}
+          mode={mode}
           initial={{
             name: dbUser.name ?? "",
             phone: dbUser.phone ?? "",

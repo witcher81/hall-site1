@@ -1,4 +1,8 @@
 import { getCurrentUser } from "@/lib/auth";
+import {
+  getBusinessProfilePageCopy,
+  isFreelancerBusinessProfileIncomplete,
+} from "@/lib/businessProfile";
 import { prisma } from "@/lib/prisma";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
@@ -27,24 +31,31 @@ export default async function FreelancerProfilePage() {
 
   if (!dbUser) redirect("/auth/login");
 
+  const mode = isFreelancerBusinessProfileIncomplete(dbUser)
+    ? "onboarding"
+    : "edit";
+  const copy = getBusinessProfilePageCopy("freelancer", mode);
+
   return (
     <>
       <DashboardPageHero
         role="freelancer"
-        title="פרטי העסק / השירות שלך"
-        description="עדכן שם, טלפון, פרטי עסק וקישורי רשתות חברתיות – יופיעו ללקוחות בחיפוש ובעמוד הספק."
+        title={copy.title}
+        description={copy.description}
       />
-      <DashboardMain width="narrow" className="max-w-lg">
+      <DashboardMain width="narrow" className="max-w-xl">
         <FreelancerProfileForm
-        initial={{
-          name: dbUser.name ?? "",
-          phone: dbUser.phone ?? "",
-          businessName: dbUser.businessName ?? "",
-          businessPhone: dbUser.businessPhone ?? "",
-          businessAddress: dbUser.businessAddress ?? "",
-          socialLinks: parseSocialLinksJson(dbUser.socialLinksJson),
-        }}
-      />
+          email={dbUser.email}
+          mode={mode}
+          initial={{
+            name: dbUser.name ?? "",
+            phone: dbUser.phone ?? "",
+            businessName: dbUser.businessName ?? "",
+            businessPhone: dbUser.businessPhone ?? "",
+            businessAddress: dbUser.businessAddress ?? "",
+            socialLinks: parseSocialLinksJson(dbUser.socialLinksJson),
+          }}
+        />
       </DashboardMain>
     </>
   );
