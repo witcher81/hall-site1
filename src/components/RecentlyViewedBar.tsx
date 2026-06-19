@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import {
   clearRecentVenues,
   getRecentVenueIdsOrdered,
@@ -18,6 +19,8 @@ type VenueRow = {
   city: string;
   address: string;
   coverImageUrl: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
 };
 
 type ProviderRow = {
@@ -31,15 +34,30 @@ type ProviderRow = {
   }[];
 };
 
-type Props = { variant: "venues" | "providers" };
+type Props = {
+  variant: "venues" | "providers";
+  /** bar = שורה אופקית; section = רשת כרטיסים (בדף חיפוש ראשי) */
+  layout?: "bar" | "section";
+};
 
-export default function RecentlyViewedBar({ variant }: Props) {
+export default function RecentlyViewedBar({
+  variant,
+  layout = "bar",
+}: Props) {
   const pathname = usePathname();
   const [venues, setVenues] = useState<VenueRow[]>([]);
   const [providers, setProviders] = useState<ProviderRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [consentOk, setConsentOk] = useState(true);
 
   const load = useCallback(() => {
+    setConsentOk(hasFunctionalConsent());
+    if (!hasFunctionalConsent()) {
+      setVenues([]);
+      setProviders([]);
+      return;
+    }
+
     if (variant === "venues") {
       const ids = getRecentVenueIdsOrdered();
       if (ids.length === 0) {
@@ -76,7 +94,6 @@ export default function RecentlyViewedBar({ variant }: Props) {
   }, [pathname, load]);
 
   const items = variant === "venues" ? venues : providers;
-  if (!loading && items.length === 0) return null;
 
   function handleClear() {
     if (variant === "venues") {
@@ -92,6 +109,117 @@ export default function RecentlyViewedBar({ variant }: Props) {
     variant === "venues"
       ? "נצפו לאחרונה — אולמות"
       : "נצפו לאחרונה — ספקים";
+
+  if (!consentOk) {
+    if (layout !== "section") return null;
+    return (
+      <section className="rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4 text-right text-sm text-neutral-700">
+        <p>כדי לשמור «נצפו לאחרונה» יש לאשר עוגיות פונקציונליות.</p>
+        <Link
+          href="/settings#privacy"
+          className="mt-2 inline-block text-xs font-semibold text-emerald-950 hover:underline"
+        >
+          הגדרות עוגיות →
+        </Link>
+      </section>
+    );
+  }
+
+  if (!loading && items.length === 0) return null;
+
+  if (layout === "section") {
+    return (
+      <section className="space-y-3 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 text-right shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-[11px] font-semibold tracking-wide text-neutral-500">
+              המשך מאיפה שהפסקתם
+            </p>
+            <h2 className="mt-0.5 text-lg font-bold text-emerald-950">{label}</h2>
+          </div>
+          {!loading && items.length > 0 ? (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="text-xs font-medium text-neutral-500 underline-offset-2 hover:text-red-700 hover:underline"
+            >
+              נקה היסטוריה
+            </button>
+          ) : null}
+        </div>
+        {loading && items.length === 0 ? (
+          <p className="text-sm text-neutral-600">טוען…</p>
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {variant === "venues"
+              ? venues.map((v) => (
+                  <li key={v.id}>
+                    <Link
+                      href={`/halls/${v.id}`}
+                      className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-amber-400 hover:shadow-md"
+                    >
+                      <div className="aspect-[16/10] bg-[#F5EFE3]">
+                        {v.coverImageUrl ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={v.coverImageUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-2xl text-neutral-400">
+                            🏛
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="font-semibold text-emerald-950">{v.name}</p>
+                        <p className="text-xs text-neutral-600">{v.city}</p>
+                      </div>
+                    </Link>
+                  </li>
+                ))
+              : providers.map((p) => {
+                  const title =
+                    p.businessName?.trim() || p.name?.trim() || `ספק #${p.id}`;
+                  const img = p.services[0]?.coverImageUrl;
+                  return (
+                    <li key={p.id}>
+                      <Link
+                        href={`/providers/${p.id}`}
+                        className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-amber-400 hover:shadow-md"
+                      >
+                        <div className="aspect-[16/10] bg-[#F5EFE3]">
+                          {img ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={img}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-2xl text-neutral-400">
+                              ★
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3">
+                          <p className="font-semibold text-emerald-950">{title}</p>
+                          {p.services[0]?.category ? (
+                            <p className="text-xs text-neutral-600">
+                              {p.services[0].category}
+                            </p>
+                          ) : null}
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
+          </ul>
+        )}
+      </section>
+    );
+  }
 
   return (
     <section

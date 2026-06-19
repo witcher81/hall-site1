@@ -63,7 +63,7 @@ export default async function HallsPage({ searchParams }: PageProps) {
     <SitePageShell mainWidth="wide">
       <SitePageHeader
         title="חיפוש אולמות לאירוע"
-        description='סינון מתעדכן אוטומטית; תקבלו Top Picks, תוויות חכמות והסבר "למה זה מתאים לך" — והחיפוש האחרון נשמר במכשיר.'
+        description="טרנדינג השבוע, Top Picks לפי הסינון, תוויות חכמות והסבר «למה זה מתאים לך» — והחיפוש נשמר במכשיר."
       />
       <HallsSearchClient
         userLoggedIn={!!user}

@@ -47,8 +47,6 @@ type NavKey =
   | "halls"
   | "providers"
   | "packages"
-  | "trending"
-  | "recentlyViewed"
   | "favorites"
   | "eventBuilder"
   | "messages"
@@ -61,8 +59,6 @@ function navKeyActive(pathname: string, key: NavKey): boolean {
   if (key === "providers")
     return pathname === "/providers" || pathname.startsWith("/providers/");
   if (key === "packages") return pathname.startsWith("/packages");
-  if (key === "trending") return pathname.startsWith("/trending");
-  if (key === "recentlyViewed") return pathname.startsWith("/recently-viewed");
   if (key === "favorites") return pathname.startsWith("/favorites");
   if (key === "eventBuilder") return pathname.startsWith("/event-builder");
   if (key === "messages") return pathname.startsWith("/messages");
@@ -234,28 +230,6 @@ export default function HomeHeader({
               }`}
             >
               חבילות אירוע
-            </Link>
-            <Link
-              href="/trending"
-              aria-current={navKeyActive(pathname, "trending") ? "page" : undefined}
-              className={`${navLinkDesktopBase} ${
-                navKeyActive(pathname, "trending")
-                  ? navLinkDesktopActive
-                  : navLinkDesktopIdle
-              }`}
-            >
-              טרנדינג
-            </Link>
-            <Link
-              href="/recently-viewed"
-              aria-current={navKeyActive(pathname, "recentlyViewed") ? "page" : undefined}
-              className={`${navLinkDesktopBase} ${
-                navKeyActive(pathname, "recentlyViewed")
-                  ? navLinkDesktopActive
-                  : navLinkDesktopIdle
-              }`}
-            >
-              נצפו לאחרונה
             </Link>
             {user?.role === "SEEKER" && (
               <>
@@ -453,32 +427,6 @@ export default function HomeHeader({
                       onClick={() => setMenuOpen(false)}
                     >
                       חבילות אירוע
-                    </Link>
-                    <Link
-                      href="/trending"
-                      aria-current={navKeyActive(pathname, "trending") ? "page" : undefined}
-                      className={`${navLinkMobileBase} ${
-                        navKeyActive(pathname, "trending")
-                          ? navLinkMobileActive
-                          : navLinkMobileIdle
-                      }`}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      טרנדינג
-                    </Link>
-                    <Link
-                      href="/recently-viewed"
-                      aria-current={
-                        navKeyActive(pathname, "recentlyViewed") ? "page" : undefined
-                      }
-                      className={`${navLinkMobileBase} ${
-                        navKeyActive(pathname, "recentlyViewed")
-                          ? navLinkMobileActive
-                          : navLinkMobileIdle
-                      }`}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      נצפו לאחרונה
                     </Link>
                     {user?.role === "SEEKER" && (
                       <>

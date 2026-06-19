@@ -16,6 +16,7 @@ import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import SavedHallSearchesPanel from "@/components/SavedHallSearchesPanel";
+import TrendingSection from "@/components/trending/TrendingSection";
 import { parseNaturalHallSearchQuery } from "@/lib/naturalHallSearch";
 import {
   computeLabelWinners,
@@ -1262,7 +1263,12 @@ export default function HallsSearchClient({
 
       <SavedHallSearchesPanel currentQuery={savedSearchQuery} />
 
-      <RecentlyViewedBar variant="venues" />
+      {activeFilterCount === 0 ? (
+        <>
+          <RecentlyViewedBar variant="venues" layout="section" />
+          <TrendingSection />
+        </>
+      ) : null}
 
       {mapOpen ? (
         <>

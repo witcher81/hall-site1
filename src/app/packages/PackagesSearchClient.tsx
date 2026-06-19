@@ -9,8 +9,8 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import CityDatalist from "@/components/CityDatalist";
+import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
-import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
 import {
   PACKAGE_TIER_LABELS,
@@ -20,12 +20,19 @@ import {
 } from "@/lib/eventPackageTypes";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PackagesListSort } from "@/lib/packagesFilter";
+import type { PublicPackageListItem } from "@/lib/publicPackagesSearch";
 
 const PACKAGES_SEARCH_STORAGE_KEY = "hallsHub.packagesSearch.v1";
+
+const EVENT_TYPE_OPTIONS = ["חתונה", "בר מצווה", "בת מצווה", "ברית", "אירוע עסקי", "אחר"];
+
+const QUICK_CITIES = ["תל אביב", "חיפה", "ירושלים", "הרצליה", "רמת גן", "פתח תקווה"];
 
 const EMPTY_SEARCH_FORM = {
   q: "",
   city: "",
+  tier: "",
+  eventType: "",
   minGuests: "",
   maxGuests: "",
   bundleMin: "",
@@ -39,6 +46,8 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   const params = new URLSearchParams();
   if (f.q.trim()) params.set("q", f.q.trim());
   if (f.city.trim()) params.set("city", f.city.trim());
+  if (f.tier.trim()) params.set("tier", f.tier.trim());
+  if (f.eventType.trim()) params.set("eventType", f.eventType.trim());
   if (f.minGuests) params.set("minGuests", f.minGuests);
   if (f.maxGuests) params.set("maxGuests", f.maxGuests);
   if (f.bundleMin) params.set("bundleMin", f.bundleMin);
@@ -55,6 +64,8 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
     ...EMPTY_SEARCH_FORM,
     q: sp.get("q") ?? "",
     city: sp.get("city") ?? "",
+    tier: sp.get("tier") ?? "",
+    eventType: sp.get("eventType") ?? "",
     minGuests: sp.get("minGuests") ?? "",
     maxGuests: sp.get("maxGuests") ?? "",
     bundleMin: sp.get("bundleMin") ?? "",
@@ -195,6 +206,8 @@ function hasActiveFilters(sp: URLSearchParams): boolean {
     Boolean(sp.get("q")) ||
     Boolean(sp.get("city")) ||
     Boolean(sp.get("venueId")) ||
+    Boolean(sp.get("tier")) ||
+    Boolean(sp.get("eventType")) ||
     Boolean(sp.get("minGuests")) ||
     Boolean(sp.get("maxGuests")) ||
     Boolean(sp.get("bundleMin")) ||
@@ -205,7 +218,42 @@ function hasActiveFilters(sp: URLSearchParams): boolean {
   );
 }
 
-import type { PublicPackageListItem } from "@/lib/publicPackagesSearch";
+function countActiveFilters(f: SearchFormState): number {
+  let n = 0;
+  if (f.q.trim()) n += 1;
+  if (f.city.trim()) n += 1;
+  if (f.tier.trim()) n += 1;
+  if (f.eventType.trim()) n += 1;
+  if (f.minGuests) n += 1;
+  if (f.maxGuests) n += 1;
+  if (f.bundleMin || f.bundleMax) n += 1;
+  if (f.sort && f.sort !== "order") n += 1;
+  return n;
+}
+
+function buildFilterSummary(f: SearchFormState): string {
+  const parts: string[] = [];
+  if (f.q.trim()) parts.push(`«${f.q.trim()}»`);
+  if (f.city.trim()) parts.push(f.city.trim());
+  const tier = parsePackageTier(f.tier);
+  if (tier) parts.push(`שכבת ${PACKAGE_TIER_LABELS[tier]}`);
+  if (f.eventType.trim()) parts.push(f.eventType.trim());
+  if (f.minGuests || f.maxGuests) {
+    parts.push(
+      `${f.minGuests || "?"}–${f.maxGuests || "?"} אורחים`
+    );
+  }
+  if (f.bundleMin || f.bundleMax) {
+    parts.push(
+      f.bundleMin && f.bundleMax
+        ? `₪${f.bundleMin}–${f.bundleMax}`
+        : f.bundleMax
+          ? `עד ₪${f.bundleMax}`
+          : `מ־₪${f.bundleMin}`
+    );
+  }
+  return parts.join(" · ");
+}
 
 export default function PackagesSearchClient({
   initialPackages = [],
@@ -217,6 +265,7 @@ export default function PackagesSearchClient({
   const [packages, setPackages] = useState<PackageRow[]>(initialPackages);
   const [loading, setLoading] = useState(initialPackages.length === 0);
   const [form, setForm] = useState<SearchFormState>(() => ({ ...EMPTY_SEARCH_FORM }));
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const lastPushedQsRef = useRef<string | null>(null);
   const restoredSearchRef = useRef(false);
 
@@ -264,15 +313,26 @@ export default function PackagesSearchClient({
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const t = window.setTimeout(() => {
-      const next = buildParamsFromForm(form).toString();
-      if (next === searchParams.toString()) return;
-      lastPushedQsRef.current = next;
-      router.replace(next ? `/packages?${next}` : "/packages", { scroll: false });
-    }, 380);
-    return () => window.clearTimeout(t);
-  }, [form, router, searchParams]);
+  function applySearch(nextForm: SearchFormState) {
+    const next = buildParamsFromForm(nextForm).toString();
+    lastPushedQsRef.current = next;
+    router.replace(next ? `/packages?${next}` : "/packages", { scroll: false });
+  }
+
+  function clearAllFilters() {
+    setForm({ ...EMPTY_SEARCH_FORM });
+    lastPushedQsRef.current = "";
+    router.replace("/packages", { scroll: false });
+  }
+
+  function patchUrlParam(key: string, value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set(key, value);
+    else params.delete(key);
+    const next = params.toString();
+    lastPushedQsRef.current = next;
+    router.replace(next ? `/packages?${next}` : "/packages", { scroll: false });
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -288,9 +348,8 @@ export default function PackagesSearchClient({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const next = buildParamsFromForm(form).toString();
-    lastPushedQsRef.current = next;
-    router.replace(next ? `/packages?${next}` : "/packages", { scroll: false });
+    applySearch(form);
+    setFiltersOpen(false);
   }
 
   const fieldClass =
@@ -298,136 +357,298 @@ export default function PackagesSearchClient({
   const labelClass = "block text-sm font-medium text-emerald-950";
 
   const active = hasActiveFilters(searchParams);
+  const activeFilterCount = countActiveFilters(form);
+  const filterSummary = buildFilterSummary(form);
+  const currentTier = searchParams.get("tier") ?? "";
+  const currentCity = searchParams.get("city") ?? "";
+  const currentEventType = searchParams.get("eventType") ?? "";
 
   return (
-    <div className="mt-6 space-y-8">
+    <div className="mt-6 space-y-6">
       <form
         onSubmit={handleSubmit}
-        className="rounded-3xl border border-neutral-200 bg-white p-6 text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] sm:p-8 md:p-10"
+        className={`rounded-3xl border border-neutral-200 bg-white text-right shadow-[0_8px_40px_-12px_rgba(15,59,46,0.12)] ${
+          filtersOpen ? "p-6 sm:p-8 md:p-10" : "p-4 sm:p-5"
+        }`}
       >
-        <div className="mb-6 flex flex-col gap-1 border-b border-neutral-200/80 pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-lg font-bold text-emerald-950">סינון חיפוש חבילות</p>
-            <p className="mt-1 text-sm text-neutral-600">
-              כמו בחיפוש אולמות: העיר עם השלמה מהרשימה, אורחים וטווח מחיר לחבילה.
-              החיפוש מתעדכן אוטומטית כשמשנים ערכים.
-            </p>
+        <div
+          className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${
+            filtersOpen ? "mb-6 border-b border-neutral-200/80 pb-4" : ""
+          }`}
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-lg font-bold text-emerald-950">חיפוש חבילות</p>
+            {filtersOpen ? (
+              <p className="mt-1 text-sm text-neutral-600">
+                סינון לפי עיר, סוג אירוע, שכבת חבילה, אורחים ותקציב — לחצו «החל חיפוש» בסיום.
+              </p>
+            ) : filterSummary ? (
+              <p className="mt-1 truncate text-sm text-neutral-600">{filterSummary}</p>
+            ) : (
+              <p className="mt-1 text-sm text-neutral-600">
+                לחצו לפתיחת חיפוש מפורט, או בחרו סינון מהיר למטה.
+              </p>
+            )}
           </div>
-        </div>
-
-        <div className="mb-5 min-w-0">
-          <label className={labelClass}>חיפוש חופשי</label>
-          <input
-            type="search"
-            dir="rtl"
-            value={form.q}
-            onChange={(e) => setForm((f) => ({ ...f, q: e.target.value }))}
-            className={fieldClass}
-            placeholder="שם חבילה, אולם, ספק, קטגוריה…"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <div className="min-w-0">
-            <label className={labelClass}>עיר</label>
-            <input
-              type="text"
-              value={form.city}
-              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-              className={fieldClass}
-              placeholder="תל אביב"
-              list="il-cities"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className={labelClass}>מינימום אורחים</label>
-            <input
-              type="number"
-              min={0}
-              value={form.minGuests}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, minGuests: e.target.value }))
-              }
-              className={fieldClass}
-              placeholder="100"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className={labelClass}>מקסימום אורחים</label>
-            <input
-              type="number"
-              min={0}
-              value={form.maxGuests}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, maxGuests: e.target.value }))
-              }
-              className={fieldClass}
-              placeholder="400"
-            />
-          </div>
-          <div className="min-w-0 sm:col-span-2">
-            <OptionalPriceRangeFields
-              minPrice={form.bundleMin}
-              maxPrice={form.bundleMax}
-              onChange={(min, max) =>
-                setForm((f) => ({ ...f, bundleMin: min, bundleMax: max }))
-              }
-              singleLabel="מחיר חבילה (₪)"
-              singlePlaceholder="למשל 50000"
-              minLabel="מחיר מינימום חבילה (₪)"
-              maxLabel="מחיר מקסימום חבילה (₪)"
-              expandRangeLabel="אין לי מחיר קבוע — חפש לפי טווח"
-              collapseRangeLabel="יש לי מחיר קבוע לחבילה"
-              inputClassName={fieldClass}
-            />
-          </div>
-          <div className="min-w-0">
-            <label className={labelClass}>מיון</label>
-            <select
-              value={form.sort}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  sort: e.target.value as PackagesListSort,
-                }))
-              }
-              className={fieldClass}
-            >
-              <option value="order">מומלצים (ברירת מחדל)</option>
-              <option value="price_low">מחיר חבילה: מהנמוך לגבוה</option>
-              <option value="price_high">מחיר חבילה: מהגבוה לנמוך</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-col items-stretch gap-3 border-t border-neutral-200/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-center text-sm text-neutral-600 sm:text-right">
-            החיפוש מתעדכן אוטומטית כשמשנים סינון (אפשר גם ללחוץ לעדכון מיידי).
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 sm:justify-end">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            {!filtersOpen && activeFilterCount > 0 ? (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="min-h-[44px] rounded-xl border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50"
+              >
+                נקה סינון
+              </button>
+            ) : null}
             <button
               type="button"
-              onClick={() => {
-                setForm({ ...EMPTY_SEARCH_FORM });
-                lastPushedQsRef.current = "";
-                router.replace("/packages", { scroll: false });
-              }}
-              className="min-h-[50px] rounded-2xl border-2 border-emerald-950/20 px-6 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-50"
+              onClick={() => setFiltersOpen((open) => !open)}
+              className={`inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold transition ${
+                filtersOpen
+                  ? "border border-neutral-200 bg-white text-emerald-950 hover:bg-neutral-50"
+                  : "bg-emerald-950 text-white shadow-md hover:bg-emerald-900"
+              }`}
+              aria-expanded={filtersOpen}
             >
-              נקה הכל
-            </button>
-            <button
-              type="submit"
-              className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
-            >
-              עדכן עכשיו
+              {filtersOpen ? (
+                "סגור חיפוש"
+              ) : (
+                <>
+                  <span>פתח חיפוש</span>
+                  {activeFilterCount > 0 ? (
+                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-white">
+                      {activeFilterCount}
+                    </span>
+                  ) : null}
+                </>
+              )}
             </button>
           </div>
         </div>
+
+        {filtersOpen ? (
+          <>
+            <div className="mb-6 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4">
+              <label className={labelClass}>חיפוש חופשי</label>
+              <p className="mt-1 text-xs text-neutral-600">
+                שם חבילה, אולם, ספק או קטגוריה — לדוגמה: «חתונה עם צילום בתל אביב»
+              </p>
+              <input
+                type="search"
+                dir="rtl"
+                value={form.q}
+                onChange={(e) => setForm((f) => ({ ...f, q: e.target.value }))}
+                className={`${fieldClass} mt-2`}
+                placeholder="חפשו חבילה, אולם או ספק…"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
+                <label className={labelClass}>עיר</label>
+                <CityAutocompleteInput
+                  value={form.city}
+                  onChange={(city) => setForm((f) => ({ ...f, city }))}
+                  placeholder="הקלד עיר או בחר מהרשימה"
+                  className={fieldClass}
+                />
+              </div>
+
+              <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
+                <label className={labelClass}>סוג אירוע</label>
+                <select
+                  value={form.eventType}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, eventType: e.target.value }))
+                  }
+                  className={fieldClass}
+                >
+                  <option value="">כל סוגי האירועים</option>
+                  {EVENT_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
+                <label className={labelClass}>שכבת חבילה</label>
+                <select
+                  value={form.tier}
+                  onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value }))}
+                  className={fieldClass}
+                >
+                  <option value="">כל השכבות</option>
+                  {PACKAGE_TIERS.map((t) => (
+                    <option key={t} value={t}>
+                      {PACKAGE_TIER_LABELS[t]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
+                <label className={labelClass}>מיון תוצאות</label>
+                <select
+                  value={form.sort}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      sort: e.target.value as PackagesListSort,
+                    }))
+                  }
+                  className={fieldClass}
+                >
+                  <option value="order">מומלצים (ברירת מחדל)</option>
+                  <option value="price_low">מחיר: מהנמוך לגבוה</option>
+                  <option value="price_high">מחיר: מהגבוה לנמוך</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
+                <label className={labelClass}>מינימום אורחים</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.minGuests}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, minGuests: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder="100"
+                />
+              </div>
+              <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
+                <label className={labelClass}>מקסימום אורחים</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.maxGuests}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, maxGuests: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder="400"
+                />
+              </div>
+              <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4 sm:col-span-2 lg:col-span-1">
+                <OptionalPriceRangeFields
+                  minPrice={form.bundleMin}
+                  maxPrice={form.bundleMax}
+                  onChange={(min, max) =>
+                    setForm((f) => ({ ...f, bundleMin: min, bundleMax: max }))
+                  }
+                  singleLabel="תקציב לחבילה (₪)"
+                  singlePlaceholder="למשל 60000"
+                  minLabel="מחיר מינימום (₪)"
+                  maxLabel="מחיר מקסימום (₪)"
+                  expandRangeLabel="חיפוש לפי טווח מחיר"
+                  collapseRangeLabel="מחיר יעד בודד"
+                  inputClassName={fieldClass}
+                />
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-col items-stretch gap-3 border-t border-neutral-200/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="min-h-[50px] rounded-2xl border-2 border-emerald-950/20 px-6 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-50"
+              >
+                נקה הכל
+              </button>
+              <button
+                type="submit"
+                className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
+              >
+                החל חיפוש
+              </button>
+            </div>
+          </>
+        ) : null}
         <CityDatalist />
       </form>
 
-      <RecentlyViewedBar variant="venues" />
+      <section className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4 text-right shadow-sm">
+        <p className="text-xs font-semibold text-emerald-950">סינון מהיר</p>
+        <div className="mt-3 space-y-3">
+          <div>
+            <p className="mb-1.5 text-[11px] text-neutral-500">שכבה</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => patchUrlParam("tier", "")}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  !currentTier
+                    ? "bg-emerald-950 text-white"
+                    : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                }`}
+              >
+                הכל
+              </button>
+              {PACKAGE_TIERS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => patchUrlParam("tier", currentTier === t ? "" : t)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    currentTier === t
+                      ? "bg-emerald-950 text-white"
+                      : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                  }`}
+                >
+                  {PACKAGE_TIER_LABELS[t]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-[11px] text-neutral-500">עיר</p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_CITIES.map((city) => (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() =>
+                    patchUrlParam("city", currentCity === city ? "" : city)
+                  }
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    currentCity === city
+                      ? "bg-amber-400 text-white"
+                      : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                  }`}
+                >
+                  {city}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-[11px] text-neutral-500">סוג אירוע</p>
+            <div className="flex flex-wrap gap-2">
+              {EVENT_TYPE_OPTIONS.slice(0, 4).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() =>
+                    patchUrlParam("eventType", currentEventType === type ? "" : type)
+                  }
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    currentEventType === type
+                      ? "bg-emerald-800 text-white"
+                      : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {loading ? (
         <PackagesResultsSkeleton />
@@ -458,9 +679,16 @@ export default function PackagesSearchClient({
               </p>
             </>
           )}
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="btn-primary mt-4 px-6 py-2 text-sm"
+          >
+            נקה את כל הסינון
+          </button>
           <Link
             href="/halls"
-            className="mt-5 inline-block text-sm font-semibold text-amber-600 hover:underline"
+            className="mt-4 block text-sm font-semibold text-amber-600 hover:underline"
           >
             חיפוש אולמות →
           </Link>

@@ -12,7 +12,7 @@ import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServi
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type Service = {
@@ -119,6 +119,14 @@ export default function ProvidersSearchClient({
     router.push(`/providers${params.toString() ? `?${params.toString()}` : ""}`);
   }
 
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (form.category) n += 1;
+    if (form.secondary) n += 1;
+    if (form.minPrice || form.maxPrice) n += 1;
+    return n;
+  }, [form]);
+
   return (
     <div className="mt-6 space-y-6">
       <form
@@ -187,7 +195,9 @@ export default function ProvidersSearchClient({
         </div>
       </form>
 
-      <RecentlyViewedBar variant="providers" />
+      {activeFilterCount === 0 ? (
+        <RecentlyViewedBar variant="providers" layout="section" />
+      ) : null}
 
       {loading ? (
         <p className="py-8 text-center text-sm text-neutral-600">טוען תוצאות…</p>

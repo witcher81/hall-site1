@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { parsePackageTier } from "@/lib/eventPackageTypes";
 
 export type PackagesListSort = "order" | "price_low" | "price_high";
 
@@ -6,6 +7,8 @@ export type PackagesSearchInput = {
   q: string;
   city: string;
   venueId: string;
+  tier: string;
+  eventType: string;
   minGuests: string;
   maxGuests: string;
   bundleMin: string;
@@ -31,6 +34,8 @@ export function parsePackagesSearchParams(
     q: pick("q").trim(),
     city: pick("city").trim(),
     venueId: pick("venueId").trim(),
+    tier: pick("tier").trim(),
+    eventType: pick("eventType").trim(),
     minGuests: pick("minGuests").trim() || legacyGuests,
     maxGuests: pick("maxGuests").trim(),
     bundleMin: pick("bundleMin").trim(),
@@ -62,6 +67,16 @@ export function buildEventPackageWhere(
   const venueId = Number(input.venueId);
   if (Number.isInteger(venueId) && venueId > 0) {
     conditions.push({ venueId });
+  }
+
+  const tier = parsePackageTier(input.tier);
+  if (tier) {
+    conditions.push({ tier });
+  }
+
+  const eventType = input.eventType.trim();
+  if (eventType) {
+    conditions.push({ eventTypesJson: { contains: eventType } });
   }
 
   const city = input.city.trim();

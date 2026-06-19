@@ -65,7 +65,6 @@ export default async function SeekerDashboardPage() {
     { href: "/favorites", label: "מועדפים", count: favorites },
     { href: "/notifications", label: "התראות שלא נקראו", count: unread },
     { href: "/event-tools", label: "כלי תכנון אירוע", count: null },
-    { href: "/recently-viewed", label: "נצפו לאחרונה", count: null },
   ];
 
   return (
@@ -144,8 +143,11 @@ export default async function SeekerDashboardPage() {
           <Link href="/favorites" className="font-semibold text-emerald-950 underline">
             כל המועדפים →
           </Link>
-          <Link href="/recently-viewed" className="font-semibold text-emerald-950 underline">
-            נצפו לאחרונה →
+          <Link href="/halls" className="font-semibold text-emerald-950 underline">
+            נצפו לאחרונה — אולמות →
+          </Link>
+          <Link href="/providers" className="font-semibold text-emerald-950 underline">
+            נצפו לאחרונה — ספקים →
           </Link>
         </div>
       </section>
