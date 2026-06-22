@@ -9,10 +9,15 @@ export type VenueOfferProductsSlice = {
   boutique: boolean;
   accessible: boolean;
   hasChuppa: boolean;
+  hasChuppaOutdoor: boolean;
+  hasChuppaCovered: boolean;
+  hasBridalRoom: boolean;
   hasFood: boolean;
+  hasVeganFood: boolean;
   hasTableSetup: boolean;
   hasDanceFloor: boolean;
   hasSoundSystem: boolean;
+  hasParkingNearby: boolean;
 };
 
 export type OfferProductKey = keyof VenueOfferProductsSlice;
@@ -34,11 +39,87 @@ export const OFFER_PRODUCT_LABELS: Record<OfferProductKey, string> = {
   boutique: "מתאים לאירועים קטנים",
   accessible: "נגישות לנכים",
   hasChuppa: "כולל חופה",
+  hasChuppaOutdoor: "חופה בחוץ",
+  hasChuppaCovered: "חופה מקורה",
+  hasBridalRoom: "חדר כלה / חתן",
   hasFood: "בופה",
+  hasVeganFood: "מנות טבעוניות / צמחוניות",
   hasTableSetup: "סידור שולחנות",
   hasDanceFloor: "רחבת ריקודים",
   hasSoundSystem: "מערכת הגברה",
+  hasParkingNearby: "חניה באזור",
 };
+
+/** מאפיין רך (JSON) — חיפוש לפי תווית שבעל האולם הוסיף */
+export type SoftAttrFilterOption = { value: string; label: string };
+
+export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> = {
+  חתונה: [
+    { value: "לובי", label: "לובי / קבלת פנים" },
+    { value: "גג", label: "גג פתוח" },
+    { value: "בר", label: "בר משקאות" },
+    { value: "VIP", label: "אזור VIP" },
+  ],
+  "יום הולדת": [
+    { value: "גינה", label: "גינה / חצר" },
+    { value: "בריכ", label: "בריכה / מים" },
+    { value: "מוזיק", label: "מוזיקה / DJ" },
+    { value: "עמד", label: "עמדות / אטרקציות" },
+  ],
+  [EVENT_TYPE_BAR_BAT]: [
+    { value: "במה", label: "במה / הופעות" },
+    { value: "בר", label: "בר / קינוחים" },
+  ],
+  [EVENT_TYPE_BRIT]: [
+    { value: "גינה", label: "גינה / חצר" },
+    { value: "עמד", label: "עמדת קינוחים" },
+  ],
+  חינה: [
+    { value: "גינה", label: "גינה / חצר" },
+    { value: "בר", label: "בר משקאות" },
+  ],
+};
+
+export type EventQuickChip = {
+  id: string;
+  label: string;
+  toggles: Partial<VenueOfferProductsSlice>;
+};
+
+export type EventContextChip = {
+  id: string;
+  label: string;
+  kashrut?: string;
+  parkingKind?: string;
+};
+
+const WEDDING_PRODUCTS: OfferProductKey[] = [
+  "seaView",
+  "boutique",
+  "accessible",
+  "hasParkingNearby",
+  "hasChuppa",
+  "hasChuppaOutdoor",
+  "hasChuppaCovered",
+  "hasBridalRoom",
+  "hasFood",
+  "hasVeganFood",
+  "hasTableSetup",
+  "hasDanceFloor",
+  "hasSoundSystem",
+];
+
+const PARTY_PRODUCTS: OfferProductKey[] = [
+  "seaView",
+  "boutique",
+  "accessible",
+  "hasParkingNearby",
+  "hasFood",
+  "hasVeganFood",
+  "hasTableSetup",
+  "hasDanceFloor",
+  "hasSoundSystem",
+];
 
 /** מסנני «מוצרים שהאולם מציעה» לפי סוג אירוע — null = לא נבחר סוג */
 export function offerProductKeysForEventType(
@@ -47,51 +128,41 @@ export function offerProductKeysForEventType(
   const et = normalizeEventTypeLabel(eventType.trim());
   if (!et) return null;
 
-  if (et === "חתונה") {
+  if (et === "חתונה") return WEDDING_PRODUCTS;
+  if (et === EVENT_TYPE_BAR_BAT) return PARTY_PRODUCTS;
+  if (et === EVENT_TYPE_BRIT) {
+    return [
+      "accessible",
+      "boutique",
+      "hasParkingNearby",
+      "seaView",
+      "hasFood",
+      "hasVeganFood",
+      "hasTableSetup",
+    ];
+  }
+  if (et === "חינה") {
     return [
       "seaView",
       "boutique",
-      "accessible",
-      "hasChuppa",
-      "hasFood",
-      "hasTableSetup",
-      "hasDanceFloor",
-      "hasSoundSystem",
-    ];
-  }
-  if (et === EVENT_TYPE_BAR_BAT) {
-    return [
-      "accessible",
-      "boutique",
-      "hasFood",
-      "hasTableSetup",
-      "hasDanceFloor",
-      "hasSoundSystem",
-    ];
-  }
-  if (et === EVENT_TYPE_BRIT) {
-    return ["accessible", "boutique", "hasFood", "hasTableSetup"];
-  }
-  if (et === "חינה") {
-    return ["seaView", "boutique", "hasFood", "hasDanceFloor", "hasSoundSystem"];
-  }
-  if (et === "יום הולדת") {
-    return [
-      "boutique",
-      "accessible",
+      "hasParkingNearby",
       "hasFood",
       "hasDanceFloor",
       "hasSoundSystem",
       "hasTableSetup",
     ];
   }
+  if (et === "יום הולדת") return PARTY_PRODUCTS;
   if (et === "אירוע עסקי" || et === "כנס") {
     return [
       "accessible",
+      "hasParkingNearby",
       "hasTableSetup",
       "hasSoundSystem",
       "hasFood",
+      "hasVeganFood",
       "boutique",
+      "seaView",
     ];
   }
   if (et === "מסיבת סיום") {
@@ -101,43 +172,181 @@ export function offerProductKeysForEventType(
       "hasFood",
       "hasTableSetup",
       "accessible",
+      "hasParkingNearby",
+      "boutique",
     ];
   }
-  return [
-    "seaView",
-    "boutique",
-    "accessible",
-    "hasFood",
-    "hasTableSetup",
-    "hasDanceFloor",
-    "hasSoundSystem",
-  ];
+  return PARTY_PRODUCTS;
+}
+
+export function softAttrFiltersForEventType(
+  eventType: string
+): SoftAttrFilterOption[] {
+  const et = normalizeEventTypeLabel(eventType.trim());
+  if (!et) return [];
+  return (
+    SOFT_ATTR_FILTERS_BY_EVENT[et] ??
+    SOFT_ATTR_FILTERS_BY_EVENT[EVENT_TYPE_BAR_BAT] ??
+    []
+  );
+}
+
+export function eventQuickChipsForEventType(eventType: string): EventQuickChip[] {
+  const et = normalizeEventTypeLabel(eventType.trim());
+  if (et === "חתונה") {
+    return [
+      {
+        id: "wedding-full",
+        label: "חבילה מלאה",
+        toggles: {
+          hasFood: true,
+          hasTableSetup: true,
+          hasDanceFloor: true,
+          hasSoundSystem: true,
+        },
+      },
+      {
+        id: "wedding-garden",
+        label: "חתונה בגינה",
+        toggles: { seaView: true, hasChuppaOutdoor: true, hasChuppa: true },
+      },
+      {
+        id: "wedding-indoor",
+        label: "חופה מקורה",
+        toggles: { hasChuppaCovered: true, hasChuppa: true },
+      },
+    ];
+  }
+  if (et === "יום הולדת") {
+    return [
+      {
+        id: "bday-kids",
+        label: "מסיבת ילדים",
+        toggles: { boutique: true, hasSoundSystem: true, hasFood: true },
+      },
+      {
+        id: "bday-dance",
+        label: "מסיבה עם ריקודים",
+        toggles: { hasDanceFloor: true, hasSoundSystem: true },
+      },
+    ];
+  }
+  if (et === EVENT_TYPE_BAR_BAT) {
+    return [
+      {
+        id: "bm-party",
+        label: "מסיבה + ריקודים",
+        toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
+      },
+    ];
+  }
+  if (et === EVENT_TYPE_BRIT) {
+    return [
+      {
+        id: "brit-small",
+        label: "אירוע קטן ואינטימי",
+        toggles: { boutique: true, hasFood: true, hasTableSetup: true },
+      },
+    ];
+  }
+  if (et === "אירוע עסקי" || et === "כנס") {
+    return [
+      {
+        id: "conf-tech",
+        label: "כנס עם הגברה",
+        toggles: { hasSoundSystem: true, hasTableSetup: true },
+      },
+    ];
+  }
+  return [];
+}
+
+export function eventContextChipsForEventType(
+  eventType: string
+): EventContextChip[] {
+  const et = normalizeEventTypeLabel(eventType.trim());
+  const religious =
+    et === "חתונה" ||
+    et === EVENT_TYPE_BAR_BAT ||
+    et === EVENT_TYPE_BRIT ||
+    et === "חינה";
+  const chips: EventContextChip[] = [];
+  if (religious) {
+    chips.push(
+      { id: "k-mehadrin", label: "כשרות מהדרין", kashrut: "מהדרין" },
+      { id: "k-regular", label: "כשרות רגילה", kashrut: "רגיל" }
+    );
+  }
+  chips.push(
+    { id: "p-adj", label: "חניה צמודה", parkingKind: "adjacent" },
+    { id: "p-near", label: "חניה בקרבת מקום", parkingKind: "nearby" }
+  );
+  return chips;
 }
 
 export function showBirthdayAgeFilter(eventType: string): boolean {
   return normalizeEventTypeLabel(eventType.trim()) === "יום הולדת";
 }
 
+export function emptyOfferProductFilters(): VenueOfferProductsSlice {
+  return {
+    seaView: false,
+    boutique: false,
+    accessible: false,
+    hasChuppa: false,
+    hasChuppaOutdoor: false,
+    hasChuppaCovered: false,
+    hasBridalRoom: false,
+    hasFood: false,
+    hasVeganFood: false,
+    hasTableSetup: false,
+    hasDanceFloor: false,
+    hasSoundSystem: false,
+    hasParkingNearby: false,
+  };
+}
+
 export function clearHiddenOfferProductFilters(
   values: VenueOfferProductsSlice,
   visibleKeys: OfferProductKey[] | null
 ): VenueOfferProductsSlice {
-  if (!visibleKeys) {
-    return {
-      seaView: false,
-      boutique: false,
-      accessible: false,
-      hasChuppa: false,
-      hasFood: false,
-      hasTableSetup: false,
-      hasDanceFloor: false,
-      hasSoundSystem: false,
-    };
-  }
+  if (!visibleKeys) return emptyOfferProductFilters();
   const allowed = new Set(visibleKeys);
   const next = { ...values };
   for (const key of Object.keys(next) as OfferProductKey[]) {
     if (!allowed.has(key)) next[key] = false;
   }
   return next;
+}
+
+export function sliceOfferProductsFromForm(form: {
+  seaView: boolean;
+  boutique: boolean;
+  accessible: boolean;
+  hasChuppa: boolean;
+  hasChuppaOutdoor: boolean;
+  hasChuppaCovered: boolean;
+  hasBridalRoom: boolean;
+  hasFood: boolean;
+  hasVeganFood: boolean;
+  hasTableSetup: boolean;
+  hasDanceFloor: boolean;
+  hasSoundSystem: boolean;
+  hasParkingNearby: boolean;
+}): VenueOfferProductsSlice {
+  return {
+    seaView: form.seaView,
+    boutique: form.boutique,
+    accessible: form.accessible,
+    hasChuppa: form.hasChuppa,
+    hasChuppaOutdoor: form.hasChuppaOutdoor,
+    hasChuppaCovered: form.hasChuppaCovered,
+    hasBridalRoom: form.hasBridalRoom,
+    hasFood: form.hasFood,
+    hasVeganFood: form.hasVeganFood,
+    hasTableSetup: form.hasTableSetup,
+    hasDanceFloor: form.hasDanceFloor,
+    hasSoundSystem: form.hasSoundSystem,
+    hasParkingNearby: form.hasParkingNearby,
+  };
 }

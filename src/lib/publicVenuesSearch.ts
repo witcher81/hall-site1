@@ -78,11 +78,16 @@ export async function searchPublicVenues(
   const boutique = searchParams.get("boutique");
   const accessible = searchParams.get("accessible");
   const hasChuppa = searchParams.get("hasChuppa");
+  const hasChuppaOutdoor = searchParams.get("hasChuppaOutdoor");
+  const hasChuppaCovered = searchParams.get("hasChuppaCovered");
   const hasFood = searchParams.get("hasFood");
+  const hasVeganFood = searchParams.get("hasVeganFood");
   const hasTableSetup = searchParams.get("hasTableSetup");
   const hasDanceFloor = searchParams.get("hasDanceFloor");
   const hasSoundSystem = searchParams.get("hasSoundSystem");
   const hasBridalRoom = searchParams.get("hasBridalRoom");
+  const hasParkingNearby = searchParams.get("hasParkingNearby");
+  const softAttr = readParam(searchParams, "softAttr");
   const birthdayAgeGroup = readParam(searchParams, "birthdayAgeGroup");
 
   let warning: string | undefined;
@@ -225,16 +230,26 @@ export async function searchPublicVenues(
   if (boutique === "true") where.boutique = true;
   if (accessible === "true") where.accessible = true;
   if (hasChuppa === "true") where.hasChuppa = true;
+  if (hasChuppaOutdoor === "true") where.hasChuppaOutdoor = true;
+  if (hasChuppaCovered === "true") where.hasChuppaCovered = true;
   if (hasFood === "true") {
     where.OR = [
       { hasFood: true },
       { eventTypes: { contains: "חתונה" } },
     ];
   }
+  if (hasVeganFood === "true") where.hasVeganFood = true;
   if (hasTableSetup === "true") where.hasTableSetup = true;
   if (hasDanceFloor === "true") where.hasDanceFloor = true;
   if (hasSoundSystem === "true") where.hasSoundSystem = true;
   if (hasBridalRoom === "true") where.hasBridalRoom = true;
+  if (hasParkingNearby === "true") where.hasParkingNearby = true;
+  if (softAttr && softAttr.length > 0) {
+    andParts.push({
+      venueSoftAttributesJson: { contains: softAttr, mode: "insensitive" },
+    });
+    where.AND = andParts;
+  }
 
   const venues = await prisma.venue.findMany({
     where,
@@ -260,11 +275,16 @@ export async function searchPublicVenues(
       boutique: true,
       accessible: true,
       hasChuppa: true,
+      hasChuppaOutdoor: true,
+      hasChuppaCovered: true,
       hasFood: true,
+      hasVeganFood: true,
       hasTableSetup: true,
       hasDanceFloor: true,
       hasSoundSystem: true,
       hasBridalRoom: true,
+      hasParkingNearby: true,
+      venueSoftAttributesJson: true,
       customAmenitiesJson: true,
       eventTypeProfilesJson: true,
       coverImageUrl: true,
@@ -442,12 +462,17 @@ export function hallsSearchHasActiveFilters(
     "boutique",
     "accessible",
     "hasChuppa",
+    "hasChuppaOutdoor",
+    "hasChuppaCovered",
     "hasFood",
+    "hasVeganFood",
     "hasTableSetup",
     "hasDanceFloor",
     "hasSoundSystem",
     "birthdayAgeGroup",
     "hasBridalRoom",
+    "hasParkingNearby",
+    "softAttr",
     "guestsRange",
     "priceRange",
     "guestsPriceRange",

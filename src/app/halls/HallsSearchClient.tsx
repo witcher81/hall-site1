@@ -45,8 +45,12 @@ import {
 import {
   BIRTHDAY_AGE_GROUP_OPTIONS,
   clearHiddenOfferProductFilters,
+  eventContextChipsForEventType,
+  eventQuickChipsForEventType,
   offerProductKeysForEventType,
   showBirthdayAgeFilter,
+  sliceOfferProductsFromForm,
+  softAttrFiltersForEventType,
   type BirthdayAgeGroup,
 } from "@/lib/eventTypeSearchFilters";
 
@@ -77,10 +81,16 @@ const EMPTY_SEARCH_FORM = {
   boutique: false,
   accessible: false,
   hasChuppa: false,
+  hasChuppaOutdoor: false,
+  hasChuppaCovered: false,
+  hasBridalRoom: false,
   hasFood: false,
+  hasVeganFood: false,
   hasTableSetup: false,
   hasDanceFloor: false,
   hasSoundSystem: false,
+  hasParkingNearby: false,
+  softAttr: "",
   birthdayAgeGroup: "" as BirthdayAgeGroup,
 };
 
@@ -123,10 +133,16 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   if (f.boutique) params.set("boutique", "true");
   if (f.accessible) params.set("accessible", "true");
   if (f.hasChuppa) params.set("hasChuppa", "true");
+  if (f.hasChuppaOutdoor) params.set("hasChuppaOutdoor", "true");
+  if (f.hasChuppaCovered) params.set("hasChuppaCovered", "true");
+  if (f.hasBridalRoom) params.set("hasBridalRoom", "true");
   if (f.hasFood) params.set("hasFood", "true");
+  if (f.hasVeganFood) params.set("hasVeganFood", "true");
   if (f.hasTableSetup) params.set("hasTableSetup", "true");
   if (f.hasDanceFloor) params.set("hasDanceFloor", "true");
   if (f.hasSoundSystem) params.set("hasSoundSystem", "true");
+  if (f.hasParkingNearby) params.set("hasParkingNearby", "true");
+  if (f.softAttr.trim()) params.set("softAttr", f.softAttr.trim());
   if (f.birthdayAgeGroup) params.set("birthdayAgeGroup", f.birthdayAgeGroup);
   return params;
 }
@@ -153,10 +169,16 @@ function countActiveFilters(f: SearchFormState): number {
   if (f.boutique) n++;
   if (f.accessible) n++;
   if (f.hasChuppa) n++;
+  if (f.hasChuppaOutdoor) n++;
+  if (f.hasChuppaCovered) n++;
+  if (f.hasBridalRoom) n++;
   if (f.hasFood) n++;
+  if (f.hasVeganFood) n++;
   if (f.hasTableSetup) n++;
   if (f.hasDanceFloor) n++;
   if (f.hasSoundSystem) n++;
+  if (f.hasParkingNearby) n++;
+  if (f.softAttr.trim()) n++;
   if (f.birthdayAgeGroup) n++;
   return n;
 }
@@ -189,6 +211,7 @@ function buildFilterSummary(f: SearchFormState): string | null {
     )?.label;
     if (ageLabel) parts.push(ageLabel);
   }
+  if (f.softAttr.trim()) parts.push(`מאפיין: ${f.softAttr.trim()}`);
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
@@ -259,10 +282,16 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
     boutique: sp.get("boutique") === "true",
     accessible: sp.get("accessible") === "true",
     hasChuppa: sp.get("hasChuppa") === "true",
+    hasChuppaOutdoor: sp.get("hasChuppaOutdoor") === "true",
+    hasChuppaCovered: sp.get("hasChuppaCovered") === "true",
+    hasBridalRoom: sp.get("hasBridalRoom") === "true",
     hasFood: sp.get("hasFood") === "true",
+    hasVeganFood: sp.get("hasVeganFood") === "true",
     hasTableSetup: sp.get("hasTableSetup") === "true",
     hasDanceFloor: sp.get("hasDanceFloor") === "true",
     hasSoundSystem: sp.get("hasSoundSystem") === "true",
+    hasParkingNearby: sp.get("hasParkingNearby") === "true",
+    softAttr: sp.get("softAttr") ?? "",
     birthdayAgeGroup: (() => {
       const raw = sp.get("birthdayAgeGroup") ?? "";
       return BIRTHDAY_AGE_GROUP_OPTIONS.some((o) => o.value === raw)
@@ -737,10 +766,16 @@ export default function HallsSearchClient({
      const boutique = searchParams.get("boutique");
      const accessible = searchParams.get("accessible");
      const hasChuppa = searchParams.get("hasChuppa");
+     const hasChuppaOutdoor = searchParams.get("hasChuppaOutdoor");
+     const hasChuppaCovered = searchParams.get("hasChuppaCovered");
+     const hasBridalRoom = searchParams.get("hasBridalRoom");
      const hasFood = searchParams.get("hasFood");
+     const hasVeganFood = searchParams.get("hasVeganFood");
      const hasTableSetup = searchParams.get("hasTableSetup");
      const hasDanceFloor = searchParams.get("hasDanceFloor");
      const hasSoundSystem = searchParams.get("hasSoundSystem");
+     const hasParkingNearby = searchParams.get("hasParkingNearby");
+     const softAttr = searchParams.get("softAttr");
      const birthdayAgeGroup = searchParams.get("birthdayAgeGroup");
     if (city) params.set("city", city);
     if (guestsRange === "true") params.set("guestsRange", "true");
@@ -761,10 +796,16 @@ export default function HallsSearchClient({
     if (boutique) params.set("boutique", boutique);
     if (accessible) params.set("accessible", accessible);
     if (hasChuppa) params.set("hasChuppa", hasChuppa);
+    if (hasChuppaOutdoor) params.set("hasChuppaOutdoor", hasChuppaOutdoor);
+    if (hasChuppaCovered) params.set("hasChuppaCovered", hasChuppaCovered);
+    if (hasBridalRoom) params.set("hasBridalRoom", hasBridalRoom);
     if (hasFood) params.set("hasFood", hasFood);
+    if (hasVeganFood) params.set("hasVeganFood", hasVeganFood);
     if (hasTableSetup) params.set("hasTableSetup", hasTableSetup);
     if (hasDanceFloor) params.set("hasDanceFloor", hasDanceFloor);
     if (hasSoundSystem) params.set("hasSoundSystem", hasSoundSystem);
+    if (hasParkingNearby) params.set("hasParkingNearby", hasParkingNearby);
+    if (softAttr) params.set("softAttr", softAttr);
     if (birthdayAgeGroup) params.set("birthdayAgeGroup", birthdayAgeGroup);
     const qs = params.toString();
     fetch(`/api/venues${qs ? `?${qs}` : ""}`)
@@ -901,26 +942,36 @@ export default function HallsSearchClient({
     setForm((f) => {
       const visible = offerProductKeysForEventType(nextType);
       const cleared = clearHiddenOfferProductFilters(
-        {
-          seaView: f.seaView,
-          boutique: f.boutique,
-          accessible: f.accessible,
-          hasChuppa: f.hasChuppa,
-          hasFood: f.hasFood,
-          hasTableSetup: f.hasTableSetup,
-          hasDanceFloor: f.hasDanceFloor,
-          hasSoundSystem: f.hasSoundSystem,
-        },
+        sliceOfferProductsFromForm(f),
         visible
       );
       return {
         ...f,
         eventType: nextType,
         ...cleared,
+        softAttr: "",
         birthdayAgeGroup: showBirthdayAgeFilter(nextType) ? f.birthdayAgeGroup : "",
       };
     });
   }
+
+  const offerProductValues = useMemo(
+    () => sliceOfferProductsFromForm(form),
+    [form]
+  );
+
+  const quickChips = useMemo(
+    () => eventQuickChipsForEventType(form.eventType),
+    [form.eventType]
+  );
+  const contextChips = useMemo(
+    () => eventContextChipsForEventType(form.eventType),
+    [form.eventType]
+  );
+  const softAttrOptions = useMemo(
+    () => softAttrFiltersForEventType(form.eventType),
+    [form.eventType]
+  );
 
   return (
     <div className="relative mt-6 space-y-8">
@@ -1268,9 +1319,9 @@ export default function HallsSearchClient({
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-6 space-y-4">
             {showBirthdayAgeFilter(form.eventType) ? (
-              <div className="mb-4 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
+              <div className="rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
                 <label className={labelClass}>קבוצת גיל (יום הולדת)</label>
                 <p className="mt-1 text-[11px] text-neutral-600">
                   מסייע למצוא אולם מתאים לגיל האורחים — ילדים, נוער או בוגרים.
@@ -1294,19 +1345,112 @@ export default function HallsSearchClient({
                 </select>
               </div>
             ) : null}
+
+            {form.eventType && quickChips.length > 0 ? (
+              <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4">
+                <p className="text-xs font-semibold text-emerald-950">סינון מהיר לאירוע</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {quickChips.map((chip) => (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          ...chip.toggles,
+                        }))
+                      }
+                      className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950 transition hover:border-amber-400 hover:bg-amber-50"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {form.eventType && contextChips.length > 0 ? (
+              <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4">
+                <p className="text-xs font-semibold text-emerald-950">כשרות וחניה</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {contextChips.map((chip) => {
+                    const kashrutActive =
+                      chip.kashrut != null && form.kashrut === chip.kashrut;
+                    const parkingActive =
+                      chip.parkingKind != null &&
+                      form.parkingKind === chip.parkingKind;
+                    const active = kashrutActive || parkingActive;
+                    return (
+                      <button
+                        key={chip.id}
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            ...(chip.kashrut != null
+                              ? {
+                                  kashrut:
+                                    f.kashrut === chip.kashrut ? "" : chip.kashrut,
+                                }
+                              : {}),
+                            ...(chip.parkingKind != null
+                              ? {
+                                  parkingKind:
+                                    f.parkingKind === chip.parkingKind
+                                      ? ""
+                                      : chip.parkingKind,
+                                }
+                              : {}),
+                          }))
+                        }
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          active
+                            ? "bg-emerald-950 text-white"
+                            : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                        }`}
+                      >
+                        {chip.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            {form.eventType && softAttrOptions.length > 0 ? (
+              <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4">
+                <p className="text-xs font-semibold text-emerald-950">מאפיינים מיוחדים</p>
+                <p className="mt-1 text-[11px] text-neutral-600">
+                  לפי מה שבעלי אולמות מציינים בפרופיל — גג, לובי, בר ועוד.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {softAttrOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          softAttr: f.softAttr === opt.value ? "" : opt.value,
+                        }))
+                      }
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                        form.softAttr === opt.value
+                          ? "bg-amber-400 text-white"
+                          : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <VenueOfferProductsSection
               visibleKeys={visibleOfferKeys}
               eventTypeLabel={form.eventType || undefined}
-              values={{
-                seaView: form.seaView,
-                boutique: form.boutique,
-                accessible: form.accessible,
-                hasChuppa: form.hasChuppa,
-                hasFood: form.hasFood,
-                hasTableSetup: form.hasTableSetup,
-                hasDanceFloor: form.hasDanceFloor,
-                hasSoundSystem: form.hasSoundSystem,
-              }}
+              values={offerProductValues}
               onChange={(key, checked) =>
                 setForm((f) => ({ ...f, [key]: checked }))
               }
