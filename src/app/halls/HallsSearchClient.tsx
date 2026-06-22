@@ -42,6 +42,13 @@ import {
   HALL_SEARCH_EVENT_TYPE_OPTIONS,
   normalizeEventTypesList,
 } from "@/lib/eventTypeOptions";
+import {
+  BIRTHDAY_AGE_GROUP_OPTIONS,
+  clearHiddenOfferProductFilters,
+  offerProductKeysForEventType,
+  showBirthdayAgeFilter,
+  type BirthdayAgeGroup,
+} from "@/lib/eventTypeSearchFilters";
 
 const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
 const MAP_VIEW_PARAM = "view";
@@ -74,6 +81,7 @@ const EMPTY_SEARCH_FORM = {
   hasTableSetup: false,
   hasDanceFloor: false,
   hasSoundSystem: false,
+  birthdayAgeGroup: "" as BirthdayAgeGroup,
 };
 
 type SearchFormState = typeof EMPTY_SEARCH_FORM;
@@ -119,6 +127,7 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   if (f.hasTableSetup) params.set("hasTableSetup", "true");
   if (f.hasDanceFloor) params.set("hasDanceFloor", "true");
   if (f.hasSoundSystem) params.set("hasSoundSystem", "true");
+  if (f.birthdayAgeGroup) params.set("birthdayAgeGroup", f.birthdayAgeGroup);
   return params;
 }
 
@@ -148,6 +157,7 @@ function countActiveFilters(f: SearchFormState): number {
   if (f.hasTableSetup) n++;
   if (f.hasDanceFloor) n++;
   if (f.hasSoundSystem) n++;
+  if (f.birthdayAgeGroup) n++;
   return n;
 }
 
@@ -170,8 +180,14 @@ function buildFilterSummary(f: SearchFormState): string | null {
         ? `${f.minPrice}–${f.maxPrice}`
         : f.minPrice || f.maxPrice;
     if (p) parts.push(`₪${p} למנה`);
-  } else if (f.exactPrice.trim()) {
+  } else   if (f.exactPrice.trim()) {
     parts.push(`₪${f.exactPrice} למנה`);
+  }
+  if (f.birthdayAgeGroup) {
+    const ageLabel = BIRTHDAY_AGE_GROUP_OPTIONS.find(
+      (o) => o.value === f.birthdayAgeGroup
+    )?.label;
+    if (ageLabel) parts.push(ageLabel);
   }
   return parts.length > 0 ? parts.join(" · ") : null;
 }
@@ -247,6 +263,12 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
     hasTableSetup: sp.get("hasTableSetup") === "true",
     hasDanceFloor: sp.get("hasDanceFloor") === "true",
     hasSoundSystem: sp.get("hasSoundSystem") === "true",
+    birthdayAgeGroup: (() => {
+      const raw = sp.get("birthdayAgeGroup") ?? "";
+      return BIRTHDAY_AGE_GROUP_OPTIONS.some((o) => o.value === raw)
+        ? (raw as BirthdayAgeGroup)
+        : "";
+    })(),
   };
 }
 
@@ -719,6 +741,7 @@ export default function HallsSearchClient({
      const hasTableSetup = searchParams.get("hasTableSetup");
      const hasDanceFloor = searchParams.get("hasDanceFloor");
      const hasSoundSystem = searchParams.get("hasSoundSystem");
+     const birthdayAgeGroup = searchParams.get("birthdayAgeGroup");
     if (city) params.set("city", city);
     if (guestsRange === "true") params.set("guestsRange", "true");
     if (priceRange === "true") params.set("priceRange", "true");
@@ -742,6 +765,7 @@ export default function HallsSearchClient({
     if (hasTableSetup) params.set("hasTableSetup", hasTableSetup);
     if (hasDanceFloor) params.set("hasDanceFloor", hasDanceFloor);
     if (hasSoundSystem) params.set("hasSoundSystem", hasSoundSystem);
+    if (birthdayAgeGroup) params.set("birthdayAgeGroup", birthdayAgeGroup);
     const qs = params.toString();
     fetch(`/api/venues${qs ? `?${qs}` : ""}`)
       .then(async (res) => {
@@ -868,6 +892,35 @@ export default function HallsSearchClient({
   );
   const activeFilterCount = useMemo(() => countActiveFilters(form), [form]);
   const filterSummary = useMemo(() => buildFilterSummary(form), [form]);
+  const visibleOfferKeys = useMemo(
+    () => offerProductKeysForEventType(form.eventType),
+    [form.eventType]
+  );
+
+  function patchEventType(nextType: string) {
+    setForm((f) => {
+      const visible = offerProductKeysForEventType(nextType);
+      const cleared = clearHiddenOfferProductFilters(
+        {
+          seaView: f.seaView,
+          boutique: f.boutique,
+          accessible: f.accessible,
+          hasChuppa: f.hasChuppa,
+          hasFood: f.hasFood,
+          hasTableSetup: f.hasTableSetup,
+          hasDanceFloor: f.hasDanceFloor,
+          hasSoundSystem: f.hasSoundSystem,
+        },
+        visible
+      );
+      return {
+        ...f,
+        eventType: nextType,
+        ...cleared,
+        birthdayAgeGroup: showBirthdayAgeFilter(nextType) ? f.birthdayAgeGroup : "",
+      };
+    });
+  }
 
   return (
     <div className="relative mt-6 space-y-8">
@@ -979,12 +1032,7 @@ export default function HallsSearchClient({
             <label className={labelClass}>סוג אירוע</label>
             <select
               value={form.eventType}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  eventType: e.target.value,
-                }))
-              }
+              onChange={(e) => patchEventType(e.target.value)}
               className={fieldClass}
             >
               <option value="">הכל (ללא סינון לפי סוג)</option>
@@ -1221,7 +1269,34 @@ export default function HallsSearchClient({
           </div>
 
           <div className="mt-6">
+            {showBirthdayAgeFilter(form.eventType) ? (
+              <div className="mb-4 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
+                <label className={labelClass}>קבוצת גיל (יום הולדת)</label>
+                <p className="mt-1 text-[11px] text-neutral-600">
+                  מסייע למצוא אולם מתאים לגיל האורחים — ילדים, נוער או בוגרים.
+                </p>
+                <select
+                  value={form.birthdayAgeGroup}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      birthdayAgeGroup: e.target.value as BirthdayAgeGroup,
+                    }))
+                  }
+                  className={fieldClass}
+                >
+                  <option value="">לא משנה</option>
+                  {BIRTHDAY_AGE_GROUP_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
             <VenueOfferProductsSection
+              visibleKeys={visibleOfferKeys}
+              eventTypeLabel={form.eventType || undefined}
               values={{
                 seaView: form.seaView,
                 boutique: form.boutique,

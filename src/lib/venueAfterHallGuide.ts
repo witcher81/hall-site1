@@ -18,7 +18,7 @@ export type HallMoneyBuiltinKey =
   | "hasSoundSystem";
 
 export const HALL_BUILTIN_LABELS: Record<HallMoneyBuiltinKey, string> = {
-  hasFood: "אוכל באולם",
+  hasFood: "בופה באולם",
   hasDanceFloor: "רחבת ריקודים",
   hasTableSetup: "סידור שולחנות",
   hasSoundSystem: "מערכת הגברה",

@@ -93,7 +93,7 @@ type BuiltinAmenityKey = BuiltinAmenityKeyFull;
 type Initial = VenueEditFormInitial;
 
 const HALL_GENERAL_PRICE_KEYS = [
-  { key: "hasFood" as const, label: "כולל אוכל" },
+  { key: "hasFood" as const, label: "בופה" },
   { key: "hasTableSetup" as const, label: "סידור שולחנות" },
   { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
 ] as const;

@@ -83,6 +83,7 @@ export async function searchPublicVenues(
   const hasDanceFloor = searchParams.get("hasDanceFloor");
   const hasSoundSystem = searchParams.get("hasSoundSystem");
   const hasBridalRoom = searchParams.get("hasBridalRoom");
+  const birthdayAgeGroup = readParam(searchParams, "birthdayAgeGroup");
 
   let warning: string | undefined;
 
@@ -185,6 +186,20 @@ export async function searchPublicVenues(
         OR: variants.map((v) => ({ eventTypes: { contains: v } })),
       });
     }
+    where.AND = andParts;
+  }
+
+  if (birthdayAgeGroup === "kids") {
+    andParts.push({
+      OR: [{ boutique: true }, { maxGuests: { lte: 70 } }],
+    });
+    where.AND = andParts;
+  } else if (birthdayAgeGroup === "teens") {
+    where.hasDanceFloor = true;
+  } else if (birthdayAgeGroup === "adults") {
+    andParts.push({
+      OR: [{ maxGuests: null }, { maxGuests: { gte: 50 } }],
+    });
     where.AND = andParts;
   }
 
@@ -431,6 +446,7 @@ export function hallsSearchHasActiveFilters(
     "hasTableSetup",
     "hasDanceFloor",
     "hasSoundSystem",
+    "birthdayAgeGroup",
     "hasBridalRoom",
     "guestsRange",
     "priceRange",

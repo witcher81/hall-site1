@@ -1,6 +1,10 @@
 "use client";
 
-import { VENUE_HALL_SOFT_PRESET_LABEL } from "@/lib/venueHallSoftPresets";
+import type { VenueOfferProductsSlice } from "@/lib/eventTypeSearchFilters";
+import {
+  OFFER_PRODUCT_LABELS,
+  type OfferProductKey,
+} from "@/lib/eventTypeSearchFilters";
 
 /** כותרת ותוויות תואמות לחיפוש אולמות — מאפיינים שנשמרים ב-Venue לסינון */
 export const VENUE_OFFER_PRODUCTS_HEADING = "מוצרים שהאולם מציעה";
@@ -10,16 +14,7 @@ const offerCheckboxClass =
 const offerInputClass =
   "h-4 w-4 shrink-0 rounded border-[#C9A227] text-amber-600 focus:ring-amber-400";
 
-export type VenueOfferProductsSlice = {
-  seaView: boolean;
-  boutique: boolean;
-  accessible: boolean;
-  hasChuppa: boolean;
-  hasFood: boolean;
-  hasTableSetup: boolean;
-  hasDanceFloor: boolean;
-  hasSoundSystem: boolean;
-};
+export type { VenueOfferProductsSlice };
 
 type Props = {
   values: VenueOfferProductsSlice;
@@ -27,18 +22,41 @@ type Props = {
     key: K,
     checked: boolean
   ) => void;
-  /** כשיש חתונה — חופה מפורטת למטה (חוץ/מקורה); התיבה משקפת בלבד */
-  chuppaDetailLocked?: boolean;
-  /** כשהאוכל נגזר מסוגי אירוע — לא לשנות את תיבת האוכל ידנית */
-  foodLockedFromEvents?: boolean;
+  /** רק מפתחות רלוונטיים לסוג האירוע — null = הסתר (לא נבחר סוג) */
+  visibleKeys?: OfferProductKey[] | null;
+  /** כותרת משנה לפי סוג אירוע */
+  eventTypeLabel?: string;
 };
 
 export default function VenueOfferProductsSection({
   values,
   onChange,
-  chuppaDetailLocked = false,
-  foodLockedFromEvents = false,
+  visibleKeys = null,
+  eventTypeLabel,
 }: Props) {
+  if (visibleKeys === null) {
+    return (
+      <div>
+        <div className="mb-1">
+          <p className="text-xs font-medium text-neutral-600">
+            <span className="font-semibold text-emerald-950">
+              {VENUE_OFFER_PRODUCTS_HEADING}
+            </span>
+          </p>
+        </div>
+        <p className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-3 text-[11px] leading-relaxed text-neutral-600">
+          בחרו <strong className="font-semibold text-emerald-950">סוג אירוע</strong>{" "}
+          למעלה — יוצגו כאן מסננים מותאמים (חופה לחתונה, גילאים ליום הולדת, בופה, רחבת
+          ריקודים ועוד).
+        </p>
+      </div>
+    );
+  }
+
+  if (visibleKeys.length === 0) {
+    return null;
+  }
+
   return (
     <div>
       <div className="mb-1">
@@ -46,109 +64,27 @@ export default function VenueOfferProductsSection({
           <span className="font-semibold text-emerald-950">
             {VENUE_OFFER_PRODUCTS_HEADING}
           </span>
-          <span className="mr-0.5 text-amber-600" aria-hidden>
-            *
-          </span>
+          {eventTypeLabel ? (
+            <span className="mr-1 text-neutral-500"> — {eventTypeLabel}</span>
+          ) : null}
         </p>
         <p className="text-[11px] leading-relaxed text-neutral-600">
-          * אופציונלי — אין חובה לסמן אף מאפיין; הסימון משמש לסינון ולתצוגה בלבד.
+          * אופציונלי — הסימון מסנן אולמות שמציעים את השירות (מחיר למנה מוזן בנפרד למעלה).
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        <label className={offerCheckboxClass}>
-          <input
-            type="checkbox"
-            checked={values.seaView}
-            onChange={(e) => onChange("seaView", e.target.checked)}
-            className={offerInputClass}
-          />
-          {VENUE_HALL_SOFT_PRESET_LABEL.seaView}
-        </label>
-        <label className={offerCheckboxClass}>
-          <input
-            type="checkbox"
-            checked={values.boutique}
-            onChange={(e) => onChange("boutique", e.target.checked)}
-            className={offerInputClass}
-          />
-          {VENUE_HALL_SOFT_PRESET_LABEL.boutique}
-        </label>
-        <label className={offerCheckboxClass}>
-          <input
-            type="checkbox"
-            checked={values.accessible}
-            onChange={(e) => onChange("accessible", e.target.checked)}
-            className={offerInputClass}
-          />
-          {VENUE_HALL_SOFT_PRESET_LABEL.accessible}
-        </label>
-        <label
-          className={`${offerCheckboxClass}${chuppaDetailLocked ? " opacity-90" : ""}`}
-          title={
-            chuppaDetailLocked
-              ? "לחתונה: סמנו למטה חופה בחוץ או חופה מקורה"
-              : undefined
-          }
-        >
-          <input
-            type="checkbox"
-            checked={values.hasChuppa}
-            disabled={chuppaDetailLocked}
-            onChange={(e) => onChange("hasChuppa", e.target.checked)}
-            className={offerInputClass}
-          />
-          כולל חופה
-        </label>
-        <label
-          className={`${offerCheckboxClass}${foodLockedFromEvents ? " opacity-90" : ""}`}
-          title={
-            foodLockedFromEvents
-              ? "מסומן לפי סוגי האירוע (אוכל לחתונה או לאירועים עם מחירי מנות)"
-              : undefined
-          }
-        >
-          <input
-            type="checkbox"
-            checked={values.hasFood}
-            disabled={foodLockedFromEvents}
-            onChange={(e) => onChange("hasFood", e.target.checked)}
-            className={offerInputClass}
-          />
-          כולל אוכל
-        </label>
-        <label className={offerCheckboxClass}>
-          <input
-            type="checkbox"
-            checked={values.hasTableSetup}
-            onChange={(e) => onChange("hasTableSetup", e.target.checked)}
-            className={offerInputClass}
-          />
-          סידור שולחנות
-        </label>
-        <label className={offerCheckboxClass}>
-          <input
-            type="checkbox"
-            checked={values.hasDanceFloor}
-            onChange={(e) => onChange("hasDanceFloor", e.target.checked)}
-            className={offerInputClass}
-          />
-          רחבת ריקודים
-        </label>
-        <label className={offerCheckboxClass}>
-          <input
-            type="checkbox"
-            checked={values.hasSoundSystem}
-            onChange={(e) => onChange("hasSoundSystem", e.target.checked)}
-            className={offerInputClass}
-          />
-          מערכת הגברה
-        </label>
+        {visibleKeys.map((key) => (
+          <label key={key} className={offerCheckboxClass}>
+            <input
+              type="checkbox"
+              checked={values[key]}
+              onChange={(e) => onChange(key, e.target.checked)}
+              className={offerInputClass}
+            />
+            {OFFER_PRODUCT_LABELS[key]}
+          </label>
+        ))}
       </div>
-      {chuppaDetailLocked ? (
-        <p className="mt-2 text-[11px] text-neutral-600">
-          לחתונה: סמנו למטה &quot;חופה בחוץ&quot; ו/או &quot;חופה מקורה&quot;.
-        </p>
-      ) : null}
     </div>
   );
 }

@@ -29,7 +29,7 @@ const BUILTIN_SERVICE_KEYS: BuiltinServiceKey[] = [
 ];
 
 const BUILTIN_LABELS: Record<BuiltinServiceKey, string> = {
-  hasFood: "אוכל",
+  hasFood: "בופה",
   hasTableSetup: "סידור שולחנות",
   hasSoundSystem: "מערכת הגברה",
 };
