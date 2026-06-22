@@ -50,6 +50,26 @@ export const OFFER_PRODUCT_LABELS: Record<OfferProductKey, string> = {
   hasParkingNearby: "חניה באזור",
 };
 
+/** תוויות מותאמות לסוג אירוע (ברירת מחדל — OFFER_PRODUCT_LABELS) */
+const OFFER_PRODUCT_LABELS_BY_EVENT: Partial<
+  Record<string, Partial<Record<OfferProductKey, string>>>
+> = {
+  [EVENT_TYPE_BRIT]: {
+    hasBridalRoom: "חדר פרטי / התארגנות",
+    hasSoundSystem: "הגברה ומיקרופון",
+    seaView: "גינה / חצר לטקס",
+  },
+};
+
+export function offerProductLabelForEvent(
+  key: OfferProductKey,
+  eventType: string
+): string {
+  const et = normalizeEventTypeLabel(eventType.trim());
+  const override = et ? OFFER_PRODUCT_LABELS_BY_EVENT[et]?.[key] : undefined;
+  return override ?? OFFER_PRODUCT_LABELS[key];
+}
+
 /** מאפיין רך (JSON) — חיפוש לפי תווית שבעל האולם הוסיף */
 export type SoftAttrFilterOption = { value: string; label: string };
 
@@ -71,8 +91,14 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
     { value: "בר", label: "בר / קינוחים" },
   ],
   [EVENT_TYPE_BRIT]: [
+    { value: "מקרן", label: "מסך / מקרן" },
+    { value: "הנקה", label: "חדר הנקה / שקט" },
+    { value: "לובי", label: "לובי / קבלת פנים" },
+    { value: "תאורה", label: "תאורה לאירוע" },
     { value: "גינה", label: "גינה / חצר" },
     { value: "עמד", label: "עמדת קינוחים" },
+    { value: "קפה", label: "עמדת קפה / בוקר" },
+    { value: "פרטי", label: "חדר פרטי לטקס" },
   ],
   חינה: [
     { value: "גינה", label: "גינה / חצר" },
@@ -121,6 +147,18 @@ const PARTY_PRODUCTS: OfferProductKey[] = [
   "hasSoundSystem",
 ];
 
+const BRIT_PRODUCTS: OfferProductKey[] = [
+  "accessible",
+  "boutique",
+  "hasParkingNearby",
+  "seaView",
+  "hasBridalRoom",
+  "hasFood",
+  "hasVeganFood",
+  "hasTableSetup",
+  "hasSoundSystem",
+];
+
 /** מסנני «מוצרים שהאולם מציעה» לפי סוג אירוע — null = לא נבחר סוג */
 export function offerProductKeysForEventType(
   eventType: string
@@ -130,17 +168,7 @@ export function offerProductKeysForEventType(
 
   if (et === "חתונה") return WEDDING_PRODUCTS;
   if (et === EVENT_TYPE_BAR_BAT) return PARTY_PRODUCTS;
-  if (et === EVENT_TYPE_BRIT) {
-    return [
-      "accessible",
-      "boutique",
-      "hasParkingNearby",
-      "seaView",
-      "hasFood",
-      "hasVeganFood",
-      "hasTableSetup",
-    ];
-  }
+  if (et === EVENT_TYPE_BRIT) return BRIT_PRODUCTS;
   if (et === "חינה") {
     return [
       "seaView",
@@ -246,6 +274,21 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         id: "brit-small",
         label: "אירוע קטן ואינטימי",
         toggles: { boutique: true, hasFood: true, hasTableSetup: true },
+      },
+      {
+        id: "brit-garden",
+        label: "ברית בגינה / חצר",
+        toggles: { seaView: true, hasTableSetup: true },
+      },
+      {
+        id: "brit-tech",
+        label: "הגברה ומסך",
+        toggles: { hasSoundSystem: true },
+      },
+      {
+        id: "brit-private",
+        label: "חדר פרטי לטקס",
+        toggles: { hasBridalRoom: true, boutique: true },
       },
     ];
   }

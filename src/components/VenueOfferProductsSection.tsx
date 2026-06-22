@@ -2,8 +2,9 @@
 
 import type { VenueOfferProductsSlice } from "@/lib/eventTypeSearchFilters";
 import {
-  OFFER_PRODUCT_LABELS,
+  offerProductLabelForEvent,
   type OfferProductKey,
+  type SoftAttrFilterOption,
 } from "@/lib/eventTypeSearchFilters";
 
 /** כותרת ותוויות תואמות לחיפוש אולמות — מאפיינים שנשמרים ב-Venue לסינון */
@@ -26,6 +27,12 @@ type Props = {
   visibleKeys?: OfferProductKey[] | null;
   /** כותרת משנה לפי סוג אירוע */
   eventTypeLabel?: string;
+  /** סוג אירוע — לתוויות מותאמות (למשל «חדר פרטי» בברית) */
+  eventType?: string;
+  /** מאפיינים רכים מהפרופיל — מוצגים באותו בלוק */
+  softAttr?: string;
+  softAttrOptions?: SoftAttrFilterOption[];
+  onSoftAttrChange?: (value: string) => void;
 };
 
 export default function VenueOfferProductsSection({
@@ -33,6 +40,10 @@ export default function VenueOfferProductsSection({
   onChange,
   visibleKeys = null,
   eventTypeLabel,
+  eventType = "",
+  softAttr = "",
+  softAttrOptions = [],
+  onSoftAttrChange,
 }: Props) {
   if (visibleKeys === null) {
     return (
@@ -81,7 +92,20 @@ export default function VenueOfferProductsSection({
               onChange={(e) => onChange(key, e.target.checked)}
               className={offerInputClass}
             />
-            {OFFER_PRODUCT_LABELS[key]}
+            {offerProductLabelForEvent(key, eventType)}
+          </label>
+        ))}
+        {softAttrOptions.map((opt) => (
+          <label key={opt.value} className={offerCheckboxClass}>
+            <input
+              type="checkbox"
+              checked={softAttr === opt.value}
+              onChange={() =>
+                onSoftAttrChange?.(softAttr === opt.value ? "" : opt.value)
+              }
+              className={offerInputClass}
+            />
+            {opt.label}
           </label>
         ))}
       </div>

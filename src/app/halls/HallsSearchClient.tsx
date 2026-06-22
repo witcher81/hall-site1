@@ -1417,39 +1417,15 @@ export default function HallsSearchClient({
               </div>
             ) : null}
 
-            {form.eventType && softAttrOptions.length > 0 ? (
-              <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4">
-                <p className="text-xs font-semibold text-emerald-950">מאפיינים מיוחדים</p>
-                <p className="mt-1 text-[11px] text-neutral-600">
-                  לפי מה שבעלי אולמות מציינים בפרופיל — גג, לובי, בר ועוד.
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {softAttrOptions.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() =>
-                        setForm((f) => ({
-                          ...f,
-                          softAttr: f.softAttr === opt.value ? "" : opt.value,
-                        }))
-                      }
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                        form.softAttr === opt.value
-                          ? "bg-amber-400 text-white"
-                          : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
             <VenueOfferProductsSection
               visibleKeys={visibleOfferKeys}
               eventTypeLabel={form.eventType || undefined}
+              eventType={form.eventType}
+              softAttr={form.softAttr}
+              softAttrOptions={softAttrOptions}
+              onSoftAttrChange={(value) =>
+                setForm((f) => ({ ...f, softAttr: value }))
+              }
               values={offerProductValues}
               onChange={(key, checked) =>
                 setForm((f) => ({ ...f, [key]: checked }))
