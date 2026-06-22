@@ -78,16 +78,13 @@ const VenueLocationPicker = dynamic(
   }
 );
 
-const PRESET_EVENT_TYPES: readonly string[] = [
-  "חתונה",
-  "בר מצווה",
-  "בת מצווה",
-  "ברית",
-  "חינה",
-  "אירוע עסקי",
-  "כנס",
-  "יום הולדת",
-];
+import {
+  toggleEventTypeInList,
+  VENUE_PRESET_EVENT_TYPES,
+  eventTypesListIncludes,
+} from "@/lib/eventTypeOptions";
+
+const PRESET_EVENT_TYPES: readonly string[] = VENUE_PRESET_EVENT_TYPES;
 
 const MAX_CUSTOM_EVENT_TYPES = 20;
 type PriceMode = "included" | "extra";
@@ -1036,10 +1033,10 @@ export default function VenueEditForm({
                 <label key={et} className="flex items-center gap-2 text-xs text-neutral-800">
                   <input
                     type="checkbox"
-                    checked={eventTypes.includes(et)}
+                    checked={eventTypesListIncludes(eventTypes, et)}
                     onChange={(e) =>
                       setEventTypes((prev) =>
-                        e.target.checked ? [...prev, et] : prev.filter((x) => x !== et)
+                        toggleEventTypeInList(prev, et, e.target.checked)
                       )
                     }
                     className="checkbox-hall shrink-0"

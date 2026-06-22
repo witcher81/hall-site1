@@ -97,7 +97,7 @@ export function buildVenueRichPayload(v) {
       extraPrice: null,
       allowsSeekerExternalSource: true,
       seekerExternalEventTypes: eventTypes.filter((e) =>
-        ["חתונה", "בר מצווה", "בת מצווה", "ברית"].includes(e)
+        ["חתונה", "בר מצווה / בת מצווה", "ברית / בריתה"].includes(e)
       ),
     },
     {

@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { parsePackageTier } from "@/lib/eventPackageTypes";
+import { eventTypeSearchContainsVariants } from "@/lib/eventTypeOptions";
 
 export type PackagesListSort = "order" | "price_low" | "price_high";
 
@@ -76,7 +77,14 @@ export function buildEventPackageWhere(
 
   const eventType = input.eventType.trim();
   if (eventType) {
-    conditions.push({ eventTypesJson: { contains: eventType } });
+    const variants = eventTypeSearchContainsVariants(eventType);
+    if (variants.length === 1) {
+      conditions.push({ eventTypesJson: { contains: variants[0] } });
+    } else {
+      conditions.push({
+        OR: variants.map((v) => ({ eventTypesJson: { contains: v } })),
+      });
+    }
   }
 
   const city = input.city.trim();

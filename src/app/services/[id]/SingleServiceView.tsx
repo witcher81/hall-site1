@@ -58,7 +58,9 @@ type Service = {
   maxPrice: number | null;
 };
 
-const EVENT_TYPES = ["חתונה", "בר מצווה", "ברית", "יום הולדת", "אירוע עסקי", "אחר"];
+import { COMMON_INQUIRY_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
+
+const EVENT_TYPES = COMMON_INQUIRY_EVENT_TYPE_OPTIONS;
 
 export default function SingleServiceView({
   provider,

@@ -61,16 +61,13 @@ import {
   seekerExternalFieldsForPayload,
 } from "@/lib/venueAmenitySeekerExternal";
 
-const PRESET_EVENT_TYPES: readonly string[] = [
-  "חתונה",
-  "בר מצווה",
-  "בת מצווה",
-  "ברית",
-  "חינה",
-  "אירוע עסקי",
-  "כנס",
-  "יום הולדת",
-];
+import {
+  toggleEventTypeInList,
+  VENUE_PRESET_EVENT_TYPES,
+  eventTypesListIncludes,
+} from "@/lib/eventTypeOptions";
+
+const PRESET_EVENT_TYPES: readonly string[] = VENUE_PRESET_EVENT_TYPES;
 
 const MAX_CUSTOM_EVENT_TYPES = 20;
 type PriceMode = "included" | "extra";
@@ -979,7 +976,7 @@ export default function NewVenuePage() {
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               {PRESET_EVENT_TYPES.map((et) => {
-                const checked = eventTypes.includes(et);
+                const checked = eventTypesListIncludes(eventTypes, et);
                 return (
                   <div
                     key={et}
@@ -990,7 +987,7 @@ export default function NewVenuePage() {
                       type="button"
                       onClick={() =>
                         setEventTypes((prev) =>
-                          checked ? prev.filter((x) => x !== et) : [...prev, et]
+                          toggleEventTypeInList(prev, et, !checked)
                         )
                       }
                       className={`rounded-full border px-2 py-0.5 text-[11px] transition ${

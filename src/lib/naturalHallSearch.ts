@@ -15,12 +15,27 @@ export type NaturalSearchHints = {
   hasChuppa?: boolean;
 };
 
+import {
+  EVENT_TYPE_BAR_BAT,
+  EVENT_TYPE_BRIT,
+} from "@/lib/eventTypeOptions";
+
 const EVENT_ALIASES: Record<string, string> = {
   חתונה: "חתונה",
   wedding: "חתונה",
-  "בר מצווה": "בר מצווה",
-  "בת מצווה": "בת מצווה",
-  "ברית": "ברית",
+  "בר מצווה / בת מצווה": EVENT_TYPE_BAR_BAT,
+  "בר מצווה": EVENT_TYPE_BAR_BAT,
+  "בת מצווה": EVENT_TYPE_BAR_BAT,
+  "ברית / בריתה": EVENT_TYPE_BRIT,
+  ברית: EVENT_TYPE_BRIT,
+  בריתה: EVENT_TYPE_BRIT,
+  חינה: "חינה",
+  "יום הולדת": "יום הולדת",
+  "אירוע עסקי": "אירוע עסקי",
+  כנס: "כנס",
+  "מסיבת סיום": "מסיבת סיום",
+  "אירוע אחר": "אירוע אחר",
+  אחר: "אירוע אחר",
 };
 
 const CITY_HINTS = [

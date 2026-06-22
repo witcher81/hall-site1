@@ -1,5 +1,6 @@
 "use client";
 
+import { EVENT_PLAN_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
 import { useCallback, useEffect, useState } from "react";
 
 type PickerItem = { id: number; label: string };
@@ -359,8 +360,11 @@ export default function MyPlansClient() {
             onChange={(e) => setForm((f) => ({ ...f, eventType: e.target.value }))}
             className="w-full rounded-xl border border-neutral-200 px-3 py-2"
           >
-            <option value="חתונה">חתונה</option>
-            <option value="בר מצווה">בר מצווה</option>
+            {EVENT_PLAN_EVENT_TYPE_OPTIONS.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
           </select>
           <input
             value={form.title}

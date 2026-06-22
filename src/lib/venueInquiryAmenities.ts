@@ -11,6 +11,7 @@ import {
   parseSeekerExternalEventTypesFromRecord,
   allowsSeekerExternalForInquiryEvent,
 } from "@/lib/venueAmenitySeekerExternal";
+import { eventTypesListIncludes } from "@/lib/eventTypeOptions";
 
 /**
  * רשימת שירותים/תוספים שהאולם מציע — לטופס בקשה (מחפש בוחר מקור לכל פריט).
@@ -555,7 +556,7 @@ export function validateInquiryEventType(
   if (allowed.length === 0) return null;
   const et = eventType?.trim();
   if (!et) return null;
-  if (!allowed.includes(et)) {
+  if (!eventTypesListIncludes(allowed, et)) {
     return "סוג האירוע שנבחר אינו מתאים לאולם זה.";
   }
   return null;

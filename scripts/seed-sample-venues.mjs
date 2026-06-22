@@ -72,7 +72,7 @@ const VENUES = [
     galleryImageUrls: [U.weddingTable, U.eventSetup, U.elegantDining],
     description:
       "אולם מרכזי בתל אביב לאירועי חתונה ובר/בת מצווה. עיצוב אלגנטי, מטבח כשר מהדרין, רחבת ריקודים מרווחת וחופה מקורה.",
-    eventTypes: ["חתונה", "בר מצווה", "בת מצווה", "אירוע עסקי"],
+    eventTypes: ["חתונה", "בר מצווה / בת מצווה", "אירוע עסקי"],
     soundMode: "extra",
     soundPrice: 4200,
     tableSetupMode: "included",
@@ -106,7 +106,7 @@ const VENUES = [
     galleryImageUrls: [U.flowers, U.resortPool],
     description:
       "גן אירועים ירוק בהרצליה פיתוח, עם אווירה אינטימית ונוף פתוח. מתאים לחתונות בוטיק ואירועי קיץ.",
-    eventTypes: ["חתונה", "ברית", "יום הולדת"],
+    eventTypes: ["חתונה", "ברית / בריתה", "יום הולדת"],
   },
   {
     name: "רופטופ 360 תל אביב",
@@ -166,7 +166,7 @@ const VENUES = [
     galleryImageUrls: [U.weddingHall, U.banquet],
     description:
       "אולם מפואר בירושלים לאירועים גדולים. כשרות מהדרין, חניה צמודה וצוות הפקה מנוסה.",
-    eventTypes: ["חתונה", "בר מצווה", "בת מצווה", "חינה"],
+    eventTypes: ["חתונה", "בר מצווה / בת מצווה", "חינה"],
   },
   {
     name: "גן ואולם נווה קיסר חיפה",
@@ -196,7 +196,7 @@ const VENUES = [
     galleryImageUrls: [U.outdoorGarden, U.weddingHall],
     description:
       "שילוב גן פתוח ואולם מקורה עם נוף לים ולכרמל. מתאים לחתונות קיץ וחורף.",
-    eventTypes: ["חתונה", "בר מצווה", "ברית"],
+    eventTypes: ["חתונה", "בר מצווה / בת מצווה", "ברית / בריתה"],
   },
   {
     name: "אולם דיאמונד פתח תקווה",
@@ -226,7 +226,7 @@ const VENUES = [
     galleryImageUrls: [U.banquet],
     description:
       "אולם מרכזי במרכז הארץ, נגיש מתל אביב והשרון. מטבח עשיר ואולם מואר לריקודים.",
-    eventTypes: ["חתונה", "בר מצווה", "בת מצווה", "כנס"],
+    eventTypes: ["חתונה", "בר מצווה / בת מצווה", "כנס"],
   },
   {
     name: "גן אירועים כרמל נתניה",
@@ -286,7 +286,7 @@ const VENUES = [
     galleryImageUrls: [U.weddingHall, U.champagne, U.cake],
     description:
       "אולם מוביל בדרום לאירועי משפחה ועסקים. מחירים תחרותיים ושירות מלא מהכניסה ועד הסיום.",
-    eventTypes: ["חתונה", "בר מצווה", "אירוע עסקי"],
+    eventTypes: ["חתונה", "בר מצווה / בת מצווה", "אירוע עסקי"],
   },
   {
     name: "גן ואולם אחוזת היער ראשון לציון",
@@ -316,7 +316,7 @@ const VENUES = [
     galleryImageUrls: [U.outdoorGarden, U.chuppah],
     description:
       "מתחם ירוק עם אולם מקורה — אידיאלי לחתונות עם קבלת פנים בחוץ ואירוע בפנים.",
-    eventTypes: ["חתונה", "ברית", "בת מצווה"],
+    eventTypes: ["חתונה", "ברית / בריתה", "בר מצווה / בת מצווה"],
   },
   {
     name: "אולם מלכות רמת גן",
@@ -346,7 +346,7 @@ const VENUES = [
     galleryImageUrls: [U.weddingHall, U.modernHall, U.dance],
     description:
       "אחד האולמות הגדולים בגוש דן — קיבולת עד 600 אורחים, עיצוב מלכותי ומטבח כשר מהדרין.",
-    eventTypes: ["חתונה", "בר מצווה", "בת מצווה", "כנס", "אירוע עסקי"],
+    eventTypes: ["חתונה", "בר מצווה / בת מצווה", "כנס", "אירוע עסקי"],
   },
 ];
 

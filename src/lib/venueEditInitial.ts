@@ -1,4 +1,5 @@
 import type { Venue } from "@prisma/client";
+import { normalizeEventTypesList } from "@/lib/eventTypeOptions";
 import {
   type BuiltinAmenityKeyFull,
   type HallGeneralPriceMode,
@@ -86,7 +87,7 @@ export function buildVenueEditInitial(
   venue: Venue,
   foodGalleryImageCount: number
 ): VenueEditFormInitial {
-  const eventTypes = parseEventTypesList(venue.eventTypes);
+  const eventTypes = normalizeEventTypesList(parseEventTypesList(venue.eventTypes));
   const anyEvFood = anyEventOffersFoodFromStored(
     eventTypes,
     venue.eventTypeProfilesJson

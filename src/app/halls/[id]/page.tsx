@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { normalizeEventTypesList } from "@/lib/eventTypeOptions";
 import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
 import { parseVenueSoftAttributesFromDb } from "@/lib/venueSoftAttributesJson";
 import VenuePublicView from "./VenuePublicView";
@@ -187,9 +188,9 @@ export default async function HallPublicPage({
       category: img.category,
     })) ?? [];
 
-  const eventTypesList = venue.eventTypes
-    ? (JSON.parse(venue.eventTypes) as string[])
-    : [];
+  const eventTypesList = normalizeEventTypesList(
+    venue.eventTypes ? (JSON.parse(venue.eventTypes) as string[]) : []
+  );
   const eventTypeProfiles = parseVenueEventTypeProfilesForPublic(
     venue.eventTypeProfilesJson,
     eventTypesList

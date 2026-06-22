@@ -8,6 +8,10 @@ import {
 } from "@/lib/venueAmenitySeekerExternal";
 import { trimEventTypePublicNotes } from "@/lib/venueEditFormParse";
 import { parseMealAlternativesFromProfile } from "@/lib/venueMealAlternatives";
+import {
+  findStoredEventTypeProfileKey,
+  normalizeEventTypesList,
+} from "@/lib/eventTypeOptions";
 
 export type PublicEventHallItem = {
   label: string;
@@ -132,8 +136,9 @@ export function parseVenueEventTypeProfilesForPublic(
   raw: string | null | undefined,
   eventTypes: string[]
 ): Record<string, PublicEventTypeProfile> {
+  const normalizedTypes = normalizeEventTypesList(eventTypes);
   const out: Record<string, PublicEventTypeProfile> = {};
-  for (const et of eventTypes) {
+  for (const et of normalizedTypes) {
     out[et] = emptyProfile(et);
   }
   if (!raw || typeof raw !== "string" || raw.trim() === "") return out;
@@ -141,8 +146,11 @@ export function parseVenueEventTypeProfilesForPublic(
     const parsed = JSON.parse(raw) as unknown;
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
     const obj = parsed as Record<string, unknown>;
-    for (const et of eventTypes) {
-      const row = obj[et];
+    const storedKeys = Object.keys(obj);
+    for (const et of normalizedTypes) {
+      const profileKey = findStoredEventTypeProfileKey(et, storedKeys);
+      if (!profileKey) continue;
+      const row = obj[profileKey];
       if (typeof row !== "object" || row === null || Array.isArray(row)) continue;
       out[et] = parseOneProfile(row as Record<string, unknown>, et);
     }

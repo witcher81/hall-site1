@@ -38,6 +38,10 @@ import LoginPromptModal from "@/components/LoginPromptModal";
 import VenueOfferProductsSection from "@/components/VenueOfferProductsSection";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PublicVenueListItem } from "@/lib/publicVenuesSearch";
+import {
+  HALL_SEARCH_EVENT_TYPE_OPTIONS,
+  normalizeEventTypesList,
+} from "@/lib/eventTypeOptions";
 
 const HALLS_SEARCH_STORAGE_KEY = "hallsHub.search.v1";
 const MAP_VIEW_PARAM = "view";
@@ -72,20 +76,9 @@ const EMPTY_SEARCH_FORM = {
   hasSoundSystem: false,
 };
 
-const EVENT_TYPE_OPTIONS = [
-  "חתונה",
-  "בר מצווה",
-  "בת מצווה",
-  "ברית",
-  "בריתה",
-  "יום הולדת",
-  "אירוע עסקי",
-  "כנס",
-  "מסיבת סיום",
-  "אירוע אחר",
-] as const;
-
 type SearchFormState = typeof EMPTY_SEARCH_FORM;
+
+const EVENT_TYPE_OPTIONS = HALL_SEARCH_EVENT_TYPE_OPTIONS;
 
 function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   const params = new URLSearchParams();
@@ -469,7 +462,7 @@ function VenueResultCard({
         )}
         {v.eventTypes && v.eventTypes.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
-            {v.eventTypes.slice(0, 3).map((et) => (
+            {normalizeEventTypesList(v.eventTypes).slice(0, 3).map((et) => (
               <span
                 key={et}
                 className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] text-[#8A6B08]"

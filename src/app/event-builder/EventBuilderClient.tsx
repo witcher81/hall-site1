@@ -30,7 +30,9 @@ type BundleJson = {
   items: SeekerBundleItem[];
 };
 
-const EVENT_TYPES = ["חתונה", "בר מצווה", "ברית", "אירוע עסקי", "אחר"];
+import { COMMON_INQUIRY_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
+
+const EVENT_TYPES = COMMON_INQUIRY_EVENT_TYPE_OPTIONS;
 
 function formatPrice(from: number | null, to: number | null): string {
   if (from == null || from <= 0) return "—";

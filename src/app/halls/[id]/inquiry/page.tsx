@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizeEventTypesList } from "@/lib/eventTypeOptions";
 import { parseEventTypesList } from "@/lib/venueEditFormParse";
 import { parseVenueEventTypeProfilesForPublic } from "@/lib/venueEventTypeProfilesPublic";
 import { venueKashrutLabel } from "@/lib/venueKashrutOptions";
@@ -64,7 +65,7 @@ export default async function VenueInquiryPage({
     redirect("/halls");
   }
 
-  const eventTypes = parseEventTypesList(venue.eventTypes);
+  const eventTypes = normalizeEventTypesList(parseEventTypesList(venue.eventTypes));
   const eventTypeProfiles = parseVenueEventTypeProfilesForPublic(
     venue.eventTypeProfilesJson,
     eventTypes

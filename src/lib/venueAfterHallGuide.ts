@@ -3,6 +3,13 @@
  */
 
 import { providersHrefForCategory } from "@/lib/serviceCategoryQuery";
+import {
+  AFTER_VENUE_EVENT_TYPE_OPTIONS,
+  isBarBatEventType,
+} from "@/lib/eventTypeOptions";
+
+export { AFTER_VENUE_EVENT_TYPE_OPTIONS };
+export type AfterVenueEventTypeOption = (typeof AFTER_VENUE_EVENT_TYPE_OPTIONS)[number];
 
 export type HallMoneyBuiltinKey =
   | "hasFood"
@@ -123,21 +130,11 @@ const BAR_BAT_GAPS: GapSuggestion[] = [
   },
 ];
 
-export const AFTER_VENUE_EVENT_TYPE_OPTIONS = [
-  "חתונה",
-  "יום הולדת",
-  "בר מצווה",
-  "בת מצווה",
-  "אחר",
-] as const;
-
-export type AfterVenueEventTypeOption = (typeof AFTER_VENUE_EVENT_TYPE_OPTIONS)[number];
-
 export function gapSuggestionsForEventType(et: string): GapSuggestion[] {
   const t = et.trim();
   if (t === "חתונה") return WEDDING_GAPS;
   if (t === "יום הולדת") return BIRTHDAY_GAPS;
-  if (t === "בר מצווה" || t === "בת מצווה") return BAR_BAT_GAPS;
+  if (isBarBatEventType(t)) return BAR_BAT_GAPS;
   return [
     {
       id: "generic",

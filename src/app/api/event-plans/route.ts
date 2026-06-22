@@ -6,7 +6,9 @@ import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
-const ALLOWED_EVENT_TYPES = new Set(["חתונה", "בר מצווה"]);
+import { EVENT_PLAN_EVENT_TYPE_OPTIONS, normalizeEventTypeLabel } from "@/lib/eventTypeOptions";
+
+const ALLOWED_EVENT_TYPES = new Set<string>(EVENT_PLAN_EVENT_TYPE_OPTIONS);
 const ALLOWED_CHECKLIST = new Set(["todo", "in_progress", "done"]);
 type ChecklistState = "todo" | "in_progress" | "done";
 
@@ -120,7 +122,8 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({} as Record<string, unknown>));
-  const eventType = typeof body.eventType === "string" ? body.eventType.trim() : "";
+  const eventTypeRaw = typeof body.eventType === "string" ? body.eventType.trim() : "";
+  const eventType = normalizeEventTypeLabel(eventTypeRaw);
   if (!ALLOWED_EVENT_TYPES.has(eventType)) {
     return NextResponse.json({ error: "סוג אירוע לא תקין" }, { status: 400 });
   }
@@ -199,7 +202,8 @@ export async function PUT(req: NextRequest) {
   });
   if (!existing) return NextResponse.json({ error: "התוכנית לא נמצאה" }, { status: 404 });
 
-  const eventType = typeof body.eventType === "string" ? body.eventType.trim() : "";
+  const eventTypeRaw = typeof body.eventType === "string" ? body.eventType.trim() : "";
+  const eventType = normalizeEventTypeLabel(eventTypeRaw);
   if (!ALLOWED_EVENT_TYPES.has(eventType)) {
     return NextResponse.json({ error: "סוג אירוע לא תקין" }, { status: 400 });
   }

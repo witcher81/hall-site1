@@ -4,6 +4,10 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { resolveParkingFilterFromSearchParams } from "@/lib/venueParkingKind";
 import { VENUE_TYPE_VALUE_SET } from "@/lib/venueTypeOptions";
+import {
+  eventTypeSearchContainsVariants,
+  normalizeEventTypesList,
+} from "@/lib/eventTypeOptions";
 
 export type PublicVenueListItem = {
   id: number;
@@ -173,7 +177,15 @@ export async function searchPublicVenues(
     if (!Number.isNaN(n)) where.hallRentalMax = { lte: n };
   }
   if (eventType && eventType.length > 0) {
-    where.eventTypes = { contains: eventType };
+    const variants = eventTypeSearchContainsVariants(eventType);
+    if (variants.length === 1) {
+      andParts.push({ eventTypes: { contains: variants[0] } });
+    } else {
+      andParts.push({
+        OR: variants.map((v) => ({ eventTypes: { contains: v } })),
+      });
+    }
+    where.AND = andParts;
   }
 
   if (kashrut && kashrut !== "") {
@@ -379,7 +391,9 @@ export async function searchPublicVenues(
     }
     return {
       ...rest,
-      eventTypes: v.eventTypes ? (JSON.parse(v.eventTypes) as string[]) : [],
+      eventTypes: v.eventTypes
+        ? normalizeEventTypesList(JSON.parse(v.eventTypes) as string[])
+        : [],
       galleryImageUrls: v.galleryImageUrls
         ? (JSON.parse(v.galleryImageUrls) as string[])
         : [],

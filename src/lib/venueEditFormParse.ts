@@ -1,4 +1,5 @@
 import { parseAmenityExtraFromDb } from "@/lib/amenityExtraPrice";
+import { findStoredEventTypeProfileKey } from "@/lib/eventTypeOptions";
 import { WEDDING_AMENITY_STORAGE_PREFIX as WEDDING_CUSTOM_PREFIX } from "@/lib/venueInquiryAmenities";
 import { parseMealAlternativesFromProfile } from "@/lib/venueMealAlternatives";
 import {
@@ -210,8 +211,11 @@ export function parseEventTypeProfilesForForm(
     const parsed = JSON.parse(raw) as unknown;
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return out;
     const obj = parsed as Record<string, unknown>;
+    const storedKeys = Object.keys(obj);
     for (const et of safeTypes) {
-      const row = obj[et];
+      const profileKey = findStoredEventTypeProfileKey(et, storedKeys);
+      if (!profileKey) continue;
+      const row = obj[profileKey];
       if (typeof row !== "object" || row === null || Array.isArray(row)) continue;
       const profile = row as Record<string, unknown>;
       const minP =

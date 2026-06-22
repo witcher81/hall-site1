@@ -24,7 +24,9 @@ import type { PublicPackageListItem } from "@/lib/publicPackagesSearch";
 
 const PACKAGES_SEARCH_STORAGE_KEY = "hallsHub.packagesSearch.v1";
 
-const EVENT_TYPE_OPTIONS = ["חתונה", "בר מצווה", "בת מצווה", "ברית", "אירוע עסקי", "אחר"];
+import { PACKAGE_SEARCH_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
+
+const EVENT_TYPE_OPTIONS = PACKAGE_SEARCH_EVENT_TYPE_OPTIONS;
 
 const QUICK_CITIES = ["תל אביב", "חיפה", "ירושלים", "הרצליה", "רמת גן", "פתח תקווה"];
 
@@ -629,7 +631,7 @@ export default function PackagesSearchClient({
           <div>
             <p className="mb-1.5 text-[11px] text-neutral-500">סוג אירוע</p>
             <div className="flex flex-wrap gap-2">
-              {EVENT_TYPE_OPTIONS.slice(0, 4).map((type) => (
+              {EVENT_TYPE_OPTIONS.map((type) => (
                 <button
                   key={type}
                   type="button"

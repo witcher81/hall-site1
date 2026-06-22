@@ -22,7 +22,7 @@ export function EventTypeProfilePublicNotesField({
         maxLength={EVENT_TYPE_PUBLIC_NOTES_MAX}
         rows={3}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="לדוגמה: בבר מצווה — אפשרות לעמדת מזנון בנפרד מהישיבה..."
+        placeholder="לדוגמה: בבר/בת מצווה — אפשרות לעמדת מזנון בנפרד מהישיבה..."
         className="mt-1.5 w-full resize-y rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30"
       />
       <p className="mt-1 text-[10px] text-[#8A8278]">
