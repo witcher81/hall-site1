@@ -564,6 +564,34 @@ input.checkbox-hall:disabled {
   border: none !important;
 }
 
+/* מפת בחירת מיקום אולם — Leaflet משתמש ב-z-index גבוה (400+) ועולה על ה-header בגלילה */
+.venue-location-picker {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+.venue-location-picker-map {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.venue-location-picker-map .leaflet-pane,
+.venue-location-picker-map .leaflet-top,
+.venue-location-picker-map .leaflet-bottom,
+.venue-location-picker-map .leaflet-control {
+  z-index: 1 !important;
+}
+
+.venue-location-picker-map .leaflet-marker-pane {
+  z-index: 2 !important;
+}
+
+.venue-location-picker-map .leaflet-tooltip-pane {
+  z-index: 3 !important;
+}
+
 /* טקסט בעברית; בלי direction על ה-tooltip כדי שלא ייזוז חץ העוגן של Leaflet */
 .leaflet-tooltip.venue-picker-marker-tooltip {
   text-align: right;

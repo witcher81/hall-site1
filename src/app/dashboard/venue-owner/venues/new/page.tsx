@@ -51,7 +51,6 @@ import {
   hallGeneralAmenityLive,
   isHallGeneralPricePlaced,
   persistedHallGeneralPriceMode,
-  ACUM_VENUE_OWNER_HINT,
 } from "@/lib/venueBuiltinAmenities";
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
 import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
@@ -890,7 +889,7 @@ export default function NewVenuePage() {
 
           <div
             ref={mapSectionRef}
-            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+            className="relative z-0 isolate overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 p-3"
           >
             <p className="mb-2 text-xs font-semibold text-neutral-600">
               מיקום האולם על המפה
@@ -1107,11 +1106,8 @@ export default function NewVenuePage() {
             </p>
             <p className="mb-3 text-xs leading-relaxed text-neutral-600">
               כאן מגדירים מה האולם מציע למחפש — זה מופיע בדף הציבורי, בחיפוש ובטופס פנייה.
-              אוכל מוגדר בנפרד; שולחנות, הגברה ואקו&quot;ם מסודרים למטה. רחבת ריקודים מסומנת
-              ב«מה האולם מציע» למעלה.
-            </p>
-            <p className="mb-3 rounded-lg border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-[11px] leading-relaxed text-amber-950">
-              {ACUM_VENUE_OWNER_HINT}
+              אוכל מוגדר בנפרד; שולחנות, הגברה ואקו&quot;ם (כפתורים צהובים למטה) מסודרים כאן. רחבת
+              ריקודים מסומנת ב«מה האולם מציע» למעלה.
             </p>
             <HallGeneralFoodSection
               enabled={form.productHasFood}

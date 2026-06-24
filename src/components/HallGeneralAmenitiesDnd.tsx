@@ -7,6 +7,8 @@ import SeekerExternalWithEventTypes from "@/components/SeekerExternalWithEventTy
 import {
   HALL_VENUE_PRODUCT_DND_ITEMS,
   VENUE_PRODUCT_BUILTIN_KEYS,
+  ACUM_VENUE_OWNER_HINT,
+  hallGeneralAmenityLive,
   type BuiltinAmenityKeyFull,
   type HallGeneralBuiltinKey,
   type HallGeneralPriceMode,
@@ -650,8 +652,74 @@ export default function HallGeneralAmenitiesDnd({
   const includedCustoms = customAmenityRows.filter((r) => r.checked && r.priceMode === "included");
   const extraCustoms = customAmenityRows.filter((r) => r.checked && r.priceMode === "extra");
 
+  const acumMeta = HALL_VENUE_PRODUCT_DND_ITEMS.find((i) => i.key === "hasAcumLicense");
+  const acumMode = builtinAmenityPriceModes.hasAcumLicense;
+  const acumActive = hallGeneralAmenityLive(
+    productBools.hasAcumLicense,
+    acumMode
+  );
+
+  const setAcumOffering = (mode: HallGeneralPriceMode, enabled: boolean) => {
+    onSetHallBuiltin("hasAcumLicense", enabled);
+    setBuiltinAmenityPriceModes((prev) => ({
+      ...prev,
+      hasAcumLicense: mode,
+    }));
+  };
+
   return (
     <>
+      {acumMeta && !excludedBuiltinKeys.includes("hasAcumLicense") ? (
+        <div className="mb-4 rounded-xl border border-amber-200/90 bg-amber-50/90 p-3 text-right">
+          <p className="text-xs font-semibold text-amber-950">
+            {acumMeta.label} — רישיון מוזיקה באירוע
+          </p>
+          <p className="mt-1 text-[11px] leading-relaxed text-amber-950/90">
+            {ACUM_VENUE_OWNER_HINT}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setAcumOffering("included", true)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                acumActive && acumMode === "included"
+                  ? "bg-emerald-950 text-white"
+                  : "border border-amber-300 bg-white text-emerald-950 hover:border-amber-500"
+              }`}
+            >
+              כלול במחיר
+            </button>
+            <button
+              type="button"
+              onClick={() => setAcumOffering("extra", true)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                acumActive && acumMode === "extra"
+                  ? "bg-emerald-950 text-white"
+                  : "border border-amber-300 bg-white text-emerald-950 hover:border-amber-500"
+              }`}
+            >
+              בתוספת תשלום
+            </button>
+            <button
+              type="button"
+              onClick={() => setAcumOffering("unplaced", false)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                !productBools.hasAcumLicense || acumMode === "unplaced"
+                  ? "bg-neutral-200 text-neutral-700"
+                  : "border border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+              }`}
+            >
+              לא מציעים
+            </button>
+          </div>
+          {!acumActive ? (
+            <p className="mt-2 text-[10px] text-amber-900/80">
+              אפשר גם לגרור «{acumMeta.label}» מהרשימה למטה לעמודה המתאימה.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="mb-4 rounded-xl border border-emerald-950/15 bg-white p-3 text-right">
         <p className="text-xs font-semibold text-emerald-950">איך מסדרים פריטים?</p>
         <ol className="mt-2 list-inside list-decimal space-y-1.5 text-[11px] leading-relaxed text-neutral-700">

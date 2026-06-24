@@ -755,11 +755,11 @@ export default function VenueLocationPicker({
     isValidIsraelLatLng(parkingOnSameMap.lat, parkingOnSameMap.lng);
 
   return (
-    <div className="space-y-2">
+    <div className="venue-location-picker space-y-2">
       <div
         ref={containerRef}
         dir="ltr"
-        className="h-64 w-full rounded-2xl bg-neutral-50"
+        className="venue-location-picker-map h-64 w-full rounded-2xl bg-neutral-50"
       />
       <p className="text-[11px] text-neutral-600">
         {mapInitError
