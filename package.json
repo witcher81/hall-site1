@@ -29,7 +29,7 @@
     "dev:all": "npm run dev:stop && concurrently \"npm run dev\" \"npx prisma studio --port 5555 --browser none\" \"powershell -NoProfile -Command \\\"Start-Sleep -Seconds 2; Start-Process 'http://localhost:5555'\\\"\""
   },
   "dependencies": {
-    "@prisma/client": "5.22.0",
+    "@prisma/client": "7.8.0",
     "@sentry/nextjs": "^10.47.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
