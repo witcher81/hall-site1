@@ -45,6 +45,7 @@ export type VenueEditFormInitial = {
   hasDanceFloor: boolean;
   hasTableSetup: boolean;
   hasSoundSystem: boolean;
+  hasAcumLicense: boolean;
   hasVeganFood: boolean;
   foodKashrut: string;
   eventTypes: string[];
@@ -171,6 +172,7 @@ export function buildVenueEditInitial(
     hasDanceFloor: venue.hasDanceFloor,
     hasTableSetup: venue.hasTableSetup,
     hasSoundSystem: venue.hasSoundSystem,
+    hasAcumLicense: venue.hasAcumLicense ?? false,
     hasVeganFood: venue.hasVeganFood ?? false,
     foodKashrut: venue.kashrut ?? "",
     coverImageUrl: venue.coverImageUrl ?? null,

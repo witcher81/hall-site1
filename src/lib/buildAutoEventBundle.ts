@@ -42,6 +42,7 @@ const venueSelect = {
   hasDanceFloor: true,
   hasTableSetup: true,
   hasSoundSystem: true,
+  hasAcumLicense: true,
   customAmenitiesJson: true,
   venueSoftAttributesJson: true,
   eventTypeProfilesJson: true,
@@ -58,6 +59,7 @@ function venueAmenitiesFromRow(
     | "hasDanceFloor"
     | "hasTableSetup"
     | "hasSoundSystem"
+    | "hasAcumLicense"
     | "customAmenitiesJson"
     | "venueSoftAttributesJson"
     | "eventTypeProfilesJson"
@@ -72,6 +74,7 @@ function venueAmenitiesFromRow(
     hasDanceFloor: v.hasDanceFloor,
     hasTableSetup: v.hasTableSetup,
     hasSoundSystem: v.hasSoundSystem,
+    hasAcumLicense: v.hasAcumLicense,
     customAmenitiesJson: v.customAmenitiesJson,
     venueSoftAttributesJson: v.venueSoftAttributesJson,
     eventTypeProfilesJson: v.eventTypeProfilesJson,

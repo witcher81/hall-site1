@@ -33,7 +33,8 @@ type BuiltinAmenityKey =
   | "hasFood"
   | "hasDanceFloor"
   | "hasTableSetup"
-  | "hasSoundSystem";
+  | "hasSoundSystem"
+  | "hasAcumLicense";
 type Venue = {
   id: number;
   name: string;
@@ -61,6 +62,7 @@ type Venue = {
   hasDanceFloor?: boolean | null;
   hasTableSetup?: boolean | null;
   hasSoundSystem?: boolean | null;
+  hasAcumLicense?: boolean | null;
   customAmenities?: {
     label: string;
     checked: boolean;
@@ -632,6 +634,7 @@ export default function VenuePublicView({
         venue.hasTableSetup ||
         venue.hasDanceFloor ||
         venue.hasSoundSystem ||
+        venue.hasAcumLicense ||
         hasCheckedCustomAmenities ||
         (venue.softCustomAttributeLabels?.length ?? 0) > 0
     );
@@ -667,6 +670,16 @@ export default function VenuePublicView({
             label: "מערכת הגברה",
             mode: venue.amenityPriceModes?.hasSoundSystem,
             extraPrice: venue.amenityExtraPrices?.hasSoundSystem,
+          },
+        ]
+      : []),
+    ...(venue.hasAcumLicense
+      ? [
+          {
+            key: "builtin-acum",
+            label: 'רישיון אקו"ם',
+            mode: venue.amenityPriceModes?.hasAcumLicense,
+            extraPrice: venue.amenityExtraPrices?.hasAcumLicense,
           },
         ]
       : []),

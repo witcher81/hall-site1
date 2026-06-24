@@ -517,6 +517,7 @@ export async function POST(req: NextRequest) {
   const hasDanceFloor = toBool(formData.get("hasDanceFloor"));
   const hasTableSetup = toBool(formData.get("hasTableSetup"));
   const hasSoundSystem = toBool(formData.get("hasSoundSystem"));
+  const hasAcumLicense = toBool(formData.get("hasAcumLicense"));
   const hasBridalRoom = toBool(formData.get("hasBridalRoom"));
   const seaView = toBool(formData.get("seaView"));
   const boutique = toBool(formData.get("boutique"));
@@ -760,6 +761,7 @@ export async function POST(req: NextRequest) {
       hasDanceFloor,
       hasTableSetup,
       hasSoundSystem,
+      hasAcumLicense,
       hasBridalRoom,
       hasChuppaOutdoor,
       hasChuppaCovered,
@@ -942,6 +944,7 @@ export async function PUT(req: NextRequest) {
   const hasDanceFloor = toBool(formData.get("hasDanceFloor"));
   const hasTableSetup = toBool(formData.get("hasTableSetup"));
   const hasSoundSystem = toBool(formData.get("hasSoundSystem"));
+  const hasAcumLicense = toBool(formData.get("hasAcumLicense"));
   const hasBridalRoom = toBool(formData.get("hasBridalRoom"));
   const seaView = toBool(formData.get("seaView"));
   const boutique = toBool(formData.get("boutique"));
@@ -1213,6 +1216,7 @@ export async function PUT(req: NextRequest) {
       hasDanceFloor,
       hasTableSetup,
       hasSoundSystem,
+      hasAcumLicense,
       hasBridalRoom,
       hasChuppaOutdoor,
       hasChuppaCovered,

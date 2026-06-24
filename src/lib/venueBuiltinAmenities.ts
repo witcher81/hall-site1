@@ -3,7 +3,16 @@ export const HALL_VENUE_PRODUCT_DND_ITEMS = [
   { key: "hasFood", label: "בופה", supportsExtraPrice: true as const },
   { key: "hasTableSetup", label: "סידור שולחנות", supportsExtraPrice: true as const },
   { key: "hasSoundSystem", label: "מערכת הגברה", supportsExtraPrice: true as const },
+  {
+    key: "hasAcumLicense",
+    label: 'רישיון אקו"ם',
+    supportsExtraPrice: true as const,
+  },
 ] as const;
+
+/** הסבר קצר לבעל אולם — מוצג ליד שירותי «מה יש באולם» */
+export const ACUM_VENUE_OWNER_HINT =
+  'אקו"ם: רישיון חובה להשמעת מוזיקה באירוע. הגדירו אם כלול במחיר, בתוספת תשלום, או שהמחפש מסדיר לבד ב-acum.org.il.';
 
 export type HallGeneralBuiltinKey =
   (typeof HALL_VENUE_PRODUCT_DND_ITEMS)[number]["key"];
@@ -39,6 +48,7 @@ export function findUnplacedHallGeneralLabel(options: {
   productHasFood: boolean;
   hasTableSetup: boolean;
   hasSoundSystem: boolean;
+  hasAcumLicense: boolean;
   modes: Record<BuiltinAmenityKeyFull, HallGeneralPriceMode>;
   customRows: { label: string; checked: boolean; priceMode: HallGeneralPriceMode }[];
 }): string | null {
@@ -46,6 +56,7 @@ export function findUnplacedHallGeneralLabel(options: {
     hasFood: options.productHasFood,
     hasTableSetup: options.hasTableSetup,
     hasSoundSystem: options.hasSoundSystem,
+    hasAcumLicense: options.hasAcumLicense,
   };
   for (const item of HALL_VENUE_PRODUCT_DND_ITEMS) {
     if (bools[item.key] && options.modes[item.key] === "unplaced") {

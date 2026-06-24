@@ -17,6 +17,7 @@ export type VenueOfferProductsSlice = {
   hasTableSetup: boolean;
   hasDanceFloor: boolean;
   hasSoundSystem: boolean;
+  hasAcumLicense: boolean;
   hasParkingNearby: boolean;
 };
 
@@ -47,6 +48,7 @@ export const OFFER_PRODUCT_LABELS: Record<OfferProductKey, string> = {
   hasTableSetup: "סידור שולחנות",
   hasDanceFloor: "רחבת ריקודים",
   hasSoundSystem: "מערכת הגברה",
+  hasAcumLicense: 'רישיון אקו"ם',
   hasParkingNearby: "חניה באזור",
 };
 
@@ -133,6 +135,7 @@ const WEDDING_PRODUCTS: OfferProductKey[] = [
   "hasTableSetup",
   "hasDanceFloor",
   "hasSoundSystem",
+  "hasAcumLicense",
 ];
 
 const PARTY_PRODUCTS: OfferProductKey[] = [
@@ -145,6 +148,7 @@ const PARTY_PRODUCTS: OfferProductKey[] = [
   "hasTableSetup",
   "hasDanceFloor",
   "hasSoundSystem",
+  "hasAcumLicense",
 ];
 
 const BRIT_PRODUCTS: OfferProductKey[] = [
@@ -157,6 +161,7 @@ const BRIT_PRODUCTS: OfferProductKey[] = [
   "hasVeganFood",
   "hasTableSetup",
   "hasSoundSystem",
+  "hasAcumLicense",
 ];
 
 /** מסנני «מוצרים שהאולם מציעה» לפי סוג אירוע — null = לא נבחר סוג */
@@ -177,6 +182,7 @@ export function offerProductKeysForEventType(
       "hasFood",
       "hasDanceFloor",
       "hasSoundSystem",
+      "hasAcumLicense",
       "hasTableSetup",
     ];
   }
@@ -187,6 +193,7 @@ export function offerProductKeysForEventType(
       "hasParkingNearby",
       "hasTableSetup",
       "hasSoundSystem",
+      "hasAcumLicense",
       "hasFood",
       "hasVeganFood",
       "boutique",
@@ -197,6 +204,7 @@ export function offerProductKeysForEventType(
     return [
       "hasDanceFloor",
       "hasSoundSystem",
+      "hasAcumLicense",
       "hasFood",
       "hasTableSetup",
       "accessible",
@@ -283,7 +291,7 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
       {
         id: "brit-tech",
         label: "הגברה ומסך",
-        toggles: { hasSoundSystem: true },
+        toggles: { hasSoundSystem: true, hasAcumLicense: true },
       },
       {
         id: "brit-private",
@@ -345,6 +353,7 @@ export function emptyOfferProductFilters(): VenueOfferProductsSlice {
     hasTableSetup: false,
     hasDanceFloor: false,
     hasSoundSystem: false,
+    hasAcumLicense: false,
     hasParkingNearby: false,
   };
 }
@@ -375,6 +384,7 @@ export function sliceOfferProductsFromForm(form: {
   hasTableSetup: boolean;
   hasDanceFloor: boolean;
   hasSoundSystem: boolean;
+  hasAcumLicense: boolean;
   hasParkingNearby: boolean;
 }): VenueOfferProductsSlice {
   return {
@@ -390,6 +400,7 @@ export function sliceOfferProductsFromForm(form: {
     hasTableSetup: form.hasTableSetup,
     hasDanceFloor: form.hasDanceFloor,
     hasSoundSystem: form.hasSoundSystem,
+    hasAcumLicense: form.hasAcumLicense,
     hasParkingNearby: form.hasParkingNearby,
   };
 }

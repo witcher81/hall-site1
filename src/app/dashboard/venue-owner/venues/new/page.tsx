@@ -51,6 +51,7 @@ import {
   hallGeneralAmenityLive,
   isHallGeneralPricePlaced,
   persistedHallGeneralPriceMode,
+  ACUM_VENUE_OWNER_HINT,
 } from "@/lib/venueBuiltinAmenities";
 import type { VenueSoftAttributeRow } from "@/lib/venueSoftAttributesJson";
 import SeekerExternalSourceToggle from "@/components/SeekerExternalSourceToggle";
@@ -78,6 +79,7 @@ const HALL_GENERAL_PRICE_KEYS = [
   { key: "hasFood" as const, label: "בופה" },
   { key: "hasTableSetup" as const, label: "סידור שולחנות" },
   { key: "hasSoundSystem" as const, label: "מערכת הגברה" },
+  { key: "hasAcumLicense" as const, label: 'רישיון אקו"ם' },
 ] as const;
 function isPositivePrice(value: string) {
   const n = Number(value);
@@ -120,6 +122,7 @@ export default function NewVenuePage() {
     hasDanceFloor: false,
     hasTableSetup: false,
     hasSoundSystem: false,
+    hasAcumLicense: false,
     hasVeganFood: false,
     foodKashrut: "",
     seaView: false,
@@ -250,6 +253,7 @@ export default function NewVenuePage() {
         productHasFood: form.productHasFood,
         hasTableSetup: form.hasTableSetup,
         hasSoundSystem: form.hasSoundSystem,
+        hasAcumLicense: form.hasAcumLicense,
         modes: builtinAmenityPriceModes,
         customRows: customAmenityRows,
       });
@@ -426,6 +430,10 @@ export default function NewVenuePage() {
         form.hasSoundSystem,
         builtinAmenityPriceModes.hasSoundSystem
       );
+      const anyEventAcumLicense = hallGeneralAmenityLive(
+        form.hasAcumLicense,
+        builtinAmenityPriceModes.hasAcumLicense
+      );
       const anyEventMealAlternatives = eventTypes.some(
         (et) => (eventTypeProfiles[et]?.mealAlternatives?.length ?? 0) > 0
       );
@@ -476,6 +484,7 @@ export default function NewVenuePage() {
       fd.append("hasDanceFloor", String(anyEventDanceFloor));
       fd.append("hasTableSetup", String(anyEventTableSetup));
       fd.append("hasSoundSystem", String(anyEventSoundSystem));
+      fd.append("hasAcumLicense", String(anyEventAcumLicense));
       fd.append("hasBridalRoom", "false");
       fd.append("seaView", String(form.seaView));
       fd.append("boutique", String(form.boutique));
@@ -489,6 +498,7 @@ export default function NewVenuePage() {
         hasFood: hasFoodForApi,
         hasTableSetup: anyEventTableSetup,
         hasSoundSystem: anyEventSoundSystem,
+        hasAcumLicense: anyEventAcumLicense,
       };
       const customAmenitiesPayload = [
         ...VENUE_PRODUCT_BUILTIN_KEYS.map((key) => {
@@ -626,6 +636,7 @@ export default function NewVenuePage() {
     hasFood: false,
     hasTableSetup: form.hasTableSetup,
     hasSoundSystem: form.hasSoundSystem,
+    hasAcumLicense: form.hasAcumLicense,
   };
 
   const setHallBuiltin = useCallback((key: HallGeneralBuiltinKey, checked: boolean) => {
@@ -1096,8 +1107,11 @@ export default function NewVenuePage() {
             </p>
             <p className="mb-3 text-xs leading-relaxed text-neutral-600">
               כאן מגדירים מה האולם מציע למחפש — זה מופיע בדף הציבורי, בחיפוש ובטופס פנייה.
-              אוכל מוגדר בנפרד; שולחנות והגברה מסודרים למטה. רחבת ריקודים מסומנת ב«מה האולם מציע»
-              למעלה.
+              אוכל מוגדר בנפרד; שולחנות, הגברה ואקו&quot;ם מסודרים למטה. רחבת ריקודים מסומנת
+              ב«מה האולם מציע» למעלה.
+            </p>
+            <p className="mb-3 rounded-lg border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-[11px] leading-relaxed text-amber-950">
+              {ACUM_VENUE_OWNER_HINT}
             </p>
             <HallGeneralFoodSection
               enabled={form.productHasFood}

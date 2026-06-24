@@ -20,9 +20,10 @@ export function builtinAmenityOffersSeekerExternalConfig(
 }
 
 export function defaultSeekerExternalForBuiltin(
-  _key: BuiltinAmenityKeyFull,
+  key: BuiltinAmenityKeyFull,
   _priceMode: "included" | "extra" = "included"
 ): boolean {
+  if (key === "hasAcumLicense") return true;
   return false;
 }
 

@@ -89,6 +89,7 @@ const EMPTY_SEARCH_FORM = {
   hasTableSetup: false,
   hasDanceFloor: false,
   hasSoundSystem: false,
+  hasAcumLicense: false,
   hasParkingNearby: false,
   softAttr: "",
   birthdayAgeGroup: "" as BirthdayAgeGroup,
@@ -141,6 +142,7 @@ function buildParamsFromForm(f: SearchFormState): URLSearchParams {
   if (f.hasTableSetup) params.set("hasTableSetup", "true");
   if (f.hasDanceFloor) params.set("hasDanceFloor", "true");
   if (f.hasSoundSystem) params.set("hasSoundSystem", "true");
+  if (f.hasAcumLicense) params.set("hasAcumLicense", "true");
   if (f.hasParkingNearby) params.set("hasParkingNearby", "true");
   if (f.softAttr.trim()) params.set("softAttr", f.softAttr.trim());
   if (f.birthdayAgeGroup) params.set("birthdayAgeGroup", f.birthdayAgeGroup);
@@ -177,6 +179,7 @@ function countActiveFilters(f: SearchFormState): number {
   if (f.hasTableSetup) n++;
   if (f.hasDanceFloor) n++;
   if (f.hasSoundSystem) n++;
+  if (f.hasAcumLicense) n++;
   if (f.hasParkingNearby) n++;
   if (f.softAttr.trim()) n++;
   if (f.birthdayAgeGroup) n++;
@@ -290,6 +293,7 @@ function formFromSearchParams(sp: URLSearchParams): SearchFormState {
     hasTableSetup: sp.get("hasTableSetup") === "true",
     hasDanceFloor: sp.get("hasDanceFloor") === "true",
     hasSoundSystem: sp.get("hasSoundSystem") === "true",
+    hasAcumLicense: sp.get("hasAcumLicense") === "true",
     hasParkingNearby: sp.get("hasParkingNearby") === "true",
     softAttr: sp.get("softAttr") ?? "",
     birthdayAgeGroup: (() => {
@@ -528,6 +532,7 @@ function VenueResultCard({
           v.hasTableSetup ||
           v.hasDanceFloor ||
           v.hasSoundSystem ||
+          v.hasAcumLicense ||
           (v.customAmenities?.some((a) => a.checked) ?? false)) && (
           <div className="mt-2 flex flex-wrap gap-1">
             {v.hasChuppa && (
@@ -553,6 +558,11 @@ function VenueResultCard({
             {v.hasSoundSystem && (
               <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] text-emerald-950">
                 הגברה
+              </span>
+            )}
+            {v.hasAcumLicense && (
+              <span className="rounded-full bg-emerald-950/10 px-2 py-0.5 text-[10px] text-emerald-950">
+                אקו&quot;ם
               </span>
             )}
             {v.customAmenities
@@ -774,6 +784,7 @@ export default function HallsSearchClient({
      const hasTableSetup = searchParams.get("hasTableSetup");
      const hasDanceFloor = searchParams.get("hasDanceFloor");
      const hasSoundSystem = searchParams.get("hasSoundSystem");
+     const hasAcumLicense = searchParams.get("hasAcumLicense");
      const hasParkingNearby = searchParams.get("hasParkingNearby");
      const softAttr = searchParams.get("softAttr");
      const birthdayAgeGroup = searchParams.get("birthdayAgeGroup");
@@ -804,6 +815,7 @@ export default function HallsSearchClient({
     if (hasTableSetup) params.set("hasTableSetup", hasTableSetup);
     if (hasDanceFloor) params.set("hasDanceFloor", hasDanceFloor);
     if (hasSoundSystem) params.set("hasSoundSystem", hasSoundSystem);
+    if (hasAcumLicense) params.set("hasAcumLicense", hasAcumLicense);
     if (hasParkingNearby) params.set("hasParkingNearby", hasParkingNearby);
     if (softAttr) params.set("softAttr", softAttr);
     if (birthdayAgeGroup) params.set("birthdayAgeGroup", birthdayAgeGroup);

@@ -120,6 +120,8 @@ model Venue {
   hasDanceFloor  Boolean @default(false)
   hasTableSetup  Boolean @default(false)
   hasSoundSystem Boolean @default(false)
+  /// רישיון אקו"ם להשמעת מוזיקה באירוע — תמחור ב-customAmenitiesJson
+  hasAcumLicense Boolean @default(false)
   hasBridalRoom  Boolean @default(false)
   /// JSON: מערך { label, checked } — שירותים/ציוד נוספים שהבעלים הוסיף
   customAmenitiesJson String?

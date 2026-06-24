@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
       hasDanceFloor: true,
       hasTableSetup: true,
       hasSoundSystem: true,
+      hasAcumLicense: true,
       customAmenitiesJson: true,
       venueSoftAttributesJson: true,
       eventTypeProfilesJson: true,

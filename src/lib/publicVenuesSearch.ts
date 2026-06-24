@@ -34,6 +34,7 @@ export type PublicVenueListItem = {
   hasTableSetup: boolean;
   hasDanceFloor: boolean;
   hasSoundSystem: boolean;
+  hasAcumLicense: boolean;
   coverImageUrl: string | null;
   galleryImageUrls: string[];
   customAmenities: { label: string; checked: boolean; priceMode: "included" | "extra" }[];
@@ -85,6 +86,7 @@ export async function searchPublicVenues(
   const hasTableSetup = searchParams.get("hasTableSetup");
   const hasDanceFloor = searchParams.get("hasDanceFloor");
   const hasSoundSystem = searchParams.get("hasSoundSystem");
+  const hasAcumLicense = searchParams.get("hasAcumLicense");
   const hasBridalRoom = searchParams.get("hasBridalRoom");
   const hasParkingNearby = searchParams.get("hasParkingNearby");
   const softAttr = readParam(searchParams, "softAttr");
@@ -242,6 +244,7 @@ export async function searchPublicVenues(
   if (hasTableSetup === "true") where.hasTableSetup = true;
   if (hasDanceFloor === "true") where.hasDanceFloor = true;
   if (hasSoundSystem === "true") where.hasSoundSystem = true;
+  if (hasAcumLicense === "true") where.hasAcumLicense = true;
   if (hasBridalRoom === "true") where.hasBridalRoom = true;
   if (hasParkingNearby === "true") where.hasParkingNearby = true;
   if (softAttr && softAttr.length > 0) {
@@ -282,6 +285,7 @@ export async function searchPublicVenues(
       hasTableSetup: true,
       hasDanceFloor: true,
       hasSoundSystem: true,
+      hasAcumLicense: true,
       hasBridalRoom: true,
       hasParkingNearby: true,
       venueSoftAttributesJson: true,
@@ -469,6 +473,7 @@ export function hallsSearchHasActiveFilters(
     "hasTableSetup",
     "hasDanceFloor",
     "hasSoundSystem",
+    "hasAcumLicense",
     "birthdayAgeGroup",
     "hasBridalRoom",
     "hasParkingNearby",
