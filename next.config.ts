@@ -23,25 +23,7 @@ if (isProd) {
     key: "Strict-Transport-Security",
     value: "max-age=31536000; includeSubDomains; preload",
   });
-  // CSP מגביל מאיפה נטענים סקריפטים (שכבה נוספת מעל בריחת טקסט ב-React).
-  // connect-src כולל Sentry ingest כשמופעל ניטור (NEXT_PUBLIC_SENTRY_DSN).
-  securityHeaders.push({
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      // 'unsafe-inline' נדרש ל-bootstrap/הידרציה של Next; 'unsafe-eval' הוסר (לא נחוץ ב-build פרודקשן)
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
-      "connect-src 'self' https://photon.komoot.io https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://server.arcgisonline.com https://cdnjs.cloudflare.com https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.sentry.io",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'self'",
-      "upgrade-insecure-requests",
-    ].join("; "),
-  });
+  // CSP מוגדר ב-src/middleware.ts (מבוסס-nonce לכל בקשה) — לא header סטטי כאן.
 }
 
 const nextConfig: NextConfig = {

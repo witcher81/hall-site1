@@ -74,6 +74,11 @@ export function buildProductionHealthReport(): ProductionHealthReport {
         "GOOGLE_GEOCODING_API_KEY — אופציונלי; גיבוי לגיאוקוד כש-ArcGIS לא מספיק."
       );
     }
+    if (process.env.ALLOW_DEV_USER_SWITCH === "true") {
+      warnings.push(
+        "ALLOW_DEV_USER_SWITCH=true — סיכון: החלפת משתמש ללא אימות בפרוד. בטל אלא אם מכוון."
+      );
+    }
   }
 
   const ok =

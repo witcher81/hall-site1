@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   COOKIE_CONSENT_UPDATED_EVENT,
   hasAnalyticsConsent,
@@ -78,18 +78,16 @@ function useAnalyticsConsentGate(): boolean {
 }
 
 export function useEngagedVenueView(venueId: number) {
-  const venueIdRef = useRef(venueId);
-  venueIdRef.current = venueId;
   const analyticsAllowed = useAnalyticsConsentGate();
 
   useEffect(() => {
     if (!analyticsAllowed) return;
-    return runEngagedTimer(sessionKeyVenue(venueIdRef.current), (dwellMs) => {
+    return runEngagedTimer(sessionKeyVenue(venueId), (dwellMs) => {
       void fetch("/api/analytics/venue-view", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          venueId: venueIdRef.current,
+          venueId,
           dwellMs,
         }),
       }).catch(() => {});
@@ -98,18 +96,16 @@ export function useEngagedVenueView(venueId: number) {
 }
 
 export function useEngagedFreelancerProfileView(providerUserId: number) {
-  const idRef = useRef(providerUserId);
-  idRef.current = providerUserId;
   const analyticsAllowed = useAnalyticsConsentGate();
 
   useEffect(() => {
     if (!analyticsAllowed) return;
-    return runEngagedTimer(sessionKeyProvider(idRef.current), (dwellMs) => {
+    return runEngagedTimer(sessionKeyProvider(providerUserId), (dwellMs) => {
       void fetch("/api/analytics/freelancer-profile-view", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerUserId: idRef.current,
+          providerUserId,
           dwellMs,
         }),
       }).catch(() => {});

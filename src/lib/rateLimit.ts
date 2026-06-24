@@ -210,8 +210,17 @@ export async function applyRateLimit(request: NextRequest): Promise<NextResponse
 export function warnIfProductionMissingUpstash(): void {
   if (!isProductionRuntime()) return;
   if (getUpstashRedisConfig()) return;
-  console.warn(
-    "[hall-site] UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN חסרים בפרוד — משתמשים בהגבלת קצב מקומית (מומלץ להגדיר Upstash)."
+  console.error(
+    "[security] UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN חסרים בפרוד — הגבלת קצב בזיכרון בלבד (לא משותפת בין אינסטנסים). מומלץ מאוד להגדיר Upstash."
+  );
+}
+
+/** דגל פיתוח מסוכן בפרוד — החלפת משתמש ללא סיסמה. לוג בולט אם הופעל בטעות. */
+export function warnIfProductionDevUserSwitch(): void {
+  if (!isProductionRuntime()) return;
+  if (process.env.ALLOW_DEV_USER_SWITCH !== "true") return;
+  console.error(
+    "[security] ALLOW_DEV_USER_SWITCH=true בפרודקשן — מאפשר החלפת משתמש ללא אימות. בטל אלא אם זה מכוון לחלוטין."
   );
 }
 
