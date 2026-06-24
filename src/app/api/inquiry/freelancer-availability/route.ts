@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildMarketplaceServiceWhere } from "@/lib/marketplaceServiceSearch";
+import { isSameOriginApiRequest } from "@/lib/sameOriginGuard";
 import { getInquiryMarketplaceSearch } from "@/lib/venueInquiryFreelancerMatch";
 import { prisma } from "@/lib/prisma";
 
@@ -7,8 +8,14 @@ export const runtime = "nodejs";
 
 type AvailabilityItem = { id: string; label: string };
 
+const MAX_ITEMS = 12;
+
 /** בדיקה אם יש בכלל ספקים במאגר לפריטי הזמנה (לפני הצגת «ספק חיצוני») */
 export async function POST(req: NextRequest) {
+  if (!isSameOriginApiRequest(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -19,6 +26,12 @@ export async function POST(req: NextRequest) {
   const items = (body as { items?: unknown }).items;
   if (!Array.isArray(items)) {
     return NextResponse.json({ error: "חסר מערך items" }, { status: 400 });
+  }
+  if (items.length > MAX_ITEMS) {
+    return NextResponse.json(
+      { error: `ניתן לשלוח עד ${MAX_ITEMS} פריטים בבקשה אחת` },
+      { status: 400 }
+    );
   }
 
   const byId: Record<

@@ -8,6 +8,22 @@ import {
   eventTypeSearchContainsVariants,
   normalizeEventTypesList,
 } from "@/lib/eventTypeOptions";
+import { USER_INPUT_MAX } from "@/lib/userInputValidation";
+import { isKnownVenueKashrut } from "@/lib/venueKashrutOptions";
+
+/** תקרת תוצאות לחיפוש פומבי — מונע טעינת כל הטבלה לזיכרון (DoS) */
+const MAX_PUBLIC_VENUE_RESULTS = 500;
+
+/** מספר מסונן מפרמטר חיפוש: סופי, אי-שלילי, חסום בתקרה. אחרת NaN. */
+function parseBoundedSearchNumber(
+  raw: string | null | undefined,
+  max: number
+): number {
+  if (!raw || raw === "") return NaN;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) return NaN;
+  return Math.min(n, max);
+}
 
 export type PublicVenueListItem = {
   id: number;
@@ -99,10 +115,10 @@ export async function searchPublicVenues(
   if (city && city.length > 0) {
     where.city = { contains: city, mode: "insensitive" };
   }
-  const minG = minGuests && minGuests !== "" ? Number(minGuests) : NaN;
-  const maxG = maxGuests && maxGuests !== "" ? Number(maxGuests) : NaN;
-  const minP = minPrice && minPrice !== "" ? Number(minPrice) : NaN;
-  const maxP = maxPrice && maxPrice !== "" ? Number(maxPrice) : NaN;
+  const minG = parseBoundedSearchNumber(minGuests, USER_INPUT_MAX.GUEST_COUNT_MAX);
+  const maxG = parseBoundedSearchNumber(maxGuests, USER_INPUT_MAX.GUEST_COUNT_MAX);
+  const minP = parseBoundedSearchNumber(minPrice, USER_INPUT_MAX.PRICE_MAX);
+  const maxP = parseBoundedSearchNumber(maxPrice, USER_INPUT_MAX.PRICE_MAX);
 
   const andParts: Prisma.VenueWhereInput[] = Array.isArray(where.AND)
     ? [...where.AND]
@@ -176,13 +192,19 @@ export async function searchPublicVenues(
   if (andParts.length > 0) {
     where.AND = andParts;
   }
-  if (hallRentalMin && hallRentalMin !== "") {
-    const n = Number(hallRentalMin);
-    if (!Number.isNaN(n)) where.hallRentalMin = { gte: n };
+  const hallRentalMinNum = parseBoundedSearchNumber(
+    hallRentalMin,
+    USER_INPUT_MAX.PRICE_MAX
+  );
+  if (!Number.isNaN(hallRentalMinNum)) {
+    where.hallRentalMin = { gte: hallRentalMinNum };
   }
-  if (hallRentalMax && hallRentalMax !== "") {
-    const n = Number(hallRentalMax);
-    if (!Number.isNaN(n)) where.hallRentalMax = { lte: n };
+  const hallRentalMaxNum = parseBoundedSearchNumber(
+    hallRentalMax,
+    USER_INPUT_MAX.PRICE_MAX
+  );
+  if (!Number.isNaN(hallRentalMaxNum)) {
+    where.hallRentalMax = { lte: hallRentalMaxNum };
   }
   if (eventType && eventType.length > 0) {
     const variants = eventTypeSearchContainsVariants(eventType);
@@ -211,7 +233,11 @@ export async function searchPublicVenues(
   }
 
   if (kashrut && kashrut !== "") {
-    where.kashrut = { equals: kashrut };
+    if (isKnownVenueKashrut(kashrut)) {
+      where.kashrut = { equals: kashrut };
+    } else {
+      warning = "סוג כשרות בסינון לא תקין — מוצגים כל האולמות.";
+    }
   }
   const parkingKindFilter = resolveParkingFilterFromSearchParams(
     parkingKindParam,
@@ -249,14 +275,17 @@ export async function searchPublicVenues(
   if (hasParkingNearby === "true") where.hasParkingNearby = true;
   if (softAttr && softAttr.length > 0) {
     andParts.push({
-      venueSoftAttributesJson: { contains: softAttr, mode: "insensitive" },
+      venueSoftAttributesJson: {
+        contains: softAttr.slice(0, USER_INPUT_MAX.CITY),
+        mode: "insensitive",
+      },
     });
     where.AND = andParts;
   }
 
   const venues = await prisma.venue.findMany({
     where,
-    take: q && q.length >= 2 ? 20 : undefined,
+    take: q && q.length >= 2 ? 20 : MAX_PUBLIC_VENUE_RESULTS,
     select: {
       id: true,
       name: true,
@@ -298,10 +327,10 @@ export async function searchPublicVenues(
     },
   });
 
-  const minGuestsNum = minGuests && minGuests !== "" ? Number(minGuests) : NaN;
-  const maxGuestsNum = maxGuests && maxGuests !== "" ? Number(maxGuests) : NaN;
-  const minPriceNum = minPrice && minPrice !== "" ? Number(minPrice) : NaN;
-  const maxPriceNum = maxPrice && maxPrice !== "" ? Number(maxPrice) : NaN;
+  const minGuestsNum = parseBoundedSearchNumber(minGuests, USER_INPUT_MAX.GUEST_COUNT_MAX);
+  const maxGuestsNum = parseBoundedSearchNumber(maxGuests, USER_INPUT_MAX.GUEST_COUNT_MAX);
+  const minPriceNum = parseBoundedSearchNumber(minPrice, USER_INPUT_MAX.PRICE_MAX);
+  const maxPriceNum = parseBoundedSearchNumber(maxPrice, USER_INPUT_MAX.PRICE_MAX);
   const activeEventType = eventType && eventType.length > 0 ? eventType : null;
 
   const filteredByEventProfile = venues.filter((v) => {

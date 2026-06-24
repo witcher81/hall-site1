@@ -481,8 +481,8 @@ export const runtime = "nodejs";
 
 export async function GET() {
   const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user || user.role !== "VENUE_OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const venues = await prisma.venue.findMany({
@@ -495,8 +495,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user || user.role !== "VENUE_OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -845,8 +845,8 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user || user.role !== "VENUE_OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -902,8 +902,8 @@ export async function DELETE(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user || user.role !== "VENUE_OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { searchParams } = new URL(req.url);

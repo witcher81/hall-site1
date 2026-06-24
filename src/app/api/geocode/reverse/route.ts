@@ -7,7 +7,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const lat = Number(searchParams.get("lat"));
   const lng = Number(searchParams.get("lng"));
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    lat < -90 ||
+    lat > 90 ||
+    lng < -180 ||
+    lng > 180
+  ) {
     return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
   }
 

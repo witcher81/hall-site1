@@ -34,6 +34,15 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // אונבורדינג מכוון: מחפש (SEEKER) שממלא פרופיל עסקי הופך לבעל אולם.
+  // לא מאפשרים המרה שקטה של FREELANCER/ADMIN — תפקידים נפרדים שאסור לדרוס.
+  if (user.role !== "SEEKER" && user.role !== "VENUE_OWNER") {
+    return NextResponse.json(
+      { error: "לא ניתן להמיר את סוג החשבון הזה לבעל אולם" },
+      { status: 403 }
+    );
+  }
+
   const body = await req.json();
   const {
     name,

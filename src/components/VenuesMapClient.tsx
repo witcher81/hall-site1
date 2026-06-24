@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { defaultVenueMarkerIcon } from "@/lib/leafletVenueIcon";
 import { createRoadTileLayer } from "@/lib/leafletRoadLayer";
 import { googleStreetViewOpenUrl } from "@/lib/googleStreetViewUrl";
+import { escapeHtml } from "@/lib/escapeHtml";
 
 export type MapVenue = {
   id: number;
@@ -149,12 +150,4 @@ export default function VenuesMapClient({
       )}
     </div>
   );
-}
-
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

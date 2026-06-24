@@ -30,8 +30,8 @@ export const runtime = "nodejs";
 /** רשימת פניות לכל האולמות של בעל האולם */
 export async function GET() {
   const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user || user.role !== "VENUE_OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const venues = await prisma.venue.findMany({
@@ -148,8 +148,8 @@ async function notifySeekerViewed(inquiry: {
 /** סימון פנייה, אישור או דחייה */
 export async function PATCH(req: NextRequest) {
   const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user || user.role !== "VENUE_OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;

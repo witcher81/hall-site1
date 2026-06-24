@@ -6,6 +6,10 @@ import {
   parseServiceIncludesBundle,
   type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
+import { USER_INPUT_MAX } from "@/lib/userInputValidation";
+
+/** תקרת תוצאות לחיפוש פומבי — מונע טעינת כל הטבלה לזיכרון (DoS) */
+const MAX_PUBLIC_PROVIDER_RESULTS = 500;
 
 export type PublicProviderServiceItem = {
   id: number;
@@ -47,15 +51,20 @@ export async function searchPublicProviders(
   };
   if (minPrice && minPrice !== "") {
     const n = Number(minPrice);
-    if (!Number.isNaN(n)) where.minPrice = { gte: n };
+    if (Number.isFinite(n) && n >= 0) {
+      where.minPrice = { gte: Math.min(n, USER_INPUT_MAX.PRICE_MAX) };
+    }
   }
   if (maxPrice && maxPrice !== "") {
     const n = Number(maxPrice);
-    if (!Number.isNaN(n)) where.maxPrice = { lte: n };
+    if (Number.isFinite(n) && n >= 0) {
+      where.maxPrice = { lte: Math.min(n, USER_INPUT_MAX.PRICE_MAX) };
+    }
   }
 
   const services = await prisma.service.findMany({
     where,
+    take: MAX_PUBLIC_PROVIDER_RESULTS,
     orderBy: { createdAt: "desc" },
     include: {
       provider: {

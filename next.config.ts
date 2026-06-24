@@ -29,7 +29,8 @@ if (isProd) {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // 'unsafe-inline' נדרש ל-bootstrap/הידרציה של Next; 'unsafe-eval' הוסר (לא נחוץ ב-build פרודקשן)
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",

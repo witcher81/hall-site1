@@ -31,11 +31,16 @@ export async function GET(req: NextRequest, context: RouteContext) {
   const { searchParams } = new URL(req.url);
   const requestedFrom = parseDate(searchParams.get("from") ?? "") ?? defaultFrom;
   const from = requestedFrom < defaultFrom ? defaultFrom : requestedFrom;
-  const to = parseDate(searchParams.get("to") ?? "") ?? defaultTo;
+  const requestedTo = parseDate(searchParams.get("to") ?? "") ?? defaultTo;
 
-  if (to < from) {
+  if (requestedTo < from) {
     return NextResponse.json({ error: "Invalid range" }, { status: 400 });
   }
+
+  // תקרת טווח: עד שנה קדימה מ-from — מונע findMany ענק על טווח עתידי קיצוני
+  const maxTo = new Date(from);
+  maxTo.setUTCDate(maxTo.getUTCDate() + 366);
+  const to = requestedTo > maxTo ? maxTo : requestedTo;
 
   const items = await prisma.venueAvailability.findMany({
     where: {

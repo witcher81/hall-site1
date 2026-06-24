@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
 import { sendEmail } from "@/lib/email";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { escapeHtml } from "@/lib/escapeHtml";
 
 export const runtime = "nodejs";
 
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
     to: legal.privacyEmail,
     replyTo: email,
     subject: `[תיקון 13] ${typeLabel[requestType] ?? requestType}`,
-    html: `<div dir="rtl"><p><strong>סוג בקשה:</strong> ${typeLabel[requestType]}</p><p><strong>שם:</strong> ${fullName}</p><p><strong>אימייל:</strong> ${email}</p><p><strong>פרטים:</strong></p><pre style="white-space:pre-wrap">${details || "(ללא)"}</pre></div>`,
+    html: `<div dir="rtl"><p><strong>סוג בקשה:</strong> ${escapeHtml(typeLabel[requestType] ?? requestType)}</p><p><strong>שם:</strong> ${escapeHtml(fullName)}</p><p><strong>אימייל:</strong> ${escapeHtml(email)}</p><p><strong>פרטים:</strong></p><pre style="white-space:pre-wrap">${details ? escapeHtml(details) : "(ללא)"}</pre></div>`,
     text: `סוג: ${typeLabel[requestType]}\nשם: ${fullName}\nאימייל: ${email}\n\n${details}`,
   });
 

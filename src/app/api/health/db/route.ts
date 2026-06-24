@@ -8,9 +8,10 @@ export async function GET() {
     await prisma.$queryRaw`SELECT 1`;
     return NextResponse.json({ ok: true, database: "connected" });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "unknown";
+    // לא חושפים פרטי שגיאה (DSN/סכמה) ללקוח — רק לוג בשרת
+    console.error("health/db:", e);
     return NextResponse.json(
-      { ok: false, database: "error", error: message },
+      { ok: false, database: "error" },
       { status: 503 }
     );
   }

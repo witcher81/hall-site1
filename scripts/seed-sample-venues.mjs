@@ -16,6 +16,9 @@ import {
 const prisma = new PrismaClient();
 
 const SEED_OWNER_EMAIL = "sample-venues@hallshub.local";
+// סיסמת דמו לפיתוח בלבד. לעולם אל תריץ seed מול DB משותף/פרודקשן.
+// אפשר לעקוף עם SEED_PASSWORD בסביבה.
+const SEED_PASSWORD = process.env.SEED_PASSWORD || "SampleVenues2026!";
 const SEED_MARKER = VENUE_SEED_MARKER;
 const FIX_IMAGES = process.argv.includes("--fix-images");
 const REBUILD = process.argv.includes("--rebuild");
@@ -355,7 +358,7 @@ async function getOrCreateOwner() {
     where: { email: SEED_OWNER_EMAIL },
   });
   if (!owner) {
-    const passwordHash = await bcrypt.hash("SampleVenues2026!", 10);
+    const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10);
     owner = await prisma.user.create({
       data: {
         email: SEED_OWNER_EMAIL,
@@ -488,7 +491,7 @@ async function main() {
     where: { ownerId: owner.id, description: { contains: SEED_MARKER } },
   });
   console.log(`\nסיום: נוצרו ${created}, עודכנו ${updated}. סה"כ דוגמה: ${total}`);
-  console.log(`התחברות בעל דוגמה: ${SEED_OWNER_EMAIL} / SampleVenues2026!`);
+  console.log(`התחברות בעל דוגמה: ${SEED_OWNER_EMAIL} / ${SEED_PASSWORD}`);
 }
 
 main()

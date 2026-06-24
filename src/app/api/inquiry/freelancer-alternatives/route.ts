@@ -44,10 +44,10 @@ export async function GET(req: NextRequest) {
     hallPriceRaw && hallPriceRaw !== "" ? Number(hallPriceRaw) : NaN;
   const hallPriceValid = Number.isFinite(hallPrice) && hallPrice > 0;
 
-  const limit = Math.min(
-    8,
-    Math.max(1, limitRaw && limitRaw !== "" ? Number(limitRaw) : 4)
-  );
+  const limitParsed = limitRaw && limitRaw !== "" ? Number(limitRaw) : 4;
+  const limit = Number.isFinite(limitParsed)
+    ? Math.min(8, Math.max(1, Math.floor(limitParsed)))
+    : 4;
 
   const insight = await queryInquiryDealInsight(
     prisma,

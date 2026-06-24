@@ -16,7 +16,9 @@ import {
 const prisma = new PrismaClient();
 
 const SEED_MARKER = SERVICE_SEED_MARKER;
-const SEED_PASSWORD = "SampleFreelancers2026!";
+// סיסמת דמו לפיתוח בלבד. לעולם אל תריץ seed מול DB משותף/פרודקשן.
+// אפשר לעקוף עם SEED_PASSWORD בסביבה.
+const SEED_PASSWORD = process.env.SEED_PASSWORD || "SampleFreelancers2026!";
 const FIX_IMAGES = process.argv.includes("--fix-images");
 const REBUILD = process.argv.includes("--rebuild");
 const CATEGORY_SEP = " / ";

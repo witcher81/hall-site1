@@ -7,8 +7,8 @@ export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const city = searchParams.get("city")?.trim() ?? "";
-  const address = searchParams.get("address")?.trim() ?? "";
+  const city = (searchParams.get("city")?.trim() ?? "").slice(0, 120);
+  const address = (searchParams.get("address")?.trim() ?? "").slice(0, 200);
 
   if (!city) {
     return NextResponse.json(

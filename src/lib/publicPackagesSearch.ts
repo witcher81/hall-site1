@@ -7,6 +7,9 @@ import {
 } from "@/lib/packagesFilter";
 import { prisma } from "@/lib/prisma";
 
+/** תקרת תוצאות לחיפוש פומבי — מונע טעינת כל הטבלה לזיכרון (DoS) */
+const MAX_PUBLIC_PACKAGE_RESULTS = 300;
+
 export type PublicPackageListItem = {
   id: number;
   title: string;
@@ -45,6 +48,7 @@ export async function searchPublicPackages(
 
   const packages = await prisma.eventPackage.findMany({
     where,
+    take: MAX_PUBLIC_PACKAGE_RESULTS,
     orderBy,
     select: {
       id: true,

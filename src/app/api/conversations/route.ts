@@ -144,6 +144,16 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+      const relatedInquiry = await prisma.inquiry.findFirst({
+        where: { venueId, userId: seekerId },
+        select: { id: true },
+      });
+      if (!relatedInquiry) {
+        return NextResponse.json(
+          { error: "אפשר לפתוח שיחה רק עם מחפש ששלח פנייה לאולם" },
+          { status: 403 }
+        );
+      }
       peerUserId = seekerId;
     } else {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -165,6 +175,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           { error: "seekerId required when provider opens chat" },
           { status: 400 }
+        );
+      }
+      const relatedRequest = await prisma.serviceRequest.findFirst({
+        where: { serviceId, userId: seekerId },
+        select: { id: true },
+      });
+      if (!relatedRequest) {
+        return NextResponse.json(
+          { error: "אפשר לפתוח שיחה רק עם מחפש ששלח בקשת שירות" },
+          { status: 403 }
         );
       }
       peerUserId = seekerId;
