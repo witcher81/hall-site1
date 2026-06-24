@@ -355,7 +355,7 @@ export default function VenueEditForm({
   const showFoodPhotoUpload = form.productHasFood || anyEventOffersFood;
 
   const excludedDndBuiltinKeys = useMemo(
-    (): HallGeneralBuiltinKey[] => ["hasFood"],
+    (): HallGeneralBuiltinKey[] => ["hasFood", "hasAcumLicense"],
     []
   );
 

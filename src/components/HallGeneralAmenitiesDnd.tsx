@@ -386,18 +386,6 @@ export default function HallGeneralAmenitiesDnd({
     setDragOver(zone);
   };
 
-
-  const removeBuiltin = useCallback(
-    (key: HallGeneralBuiltinKey) => {
-      onSetHallBuiltin(key, false);
-      setBuiltinAmenityPriceModes((prev) => ({
-        ...prev,
-        [key]: "included",
-      }));
-    },
-    [onSetHallBuiltin, setBuiltinAmenityPriceModes]
-  );
-
   const renderBuiltinCard = (key: HallGeneralBuiltinKey, label: string, zone: DropZone) => {
     const inExtra = zone === "extra";
     const { supportsExtraPrice } = itemMeta(key);
@@ -449,13 +437,6 @@ export default function HallGeneralAmenitiesDnd({
             }
           />
         </div>
-        <button
-          type="button"
-          className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
-          onClick={() => removeBuiltin(key)}
-        >
-          הסר
-        </button>
       </DraggableAmenityRow>
     );
   };
@@ -578,13 +559,6 @@ export default function HallGeneralAmenitiesDnd({
         {unplaced ? (
           <span className="text-[10px] text-amber-800">גררו ל«כלול» או «בתוספת תשלום»</span>
         ) : null}
-        <button
-          type="button"
-          className="text-[11px] text-neutral-600 underline-offset-2 hover:text-neutral-900 hover:underline"
-          onClick={() => removeBuiltin(key)}
-        >
-          הסר
-        </button>
       </DraggableAmenityRow>
     );
   };
@@ -669,7 +643,7 @@ export default function HallGeneralAmenitiesDnd({
 
   return (
     <>
-      {acumMeta && !excludedBuiltinKeys.includes("hasAcumLicense") ? (
+      {acumMeta ? (
         <div className="mb-4 rounded-xl border border-amber-200/90 bg-amber-50/90 p-3 text-right">
           <p className="text-xs font-semibold text-amber-950">
             {acumMeta.label} — רישיון מוזיקה באירוע
@@ -712,10 +686,46 @@ export default function HallGeneralAmenitiesDnd({
               לא מציעים
             </button>
           </div>
-          {!acumActive ? (
-            <p className="mt-2 text-[10px] text-amber-900/80">
-              אפשר גם לגרור «{acumMeta.label}» מהרשימה למטה לעמודה המתאימה.
-            </p>
+          {acumActive && acumMode === "extra" ? (
+            <div className="mt-3 border-t border-amber-200/80 pt-3" data-amenity-no-drag>
+              {renderExtraPriceBlock(
+                extraRangeKeyBuiltin("hasAcumLicense"),
+                builtinAmenityExtraPrices.hasAcumLicense ?? "",
+                builtinAmenityExtraPriceMaxes.hasAcumLicense ?? "",
+                (min, max) => {
+                  setBuiltinAmenityExtraPrices((prev) => ({
+                    ...prev,
+                    hasAcumLicense: min,
+                  }));
+                  setBuiltinAmenityExtraPriceMaxes((prev) => ({
+                    ...prev,
+                    hasAcumLicense: max,
+                  }));
+                }
+              )}
+            </div>
+          ) : null}
+          {acumActive ? (
+            <div className="mt-3 border-t border-amber-200/80 pt-3" data-amenity-no-drag>
+              <SeekerExternalWithEventTypes
+                compact
+                checked={builtinAmenityAllowsSeekerExternal.hasAcumLicense ?? false}
+                onCheckedChange={(next) =>
+                  setBuiltinAmenityAllowsSeekerExternal((prev) => ({
+                    ...prev,
+                    hasAcumLicense: next,
+                  }))
+                }
+                eventTypes={eventTypes}
+                selectedEventTypes={builtinSeekerExternalEventTypes.hasAcumLicense ?? []}
+                onSelectedEventTypesChange={(next) =>
+                  setBuiltinSeekerExternalEventTypes((prev) => ({
+                    ...prev,
+                    hasAcumLicense: next,
+                  }))
+                }
+              />
+            </div>
           ) : null}
         </div>
       ) : null}
