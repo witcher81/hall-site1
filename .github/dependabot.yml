@@ -11,6 +11,12 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # שדרוגי major של Prisma (5 -> 7) שוברים את הסכמה/הקליינט — דורשים מיגרציה ידנית.
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
     labels:
       - dependencies
       - security
