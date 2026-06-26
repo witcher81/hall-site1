@@ -106,7 +106,7 @@ function LoginForm() {
             name="password"
             required
             autoComplete="current-password"
-            inputClassName="site-input mt-0 pe-3 ps-11"
+            inputClassName="site-input mt-0 pl-11 pr-3 text-right"
           />
           <TurnstileWidget
             onToken={setTurnstileToken}

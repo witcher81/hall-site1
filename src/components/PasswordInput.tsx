@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 
 const DEFAULT_INPUT_CLASS =
-  "w-full rounded-xl border border-neutral-200 bg-white py-2 pe-3 ps-11 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
+  "w-full rounded-xl border border-neutral-200 bg-white py-2 pl-11 pr-3 text-right text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
 
 function EyeIcon({ className }: { className?: string }) {
   return (
