@@ -3,6 +3,7 @@
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import PasswordInput from "@/components/PasswordInput";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -100,17 +101,13 @@ function LoginForm() {
               placeholder="name@example.com"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600">
-              סיסמה
-            </label>
-            <input
-              name="password"
-              type="password"
-              required
-              className="site-input mt-1"
-            />
-          </div>
+          <PasswordInput
+            label="סיסמה"
+            name="password"
+            required
+            autoComplete="current-password"
+            inputClassName="site-input mt-0 pe-3 ps-10"
+          />
           <TurnstileWidget
             onToken={setTurnstileToken}
             onExpire={() => setTurnstileToken("")}

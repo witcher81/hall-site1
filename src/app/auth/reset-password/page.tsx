@@ -2,6 +2,7 @@
 
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import PasswordInput from "@/components/PasswordInput";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -10,6 +11,7 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const hasToken = token.length > 0;
 
@@ -102,33 +104,24 @@ function ResetPasswordForm() {
               בחרו סיסמה חדשה (לפחות 6 תווים).
             </p>
 
-            <div>
-              <label className="block text-xs font-medium text-neutral-600">
-                סיסמה חדשה
-              </label>
-              <input
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
-                autoComplete="new-password"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-neutral-600">
-                אישור סיסמה
-              </label>
-              <input
-                name="confirm"
-                type="password"
-                required
-                minLength={6}
-                className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
-                autoComplete="new-password"
-              />
-            </div>
+            <PasswordInput
+              label="סיסמה חדשה"
+              name="password"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              visible={showPassword}
+              onVisibleChange={setShowPassword}
+            />
+            <PasswordInput
+              label="אישור סיסמה"
+              name="confirm"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              visible={showPassword}
+              onVisibleChange={setShowPassword}
+            />
 
             {error && <p className="text-xs text-red-700">{error}</p>}
 

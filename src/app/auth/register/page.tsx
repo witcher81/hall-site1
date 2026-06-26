@@ -4,6 +4,7 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ISRAELI_MOBILE_PREFIXES } from "@/lib/israeliPhone";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import PasswordInput from "@/components/PasswordInput";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -22,6 +23,7 @@ function RegisterForm() {
   >("");
   const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isCheckout) {
@@ -196,32 +198,24 @@ function RegisterForm() {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600">
-              סיסמה (לפחות 6 תווים)
-            </label>
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-neutral-600">
-              אימות סיסמה
-            </label>
-            <input
-              name="confirmPassword"
-              type="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
-            />
-          </div>
+          <PasswordInput
+            label="סיסמה (לפחות 6 תווים)"
+            name="password"
+            required
+            minLength={6}
+            autoComplete="new-password"
+            visible={showPassword}
+            onVisibleChange={setShowPassword}
+          />
+          <PasswordInput
+            label="אימות סיסמה"
+            name="confirmPassword"
+            required
+            minLength={6}
+            autoComplete="new-password"
+            visible={showPassword}
+            onVisibleChange={setShowPassword}
+          />
 
           {isCheckout ? (
             <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-3 py-2 text-xs text-emerald-950">
