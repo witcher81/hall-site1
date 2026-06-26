@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
@@ -7,8 +7,7 @@ import ListPageSkeleton from "@/components/ui/ListPageSkeleton";
 import MessagesClient from "./MessagesClient";
 
 export default async function MessagesPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+  const user = await requireVerifiedSession("/messages");
 
   const allowed =
     user.role === "SEEKER" ||

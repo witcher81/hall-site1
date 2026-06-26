@@ -21,7 +21,7 @@ model User {
   phone        String?  @unique
   passwordHash String
   role         String   @default("SEEKER")
-  /// שדה היסטורי; משתמשים חדשים נרשמים כמאומתים (סשן מלא מיד)
+  /// אימות כתובת אימייל — משתמשים חדשים מתחילים עם false
   emailVerified Boolean @default(false)
   /// JSON: העדפות מייל { inquiryReply, newInquiry, serviceRequestReply, newServiceRequest }
   emailNotificationsJson String?
@@ -50,7 +50,8 @@ model User {
   freelancerProfileViews FreelancerProfileView[]
   managedUsersAsAdmin   DevManagedUser[] @relation("AdminManagedUsers")
   managedByAdmins       DevManagedUser[] @relation("ManagedByAdmins")
-  passwordResetTokens   PasswordResetToken[]
+  passwordResetTokens        PasswordResetToken[]
+  emailVerificationTokens    EmailVerificationToken[]
   serviceFavorites      ServiceFavorite[]
   contentReports        ContentReport[]
   payments              Payment[]
@@ -60,6 +61,21 @@ model User {
 
 /// טוקני איפוס סיסמה — נשמר רק hash, חד פעמי, עם תוקף
 model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
+/// טוקני אימות אימייל — נשמר רק hash, חד פעמי, עם תוקף
+model EmailVerificationToken {
   id        Int      @id @default(autoincrement())
   userId    Int
   tokenHash String   @unique

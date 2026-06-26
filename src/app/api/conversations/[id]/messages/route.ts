@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { emailVerificationGuard } from "@/lib/apiAuth";
 import { USER_INPUT_MAX, badRequest } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
@@ -68,6 +69,8 @@ export async function POST(req: NextRequest, context: Ctx) {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const verifyBlock = emailVerificationGuard(user);
+  if (verifyBlock) return verifyBlock;
 
   const { id } = await context.params;
   const convId = Number(id);

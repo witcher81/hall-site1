@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
@@ -7,8 +7,7 @@ import EventChecklistClient from "./EventChecklistClient";
 export const runtime = "nodejs";
 
 export default async function EventChecklistPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login?redirect=/event-planner");
+  const user = await requireVerifiedSession("/event-planner");
   if (user.role !== "SEEKER") redirect("/");
 
   return (

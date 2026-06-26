@@ -1,15 +1,13 @@
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { prisma } from "@/lib/prisma";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SettingsClient from "./settingsClient";
-import { redirect } from "next/navigation";
 
 export const runtime = "nodejs";
 
 export default async function SettingsPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+  const user = await requireVerifiedSession("/settings");
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },

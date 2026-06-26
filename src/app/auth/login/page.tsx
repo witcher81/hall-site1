@@ -41,7 +41,14 @@ function LoginForm() {
       }
 
       const role = data?.user?.role as string | undefined;
-      if (afterLogin) {
+      const needsVerify = data?.user?.emailVerified === false;
+
+      if (needsVerify) {
+        const verifyQ = afterLogin
+          ? `?redirect=${encodeURIComponent(afterLogin)}`
+          : "";
+        router.push(`/auth/verify-email${verifyQ}`);
+      } else if (afterLogin) {
         router.push(afterLogin);
       } else if (role === "VENUE_OWNER") {
         router.push("/dashboard/venue-owner/profile");

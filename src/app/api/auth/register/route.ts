@@ -8,6 +8,7 @@ import {
   setSessionCookie,
   type AuthUser,
 } from "@/lib/auth";
+import { sendEmailVerificationForUser } from "@/lib/sendEmailVerification";
 import { consumeQueueBatch, publishMessage } from "@/lib/messagingQueue";
 import { MessageTypes } from "@/lib/messagingQueueTypes";
 import {
@@ -104,7 +105,6 @@ export async function POST(req: NextRequest) {
           passwordHash,
           role: selectedRole,
           phone: phoneResult.value,
-          emailVerified: true,
         },
       });
     } catch (e) {
@@ -133,19 +133,28 @@ export async function POST(req: NextRequest) {
     const token = createSessionToken(authUser);
     await setSessionCookie(token);
 
+    void sendEmailVerificationForUser({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+    }).catch((err) => {
+      console.error("verification email failed after register:", err);
+    });
+
     await publishMessage(MessageTypes.USER_REGISTER_POST_CREATE, {
       userId: user.id,
       role: user.role,
       email: user.email,
       name: user.name ?? null,
     });
-    // ניסיון עיבוד מיידי ברקע; אם לא יושלם (למשל serverless freeze),
-    // ה־Cron ימשיך לעבד את התור.
     void consumeQueueBatch().catch((err) => {
       console.error("Background job kick failed after register:", err);
     });
 
-    return NextResponse.json({ user: authUser }, { status: 201 });
+    return NextResponse.json(
+      { user: authUser, requiresEmailVerification: true },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Register error:", error);
     return NextResponse.json(

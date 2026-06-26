@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { emailVerificationGuard } from "@/lib/apiAuth";
 
 export const runtime = "nodejs";
 
@@ -42,6 +43,8 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "יש להתחבר" }, { status: 401 });
   }
+  const verifyBlock = emailVerificationGuard(user);
+  if (verifyBlock) return verifyBlock;
 
   const body = await req.json().catch(() => ({}));
   const serviceId = Number(body.serviceId);
@@ -71,6 +74,8 @@ export async function DELETE(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const verifyBlock = emailVerificationGuard(user);
+  if (verifyBlock) return verifyBlock;
 
   const serviceId = Number(req.nextUrl.searchParams.get("serviceId"));
   if (!Number.isInteger(serviceId) || serviceId <= 0) {

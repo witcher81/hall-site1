@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { prisma } from "@/lib/prisma";
 import { inquiryStatusLabelSeeker } from "@/lib/inquiryStatus";
 import { redirect } from "next/navigation";
 import SitePageShell from "@/components/layout/SitePageShell";
 
 export default async function SeekerDashboardPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+  const user = await requireVerifiedSession("/dashboard/seeker");
   if (user.role !== "SEEKER") redirect("/");
 
   const [

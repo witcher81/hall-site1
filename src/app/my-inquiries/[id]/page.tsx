@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
@@ -10,8 +10,7 @@ export default async function MyInquiryDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+  const user = await requireVerifiedSession();
   if (user.role !== "SEEKER") redirect("/");
 
   const { id } = await params;

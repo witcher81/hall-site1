@@ -72,7 +72,16 @@ function RegisterForm() {
       }
 
       const userRole = data?.user?.role as string | undefined;
-      if (afterRegister) {
+      const needsVerify =
+        data?.requiresEmailVerification === true ||
+        data?.user?.emailVerified === false;
+
+      if (needsVerify) {
+        const verifyQ = afterRegister
+          ? `?redirect=${encodeURIComponent(afterRegister)}`
+          : "";
+        router.push(`/auth/verify-email${verifyQ}`);
+      } else if (afterRegister) {
         router.push(afterRegister);
       } else if (userRole === "VENUE_OWNER") {
         router.push("/dashboard/venue-owner/profile");

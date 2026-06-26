@@ -1,0 +1,86 @@
+import "server-only";
+
+import { escapeHtml } from "./escapeHtml";
+import { sendEmail, type SendEmailResult } from "./email";
+
+type SendEmailVerificationInput = {
+  to: string;
+  name: string | null;
+  verifyUrl: string;
+  expiresAt: Date;
+};
+
+function formatHebrewDateTime(d: Date): string {
+  try {
+    return new Intl.DateTimeFormat("he-IL", {
+      dateStyle: "short",
+      timeStyle: "short",
+      timeZone: "Asia/Jerusalem",
+    }).format(d);
+  } catch {
+    return d.toISOString();
+  }
+}
+
+export async function sendEmailVerificationEmail(
+  input: SendEmailVerificationInput
+): Promise<SendEmailResult> {
+  const hrefUrl = escapeHtml(input.verifyUrl);
+  const greetingName = (input.name ?? "").trim();
+  const greeting = greetingName ? `שלום ${escapeHtml(greetingName)},` : "שלום,";
+  const validUntil = escapeHtml(formatHebrewDateTime(input.expiresAt));
+
+  const subject = "אימות כתובת אימייל — Halls Hub";
+
+  const html = `<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(subject)}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#EFE6D5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;direction:rtl;text-align:right;color:#1A1A1A;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#EFE6D5;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:#ffffff;border:1px solid #E0D4C3;border-radius:16px;padding:28px;box-shadow:0 12px 40px rgba(15,59,46,0.08);">
+            <tr>
+              <td>
+                <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;letter-spacing:0.25em;color:#C9A227;">HALLS HUB</p>
+                <h1 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0F3B2E;">אימות כתובת אימייל</h1>
+                <p style="margin:0 0 12px 0;font-size:14px;line-height:1.6;">${greeting}</p>
+                <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;">תודה שנרשמתם ל-Halls Hub. לחצו על הכפתור כדי לאמת את כתובת האימייל ולהשלים את ההרשמה.</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:8px auto 24px auto;">
+                  <tr>
+                    <td align="center" bgcolor="#C9A227" style="border-radius:9999px;mso-padding-alt:14px 36px;">
+                      <a href="${hrefUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 36px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;line-height:1;color:#ffffff;text-decoration:none;border-radius:9999px;background:#C9A227;">אימות האימייל</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:#5F5F5F;">הקישור תקף עד <strong>${validUntil}</strong>.</p>
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#9A948C;">אם לא נרשמתם לאתר, אפשר להתעלם מהמייל.</p>
+              </td>
+            </tr>
+          </table>
+          <p style="margin:14px 0 0 0;font-size:11px;color:#6B6560;">Halls Hub · אין להשיב למייל אוטומטי זה</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  const text = [
+    "Halls Hub - אימות כתובת אימייל",
+    "",
+    greetingName ? `שלום ${greetingName},` : "שלום,",
+    "",
+    "לחצו על הקישור הבא כדי לאמת את כתובת האימייל:",
+    input.verifyUrl,
+    "",
+    `הקישור תקף עד ${formatHebrewDateTime(input.expiresAt)}.`,
+    "",
+    "אם לא נרשמתם לאתר, אפשר להתעלם מהמייל.",
+  ].join("\n");
+
+  return sendEmail({ to: input.to, subject, html, text });
+}

@@ -19,6 +19,8 @@ const AUTH_PATHS = new Set([
   "/api/auth/logout",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
+  "/api/auth/verify-email",
+  "/api/auth/resend-verification",
 ]);
 
 const HEAVY_PREFIXES = [

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { emailVerificationGuard } from "@/lib/apiAuth";
 import { geocodeIsraelAddress } from "@/lib/geocode";
 import { createNotification } from "@/lib/notifications";
 import {
@@ -498,6 +499,8 @@ export async function POST(req: NextRequest) {
   if (!user || user.role !== "VENUE_OWNER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  const verifyBlock = emailVerificationGuard(user);
+  if (verifyBlock) return verifyBlock;
 
   try {
   const formData = await req.formData();

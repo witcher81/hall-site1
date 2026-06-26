@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { emailVerificationGuard } from "@/lib/apiAuth";
 import {
   contextKeyService,
   contextKeyVenue,
@@ -95,6 +96,8 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const verifyBlock = emailVerificationGuard(user);
+  if (verifyBlock) return verifyBlock;
 
   const body = (await req.json().catch(() => null)) as {
     venueId?: number;

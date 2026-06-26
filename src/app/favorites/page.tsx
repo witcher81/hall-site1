@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
@@ -6,8 +6,7 @@ import SitePageShell from "@/components/layout/SitePageShell";
 import FavoritesClient from "./FavoritesClient";
 
 export default async function FavoritesPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+  const user = await requireVerifiedSession("/favorites");
   if (user.role !== "SEEKER") redirect("/");
 
   let venues: Array<{

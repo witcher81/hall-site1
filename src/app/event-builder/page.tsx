@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
@@ -7,8 +7,7 @@ import EventBuilderClient from "./EventBuilderClient";
 export const runtime = "nodejs";
 
 export default async function EventBuilderPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login?redirect=/event-builder");
+  const user = await requireVerifiedSession("/event-builder");
   if (user.role !== "SEEKER") redirect("/");
 
   return (

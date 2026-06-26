@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { emailVerificationGuard } from "@/lib/apiAuth";
 import {
   sanitizeSocialLinksFromClient,
   serializeSocialLinks,
@@ -114,6 +115,8 @@ export async function POST(req: NextRequest) {
   if (user.role !== "FREELANCER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  const verifyBlock = emailVerificationGuard(user);
+  if (verifyBlock) return verifyBlock;
 
   const formData = await req.formData();
   const name = (formData.get("name") as string | null)?.trim();

@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import DashboardNav from "@/components/dashboard/DashboardNav";
@@ -8,8 +8,7 @@ export const runtime = "nodejs";
 export default async function FreelancerLayout({
   children,
 }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+  const user = await requireVerifiedSession();
   if (user.role !== "FREELANCER") redirect("/");
 
   const dbUser = await prisma.user.findUnique({

@@ -1,7 +1,6 @@
-import { getCurrentUser } from "@/lib/auth";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { prisma } from "@/lib/prisma";
 import { sanitizeInternalAppHref } from "@/lib/safeHref";
-import { redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import NotificationsClient from "./NotificationsClient";
@@ -9,8 +8,7 @@ import NotificationsClient from "./NotificationsClient";
 export const runtime = "nodejs";
 
 export default async function NotificationsPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/auth/login");
+  const user = await requireVerifiedSession("/notifications");
 
   const rows = await prisma.notification.findMany({
     where: { userId: user.id },

@@ -1,5 +1,5 @@
-import { getCurrentUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
+import { requireVerifiedSession } from "@/lib/requireSession";
 import { redirect } from "next/navigation";
 import SitePageShell from "@/components/layout/SitePageShell";
 
@@ -8,8 +8,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
-  if (!user || !isAdminEmail(user.email)) {
+  const user = await requireVerifiedSession();
+  if (!isAdminEmail(user.email)) {
     redirect("/");
   }
 

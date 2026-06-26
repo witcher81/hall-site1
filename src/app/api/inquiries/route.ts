@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { emailVerificationGuard } from "@/lib/apiAuth";
 import { createNotification } from "@/lib/notifications";
 import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import {
@@ -123,6 +124,8 @@ export async function POST(req: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "יש להתחבר כדי לשלוח פנייה" }, { status: 401 });
   }
+  const verifyBlock = emailVerificationGuard(user);
+  if (verifyBlock) return verifyBlock;
   if (user.role !== "SEEKER") {
     return NextResponse.json({ error: "שליחת פנייה זמינה למחפשי אולמות בלבד" }, { status: 403 });
   }

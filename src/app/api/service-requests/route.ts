@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { emailVerificationGuard } from "@/lib/apiAuth";
 import { createNotification } from "@/lib/notifications";
 import { userWantsEmailFromDb } from "@/lib/emailNotifications";
 import { notifyFreelancerNewServiceRequest } from "@/lib/transactionalEmails";
@@ -22,6 +23,8 @@ export async function POST(req: NextRequest) {
   if (user.role !== "SEEKER") {
     return NextResponse.json({ error: "רק מחפש אולמות יכול לשלוח בקשות לספקים" }, { status: 403 });
   }
+  const verifyBlock = emailVerificationGuard(user);
+  if (verifyBlock) return verifyBlock;
 
   const body = await req.json().catch(() => ({}));
   const serviceId = body.serviceId != null ? Number(body.serviceId) : NaN;
