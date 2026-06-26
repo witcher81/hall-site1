@@ -41,13 +41,24 @@ function RegisterForm() {
       setError("יש לאשר את תנאי השימוש ומדיניות הפרטיות");
       return;
     }
-    setLoading(true);
     const formData = new FormData(e.currentTarget);
     const name = (formData.get("name") as string) || "";
     const email = (formData.get("email") as string) || "";
     const password = (formData.get("password") as string) || "";
+    const confirmPassword = (formData.get("confirmPassword") as string) || "";
     const phonePrefix = (formData.get("phonePrefix") as string) || "";
     const phoneDigits = (formData.get("phoneDigits") as string) || "";
+
+    if (password.length < 6) {
+      setError("הסיסמה חייבת להכיל לפחות 6 תווים");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("הסיסמאות אינן זהות");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await fetch("/api/auth/register", {
@@ -194,6 +205,20 @@ function RegisterForm() {
               type="password"
               required
               minLength={6}
+              autoComplete="new-password"
+              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-neutral-600">
+              אימות סיסמה
+            </label>
+            <input
+              name="confirmPassword"
+              type="password"
+              required
+              minLength={6}
+              autoComplete="new-password"
               className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             />
           </div>
