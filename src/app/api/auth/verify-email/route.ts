@@ -2,43 +2,56 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import {
+  clearPendingVerificationCookie,
+  clearPendingVerificationCookieOnResponse,
   createSessionToken,
-  getCurrentUser,
+  getPendingVerificationUser,
   setSessionCookie,
   setSessionCookieOnResponse,
   type AuthUser,
 } from "@/lib/auth";
 import {
-  findValidVerificationTokenByRaw,
-  isPlausibleVerificationToken,
-  markVerificationTokenUsed,
+  markVerificationCodeUsed,
+  normalizeVerificationCodeInput,
+  verifyEmailCodeForUser,
 } from "@/lib/emailVerification";
 
 export const runtime = "nodejs";
 
+const ERROR_BY_REASON: Record<string, string> = {
+  invalid: "יש להזין קוד בן 6 ספרות.",
+  not_found: "הקוד שגוי. נסו שוב או בקשו קוד חדש.",
+  expired: "פג תוקף הקוד. בקשו קוד חדש במייל.",
+  locked: "יותר מדי ניסיונות שגויים. בקשו קוד חדש.",
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => null);
-    const rawToken =
-      typeof body?.token === "string" ? body.token.trim() : "";
-
-    if (!isPlausibleVerificationToken(rawToken)) {
+    const pending = await getPendingVerificationUser();
+    if (!pending) {
       return NextResponse.json(
-        { error: "קישור האימות אינו תקין או שפג תוקפו." },
-        { status: 400 }
+        { error: "פג תוקף ההמתנה לאימות. התחברו מחדש או הירשמו שוב." },
+        { status: 401 }
       );
     }
 
-    const tokenRow = await findValidVerificationTokenByRaw(rawToken);
-    if (!tokenRow) {
+    const body = await req.json().catch(() => null);
+    const rawCode =
+      typeof body?.code === "string"
+        ? body.code
+        : typeof body?.token === "string"
+          ? body.token
+          : "";
+
+    if (!normalizeVerificationCodeInput(rawCode)) {
       return NextResponse.json(
-        { error: "קישור האימות אינו תקין, פג תוקף, או כבר נוצל." },
+        { error: ERROR_BY_REASON.invalid },
         { status: 400 }
       );
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: tokenRow.userId },
+      where: { id: pending.id },
       select: {
         id: true,
         email: true,
@@ -50,6 +63,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user || user.isBlocked) {
+      await clearPendingVerificationCookie();
       return NextResponse.json(
         { error: "החשבון אינו זמין." },
         { status: 400 }
@@ -57,7 +71,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.emailVerified) {
-      await markVerificationTokenUsed(tokenRow.id);
       const authUser: AuthUser = {
         id: user.id,
         email: user.email,
@@ -65,21 +78,27 @@ export async function POST(req: NextRequest) {
         role: user.role,
         emailVerified: true,
       };
-      const session = await getCurrentUser();
-      if (session?.id === user.id) {
-        const jwt = createSessionToken(authUser);
-        await setSessionCookie(jwt);
-        const res = NextResponse.json({ success: true, alreadyVerified: true });
-        setSessionCookieOnResponse(res, jwt);
-        return res;
-      }
-      return NextResponse.json({ success: true, alreadyVerified: true });
+      const jwt = createSessionToken(authUser);
+      await clearPendingVerificationCookie();
+      await setSessionCookie(jwt);
+      const res = NextResponse.json({ success: true, alreadyVerified: true });
+      setSessionCookieOnResponse(res, jwt);
+      clearPendingVerificationCookieOnResponse(res);
+      return res;
     }
 
-    const marked = await markVerificationTokenUsed(tokenRow.id);
+    const verified = await verifyEmailCodeForUser(user.id, rawCode);
+    if (!verified.ok) {
+      return NextResponse.json(
+        { error: ERROR_BY_REASON[verified.reason] ?? "אימות נכשל." },
+        { status: 400 }
+      );
+    }
+
+    const marked = await markVerificationCodeUsed(verified.record.id);
     if (!marked) {
       return NextResponse.json(
-        { error: "קישור האימות כבר נוצל." },
+        { error: "הקוד כבר נוצל. בקשו קוד חדש." },
         { status: 400 }
       );
     }
@@ -97,13 +116,13 @@ export async function POST(req: NextRequest) {
       emailVerified: true,
     };
 
-    const session = await getCurrentUser();
+    const jwt = createSessionToken(authUser);
+    await clearPendingVerificationCookie();
+    await setSessionCookie(jwt);
+
     const res = NextResponse.json({ success: true, user: authUser });
-    if (session?.id === user.id) {
-      const jwt = createSessionToken(authUser);
-      await setSessionCookie(jwt);
-      setSessionCookieOnResponse(res, jwt);
-    }
+    setSessionCookieOnResponse(res, jwt);
+    clearPendingVerificationCookieOnResponse(res);
     return res;
   } catch (error) {
     console.error("verify-email error:", error);

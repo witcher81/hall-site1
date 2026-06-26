@@ -74,13 +74,14 @@ model PasswordResetToken {
   @@index([expiresAt])
 }
 
-/// טוקני אימות אימייל — נשמר רק hash, חד פעמי, עם תוקף
+/// קודי אימות אימייל (OTP) — נשמר רק hash, חד פעמי, עם תוקף
 model EmailVerificationToken {
   id        Int      @id @default(autoincrement())
   userId    Int
-  tokenHash String   @unique
+  codeHash  String   @unique
   expiresAt DateTime
   usedAt    DateTime?
+  attempts  Int      @default(0)
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

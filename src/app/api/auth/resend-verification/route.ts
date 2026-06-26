@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-import { getCurrentUser } from "@/lib/auth";
+import {
+  getPendingVerificationUser,
+  setPendingVerificationCookie,
+} from "@/lib/auth";
 import { sendEmailVerificationForUser } from "@/lib/sendEmailVerification";
 
 const COOLDOWN_MS = 60_000;
@@ -8,22 +11,18 @@ const lastSentByUserId = new Map<number, number>();
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
-    const session = await getCurrentUser();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    if (session.emailVerified) {
+    const pending = await getPendingVerificationUser();
+    if (!pending) {
       return NextResponse.json(
-        { error: "כתובת האימייל כבר מאומתת." },
-        { status: 400 }
+        { error: "פג תוקף ההמתנה. התחברו מחדש כדי לקבל קוד." },
+        { status: 401 }
       );
     }
 
     const now = Date.now();
-    const lastSent = lastSentByUserId.get(session.id) ?? 0;
+    const lastSent = lastSentByUserId.get(pending.id) ?? 0;
     if (now - lastSent < COOLDOWN_MS) {
       const waitSec = Math.ceil((COOLDOWN_MS - (now - lastSent)) / 1000);
       return NextResponse.json(
@@ -33,28 +32,29 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await sendEmailVerificationForUser({
-      userId: session.id,
-      email: session.email,
-      name: session.name,
+      userId: pending.id,
+      email: pending.email,
+      name: pending.name,
     });
 
-    lastSentByUserId.set(session.id, now);
+    lastSentByUserId.set(pending.id, now);
+    await setPendingVerificationCookie(pending.id);
 
     if (!result.ok && !result.skipped) {
       return NextResponse.json(
-        { error: "שליחת מייל האימות נכשלה. נסו שוב מאוחר יותר." },
+        { error: "שליחת קוד האימות נכשלה. נסו שוב מאוחר יותר." },
         { status: 500 }
       );
     }
 
     const message = result.skipped
-      ? "מייל האימות לא נשלח (Resend לא מוגדר). בפיתוח — בדקו את הלוג."
-      : "נשלח מייל אימות לכתובת שלכם.";
+      ? "מייל לא נשלח (Resend לא מוגדר). בפיתוח — בדקו את הלוג."
+      : "נשלח קוד אימות חדש לכתובת האימייל שלכם.";
 
     return NextResponse.json({
       message,
-      devVerifyUrl:
-        process.env.NODE_ENV !== "production" ? result.verifyUrl : undefined,
+      devCode:
+        process.env.NODE_ENV !== "production" ? result.devCode : undefined,
     });
   } catch (error) {
     console.error("resend-verification error:", error);

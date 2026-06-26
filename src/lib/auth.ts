@@ -39,6 +39,7 @@ export function clearSessionCookiesOnResponse(res: NextResponse) {
   for (const name of SESSION_COOKIE_NAMES_TO_CLEAR) {
     res.cookies.set(name, "", opts);
   }
+  clearPendingVerificationCookieOnResponse(res);
 }
 
 const sessionCookieSetOptions = () => ({
@@ -54,9 +55,113 @@ export function setSessionCookieOnResponse(res: NextResponse, token: string) {
   res.cookies.set(SESSION_COOKIE_NAME, token, sessionCookieSetOptions());
 }
 
-const LEGACY_PENDING_VERIFY_COOKIE = IS_PRODUCTION
+const PENDING_VERIFY_COOKIE = IS_PRODUCTION
   ? "__Host-hall_verify_pending"
   : "hall_verify_pending";
+
+const PENDING_VERIFY_MAX_AGE_SECONDS = 60 * 30; // 30 דקות
+
+const pendingVerifyCookieSetOptions = () => ({
+  httpOnly: true,
+  secure: IS_PRODUCTION,
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: PENDING_VERIFY_MAX_AGE_SECONDS,
+});
+
+function createPendingVerificationToken(userId: number): string {
+  return jwt.sign(
+    { sub: userId, pv: 1 },
+    getJwtSecret(),
+    { expiresIn: PENDING_VERIFY_MAX_AGE_SECONDS }
+  );
+}
+
+export type PendingVerificationUser = {
+  id: number;
+  email: string;
+  name: string | null;
+};
+
+/** סשן זמני בזמן המתנה לאימות אימייל — לא נחשב «מחובר» ל-header */
+export async function setPendingVerificationCookie(userId: number) {
+  const cookieStore = await cookies();
+  const token = createPendingVerificationToken(userId);
+  cookieStore.set(
+    PENDING_VERIFY_COOKIE,
+    token,
+    pendingVerifyCookieSetOptions()
+  );
+}
+
+export function setPendingVerificationCookieOnResponse(
+  res: NextResponse,
+  userId: number
+) {
+  const token = createPendingVerificationToken(userId);
+  res.cookies.set(
+    PENDING_VERIFY_COOKIE,
+    token,
+    pendingVerifyCookieSetOptions()
+  );
+}
+
+export async function getPendingVerificationUser(): Promise<PendingVerificationUser | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(PENDING_VERIFY_COOKIE)?.value;
+  if (!token) return null;
+
+  try {
+    const payload = jwt.verify(token, getJwtSecret()) as unknown as {
+      sub: number | string;
+      pv?: number;
+    };
+    if (payload.pv !== 1) return null;
+    const subId = Number(payload.sub);
+    if (!Number.isInteger(subId) || subId <= 0) return null;
+
+    const user = await prisma.user.findUnique({
+      where: { id: subId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        emailVerified: true,
+        isBlocked: true,
+      },
+    });
+    if (!user || user.isBlocked || user.emailVerified) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** מנקה עוגיית המתנה לאימות */
+export async function clearPendingVerificationCookie() {
+  const cookieStore = await cookies();
+  cookieStore.set(PENDING_VERIFY_COOKIE, "", {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+export function clearPendingVerificationCookieOnResponse(res: NextResponse) {
+  res.cookies.set(PENDING_VERIFY_COOKIE, "", {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+}
 
 let jwtSecretCache: string | null = null;
 
@@ -115,18 +220,6 @@ export function createSessionToken(user: AuthUser) {
   );
 }
 
-/** מנקה עוגיית אימות ישנה (לפני ביטול זרימת האימות) */
-export async function clearPendingVerificationCookie() {
-  const cookieStore = await cookies();
-  cookieStore.set(LEGACY_PENDING_VERIFY_COOKIE, "", {
-    httpOnly: true,
-    secure: IS_PRODUCTION,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
-}
-
 export async function setSessionCookie(token: string) {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, sessionCookieSetOptions());
@@ -163,13 +256,13 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     const user = await prisma.user.findUnique({
       where: { id: subId },
     });
-    if (!user || user.isBlocked) return null;
+    if (!user || user.isBlocked || !user.emailVerified) return null;
     return {
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
-      emailVerified: user.emailVerified,
+      emailVerified: true,
     };
   } catch {
     return null;

@@ -84,9 +84,7 @@ function RegisterForm() {
       }
 
       const userRole = data?.user?.role as string | undefined;
-      const needsVerify =
-        data?.requiresEmailVerification === true ||
-        data?.user?.emailVerified === false;
+      const needsVerify = data?.requiresEmailVerification === true;
 
       if (needsVerify) {
         const verifyQ = afterRegister

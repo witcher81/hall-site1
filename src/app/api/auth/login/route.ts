@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
+  clearSessionCookie,
   createSessionToken,
+  setPendingVerificationCookie,
+  setPendingVerificationCookieOnResponse,
   setSessionCookie,
+  setSessionCookieOnResponse,
   verifyPassword,
   type AuthUser,
 } from "@/lib/auth";
+import { sendEmailVerificationForUser } from "@/lib/sendEmailVerification";
 import { validateEmail, validateLoginPassword } from "@/lib/userInputValidation";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
@@ -58,10 +63,33 @@ export async function POST(req: NextRequest) {
       role: user.role,
       emailVerified: user.emailVerified,
     };
+
+    if (!user.emailVerified) {
+      await clearSessionCookie();
+      await setPendingVerificationCookie(user.id);
+
+      void sendEmailVerificationForUser({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+      }).catch((err) => {
+        console.error("verification code failed after login:", err);
+      });
+
+      const res = NextResponse.json(
+        { requiresEmailVerification: true, email: user.email },
+        { status: 200 }
+      );
+      setPendingVerificationCookieOnResponse(res, user.id);
+      return res;
+    }
+
     const token = createSessionToken(authUser);
     await setSessionCookie(token);
 
-    return NextResponse.json({ user: authUser }, { status: 200 });
+    const res = NextResponse.json({ user: authUser }, { status: 200 });
+    setSessionCookieOnResponse(res, token);
+    return res;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

@@ -3,10 +3,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { assertPersonalPhoneAvailable } from "@/lib/phoneUnique";
 import {
-  createSessionToken,
+  clearSessionCookie,
   hashPassword,
-  setSessionCookie,
-  type AuthUser,
+  setPendingVerificationCookie,
+  setPendingVerificationCookieOnResponse,
 } from "@/lib/auth";
 import { sendEmailVerificationForUser } from "@/lib/sendEmailVerification";
 import { consumeQueueBatch, publishMessage } from "@/lib/messagingQueue";
@@ -123,15 +123,8 @@ export async function POST(req: NextRequest) {
       throw e;
     }
 
-    const authUser: AuthUser = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      emailVerified: user.emailVerified,
-    };
-    const token = createSessionToken(authUser);
-    await setSessionCookie(token);
+    await clearSessionCookie();
+    await setPendingVerificationCookie(user.id);
 
     void sendEmailVerificationForUser({
       userId: user.id,
@@ -151,10 +144,12 @@ export async function POST(req: NextRequest) {
       console.error("Background job kick failed after register:", err);
     });
 
-    return NextResponse.json(
-      { user: authUser, requiresEmailVerification: true },
+    const res = NextResponse.json(
+      { email: user.email, requiresEmailVerification: true },
       { status: 201 }
     );
+    setPendingVerificationCookieOnResponse(res, user.id);
+    return res;
   } catch (error) {
     console.error("Register error:", error);
     return NextResponse.json(

@@ -1,11 +1,10 @@
 import "server-only";
 
 import {
-  EMAIL_VERIFICATION_TOKEN_TTL_MS,
-  createEmailVerificationToken,
+  EMAIL_VERIFICATION_CODE_TTL_MS,
+  createEmailVerificationCode,
 } from "./emailVerification";
-import { sendEmailVerificationEmail } from "./emailVerificationEmail";
-import { getSiteUrl } from "./siteUrl";
+import { sendEmailVerificationCodeEmail } from "./emailVerificationEmail";
 
 type SendVerificationInput = {
   userId: number;
@@ -13,38 +12,37 @@ type SendVerificationInput = {
   name: string | null;
 };
 
-/** יוצר טוקן ושולח מייל אימות — מחזיר את ה-URL (לדיבאג מקומי) */
+/** יוצר קוד OTP ושולח במייל */
 export async function sendEmailVerificationForUser(
   input: SendVerificationInput
-): Promise<{ ok: boolean; verifyUrl: string; skipped?: boolean }> {
-  const rawToken = await createEmailVerificationToken(input.userId);
-  const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_TOKEN_TTL_MS);
-  const verifyUrl = `${getSiteUrl()}/auth/verify-email?token=${rawToken}`;
+): Promise<{ ok: boolean; devCode?: string; skipped?: boolean }> {
+  const rawCode = await createEmailVerificationCode(input.userId);
+  const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_CODE_TTL_MS);
 
-  const result = await sendEmailVerificationEmail({
+  const result = await sendEmailVerificationCodeEmail({
     to: input.email,
     name: input.name,
-    verifyUrl,
+    code: rawCode,
     expiresAt,
   });
 
   if (result.ok) {
     console.log(
-      `[email-verification] sent to=${input.email} id=${result.id ?? "(none)"}`
+      `[email-verification] code sent to=${input.email} id=${result.id ?? "(none)"}`
     );
-    return { ok: true, verifyUrl };
+    return { ok: true };
   }
   if (result.skipped) {
     console.warn(
       `[email-verification] skipped (RESEND_API_KEY missing). to=${input.email}`
     );
     if (process.env.NODE_ENV !== "production") {
-      console.log(`[email-verification] dev link: ${verifyUrl}`);
+      console.log(`[email-verification] dev code: ${rawCode}`);
     }
-    return { ok: false, verifyUrl, skipped: true };
+    return { ok: false, devCode: rawCode, skipped: true };
   }
   console.error(
     `[email-verification] failed to=${input.email} error=${result.error}`
   );
-  return { ok: false, verifyUrl };
+  return { ok: false };
 }

@@ -3,10 +3,10 @@ import "server-only";
 import { escapeHtml } from "./escapeHtml";
 import { sendEmail, type SendEmailResult } from "./email";
 
-type SendEmailVerificationInput = {
+type SendEmailVerificationCodeInput = {
   to: string;
   name: string | null;
-  verifyUrl: string;
+  code: string;
   expiresAt: Date;
 };
 
@@ -22,15 +22,15 @@ function formatHebrewDateTime(d: Date): string {
   }
 }
 
-export async function sendEmailVerificationEmail(
-  input: SendEmailVerificationInput
+export async function sendEmailVerificationCodeEmail(
+  input: SendEmailVerificationCodeInput
 ): Promise<SendEmailResult> {
-  const hrefUrl = escapeHtml(input.verifyUrl);
   const greetingName = (input.name ?? "").trim();
   const greeting = greetingName ? `שלום ${escapeHtml(greetingName)},` : "שלום,";
   const validUntil = escapeHtml(formatHebrewDateTime(input.expiresAt));
+  const codeHtml = escapeHtml(input.code);
 
-  const subject = "אימות כתובת אימייל — Halls Hub";
+  const subject = "קוד אימות — Halls Hub";
 
   const html = `<!doctype html>
 <html lang="he" dir="rtl">
@@ -49,15 +49,9 @@ export async function sendEmailVerificationEmail(
                 <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;letter-spacing:0.25em;color:#C9A227;">HALLS HUB</p>
                 <h1 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0F3B2E;">אימות כתובת אימייל</h1>
                 <p style="margin:0 0 12px 0;font-size:14px;line-height:1.6;">${greeting}</p>
-                <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;">תודה שנרשמתם ל-Halls Hub. לחצו על הכפתור כדי לאמת את כתובת האימייל ולהשלים את ההרשמה.</p>
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:8px auto 24px auto;">
-                  <tr>
-                    <td align="center" bgcolor="#C9A227" style="border-radius:9999px;mso-padding-alt:14px 36px;">
-                      <a href="${hrefUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 36px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;line-height:1;color:#ffffff;text-decoration:none;border-radius:9999px;background:#C9A227;">אימות האימייל</a>
-                    </td>
-                  </tr>
-                </table>
-                <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:#5F5F5F;">הקישור תקף עד <strong>${validUntil}</strong>.</p>
+                <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;">הזינו את הקוד הבא באתר כדי להשלים את ההרשמה ולהתחבר:</p>
+                <p style="margin:0 0 24px 0;text-align:center;font-size:32px;font-weight:700;letter-spacing:0.35em;color:#0F3B2E;font-family:ui-monospace,monospace;">${codeHtml}</p>
+                <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:#5F5F5F;">הקוד תקף עד <strong>${validUntil}</strong> (15 דקות).</p>
                 <p style="margin:0;font-size:12px;line-height:1.6;color:#9A948C;">אם לא נרשמתם לאתר, אפשר להתעלם מהמייל.</p>
               </td>
             </tr>
@@ -70,14 +64,13 @@ export async function sendEmailVerificationEmail(
 </html>`;
 
   const text = [
-    "Halls Hub - אימות כתובת אימייל",
+    "Halls Hub - קוד אימות אימייל",
     "",
     greetingName ? `שלום ${greetingName},` : "שלום,",
     "",
-    "לחצו על הקישור הבא כדי לאמת את כתובת האימייל:",
-    input.verifyUrl,
+    `קוד האימות שלכם: ${input.code}`,
     "",
-    `הקישור תקף עד ${formatHebrewDateTime(input.expiresAt)}.`,
+    `הקוד תקף עד ${formatHebrewDateTime(input.expiresAt)} (15 דקות).`,
     "",
     "אם לא נרשמתם לאתר, אפשר להתעלם מהמייל.",
   ].join("\n");

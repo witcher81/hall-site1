@@ -42,7 +42,7 @@ function LoginForm() {
       }
 
       const role = data?.user?.role as string | undefined;
-      const needsVerify = data?.user?.emailVerified === false;
+      const needsVerify = data?.requiresEmailVerification === true;
 
       if (needsVerify) {
         const verifyQ = afterLogin
