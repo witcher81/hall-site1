@@ -45,6 +45,20 @@ function LoginForm() {
       const needsVerify = data?.requiresEmailVerification === true;
 
       if (needsVerify) {
+        if (typeof data?.emailWarning === "string") {
+          try {
+            sessionStorage.setItem("hall_verify_email_warning", data.emailWarning);
+          } catch {
+            /* ignore */
+          }
+        }
+        if (typeof data?.devCode === "string") {
+          try {
+            sessionStorage.setItem("hall_dev_verify_code", data.devCode);
+          } catch {
+            /* ignore */
+          }
+        }
         const verifyQ = afterLogin
           ? `?redirect=${encodeURIComponent(afterLogin)}`
           : "";

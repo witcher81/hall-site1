@@ -15,7 +15,12 @@ type SendVerificationInput = {
 /** יוצר קוד OTP ושולח במייל */
 export async function sendEmailVerificationForUser(
   input: SendVerificationInput
-): Promise<{ ok: boolean; devCode?: string; skipped?: boolean }> {
+): Promise<{
+  ok: boolean;
+  devCode?: string;
+  skipped?: boolean;
+  error?: string;
+}> {
   const rawCode = await createEmailVerificationCode(input.userId);
   const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_CODE_TTL_MS);
 
@@ -44,5 +49,5 @@ export async function sendEmailVerificationForUser(
   console.error(
     `[email-verification] failed to=${input.email} error=${result.error}`
   );
-  return { ok: false };
+  return { ok: false, error: result.error };
 }

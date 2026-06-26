@@ -54,7 +54,9 @@ export async function POST() {
     return NextResponse.json({
       message,
       devCode:
-        process.env.NODE_ENV !== "production" ? result.devCode : undefined,
+        result.skipped && process.env.NODE_ENV !== "production"
+          ? result.devCode
+          : undefined,
     });
   } catch (error) {
     console.error("resend-verification error:", error);

@@ -50,6 +50,10 @@ function RegisterForm() {
     const phonePrefix = (formData.get("phonePrefix") as string) || "";
     const phoneDigits = (formData.get("phoneDigits") as string) || "";
 
+    if (name.trim().length < 2) {
+      setError("נא להזין שם מלא (לפחות 2 תווים)");
+      return;
+    }
     if (password.length < 6) {
       setError("הסיסמה חייבת להכיל לפחות 6 תווים");
       return;
@@ -87,6 +91,20 @@ function RegisterForm() {
       const needsVerify = data?.requiresEmailVerification === true;
 
       if (needsVerify) {
+        if (typeof data?.emailWarning === "string") {
+          try {
+            sessionStorage.setItem("hall_verify_email_warning", data.emailWarning);
+          } catch {
+            /* ignore */
+          }
+        }
+        if (typeof data?.devCode === "string") {
+          try {
+            sessionStorage.setItem("hall_dev_verify_code", data.devCode);
+          } catch {
+            /* ignore */
+          }
+        }
         const verifyQ = afterRegister
           ? `?redirect=${encodeURIComponent(afterRegister)}`
           : "";
@@ -138,6 +156,9 @@ function RegisterForm() {
             <input
               name="name"
               type="text"
+              required
+              minLength={2}
+              maxLength={120}
               className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
               placeholder="איך לפנות אליך"
             />

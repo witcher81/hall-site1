@@ -68,16 +68,28 @@ export async function POST(req: NextRequest) {
       await clearSessionCookie();
       await setPendingVerificationCookie(user.id);
 
-      void sendEmailVerificationForUser({
+      const emailSend = await sendEmailVerificationForUser({
         userId: user.id,
         email: user.email,
         name: user.name,
-      }).catch((err) => {
-        console.error("verification code failed after login:", err);
       });
 
       const res = NextResponse.json(
-        { requiresEmailVerification: true, email: user.email },
+        {
+          requiresEmailVerification: true,
+          email: user.email,
+          emailSent: emailSend.ok,
+          emailWarning:
+            !emailSend.ok && !emailSend.skipped
+              ? "שליחת קוד נכשלה. בדף האימות לחצו «שליחת קוד חדש»."
+              : emailSend.skipped
+                ? "מייל לא נשלח (Resend לא מוגדר)."
+                : undefined,
+          devCode:
+            emailSend.skipped && process.env.NODE_ENV !== "production"
+              ? emailSend.devCode
+              : undefined,
+        },
         { status: 200 }
       );
       setPendingVerificationCookieOnResponse(res, user.id);

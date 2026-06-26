@@ -16,7 +16,7 @@ import {
   validateEmail,
   validateIsraeliPhoneRegister,
   validateNewPassword,
-  validateOptionalShortText,
+  validateRequiredText,
 } from "@/lib/userInputValidation";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
@@ -53,10 +53,11 @@ export async function POST(req: NextRequest) {
     }
     const passwordPlain = passResult.value;
 
-    const nameResult = validateOptionalShortText(
+    const nameResult = validateRequiredText(
       name,
       USER_INPUT_MAX.DISPLAY_NAME,
-      "שם"
+      2,
+      "שם מלא"
     );
     if (!nameResult.ok) {
       return NextResponse.json({ error: nameResult.error }, { status: 400 });
@@ -126,12 +127,10 @@ export async function POST(req: NextRequest) {
     await clearSessionCookie();
     await setPendingVerificationCookie(user.id);
 
-    void sendEmailVerificationForUser({
+    const emailSend = await sendEmailVerificationForUser({
       userId: user.id,
       email: user.email,
       name: user.name,
-    }).catch((err) => {
-      console.error("verification email failed after register:", err);
     });
 
     await publishMessage(MessageTypes.USER_REGISTER_POST_CREATE, {
@@ -145,7 +144,21 @@ export async function POST(req: NextRequest) {
     });
 
     const res = NextResponse.json(
-      { email: user.email, requiresEmailVerification: true },
+      {
+        email: user.email,
+        requiresEmailVerification: true,
+        emailSent: emailSend.ok,
+        emailWarning:
+          !emailSend.ok && !emailSend.skipped
+            ? "שליחת קוד האימות נכשלה. בדף האימות לחצו «שליחת קוד חדש»."
+            : emailSend.skipped
+              ? "מייל לא נשלח (Resend לא מוגדר). בפיתוח — הקוד מופיע בדף האימות."
+              : undefined,
+        devCode:
+          emailSend.skipped && process.env.NODE_ENV !== "production"
+            ? emailSend.devCode
+            : undefined,
+      },
       { status: 201 }
     );
     setPendingVerificationCookieOnResponse(res, user.id);

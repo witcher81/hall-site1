@@ -22,6 +22,7 @@ function VerifyEmailForm() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [devCode, setDevCode] = useState<string | null>(null);
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
 
   const goNext = useCallback(() => {
     if (afterVerify) {
@@ -31,6 +32,23 @@ function VerifyEmailForm() {
     }
     router.refresh();
   }, [afterVerify, router]);
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("hall_dev_verify_code");
+      if (stored) {
+        setDevCode(stored);
+        sessionStorage.removeItem("hall_dev_verify_code");
+      }
+      const warn = sessionStorage.getItem("hall_verify_email_warning");
+      if (warn) {
+        setEmailWarning(warn);
+        sessionStorage.removeItem("hall_verify_email_warning");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,6 +175,18 @@ function VerifyEmailForm() {
                 הקוד תקף 15 דקות. בדקו גם בתיקיית ספאם.
               </p>
 
+              {emailWarning ? (
+                <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                  {emailWarning}
+                </p>
+              ) : null}
+
+              {devCode ? (
+                <p className="text-center font-mono text-sm text-amber-900">
+                  <span className="font-semibold">פיתוח — קוד:</span> {devCode}
+                </p>
+              ) : null}
+
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div>
                   <label
@@ -205,12 +235,6 @@ function VerifyEmailForm() {
                   className={`text-xs ${resendMessage.includes("נכשל") || resendMessage.includes("המתין") ? "text-red-700" : "text-emerald-800"}`}
                 >
                   {resendMessage}
-                </p>
-              ) : null}
-
-              {devCode ? (
-                <p className="text-center font-mono text-xs text-amber-900">
-                  <span className="font-semibold">פיתוח:</span> {devCode}
                 </p>
               ) : null}
             </>
