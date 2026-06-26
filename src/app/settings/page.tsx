@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SettingsClient from "./settingsClient";
+import { redirect } from "next/navigation";
 
 export const runtime = "nodejs";
 
