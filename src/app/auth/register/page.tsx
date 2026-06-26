@@ -23,7 +23,6 @@ function RegisterForm() {
   >("");
   const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isCheckout) {
@@ -204,8 +203,6 @@ function RegisterForm() {
             required
             minLength={6}
             autoComplete="new-password"
-            visible={showPassword}
-            onVisibleChange={setShowPassword}
           />
           <PasswordInput
             label="אימות סיסמה"
@@ -213,8 +210,6 @@ function RegisterForm() {
             required
             minLength={6}
             autoComplete="new-password"
-            visible={showPassword}
-            onVisibleChange={setShowPassword}
           />
 
           {isCheckout ? (

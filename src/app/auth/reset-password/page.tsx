@@ -11,7 +11,6 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const hasToken = token.length > 0;
 
@@ -110,8 +109,6 @@ function ResetPasswordForm() {
               required
               minLength={6}
               autoComplete="new-password"
-              visible={showPassword}
-              onVisibleChange={setShowPassword}
             />
             <PasswordInput
               label="אישור סיסמה"
@@ -119,8 +116,6 @@ function ResetPasswordForm() {
               required
               minLength={6}
               autoComplete="new-password"
-              visible={showPassword}
-              onVisibleChange={setShowPassword}
             />
 
             {error && <p className="text-xs text-red-700">{error}</p>}
