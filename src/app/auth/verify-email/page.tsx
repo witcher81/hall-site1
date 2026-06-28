@@ -120,10 +120,16 @@ function VerifyEmailForm() {
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setResendMessage(data?.error || "שליחה נכשלה.");
+        if (typeof data?.devCode === "string") {
+          setDevCode(data.devCode);
+        }
         setResendLoading(false);
         return;
       }
       setResendMessage(data?.message || "נשלח קוד חדש.");
+      if (typeof data?.emailWarning === "string") {
+        setEmailWarning(data.emailWarning);
+      }
       if (typeof data?.devCode === "string") {
         setDevCode(data.devCode);
       }
@@ -182,9 +188,14 @@ function VerifyEmailForm() {
               ) : null}
 
               {devCode ? (
-                <p className="text-center font-mono text-sm text-amber-900">
-                  <span className="font-semibold">פיתוח — קוד:</span> {devCode}
-                </p>
+                <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 text-center">
+                  <p className="text-xs text-amber-900/80">
+                    לא התקבל מייל? השתמשו בקוד הבא:
+                  </p>
+                  <p className="mt-1 font-mono text-2xl font-bold tracking-[0.35em] text-amber-950">
+                    {devCode}
+                  </p>
+                </div>
               ) : null}
 
               <form onSubmit={handleSubmit} className="space-y-3">

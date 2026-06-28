@@ -1,25 +1,23 @@
 import "server-only";
 
 import { Resend } from "resend";
+import {
+  RESEND_SANDBOX_FROM,
+  classifyResendErrorMessage,
+  getEmailFrom,
+  isRecoverableFromAddressError,
+  stripEnvQuotes,
+  type EmailSendErrorCode,
+  usesResendSandboxFrom,
+} from "./emailConfig";
 
 let cachedResend: Resend | null = null;
 
 function getResend(): Resend | null {
-  const key = process.env.RESEND_API_KEY?.trim();
+  const key = stripEnvQuotes(process.env.RESEND_API_KEY ?? "");
   if (!key) return null;
   if (!cachedResend) cachedResend = new Resend(key);
   return cachedResend;
-}
-
-/**
- * כתובת השולח. ברירת מחדל: `onboarding@resend.dev` (מאומת ע״י Resend, מתאים לבדיקות).
- * בפרודקשן אמיתית — להגדיר `EMAIL_FROM` עם דומיין מאומת בחשבון Resend
- * (Resend Dashboard → Domains → Add Domain → DNS records).
- */
-export function getEmailFrom(): string {
-  const fromEnv = process.env.EMAIL_FROM?.trim();
-  if (fromEnv) return fromEnv;
-  return "Halls Hub <onboarding@resend.dev>";
 }
 
 export type SendEmailInput = {
@@ -32,13 +30,50 @@ export type SendEmailInput = {
 };
 
 export type SendEmailResult =
-  | { ok: true; id: string | null }
-  | { ok: false; error: string; skipped?: boolean };
+  | { ok: true; id: string | null; from: string }
+  | {
+      ok: false;
+      error: string;
+      errorCode: EmailSendErrorCode;
+      skipped?: boolean;
+      from?: string;
+    };
+
+async function sendWithFrom(
+  client: Resend,
+  from: string,
+  input: SendEmailInput
+): Promise<SendEmailResult> {
+  const { data, error } = await client.emails.send({
+    from,
+    to: [input.to.trim()],
+    subject: input.subject,
+    html: input.html,
+    text: input.text,
+    ...(input.replyTo ? { replyTo: input.replyTo } : {}),
+  });
+
+  if (error) {
+    const message = error.message || "Resend send failed";
+    const errorCode = classifyResendErrorMessage(message);
+    const code =
+      (error as { statusCode?: number }).statusCode ?? "?";
+    console.error(
+      `[email] Resend rejected send (status=${code}) from=${from} to=${input.to} subject="${input.subject}" error=${JSON.stringify(error)}`
+    );
+    return { ok: false, error: message, errorCode, from };
+  }
+
+  console.log(
+    `[email] Resend accepted send id=${data?.id ?? "(none)"} from=${from} to=${input.to}`
+  );
+  return { ok: true, id: data?.id ?? null, from };
+}
 
 /**
  * שולח מייל דרך Resend.
- * - בלי `RESEND_API_KEY` → לא שולח. בפיתוח: מדפיס לקונסולה כדי שתוכל לראות את הקישור.
- *   בפרודקשן: רק אזהרה (לא קורס) כדי שלא לחסום זרימות שעדיין מנסות לעבוד.
+ * - בלי `RESEND_API_KEY` → לא שולח. בפיתוח: מדפיס לקונסולה.
+ * - אם EMAIL_FROM לא מאומת — מנסה fallback ל-onboarding@resend.dev.
  * - לעולם לא זורק חריגה — מחזיר תוצאה ידידותית.
  */
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
@@ -54,42 +89,42 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
           `(to=${input.to}, subject=${input.subject})`
       );
     }
-    return { ok: false, error: "RESEND_API_KEY missing", skipped: true };
+    return {
+      ok: false,
+      error: "RESEND_API_KEY missing",
+      errorCode: "missing_api_key",
+      skipped: true,
+    };
   }
 
-  const fromValue = getEmailFrom();
+  const primaryFrom = getEmailFrom();
   try {
-    const { data, error } = await client.emails.send({
-      from: fromValue,
-      to: [input.to],
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
-      ...(input.replyTo ? { replyTo: input.replyTo } : {}),
-    });
-    if (error) {
-      const code =
-        (error as { statusCode?: number }).statusCode ?? "?";
-      console.error(
-        `[email] Resend rejected send (status=${code}) from=${fromValue} to=${input.to} subject="${input.subject}" error=${JSON.stringify(error)}`
+    let result = await sendWithFrom(client, primaryFrom, input);
+
+    if (
+      !result.ok &&
+      !usesResendSandboxFrom(primaryFrom) &&
+      isRecoverableFromAddressError(result.errorCode)
+    ) {
+      console.warn(
+        `[email] retrying with ${RESEND_SANDBOX_FROM} after from=${primaryFrom} failed: ${result.error}`
       );
-      return {
-        ok: false,
-        error: error.message || `Resend send failed (status ${code})`,
-      };
+      result = await sendWithFrom(client, RESEND_SANDBOX_FROM, input);
     }
-    console.log(
-      `[email] Resend accepted send id=${data?.id ?? "(none)"} from=${fromValue} to=${input.to}`
-    );
-    return { ok: true, id: data?.id ?? null };
+
+    return result;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(
-      `[email] Unexpected Resend error from=${fromValue} to=${input.to}: ${msg}`
+      `[email] Unexpected Resend error from=${primaryFrom} to=${input.to}: ${msg}`
     );
     return {
       ok: false,
       error: msg || "Unknown email error",
+      errorCode: classifyResendErrorMessage(msg),
+      from: primaryFrom,
     };
   }
 }
+
+export { getEmailFrom, RESEND_SANDBOX_FROM } from "./emailConfig";

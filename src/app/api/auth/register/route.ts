@@ -8,7 +8,7 @@ import {
   setPendingVerificationCookie,
   setPendingVerificationCookieOnResponse,
 } from "@/lib/auth";
-import { sendEmailVerificationForUser } from "@/lib/sendEmailVerification";
+import { sendEmailVerificationForUser, verificationEmailClientPayload } from "@/lib/sendEmailVerification";
 import { consumeQueueBatch, publishMessage } from "@/lib/messagingQueue";
 import { MessageTypes } from "@/lib/messagingQueueTypes";
 import {
@@ -143,21 +143,13 @@ export async function POST(req: NextRequest) {
       console.error("Background job kick failed after register:", err);
     });
 
+    const emailPayload = verificationEmailClientPayload(emailSend);
+
     const res = NextResponse.json(
       {
         email: user.email,
         requiresEmailVerification: true,
-        emailSent: emailSend.ok,
-        emailWarning:
-          !emailSend.ok && !emailSend.skipped
-            ? "שליחת קוד האימות נכשלה. בדף האימות לחצו «שליחת קוד חדש»."
-            : emailSend.skipped
-              ? "מייל לא נשלח (Resend לא מוגדר). בפיתוח — הקוד מופיע בדף האימות."
-              : undefined,
-        devCode:
-          emailSend.skipped && process.env.NODE_ENV !== "production"
-            ? emailSend.devCode
-            : undefined,
+        ...emailPayload,
       },
       { status: 201 }
     );

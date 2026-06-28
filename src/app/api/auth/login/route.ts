@@ -10,7 +10,7 @@ import {
   verifyPassword,
   type AuthUser,
 } from "@/lib/auth";
-import { sendEmailVerificationForUser } from "@/lib/sendEmailVerification";
+import { sendEmailVerificationForUser, verificationEmailClientPayload } from "@/lib/sendEmailVerification";
 import { validateEmail, validateLoginPassword } from "@/lib/userInputValidation";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
@@ -74,21 +74,13 @@ export async function POST(req: NextRequest) {
         name: user.name,
       });
 
+      const emailPayload = verificationEmailClientPayload(emailSend);
+
       const res = NextResponse.json(
         {
           requiresEmailVerification: true,
           email: user.email,
-          emailSent: emailSend.ok,
-          emailWarning:
-            !emailSend.ok && !emailSend.skipped
-              ? "שליחת קוד נכשלה. בדף האימות לחצו «שליחת קוד חדש»."
-              : emailSend.skipped
-                ? "מייל לא נשלח (Resend לא מוגדר)."
-                : undefined,
-          devCode:
-            emailSend.skipped && process.env.NODE_ENV !== "production"
-              ? emailSend.devCode
-              : undefined,
+          ...emailPayload,
         },
         { status: 200 }
       );

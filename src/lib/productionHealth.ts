@@ -1,4 +1,5 @@
 import { isProductionRuntime } from "@/lib/isProduction";
+import { isProductionEmailFromReady } from "@/lib/emailConfig";
 import { getUpstashRedisConfig } from "@/lib/upstashEnv";
 
 export type ProductionHealthReport = {
@@ -9,6 +10,8 @@ export type ProductionHealthReport = {
   databaseConfigured: boolean;
   jwtConfigured: boolean;
   emailConfigured: boolean;
+  /** EMAIL_FROM עם דומיין מאומת (לא resend.dev) — נדרש לשליחה לכל נמען */
+  emailFromProductionReady: boolean;
   blobConfigured: boolean;
   geocodeFallbackConfigured: boolean;
   /** רמזים לתצורה חסרה — ללא ערכי סוד */
@@ -34,6 +37,8 @@ export function buildProductionHealthReport(): ProductionHealthReport {
   const databaseConfigured = Boolean(process.env.DATABASE_URL?.trim());
   const jwtConfigured = !production || jwtConfiguredForRuntime();
   const emailConfigured = Boolean(process.env.RESEND_API_KEY?.trim());
+  const emailFromProductionReady =
+    !production || !emailConfigured || isProductionEmailFromReady();
   const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
   const geocodeFallbackConfigured = Boolean(
     process.env.GOOGLE_GEOCODING_API_KEY?.trim()
@@ -62,6 +67,10 @@ export function buildProductionHealthReport(): ProductionHealthReport {
     if (!emailConfigured) {
       warnings.push(
         "RESEND_API_KEY — אופציונלי; בלי זה אין מיילים (איפוס סיסמה, פניות)."
+      );
+    } else if (!emailFromProductionReady) {
+      warnings.push(
+        "EMAIL_FROM — חסר או משתמש ב-resend.dev; אימות אימייל ומיילים ייכשלו לנמענים אחרים. אמתו דומיין ב-Resend והגדירו EMAIL_FROM (למשל Halls Hub <noreply@yourdomain.com>)."
       );
     }
     if (!blobConfigured) {
@@ -95,6 +104,7 @@ export function buildProductionHealthReport(): ProductionHealthReport {
     databaseConfigured,
     jwtConfigured,
     emailConfigured,
+    emailFromProductionReady,
     blobConfigured,
     geocodeFallbackConfigured,
     warnings,

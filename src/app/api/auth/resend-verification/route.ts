@@ -4,7 +4,10 @@ import {
   getPendingVerificationUser,
   setPendingVerificationCookie,
 } from "@/lib/auth";
-import { sendEmailVerificationForUser } from "@/lib/sendEmailVerification";
+import {
+  sendEmailVerificationForUser,
+  verificationEmailClientPayload,
+} from "@/lib/sendEmailVerification";
 
 const COOLDOWN_MS = 60_000;
 const lastSentByUserId = new Map<number, number>();
@@ -37,26 +40,31 @@ export async function POST() {
       name: pending.name,
     });
 
-    lastSentByUserId.set(pending.id, now);
-    await setPendingVerificationCookie(pending.id);
-
-    if (!result.ok && !result.skipped) {
+    if (!result.ok && !result.skipped && !result.devCode) {
       return NextResponse.json(
-        { error: "שליחת קוד האימות נכשלה. נסו שוב מאוחר יותר." },
-        { status: 500 }
+        {
+          error:
+            result.userMessage ??
+            "שליחת קוד האימות נכשלה. נסו שוב מאוחר יותר.",
+          emailErrorCode: result.errorCode,
+        },
+        { status: 503 }
       );
     }
 
-    const message = result.skipped
-      ? "מייל לא נשלח (Resend לא מוגדר). בפיתוח — בדקו את הלוג."
-      : "נשלח קוד אימות חדש לכתובת האימייל שלכם.";
+    lastSentByUserId.set(pending.id, now);
+    await setPendingVerificationCookie(pending.id);
+
+    const clientPayload = verificationEmailClientPayload(result);
+    const message = result.ok
+      ? "נשלח קוד אימות חדש לכתובת האימייל שלכם."
+      : result.devCode
+        ? "לא ניתן לשלוח מייל כרגע — הקוד מוצג בדף לצורך המשך."
+        : clientPayload.emailWarning ?? "שליחה נכשלה.";
 
     return NextResponse.json({
       message,
-      devCode:
-        result.skipped && process.env.NODE_ENV !== "production"
-          ? result.devCode
-          : undefined,
+      ...clientPayload,
     });
   } catch (error) {
     console.error("resend-verification error:", error);
