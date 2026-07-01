@@ -1,12 +1,17 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import TurnstileWidget from "@/components/TurnstileWidget";
+
+const RESET_URL_STORAGE_KEY = "hall_reset_url";
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
+  const [resetUrl, setResetUrl] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -14,6 +19,8 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
+    setEmailWarning(null);
+    setResetUrl(null);
 
     const formData = new FormData(e.currentTarget);
     const email = ((formData.get("email") as string) || "").trim();
@@ -32,8 +39,19 @@ export default function ForgotPasswordPage() {
       }
       setSuccessMessage(
         data?.message ||
-          "אם קיים חשבון עם כתובת זו, ישלח אליו קישור לאיפוס הסיסמה."
+          "שלחנו קישור לאיפוס סיסמה לכתובת שביקשתם. בדקו את תיבת הדואר (וגם ספאם). הקישור תקף לשעה."
       );
+      if (typeof data?.emailWarning === "string") {
+        setEmailWarning(data.emailWarning);
+      }
+      if (typeof data?.resetUrl === "string" && data.resetUrl.length > 0) {
+        setResetUrl(data.resetUrl);
+        try {
+          sessionStorage.setItem(RESET_URL_STORAGE_KEY, data.resetUrl);
+        } catch {
+          /* ignore */
+        }
+      }
       setLoading(false);
     } catch {
       setError("שגיאה בלתי צפויה");
@@ -63,8 +81,8 @@ export default function ForgotPasswordPage() {
           className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
         >
           <p className="text-sm text-neutral-600">
-            הזינו את כתובת המייל שאיתה נרשמתם. אם קיים חשבון תואם, ישלח אליו
-            קישור לאיפוס הסיסמה (תוקף הקישור — שעה).
+            הזינו את כתובת המייל שאיתה נרשמתם. נשלח אליכם קישור לאיפוס הסיסמה
+            (תוקף הקישור — שעה).
           </p>
 
           <div>
@@ -91,6 +109,26 @@ export default function ForgotPasswordPage() {
               {successMessage}
             </p>
           )}
+
+          {emailWarning ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+              {emailWarning}
+            </p>
+          ) : null}
+
+          {resetUrl ? (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 text-center text-sm">
+              <p className="text-xs text-amber-900/80">
+                לא התקבל מייל? לחצו כאן לאיפוס הסיסמה:
+              </p>
+              <Link
+                href={resetUrl}
+                className="mt-2 inline-block rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-300"
+              >
+                בחירת סיסמה חדשה
+              </Link>
+            </div>
+          ) : null}
 
           <button
             type="submit"

@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import {
-  PASSWORD_RESET_TOKEN_TTL_MS,
-  createPasswordResetToken,
-} from "@/lib/passwordReset";
-import { sendPasswordResetEmail } from "@/lib/passwordResetEmail";
-import { getSiteUrl } from "@/lib/siteUrl";
 import { validateEmail } from "@/lib/userInputValidation";
+import {
+  passwordResetClientPayload,
+  sendPasswordResetForUser,
+} from "@/lib/sendPasswordReset";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
-const GENERIC_OK_MESSAGE =
-  "אם קיים חשבון עם כתובת זו, ישלח אליו קישור לאיפוס הסיסמה.";
+function forgotPasswordSuccessMessage(
+  email: string,
+  clientPayload?: ReturnType<typeof passwordResetClientPayload>
+): string {
+  if (clientPayload?.resetUrl && !clientPayload.emailSent) {
+    return "לא ניתן לשלוח מייל כרגע — השתמשו בקישור למטה כדי לאפס את הסיסמה.";
+  }
+  return `שלחנו קישור לאיפוס סיסמה ל־${email}. בדקו את תיבת הדואר (וגם ספאם). הקישור תקף לשעה.`;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,36 +46,18 @@ export async function POST(req: NextRequest) {
       select: { id: true, email: true, name: true },
     });
 
+    let clientPayload: ReturnType<typeof passwordResetClientPayload> | undefined;
+
     if (user) {
-      const rawToken = await createPasswordResetToken(user.id);
-      const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
-      const resetUrl = `${getSiteUrl()}/auth/reset-password?token=${rawToken}`;
-
-      // שליחה סינכרונית כדי שב-Vercel הפונקציה לא "תקפא" לפני שהמייל נשלח.
-      // לעולם לא חושפים אם המייל קיים — לכן גם שגיאה כאן מוחזרת כ-200 גנרי.
-      const result = await sendPasswordResetEmail({
-        to: user.email,
-        name: user.name ?? null,
-        resetUrl,
-        expiresAt,
+      const sendResult = await sendPasswordResetForUser({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
       });
-      if (result.ok) {
-        console.log(
-          `[forgot-password] reset email sent to=${user.email} id=${result.id ?? "(none)"}`
-        );
-      } else if (result.skipped) {
-        console.warn(
-          `[forgot-password] email skipped (RESEND_API_KEY missing). to=${user.email}`
-        );
-      } else {
-        console.error(
-          `[forgot-password] email failed to=${user.email} error=${result.error}`
-        );
-      }
+      clientPayload = passwordResetClientPayload(sendResult);
 
-      // אופציונלי: webhook חיצוני נוסף (CRM/ספק חיצוני)
       const webhook = process.env.PASSWORD_RESET_WEBHOOK_URL?.trim();
-      if (webhook) {
+      if (webhook && sendResult.resetUrl) {
         try {
           const res = await fetch(webhook, {
             method: "POST",
@@ -80,8 +67,8 @@ export async function POST(req: NextRequest) {
               userId: user.id,
               email: user.email,
               name: user.name ?? null,
-              resetUrl,
-              expiresAt: expiresAt.toISOString(),
+              resetUrl: sendResult.resetUrl,
+              emailSent: sendResult.ok,
               sentAt: new Date().toISOString(),
             }),
           });
@@ -95,13 +82,20 @@ export async function POST(req: NextRequest) {
         }
       }
     } else {
-      // לא חושפים שאין משתמש — מתעדים רק לצורך דיבאג בלוגים של Vercel
       console.log(
         `[forgot-password] no user for email=${normalizedEmail} (returning generic 200)`
       );
     }
 
-    return NextResponse.json({ message: GENERIC_OK_MESSAGE }, { status: 200 });
+    const message = forgotPasswordSuccessMessage(
+      normalizedEmail,
+      clientPayload
+    );
+
+    return NextResponse.json({
+      message,
+      ...(clientPayload ?? { emailSent: true }),
+    });
   } catch (error) {
     console.error("forgot-password error:", error);
     return NextResponse.json(
