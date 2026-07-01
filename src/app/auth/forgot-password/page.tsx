@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
 import TurnstileWidget from "@/components/TurnstileWidget";
 
 const RESET_URL_STORAGE_KEY = "hall_reset_url";
@@ -121,12 +120,12 @@ export default function ForgotPasswordPage() {
               <p className="text-xs text-amber-900/80">
                 לא התקבל מייל? לחצו כאן לאיפוס הסיסמה:
               </p>
-              <Link
+              <a
                 href={resetUrl}
                 className="mt-2 inline-block rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-300"
               >
                 בחירת סיסמה חדשה
-              </Link>
+              </a>
             </div>
           ) : null}
 

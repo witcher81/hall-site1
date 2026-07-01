@@ -6,6 +6,7 @@ import {
   passwordResetClientPayload,
   sendPasswordResetForUser,
 } from "@/lib/sendPasswordReset";
+import { getSiteUrlFromRequest } from "@/lib/siteUrl";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
 function forgotPasswordSuccessMessage(
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         email: user.email,
         name: user.name,
+        siteUrl: getSiteUrlFromRequest(req),
       });
       clientPayload = passwordResetClientPayload(sendResult);
 

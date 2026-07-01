@@ -5,6 +5,7 @@ import {
   createPasswordResetToken,
 } from "./passwordReset";
 import { sendPasswordResetEmail } from "./passwordResetEmail";
+import { buildPasswordResetUrl } from "./passwordResetUrl";
 import { getSiteUrl } from "./siteUrl";
 import {
   shouldExposeVerificationCodeOnFailure,
@@ -16,6 +17,7 @@ type SendPasswordResetInput = {
   userId: number;
   email: string;
   name: string | null;
+  siteUrl?: string;
 };
 
 export type SendPasswordResetResult = {
@@ -61,7 +63,8 @@ export async function sendPasswordResetForUser(
 ): Promise<SendPasswordResetResult> {
   const rawToken = await createPasswordResetToken(input.userId);
   const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
-  const resetUrl = `${getSiteUrl()}/auth/reset-password?token=${rawToken}`;
+  const siteUrl = input.siteUrl ?? getSiteUrl();
+  const resetUrl = buildPasswordResetUrl(siteUrl, rawToken);
 
   const result = await sendPasswordResetEmail({
     to: input.email,
