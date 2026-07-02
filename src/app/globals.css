@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
-/* פלטה אחידה — שמנת כהה + כרטיסים בהירים */
-:root {
+/* פלטה אחידה — שמנת כהה + כרטיסים בהירים (מצב קלאסי) */
+:root,
+html[data-theme="classic"] {
   --background: #e5ddd0;
   --background-soft: #efe6d5;
   --card: rgba(255, 255, 255, 0.94);
@@ -11,15 +12,38 @@
   --muted: #525252;
   --brand: #022c22;
   --accent: #fbbf24;
+  --accent-hover: #fcd34d;
+  --accent-contrast: #0a0a0a;
+  --heading: #022c22;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* מצב לילה — שחור, כחול כהה וציאן */
+html[data-theme="night"] {
+  --background: #080b12;
+  --background-soft: #101826;
+  --card: rgba(16, 24, 38, 0.96);
+  --card-muted: #141d2e;
+  --border-soft: #243044;
+  --foreground: #e8edf5;
+  --muted: #94a3b8;
+  --brand: #0b1220;
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-contrast: #041018;
+  --heading: #dbeafe;
+  color-scheme: dark;
+}
+
+html {
+  background: var(--background);
+}
+
 html,
-html[data-theme="light"],
-html[data-theme="dark"] {
-  --background: #e5ddd0;
-  --foreground: #171717;
+html[data-theme="classic"],
+html[data-theme="night"] {
+  background: var(--background);
 }
 
 body {
@@ -32,7 +56,7 @@ body {
 .site-page {
   min-height: 100vh;
   background-color: var(--background);
-  color: #171717;
+  color: var(--foreground);
 }
 
 .site-main {
@@ -100,7 +124,7 @@ body {
 }
 
 .site-page-header {
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--border-soft);
   padding-bottom: 1.5rem;
   text-align: right;
 }
@@ -109,7 +133,7 @@ body {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #022c22;
+  color: var(--heading);
 }
 
 @media (min-width: 768px) {
@@ -122,7 +146,7 @@ body {
   margin-top: 0.5rem;
   font-size: 0.875rem;
   line-height: 1.6;
-  color: #525252;
+  color: var(--muted);
 }
 
 @media (min-width: 768px) {
@@ -135,7 +159,7 @@ body {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.25em;
-  color: #d97706;
+  color: var(--accent);
 }
 
 /* אזור אישי — בעל אולם / פרילנסר */
@@ -167,8 +191,8 @@ body {
 }
 
 .dashboard-nav-link-active {
-  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
-  color: #022c22;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: var(--accent-contrast);
   font-weight: 700;
   box-shadow:
     0 4px 14px rgb(0 0 0 / 0.22),
@@ -176,8 +200,8 @@ body {
 }
 
 .dashboard-nav-link-active:hover {
-  color: #022c22;
-  background: linear-gradient(180deg, #fcd34d 0%, #fbbf24 100%);
+  color: var(--accent-contrast);
+  filter: brightness(1.05);
 }
 
 .dashboard-nav-badge {
@@ -277,8 +301,8 @@ body {
 
 .site-card {
   border-radius: 1rem;
-  border: 1px solid rgb(229 229 229 / 0.85);
-  background: rgb(255 255 255 / 0.92);
+  border: 1px solid var(--border-soft);
+  background: var(--card);
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.06),
     0 2px 4px -2px rgb(0 0 0 / 0.05);
@@ -287,8 +311,8 @@ body {
 
 .site-card-padded {
   border-radius: 1rem;
-  border: 1px solid rgb(229 229 229 / 0.85);
-  background: rgb(255 255 255 / 0.92);
+  border: 1px solid var(--border-soft);
+  background: var(--card);
   padding: 1.5rem;
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.06),
@@ -299,10 +323,10 @@ body {
 .site-input {
   width: 100%;
   border-radius: 0.75rem;
-  border: 1px solid #e5e5e5;
-  background: #fff;
+  border: 1px solid var(--border-soft);
+  background: var(--card-muted);
   padding: 0.5rem 0.75rem;
-  color: #171717;
+  color: var(--foreground);
   outline: none;
   transition:
     border-color 0.15s ease,
@@ -310,8 +334,8 @@ body {
 }
 
 .site-input:focus {
-  border-color: #fbbf24;
-  box-shadow: 0 0 0 3px rgb(251 191 36 / 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .btn-primary {
@@ -319,19 +343,19 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: #fbbf24;
+  background: var(--accent);
   padding: 0.625rem 1.5rem;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #0a0a0a;
-  box-shadow: 0 4px 14px rgb(251 191 36 / 0.35);
+  color: var(--accent-contrast);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
   transition:
     background-color 0.15s ease,
     transform 0.15s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #fcd34d;
+  background: var(--accent-hover);
 }
 
 .btn-primary:disabled {
@@ -343,20 +367,20 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  border: 1px solid #d4d4d4;
-  background: #fff;
+  border: 1px solid var(--border-soft);
+  background: var(--card);
   padding: 0.625rem 1.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #022c22;
+  color: var(--heading);
   transition:
     border-color 0.15s ease,
     background-color 0.15s ease;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  border-color: #fbbf24;
-  background: #fffbeb;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
 }
 
 .site-footer {
@@ -468,39 +492,239 @@ header.site-header .personal-menu p {
   color: #0f3b2e !important;
 }
 
-/* מצב בהיר: כרטיסים בהירים (כבר מכוסה למעלה) */
-body.theme-light header.site-header {
-  background-color: var(--brand) !important;
+/* מצב לילה — התאמות גלובליות לרכיבי Tailwind נפוצים */
+html[data-theme="night"] .bg-white,
+html[data-theme="night"] .bg-white\/90,
+html[data-theme="night"] .bg-white\/92,
+html[data-theme="night"] .bg-white\/95 {
+  background-color: var(--card) !important;
 }
 
-body.theme-light header.site-header .text-slate-50,
-body.theme-light header.site-header .text-slate-100,
-body.theme-light header.site-header .text-slate-200,
-body.theme-light header.site-header .text-slate-300,
-body.theme-light header.site-header .text-slate-400,
-body.theme-light header.site-header a {
-  color: #f8f6f0 !important;
+html[data-theme="night"] .bg-neutral-50,
+html[data-theme="night"] .bg-neutral-100,
+html[data-theme="night"] .bg-\[\#f7f3eb\],
+html[data-theme="night"] .bg-\[\#fdfbf7\],
+html[data-theme="night"] .bg-\[\#f5efe3\] {
+  background-color: var(--background-soft) !important;
 }
 
-body.theme-light header.site-header .border-slate-600,
-body.theme-light header.site-header .border-slate-700,
-body.theme-light header.site-header .border-slate-800 {
-  border-color: rgba(255, 255, 255, 0.25) !important;
+html[data-theme="night"] .text-neutral-900,
+html[data-theme="night"] .text-neutral-800,
+html[data-theme="night"] .text-neutral-700,
+html[data-theme="night"] .text-emerald-950,
+html[data-theme="night"] .text-emerald-900 {
+  color: var(--foreground) !important;
 }
 
-/* override סופי: טקסט כהה בתוך תפריט אזור אישי גם במצב light */
-body.theme-light header.site-header .personal-menu a,
-body.theme-light header.site-header .personal-menu button,
-body.theme-light header.site-header .personal-menu span,
-body.theme-light header.site-header .personal-menu p,
-body.theme-light header.site-header .user-menu a,
-body.theme-light header.site-header .user-menu button,
-body.theme-light header.site-header .user-menu span,
-body.theme-light header.site-header .user-menu p,
-body.theme-light header.site-header .dev-switcher-menu a,
-body.theme-light header.site-header .dev-switcher-menu button,
-body.theme-light header.site-header .dev-switcher-menu span,
-body.theme-light header.site-header .dev-switcher-menu p,
+html[data-theme="night"] .text-neutral-600,
+html[data-theme="night"] .text-neutral-500,
+html[data-theme="night"] .text-neutral-400 {
+  color: var(--muted) !important;
+}
+
+html[data-theme="night"] .border-neutral-200,
+html[data-theme="night"] .border-neutral-200\/80,
+html[data-theme="night"] .border-neutral-200\/90,
+html[data-theme="night"] .border-neutral-300 {
+  border-color: var(--border-soft) !important;
+}
+
+html[data-theme="night"] .bg-amber-400,
+html[data-theme="night"] .bg-amber-300 {
+  background-color: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+}
+
+html[data-theme="night"] .hover\:bg-amber-300:hover,
+html[data-theme="night"] .hover\:bg-amber-50:hover,
+html[data-theme="night"] .hover\:bg-amber-50\/80:hover {
+  background-color: color-mix(in srgb, var(--accent) 18%, var(--card)) !important;
+}
+
+html[data-theme="night"] .text-amber-900,
+html[data-theme="night"] .text-amber-950 {
+  color: #e0f2fe !important;
+}
+
+html[data-theme="night"] .bg-emerald-950,
+html[data-theme="night"] .bg-emerald-900 {
+  background-color: #152238 !important;
+}
+
+html[data-theme="night"] .hover\:bg-\[\#164d3d\]:hover,
+html[data-theme="night"] .hover\:bg-emerald-800:hover {
+  background-color: #1e3a5f !important;
+}
+
+html[data-theme="night"] .text-emerald-800 {
+  color: #bae6fd !important;
+}
+
+html[data-theme="night"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="night"] textarea,
+html[data-theme="night"] select {
+  background-color: #0f1623 !important;
+  border-color: var(--border-soft) !important;
+  color: var(--foreground) !important;
+}
+
+html[data-theme="night"] input::placeholder,
+html[data-theme="night"] textarea::placeholder {
+  color: #64748b !important;
+}
+
+html[data-theme="night"] input:disabled,
+html[data-theme="night"] textarea:disabled {
+  background-color: #0c121c !important;
+  color: var(--muted) !important;
+}
+
+html[data-theme="night"] .dashboard-hero {
+  background: linear-gradient(180deg, #0b1220 0%, #152238 100%);
+  border-bottom-color: rgb(56 189 248 / 0.12);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.35);
+}
+
+html[data-theme="night"] .dashboard-hero-kicker {
+  color: var(--accent);
+}
+
+html[data-theme="night"] .dashboard-nav-badge {
+  border-color: rgb(56 189 248 / 0.35);
+  background: rgb(56 189 248 / 0.12);
+  color: #bae6fd;
+}
+
+html[data-theme="night"] .venue-hero-band {
+  background: linear-gradient(
+    135deg,
+    rgb(16 24 38 / 0.95) 0%,
+    var(--background-soft) 45%,
+    var(--background) 100%
+  );
+}
+
+html[data-theme="night"] .hover\:bg-neutral-50:hover,
+html[data-theme="night"] .hover\:bg-neutral-100:hover {
+  background-color: rgb(56 189 248 / 0.08) !important;
+}
+
+html[data-theme="night"] .shadow-\[0_12px_40px_rgba\(15\,59\,46\,0\.08\)\],
+html[data-theme="night"] .shadow-\[0_8px_24px_rgba\(15\,59\,46\,0\.08\)\] {
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.35) !important;
+}
+
+html[data-theme="night"] .site-footer a {
+  color: var(--accent) !important;
+}
+
+html[data-theme="night"] .site-footer a:hover {
+  color: var(--accent-hover) !important;
+}
+
+html[data-theme="night"] header.site-header {
+  background: linear-gradient(180deg, #0b1220 0%, #101a2c 100%) !important;
+  border-bottom-color: #1e3a5f !important;
+}
+
+html[data-theme="night"] header.site-header .bg-amber-400\/25 {
+  background-color: rgb(56 189 248 / 0.18) !important;
+}
+
+html[data-theme="night"] header.site-header .bg-amber-400\/15 {
+  background-color: rgb(56 189 248 / 0.12) !important;
+}
+
+html[data-theme="night"] header.site-header .text-\[\#F5E6A8\] {
+  color: #bae6fd !important;
+}
+
+html[data-theme="night"] header.site-header .ring-amber-400\/70,
+html[data-theme="night"] header.site-header .ring-amber-400\/50 {
+  --tw-ring-color: rgb(56 189 248 / 0.55) !important;
+}
+
+html[data-theme="night"] header.site-header .user-menu,
+html[data-theme="night"] header.site-header .personal-menu,
+html[data-theme="night"] header.site-header .dev-switcher-menu {
+  background-color: var(--card) !important;
+  border-color: var(--border-soft) !important;
+}
+
+html[data-theme="night"] header.site-header .personal-menu a,
+html[data-theme="night"] header.site-header .personal-menu button,
+html[data-theme="night"] header.site-header .personal-menu span,
+html[data-theme="night"] header.site-header .personal-menu p,
+html[data-theme="night"] header.site-header .user-menu a,
+html[data-theme="night"] header.site-header .user-menu button,
+html[data-theme="night"] header.site-header .user-menu span,
+html[data-theme="night"] header.site-header .user-menu p,
+html[data-theme="night"] header.site-header .dev-switcher-menu a,
+html[data-theme="night"] header.site-header .dev-switcher-menu button,
+html[data-theme="night"] header.site-header .dev-switcher-menu span,
+html[data-theme="night"] header.site-header .dev-switcher-menu p {
+  color: var(--foreground) !important;
+}
+
+html[data-theme="night"] header.site-header .navLinkMobileActive,
+html[data-theme="night"] header.site-header .text-emerald-950 {
+  color: #dbeafe !important;
+}
+
+html[data-theme="night"] input.checkbox-hall {
+  border-color: var(--border-soft);
+  background-color: #0f1623;
+}
+
+html[data-theme="night"] input.checkbox-hall:hover {
+  border-color: var(--accent);
+}
+
+html[data-theme="night"] input.checkbox-hall:checked {
+  background-color: #1e3a5f;
+  border-color: var(--accent);
+}
+
+html[data-theme="night"] .bg-sky-500 {
+  background-color: var(--accent) !important;
+}
+
+html[data-theme="night"] .hover\:bg-sky-400:hover {
+  background-color: var(--accent-hover) !important;
+}
+
+html[data-theme="night"] .text-sky-300 {
+  color: #bae6fd !important;
+}
+
+html[data-theme="night"] .border-sky-400 {
+  border-color: var(--accent) !important;
+}
+
+html[data-theme="night"] .bg-emerald-500,
+html[data-theme="night"] .bg-emerald-500\/90 {
+  background-color: #1e3a5f !important;
+}
+
+html[data-theme="night"] .hover\:bg-emerald-400:hover {
+  background-color: #25466f !important;
+}
+
+html[data-theme="night"] .border-emerald-400 {
+  border-color: #38bdf8 !important;
+}
+
+html[data-theme="night"] .text-emerald-300,
+html[data-theme="night"] .text-emerald-100 {
+  color: #bae6fd !important;
+}
+
+html[data-theme="night"] .site-footer {
+  border-top-color: var(--border-soft);
+  background: #05070d;
+}
+
+/* override סופי: טקסט בתפריטי header על כרטיס כהה */
 header.site-header .personal-menu a,
 header.site-header .personal-menu button,
 header.site-header .personal-menu span,
@@ -514,6 +738,21 @@ header.site-header .dev-switcher-menu button,
 header.site-header .dev-switcher-menu span,
 header.site-header .dev-switcher-menu p {
   color: #1a1a1a !important;
+}
+
+html[data-theme="night"] header.site-header .personal-menu a,
+html[data-theme="night"] header.site-header .personal-menu button,
+html[data-theme="night"] header.site-header .personal-menu span,
+html[data-theme="night"] header.site-header .personal-menu p,
+html[data-theme="night"] header.site-header .user-menu a,
+html[data-theme="night"] header.site-header .user-menu button,
+html[data-theme="night"] header.site-header .user-menu span,
+html[data-theme="night"] header.site-header .user-menu p,
+html[data-theme="night"] header.site-header .dev-switcher-menu a,
+html[data-theme="night"] header.site-header .dev-switcher-menu button,
+html[data-theme="night"] header.site-header .dev-switcher-menu span,
+html[data-theme="night"] header.site-header .dev-switcher-menu p {
+  color: var(--foreground) !important;
 }
 
 /* צ'קבוקס מותג — דשבורד אולמות (וי לבן על ירוק, מסגרת זהב ב-hover) */

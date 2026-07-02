@@ -7,6 +7,12 @@ import DevUserSwitcher from "./DevUserSwitcher";
 import MessagesUnreadBadge from "./MessagesUnreadBadge";
 import NotificationsUnreadBadge from "./NotificationsUnreadBadge";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
+import {
+  applySiteTheme,
+  parseStoredTheme,
+  persistTheme,
+  type SiteTheme,
+} from "@/lib/theme";
 import RealtimeEventBridge from "./RealtimeEventBridge";
 
 type User = {
@@ -15,8 +21,6 @@ type User = {
   name: string | null;
   role: string;
 };
-
-type Theme = "dark" | "light";
 
 function personalAreaLinks(role: string | undefined): { href: string; label: string }[] {
   switch (role) {
@@ -117,7 +121,7 @@ export default function HomeHeader({
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<SiteTheme>("classic");
   const menuRef = useRef<HTMLDivElement | null>(null);
   const personalRef = useRef<HTMLDivElement | null>(null);
 
@@ -156,20 +160,18 @@ export default function HomeHeader({
     const stored = hasFunctionalConsent()
       ? window.localStorage.getItem("hh-theme")
       : null;
-    const next: Theme = stored === "light" ? "light" : "dark";
+    const next = parseStoredTheme(stored);
     setTheme(next);
-    document.documentElement.dataset.theme = next;
-    document.body.classList.toggle("theme-light", next === "light");
+    applySiteTheme(next);
   }, []);
 
   function toggleTheme() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
+    const next: SiteTheme = theme === "night" ? "classic" : "night";
     setTheme(next);
+    applySiteTheme(next);
     if (typeof window !== "undefined" && hasFunctionalConsent()) {
-      window.localStorage.setItem("hh-theme", next);
+      persistTheme(next);
     }
-    document.documentElement.dataset.theme = next;
-    document.body.classList.toggle("theme-light", next === "light");
   }
 
   useEffect(() => {
@@ -358,9 +360,9 @@ export default function HomeHeader({
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
                 className={`flex max-w-[140px] items-center gap-2 truncate rounded-full px-3 py-2 text-sm font-medium transition sm:max-w-[220px] sm:px-4 ${
-                  theme === "light"
-                    ? "bg-amber-300 text-slate-900 hover:bg-amber-200"
-                    : "bg-black/25 text-white hover:bg-black/35"
+                  theme === "night"
+                    ? "border border-sky-400/35 bg-slate-900/50 text-sky-100 hover:bg-slate-800/60"
+                    : "bg-amber-300 text-slate-900 hover:bg-amber-200"
                 }`}
               >
                 <span className="truncate">{user.name || user.email}</span>
@@ -521,7 +523,7 @@ export default function HomeHeader({
                     </div>
                   )}
                   <Link
-                    href="/settings"
+                    href="/settings/profile"
                     aria-current={
                       pathname.startsWith("/settings") ? "page" : undefined
                     }
@@ -541,14 +543,16 @@ export default function HomeHeader({
                   >
                     <span>מצב תצוגה</span>
                     <span
+                      role="switch"
+                      aria-checked={theme === "night"}
                       className={`flex h-6 w-12 items-center rounded-full px-1 text-[10px] font-medium transition-colors ${
-                        theme === "dark"
-                          ? "justify-start bg-slate-700 text-slate-100"
-                          : "justify-end bg-amber-300 text-amber-900"
+                        theme === "night"
+                          ? "justify-end bg-sky-500/80 text-sky-950"
+                          : "justify-start bg-amber-300 text-amber-900"
                       }`}
                     >
                       <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[8px] text-slate-900 shadow-sm">
-                        {theme === "dark" ? "☾" : "☼"}
+                        {theme === "night" ? "☾" : "☼"}
                       </span>
                     </span>
                   </button>

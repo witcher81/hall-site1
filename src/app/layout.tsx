@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import CookieConsentProvider from "@/components/consent/CookieConsentProvider";
+import ThemeInit from "@/components/ThemeInit";
 import { getSiteUrl } from "@/lib/siteUrl";
 import "./globals.css";
 
@@ -35,7 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl">
+    <html lang="he" dir="rtl" data-theme="classic">
+      <head>
+        <ThemeInit />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

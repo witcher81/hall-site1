@@ -42,7 +42,7 @@ export default async function CookiesPage() {
           בביקור ראשון מוצג באנר עם אפשרויות «קבלת הכל», «דחיית הכל» ו«ניהול העדפות». קטגוריות
           שאינן חיוניות כבויות כברירת מחדל עד שתבחרו במפורש. ניתן לשנות את הבחירה בכל עת דרך{" "}
           <CookieSettingsLink /> בתחתית האתר, או בדף{" "}
-          <Link href="/settings" className="font-medium text-emerald-950 underline">
+          <Link href="/settings/privacy" className="font-medium text-emerald-950 underline">
             הגדרות
           </Link>
           .

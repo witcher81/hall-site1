@@ -12,7 +12,7 @@ export default async function PrivacyRequestPage() {
       <p className="mt-2 text-sm text-neutral-600">
         מימוש זכות לעיין, לתקן או למחוק מידע אישי. הבקשה תישלח ל־{legal.privacyEmail}.
         ניתן גם למחוק חשבון ישירות ב
-        <Link href="/settings#account" className="font-medium text-emerald-950 underline">
+        <Link href="/settings/account" className="font-medium text-emerald-950 underline">
           הגדרות
         </Link>
         .

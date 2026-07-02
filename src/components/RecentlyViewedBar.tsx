@@ -116,7 +116,7 @@ export default function RecentlyViewedBar({
       <section className="rounded-2xl border border-amber-200/60 bg-amber-50/50 p-4 text-right text-sm text-neutral-700">
         <p>כדי לשמור «נצפו לאחרונה» יש לאשר עוגיות פונקציונליות.</p>
         <Link
-          href="/settings#privacy"
+          href="/settings/privacy"
           className="mt-2 inline-block text-xs font-semibold text-emerald-950 hover:underline"
         >
           הגדרות עוגיות →

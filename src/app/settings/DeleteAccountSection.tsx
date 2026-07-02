@@ -43,10 +43,7 @@ export default function DeleteAccountSection({ email }: Props) {
   }
 
   return (
-    <section
-      id="account"
-      className="rounded-2xl border border-red-200 bg-red-50/40 p-6 shadow-[0_12px_40px_rgba(15,59,46,0.04)]"
-    >
+    <section className="rounded-2xl border border-red-200 bg-red-50/40 p-6 shadow-[0_12px_40px_rgba(15,59,46,0.04)]">
       <h2 className="text-base font-semibold text-red-900">אזור מסוכן — מחיקת חשבון</h2>
       <p className="mt-1 text-xs text-neutral-700">
         מחיקת החשבון היא בלתי הפיכה. יימחקו הפרופיל, אולמות ושירותים שפרסמתם, פניות,
