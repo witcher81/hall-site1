@@ -177,11 +177,11 @@ function RegisterForm() {
             <p className="mt-0.5 text-[11px] text-neutral-500">
               קידומת נייד (050–059) ואז 7 ספרות.
             </p>
-            <div className="mt-1.5 flex flex-row-reverse items-stretch gap-2">
+            <div className="site-input-group mt-1.5 flex flex-row-reverse items-stretch gap-2">
               <select
                 name="phonePrefix"
                 required
-                className="site-input w-[5.75rem] shrink-0 px-2 text-sm"
+                className="site-input site-input--prefix"
                 defaultValue=""
               >
                 <option value="" disabled>
@@ -203,7 +203,7 @@ function RegisterForm() {
                 maxLength={7}
                 pattern="[0-9]{7}"
                 placeholder="7 ספרות"
-                className="site-input min-w-0 flex-1"
+                className="site-input site-input--grow"
                 onInput={(e) => {
                   const el = e.currentTarget;
                   el.value = el.value.replace(/\D/g, "").slice(0, 7);

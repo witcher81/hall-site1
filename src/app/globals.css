@@ -411,6 +411,24 @@ body {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
+/* שדות צמודים (קידומת + מספר) — לא width:100% על כל רוחב השורה */
+.site-input-group .site-input {
+  width: auto;
+}
+
+.site-input-group .site-input--grow {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.site-input-group .site-input--prefix {
+  width: 5.75rem;
+  flex-shrink: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-size: 0.875rem;
+}
+
 .btn-primary {
   display: inline-flex;
   align-items: center;
