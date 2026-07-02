@@ -32,7 +32,7 @@ export default function HomeBenefits() {
           {BENEFITS.map((b) => (
             <li
               key={b.title}
-              className="rounded-2xl border border-neutral-200/60 bg-white/70 p-5 text-right shadow-sm backdrop-blur-sm transition hover:border-amber-200/80 hover:shadow-md"
+              className="home-surface-card p-5 text-right"
             >
               <span
                 className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-lg text-amber-300"

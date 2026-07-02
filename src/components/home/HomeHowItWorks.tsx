@@ -19,7 +19,7 @@ const STEPS = [
 export default function HomeHowItWorks() {
   return (
     <section className="px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl rounded-3xl border border-neutral-200/80 bg-gradient-to-br from-white/90 to-neutral-50/90 p-8 shadow-lg backdrop-blur-md sm:p-10">
+      <div className="home-surface-panel mx-auto max-w-6xl p-8 sm:p-10">
         <h2 className="text-center text-2xl font-bold text-neutral-900 sm:text-3xl">
           איך זה עובד
         </h2>

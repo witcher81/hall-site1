@@ -24,9 +24,9 @@ export default function HomeCategoryGrid() {
             >
               <Link
                 href={cat.href}
-                className="group flex flex-col items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white/80 p-5 text-center shadow-sm backdrop-blur-sm transition hover:-translate-y-1 hover:border-amber-300/60 hover:shadow-lg hover:shadow-amber-500/10"
+                className="home-surface-card home-category-card group flex flex-col items-center gap-3 p-5 text-center"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-amber-50 text-emerald-800 transition group-hover:from-amber-100 group-hover:to-emerald-100">
+                <span className="home-category-icon-wrap">
                   <HomeCategoryIcon icon={cat.icon} />
                 </span>
                 <span className="text-sm font-semibold text-neutral-900">
