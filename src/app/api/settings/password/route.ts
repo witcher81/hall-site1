@@ -41,6 +41,13 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  if (await verifyPassword(newPassword, dbUser.passwordHash)) {
+    return NextResponse.json(
+      { error: "הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית" },
+      { status: 400 }
+    );
+  }
+
   const newHash = await hashPassword(newPassword);
   await prisma.user.update({
     where: { id: user.id },

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import {
   clearSessionCookie,
   hashPassword,
+  verifyPassword,
 } from "@/lib/auth";
 import {
   findValidResetTokenByRaw,
@@ -37,6 +38,24 @@ export async function POST(req: NextRequest) {
     if (!valid) {
       return NextResponse.json(
         { error: "קישור איפוס לא תקין או שפג תוקפו" },
+        { status: 400 }
+      );
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: valid.userId },
+      select: { passwordHash: true },
+    });
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: "קישור איפוס לא תקין או שפג תוקפו" },
+        { status: 400 }
+      );
+    }
+
+    if (await verifyPassword(newPasswordPlain, dbUser.passwordHash)) {
+      return NextResponse.json(
+        { error: "הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית" },
         { status: 400 }
       );
     }
