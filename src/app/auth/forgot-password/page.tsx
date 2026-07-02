@@ -12,12 +12,15 @@ export default function ForgotPasswordPage() {
   const [emailWarning, setEmailWarning] = useState<string | null>(null);
   const [resetUrl, setResetUrl] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccessMessage(null);
+    if (!hasSubmitted) {
+      setSuccessMessage(null);
+    }
     setEmailWarning(null);
     setResetUrl(null);
 
@@ -40,6 +43,7 @@ export default function ForgotPasswordPage() {
         data?.message ||
           "שלחנו קישור לאיפוס סיסמה לכתובת שביקשתם. בדקו את תיבת הדואר (וגם ספאם). הקישור תקף לשעה."
       );
+      setHasSubmitted(true);
       if (typeof data?.emailWarning === "string") {
         setEmailWarning(data.emailWarning);
       }
@@ -129,12 +133,29 @@ export default function ForgotPasswordPage() {
             </div>
           ) : null}
 
+          {hasSubmitted ? (
+            <p className="text-center text-xs leading-relaxed text-neutral-600">
+              לא קיבלתם את המייל? בדקו גם בתיקיית ספאם — ואם צריך, לחצו למטה
+              לשליחה חוזרת.
+            </p>
+          ) : null}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
+            className={
+              hasSubmitted
+                ? "w-full rounded-full border-2 border-amber-400 bg-white py-2.5 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-amber-50 disabled:opacity-60"
+                : "w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
+            }
           >
-            {loading ? "שולח..." : "שלחו לי קישור לאיפוס"}
+            {loading
+              ? hasSubmitted
+                ? "שולח שוב…"
+                : "שולח…"
+              : hasSubmitted
+                ? "שלחו שוב"
+                : "שלחו לי קישור לאיפוס"}
           </button>
 
           <p className="text-xs text-neutral-600">
