@@ -9,11 +9,12 @@ import NotificationsUnreadBadge from "./NotificationsUnreadBadge";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import {
   applySiteTheme,
-  parseStoredTheme,
   persistTheme,
+  readStoredTheme,
   type SiteTheme,
 } from "@/lib/theme";
 import RealtimeEventBridge from "./RealtimeEventBridge";
+import ThemeToggle from "./ThemeToggle";
 
 type User = {
   id: number;
@@ -157,10 +158,7 @@ export default function HomeHeader({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = hasFunctionalConsent()
-      ? window.localStorage.getItem("hh-theme")
-      : null;
-    const next = parseStoredTheme(stored);
+    const next = readStoredTheme() ?? "classic";
     setTheme(next);
     applySiteTheme(next);
   }, []);
@@ -536,26 +534,7 @@ export default function HomeHeader({
                   >
                     <span>הגדרות</span>
                   </Link>
-                  <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-neutral-900 hover:bg-neutral-50"
-                  >
-                    <span>מצב תצוגה</span>
-                    <span
-                      role="switch"
-                      aria-checked={theme === "night"}
-                      className={`flex h-6 w-12 items-center rounded-full px-1 text-[10px] font-medium transition-colors ${
-                        theme === "night"
-                          ? "justify-end bg-sky-500/80 text-sky-950"
-                          : "justify-start bg-amber-300 text-amber-900"
-                      }`}
-                    >
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[8px] text-slate-900 shadow-sm">
-                        {theme === "night" ? "☾" : "☼"}
-                      </span>
-                    </span>
-                  </button>
+                  <ThemeToggle theme={theme} onToggle={toggleTheme} variant="menu" />
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -568,6 +547,7 @@ export default function HomeHeader({
             </div>
           ) : (
             <>
+              <ThemeToggle theme={theme} onToggle={toggleTheme} variant="header" />
               <a
                 href="/auth/login"
                 className="rounded-full border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 sm:px-4"
