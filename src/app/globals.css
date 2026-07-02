@@ -594,9 +594,15 @@ html[data-theme="night"] .bg-white\/95 {
 }
 
 html[data-theme="night"] .bg-amber-50,
+html[data-theme="night"] .bg-amber-50\/50,
 html[data-theme="night"] .bg-amber-50\/70,
 html[data-theme="night"] .bg-amber-50\/60,
+html[data-theme="night"] .bg-amber-50\/80,
+html[data-theme="night"] .bg-amber-100,
 html[data-theme="night"] .bg-amber-100\/60,
+html[data-theme="night"] .bg-amber-400\/10,
+html[data-theme="night"] .bg-amber-400\/20,
+html[data-theme="night"] .hover\:bg-amber-50\/80:hover,
 html[data-theme="night"] .bg-\[\#FFF9E6\] {
   background-color: rgb(30 58 95 / 0.35) !important;
 }
@@ -610,15 +616,27 @@ html[data-theme="night"] .text-amber-600 {
 }
 
 html[data-theme="night"] .border-amber-200,
+html[data-theme="night"] .border-amber-200\/70,
 html[data-theme="night"] .border-amber-200\/80,
 html[data-theme="night"] .border-amber-300,
+html[data-theme="night"] .border-amber-300\/60,
+html[data-theme="night"] .border-amber-300\/70,
+html[data-theme="night"] .border-amber-400\/50,
 html[data-theme="night"] .border-\[\#C9A227\],
-html[data-theme="night"] .border-\[\#C9A227\]\/30 {
+html[data-theme="night"] .border-\[\#C9A227\]\/25,
+html[data-theme="night"] .border-\[\#C9A227\]\/30,
+html[data-theme="night"] .border-\[\#C9A227\]\/35,
+html[data-theme="night"] .border-\[\#C9A227\]\/40,
+html[data-theme="night"] .border-\[\#C9A227\]\/50 {
   border-color: rgb(56 189 248 / 0.25) !important;
 }
 
 html[data-theme="night"] .bg-neutral-50,
+html[data-theme="night"] .bg-neutral-50\/40,
+html[data-theme="night"] .bg-neutral-50\/60,
+html[data-theme="night"] .bg-neutral-50\/80,
 html[data-theme="night"] .bg-neutral-100,
+html[data-theme="night"] .hover\:bg-neutral-50:hover,
 html[data-theme="night"] .bg-\[\#f7f3eb\],
 html[data-theme="night"] .bg-\[\#fdfbf7\],
 html[data-theme="night"] .bg-\[\#f5efe3\] {
@@ -870,7 +888,8 @@ html[data-theme="night"] .hover\:bg-\[\#fff7ed\]:hover {
 }
 
 html[data-theme="night"] .bg-white\/60,
-html[data-theme="night"] .bg-white\/85 {
+html[data-theme="night"] .bg-white\/85,
+html[data-theme="night"] .bg-white\/90 {
   background-color: rgb(16 24 38 / 0.72) !important;
 }
 
@@ -912,8 +931,23 @@ html[data-theme="night"] .border-emerald-300\/80 {
   border-color: var(--border-soft) !important;
 }
 
+html[data-theme="night"] .text-emerald-950\/75 {
+  color: var(--muted) !important;
+}
+
+html[data-theme="night"] .text-\[\#8B6914\],
+html[data-theme="night"] .text-\[\#8B6914\]\/90 {
+  color: #fcd34d !important;
+}
+
+html[data-theme="night"] .text-\[\#9A928A\],
+html[data-theme="night"] .text-\[\#D4CCC0\] {
+  color: var(--muted) !important;
+}
+
 html[data-theme="night"] .border-\[\#E8E0D4\],
 html[data-theme="night"] .border-\[\#E8E0D6\],
+html[data-theme="night"] .border-\[\#E8E0D6\]\/80,
 html[data-theme="night"] .border-\[\#E8D5C4\],
 html[data-theme="night"] .border-\[\#D4C9BC\],
 html[data-theme="night"] .border-\[\#D4C9BC\]\/70,
@@ -923,6 +957,7 @@ html[data-theme="night"] .border-emerald-950\/15,
 html[data-theme="night"] .border-emerald-950\/18,
 html[data-theme="night"] .border-emerald-950\/20,
 html[data-theme="night"] .border-emerald-950\/25,
+html[data-theme="night"] .border-emerald-950\/30,
 html[data-theme="night"] .border-slate-300\/90 {
   border-color: var(--border-soft) !important;
 }
@@ -942,6 +977,28 @@ html[data-theme="night"] .text-\[\#9a3412\] {
 html[data-theme="night"] .ring-slate-400\/45,
 html[data-theme="night"] .ring-emerald-300\/50 {
   --tw-ring-color: rgb(56 189 248 / 0.22) !important;
+}
+
+html[data-theme="night"] .hover\:bg-red-50:hover {
+  background-color: rgb(127 29 29 / 0.2) !important;
+}
+
+html[data-theme="night"] .border-red-200 {
+  border-color: rgb(248 113 113 / 0.35) !important;
+}
+
+html[data-theme="night"] .text-red-700 {
+  color: #fca5a5 !important;
+}
+
+html[data-theme="night"] .bg-emerald-950\/\[0\.03\],
+html[data-theme="night"] .bg-emerald-950\/\[0\.04\],
+html[data-theme="night"] .bg-emerald-950\/\[0\.05\],
+html[data-theme="night"] .bg-emerald-950\/\[0\.06\],
+html[data-theme="night"] .bg-emerald-950\/\[0\.08\],
+html[data-theme="night"] .bg-emerald-950\/10,
+html[data-theme="night"] [class*="bg-emerald-950/["] {
+  background-color: rgb(21 34 56 / 0.55) !important;
 }
 
 html[data-theme="night"] .site-footer {
