@@ -974,6 +974,56 @@ html[data-theme="night"] .text-\[\#9a3412\] {
   color: var(--muted) !important;
 }
 
+html[data-theme="night"] .text-\[\#3D3428\],
+html[data-theme="night"] .text-\[\#1A1612\] {
+  color: var(--foreground) !important;
+}
+
+html[data-theme="night"] .text-\[\#8A8278\],
+html[data-theme="night"] .text-\[\#7A7268\],
+html[data-theme="night"] .text-\[\#7A6228\],
+html[data-theme="night"] .text-\[\#4A453C\] {
+  color: var(--muted) !important;
+}
+
+html[data-theme="night"] .border-\[\#E8DFD0\],
+html[data-theme="night"] .border-\[\#D4C4B0\] {
+  border-color: var(--border-soft) !important;
+}
+
+html[data-theme="night"] .bg-\[\#FAF6EF\] {
+  background-color: rgb(22 32 48 / 0.88) !important;
+}
+
+html[data-theme="night"] [class*="to-[#FAF6EF]"],
+html[data-theme="night"] [class*="from-[#FFFCF7]"][class*="to-[#F5EFE3]"] {
+  background-image: linear-gradient(
+    to bottom right,
+    rgb(24 34 52 / 0.96),
+    rgb(14 22 36 / 0.98)
+  ) !important;
+}
+
+html[data-theme="night"] [class*="from-emerald-50/95"][class*="to-white"] {
+  background-image: linear-gradient(
+    to bottom,
+    rgb(22 32 48 / 0.95),
+    rgb(16 24 38 / 0.98)
+  ) !important;
+}
+
+html[data-theme="night"] .divide-\[\#E8E0D4\]\/90 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-soft) !important;
+}
+
+html[data-theme="night"] .bg-amber-400\/15 {
+  background-color: rgb(56 189 248 / 0.15) !important;
+}
+
+html[data-theme="night"] .bg-emerald-950\/\[0\.07\] {
+  background-color: rgb(56 189 248 / 0.12) !important;
+}
+
 html[data-theme="night"] .ring-slate-400\/45,
 html[data-theme="night"] .ring-emerald-300\/50 {
   --tw-ring-color: rgb(56 189 248 / 0.22) !important;

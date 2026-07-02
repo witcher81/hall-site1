@@ -28,6 +28,11 @@ export function formatCheckoutAmount(
   return formatNisRange(min, max);
 }
 
+/** דף סליקה להזמנת אולם לפי מזהה פנייה */
+export function inquiryCheckoutHref(inquiryId: number): string {
+  return `/checkout?inquiryId=${inquiryId}`;
+}
+
 export function depositAmounts(
   totalMin: number | null,
   totalMax: number | null,

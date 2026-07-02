@@ -57,6 +57,16 @@ export default function CheckoutClient({
 
   return (
     <>
+      {order.inquiryId ? (
+        <p className="mb-4 text-right text-sm">
+          <Link
+            href={`/my-inquiries/${order.inquiryId}`}
+            className="font-medium text-emerald-950 underline-offset-4 hover:underline"
+          >
+            ← חזרה להזמנה
+          </Link>
+        </p>
+      ) : null}
       <SitePageHeader
         title="סליקה ותשלום"
         description="סיכום ההזמנה ופרטי תשלום. בשלב זה הדף הוא תצוגה מקדימה — לא מתבצע חיוב."

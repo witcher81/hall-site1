@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import CookieConsentProvider from "@/components/consent/CookieConsentProvider";
+import GlobalThemeToggle from "@/components/GlobalThemeToggle";
 import ThemeInit from "@/components/ThemeInit";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { getSiteUrl } from "@/lib/siteUrl";
@@ -46,6 +47,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <CookieConsentProvider>{children}</CookieConsentProvider>
+          <GlobalThemeToggle />
         </ThemeProvider>
       </body>
     </html>

@@ -6,6 +6,7 @@ import {
   DASHBOARD_NAV,
   type DashboardRole,
 } from "@/components/dashboard/dashboardNavConfig";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type User = { name: string | null; email: string } | null;
 
@@ -35,6 +36,7 @@ export default function DashboardNav({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle variant="header" />
             {displayName ? (
               <span
                 className="hidden max-w-[12rem] truncate text-xs text-white/75 sm:inline sm:text-sm"

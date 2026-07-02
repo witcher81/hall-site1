@@ -10,6 +10,8 @@ import NegotiationAcceptedSummary from "@/components/inquiry-negotiation/Negotia
 import InquirySeekerRebookPanel from "@/components/inquiry/InquirySeekerRebookPanel";
 import {
   canSeekerCancel,
+  canSeekerCheckout,
+  canSeekerPreviewCheckout,
   inquirySeekerProgressSteps,
   inquiryStatusBadgeClass,
   inquiryStatusLabelSeeker,
@@ -23,6 +25,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { InquiryRebookSnapshot } from "@/lib/inquiryRebook";
+import { inquiryCheckoutHref } from "@/lib/checkoutDisplay";
 
 export type SeekerInquiryDetail = {
   id: number;
@@ -146,6 +149,21 @@ export default function InquiryDetailSeekerClient({
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
+              {canSeekerCheckout(inquiry.status) ? (
+                <Link
+                  href={inquiryCheckoutHref(inquiry.id)}
+                  className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-amber-300"
+                >
+                  תשלום מקדמה
+                </Link>
+              ) : canSeekerPreviewCheckout(inquiry.status) ? (
+                <Link
+                  href={inquiryCheckoutHref(inquiry.id)}
+                  className="inline-flex items-center justify-center rounded-full border border-amber-400/60 bg-amber-50/80 px-4 py-2 text-xs font-semibold text-emerald-950 transition hover:border-amber-400"
+                >
+                  דף תשלום (תצוגה מקדימה)
+                </Link>
+              ) : null}
               <Link
                 href={`/messages?venueId=${inquiry.venue.id}`}
                 className="inline-flex items-center justify-center rounded-full border border-emerald-950/35 bg-emerald-950/08 px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-950/12"
@@ -194,9 +212,21 @@ export default function InquiryDetailSeekerClient({
           </div>
 
           {status === "APPROVED" && (
-            <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-xs font-medium text-emerald-900">
-              התאריך שמור אצל האולם. לתיאום סופי, תשלום או פרטים נוספים — צרו קשר ישירות עם בעל האולם.
-            </p>
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-xs">
+              <p className="font-medium text-emerald-900">
+                ההזמנה אושרה — התאריך שמור אצל האולם. לתשלום מקדמה או לצפייה בסיכום לפני חיוב,
+                עברו לדף התשלום.
+              </p>
+              <Link
+                href={inquiryCheckoutHref(inquiry.id)}
+                className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-amber-400 px-5 text-sm font-bold text-white shadow-md transition hover:bg-amber-300"
+              >
+                מעבר לתשלום מקדמה
+              </Link>
+              <p className="mt-2 text-[10px] text-neutral-600">
+                סליקה אמיתית עדיין לא מחוברת — הדף הוא תצוגה מקדימה של הממשק.
+              </p>
+            </div>
           )}
 
           {status === "REJECTED" && (

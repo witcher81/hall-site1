@@ -330,6 +330,9 @@ export default function HomeHeader({
               canCreateManagedUsers={devSwitcherCanCreate}
             />
           ) : null}
+          <div className="hidden sm:block">
+            <ThemeToggle variant="header" />
+          </div>
           {user ? (
             <div className="relative" ref={menuRef}>
               <button
@@ -512,7 +515,6 @@ export default function HomeHeader({
                   >
                     <span>הגדרות</span>
                   </Link>
-                  <ThemeToggle variant="menu" />
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -525,7 +527,6 @@ export default function HomeHeader({
             </div>
           ) : (
             <>
-              <ThemeToggle variant="header" />
               <a
                 href="/auth/login"
                 className="rounded-full border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 sm:px-4"

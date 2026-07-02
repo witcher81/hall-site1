@@ -67,6 +67,17 @@ export function canOwnerCancelApproved(status: string): boolean {
   return normalizeInquiryStatus(status) === "APPROVED";
 }
 
+/** מחפש יכול לפתוח דף תשלום (מקדמה) — אחרי אישור האולם */
+export function canSeekerCheckout(status: string): boolean {
+  return normalizeInquiryStatus(status) === "APPROVED";
+}
+
+/** תצוגה מקדימה של דף התשלום לפני אישור */
+export function canSeekerPreviewCheckout(status: string): boolean {
+  const s = normalizeInquiryStatus(status);
+  return s === "NEW" || s === "READ" || s === "REPLIED";
+}
+
 export function inquiryStatusLabelSeeker(status: string): string {
   const s = normalizeInquiryStatus(status);
   switch (s) {
