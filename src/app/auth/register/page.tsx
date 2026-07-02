@@ -128,26 +128,21 @@ function RegisterForm() {
   return (
     <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-          HALLS HUB
-        </p>
-        <h1 className="mt-1 text-xl font-semibold text-emerald-950">הרשמה</h1>
+        <p className="auth-kicker">HALLS HUB</p>
+        <h1 className="auth-page-title">הרשמה</h1>
         {isCheckout ? (
-          <p className="mt-2 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-950">
+          <p className="auth-alert-info mt-2">
             כמעט סיימתם — צרו חשבון מחפש כדי לאשר את ההזמנה. (תשלום יתווסף בהמשך.)
           </p>
         ) : null}
-        <a
-          href="/"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"
-        >
+        <a href="/" className="auth-back-link mt-3">
           <span aria-hidden>←</span>
           <span>חזרה לדף הבית</span>
         </a>
 
         <form
           onSubmit={handleSubmit}
-          className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+          className="site-card-padded mt-6 space-y-4 text-right"
         >
           <div>
             <label className="block text-xs font-medium text-neutral-600">
@@ -159,7 +154,7 @@ function RegisterForm() {
               required
               minLength={2}
               maxLength={120}
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+              className="site-input mt-1"
               placeholder="איך לפנות אליך"
             />
           </div>
@@ -171,7 +166,7 @@ function RegisterForm() {
               name="email"
               type="email"
               required
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+              className="site-input mt-1"
               placeholder="name@example.com"
             />
           </div>
@@ -186,7 +181,7 @@ function RegisterForm() {
               <select
                 name="phonePrefix"
                 required
-                className="w-[5.75rem] shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+                className="site-input w-[5.75rem] shrink-0 px-2 text-sm"
                 defaultValue=""
               >
                 <option value="" disabled>
@@ -208,7 +203,7 @@ function RegisterForm() {
                 maxLength={7}
                 pattern="[0-9]{7}"
                 placeholder="7 ספרות"
-                className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+                className="site-input min-w-0 flex-1"
                 onInput={(e) => {
                   const el = e.currentTarget;
                   el.value = el.value.replace(/\D/g, "").slice(0, 7);
@@ -232,7 +227,7 @@ function RegisterForm() {
           />
 
           {isCheckout ? (
-            <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-3 py-2 text-xs text-emerald-950">
+            <div className="auth-alert-info">
               סוג חשבון: <strong>מחפש אולמות</strong> (נדרש להשלמת הזמנה)
             </div>
           ) : (
@@ -247,10 +242,8 @@ function RegisterForm() {
                       key={r}
                       type="button"
                       onClick={() => setRole(r)}
-                      className={`w-full rounded-full border px-3 py-1.5 text-center text-xs transition ${
-                        role === r
-                          ? "border-[#C9A227] bg-[#FFF9E6] font-semibold text-emerald-950"
-                          : "border-neutral-200 bg-white text-neutral-600 hover:border-amber-400/50"
+                      className={`auth-role-btn w-full rounded-full border px-3 py-1.5 text-center text-xs transition ${
+                        role === r ? "auth-role-btn-active" : ""
                       }`}
                     >
                       {r === "SEEKER" && "מחפש אולמות"}
@@ -292,7 +285,7 @@ function RegisterForm() {
           <button
             type="submit"
             disabled={loading || (!isCheckout && !role) || !acceptedLegal}
-            className="w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
+            className="btn-primary w-full disabled:opacity-60"
           >
             {loading ? "נרשם..." : "הרשמה"}
           </button>

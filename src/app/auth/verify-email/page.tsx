@@ -143,16 +143,9 @@ function VerifyEmailForm() {
   return (
     <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-          HALLS HUB
-        </p>
-        <h1 className="mt-1 text-xl font-semibold text-emerald-950">
-          אימות כתובת אימייל
-        </h1>
-        <a
-          href="/auth/login"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"
-        >
+        <p className="auth-kicker">HALLS HUB</p>
+        <h1 className="auth-page-title">אימות כתובת אימייל</h1>
+        <a href="/auth/login" className="auth-back-link mt-3">
           <span aria-hidden>←</span>
           <span>חזרה להתחברות</span>
         </a>
@@ -182,17 +175,15 @@ function VerifyEmailForm() {
               </p>
 
               {emailWarning ? (
-                <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
-                  {emailWarning}
-                </p>
+                <p className="auth-alert-info text-xs">{emailWarning}</p>
               ) : null}
 
               {devCode ? (
-                <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 text-center">
-                  <p className="text-xs text-amber-900/80">
+                <div className="auth-alert-info text-center">
+                  <p className="text-xs opacity-80">
                     לא התקבל מייל? השתמשו בקוד הבא:
                   </p>
-                  <p className="mt-1 font-mono text-2xl font-bold tracking-[0.35em] text-amber-950">
+                  <p className="mt-1 font-mono text-2xl font-bold tracking-[0.35em]">
                     {devCode}
                   </p>
                 </div>
@@ -217,7 +208,7 @@ function VerifyEmailForm() {
                     onChange={(e) => {
                       setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
                     }}
-                    className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-3 text-center font-mono text-2xl tracking-[0.4em] text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+                    className="site-input mt-1 py-3 text-center font-mono text-2xl tracking-[0.4em]"
                     placeholder="000000"
                     disabled={!email && Boolean(error)}
                   />
@@ -236,7 +227,7 @@ function VerifyEmailForm() {
                 type="button"
                 onClick={handleResend}
                 disabled={resendLoading || (!email && Boolean(error))}
-                className="w-full rounded-full border border-neutral-200 bg-white py-2.5 text-sm font-semibold text-emerald-950 transition hover:border-amber-400 hover:bg-amber-50 disabled:opacity-60"
+                className="btn-secondary w-full disabled:opacity-60"
               >
                 {resendLoading ? "שולח…" : "שליחת קוד חדש"}
               </button>

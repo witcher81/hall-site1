@@ -1,12 +1,7 @@
 "use client";
 
+import { useSiteTheme } from "@/components/ThemeProvider";
 import type { SiteTheme } from "@/lib/theme";
-
-type Props = {
-  theme: SiteTheme;
-  onToggle: () => void;
-  variant?: "menu" | "header";
-};
 
 function ThemeSwitch({ theme }: { theme: SiteTheme }) {
   return (
@@ -26,10 +21,11 @@ function ThemeSwitch({ theme }: { theme: SiteTheme }) {
 }
 
 export default function ThemeToggle({
-  theme,
-  onToggle,
   variant = "menu",
-}: Props) {
+}: {
+  variant?: "menu" | "header" | "standalone";
+}) {
+  const { theme, toggleTheme } = useSiteTheme();
   const label =
     theme === "night" ? "מצב תצוגה: לילה" : "מצב תצוגה: קלאסי";
 
@@ -37,7 +33,7 @@ export default function ThemeToggle({
     return (
       <button
         type="button"
-        onClick={onToggle}
+        onClick={toggleTheme}
         aria-label={`${label}. לחצו להחלפה`}
         title="מצב תצוגה"
         className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-2.5 py-2 text-sm text-white transition hover:border-white/40 hover:bg-white/15 sm:px-3"
@@ -48,10 +44,25 @@ export default function ThemeToggle({
     );
   }
 
+  if (variant === "standalone") {
+    return (
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={`${label}. לחצו להחלפה`}
+        title="מצב תצוגה"
+        className="theme-toggle-standalone inline-flex items-center gap-2 rounded-full px-2.5 py-2 text-sm shadow-sm transition sm:px-3"
+      >
+        <span className="hidden sm:inline">מצב תצוגה</span>
+        <ThemeSwitch theme={theme} />
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={toggleTheme}
       aria-label={`${label}. לחצו להחלפה`}
       className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-neutral-900 hover:bg-neutral-50"
     >

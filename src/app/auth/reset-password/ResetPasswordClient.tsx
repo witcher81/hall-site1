@@ -124,16 +124,9 @@ export default function ResetPasswordClient({
   return (
     <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-          HALLS HUB
-        </p>
-        <h1 className="mt-1 text-xl font-semibold text-emerald-950">
-          איפוס סיסמה
-        </h1>
-        <a
-          href="/auth/login"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"
-        >
+        <p className="auth-kicker">HALLS HUB</p>
+        <h1 className="auth-page-title">איפוס סיסמה</h1>
+        <a href="/auth/login" className="auth-back-link mt-3">
           <span aria-hidden>←</span>
           <span>חזרה להתחברות</span>
         </a>
@@ -169,14 +162,14 @@ export default function ResetPasswordClient({
             ) : null}
           </div>
         ) : success ? (
-          <div className="mt-6 rounded-2xl border border-[#C9A227]/30 bg-[#FFF9E6] p-6 text-right text-sm text-emerald-950 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+          <div className="site-card-padded auth-alert-info mt-6 text-right text-sm">
             <p className="font-semibold">הסיסמה עודכנה בהצלחה.</p>
             <p className="mt-2">מעבירים אותך לעמוד ההתחברות...</p>
           </div>
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+            className="site-card-padded mt-6 space-y-4 text-right"
           >
             <p className="text-sm text-neutral-600">
               בחרו סיסמה חדשה (לפחות 6 תווים).
@@ -202,7 +195,7 @@ export default function ResetPasswordClient({
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
+              className="btn-primary w-full disabled:opacity-60"
             >
               {loading ? "מעדכן..." : "עדכן סיסמה"}
             </button>

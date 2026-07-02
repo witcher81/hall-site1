@@ -162,6 +162,79 @@ body {
   color: var(--accent);
 }
 
+/* דפי auth — משתני עיצוב אחידים */
+.auth-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+}
+
+.auth-page-title {
+  margin-top: 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--heading);
+}
+
+.auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-soft);
+  background: var(--card);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--heading);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.06);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.auth-back-link:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+
+.auth-alert-info {
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  padding: 0.5rem 0.75rem;
+  color: var(--foreground);
+}
+
+.auth-role-btn {
+  border-color: var(--border-soft);
+  background: var(--card);
+  color: var(--muted);
+}
+
+.auth-role-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.auth-role-btn-active {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  font-weight: 600;
+  color: var(--heading);
+}
+
+.theme-toggle-standalone {
+  border: 1px solid var(--border-soft);
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.theme-toggle-standalone:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+
 /* אזור אישי — בעל אולם / פרילנסר */
 .dashboard-area {
   min-height: 100vh;
@@ -500,6 +573,28 @@ html[data-theme="night"] .bg-white\/90,
 html[data-theme="night"] .bg-white\/92,
 html[data-theme="night"] .bg-white\/95 {
   background-color: var(--card) !important;
+}
+
+html[data-theme="night"] .bg-amber-50,
+html[data-theme="night"] .bg-amber-50\/70,
+html[data-theme="night"] .bg-\[\#FFF9E6\] {
+  background-color: rgb(30 58 95 / 0.35) !important;
+}
+
+html[data-theme="night"] .bg-emerald-50\/60 {
+  background-color: rgb(30 58 95 / 0.3) !important;
+}
+
+html[data-theme="night"] .text-amber-600 {
+  color: var(--accent) !important;
+}
+
+html[data-theme="night"] .border-amber-200,
+html[data-theme="night"] .border-amber-200\/80,
+html[data-theme="night"] .border-amber-300,
+html[data-theme="night"] .border-\[\#C9A227\],
+html[data-theme="night"] .border-\[\#C9A227\]\/30 {
+  border-color: rgb(56 189 248 / 0.25) !important;
 }
 
 html[data-theme="night"] .bg-neutral-50,

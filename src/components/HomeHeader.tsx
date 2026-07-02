@@ -6,15 +6,9 @@ import { usePathname } from "next/navigation";
 import DevUserSwitcher from "./DevUserSwitcher";
 import MessagesUnreadBadge from "./MessagesUnreadBadge";
 import NotificationsUnreadBadge from "./NotificationsUnreadBadge";
-import { hasFunctionalConsent } from "@/lib/cookieConsent";
-import {
-  applySiteTheme,
-  persistTheme,
-  readStoredTheme,
-  type SiteTheme,
-} from "@/lib/theme";
 import RealtimeEventBridge from "./RealtimeEventBridge";
 import ThemeToggle from "./ThemeToggle";
+import { useSiteTheme } from "./ThemeProvider";
 
 type User = {
   id: number;
@@ -120,9 +114,9 @@ export default function HomeHeader({
   devSwitcherCanCreate?: boolean;
 }) {
   const pathname = usePathname();
+  const { theme } = useSiteTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
-  const [theme, setTheme] = useState<SiteTheme>("classic");
   const menuRef = useRef<HTMLDivElement | null>(null);
   const personalRef = useRef<HTMLDivElement | null>(null);
 
@@ -154,22 +148,6 @@ export default function HomeHeader({
       console.error("logout error", e);
     }
     window.location.assign("/");
-  }
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const next = readStoredTheme() ?? "classic";
-    setTheme(next);
-    applySiteTheme(next);
-  }, []);
-
-  function toggleTheme() {
-    const next: SiteTheme = theme === "night" ? "classic" : "night";
-    setTheme(next);
-    applySiteTheme(next);
-    if (typeof window !== "undefined" && hasFunctionalConsent()) {
-      persistTheme(next);
-    }
   }
 
   useEffect(() => {
@@ -534,7 +512,7 @@ export default function HomeHeader({
                   >
                     <span>הגדרות</span>
                   </Link>
-                  <ThemeToggle theme={theme} onToggle={toggleTheme} variant="menu" />
+                  <ThemeToggle variant="menu" />
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -547,7 +525,7 @@ export default function HomeHeader({
             </div>
           ) : (
             <>
-              <ThemeToggle theme={theme} onToggle={toggleTheme} variant="header" />
+              <ThemeToggle variant="header" />
               <a
                 href="/auth/login"
                 className="rounded-full border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 sm:px-4"

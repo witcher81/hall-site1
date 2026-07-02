@@ -65,23 +65,16 @@ export default function ForgotPasswordPage() {
   return (
     <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-          HALLS HUB
-        </p>
-        <h1 className="mt-1 text-xl font-semibold text-emerald-950">
-          שכחתי סיסמה
-        </h1>
-        <a
-          href="/auth/login"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"
-        >
+        <p className="auth-kicker">HALLS HUB</p>
+        <h1 className="auth-page-title">שכחתי סיסמה</h1>
+        <a href="/auth/login" className="auth-back-link mt-3">
           <span aria-hidden>←</span>
           <span>חזרה להתחברות</span>
         </a>
 
         <form
           onSubmit={handleSubmit}
-          className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-[0_12px_40px_rgba(15,59,46,0.08)]"
+          className="site-card-padded mt-6 space-y-4 text-right"
         >
           <p className="text-sm text-neutral-600">
             הזינו את כתובת המייל שאיתה נרשמתם. נשלח אליכם קישור לאיפוס הסיסמה
@@ -96,7 +89,7 @@ export default function ForgotPasswordPage() {
               name="email"
               type="email"
               required
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+              className="site-input mt-1"
               placeholder="name@example.com"
             />
           </div>
@@ -108,25 +101,21 @@ export default function ForgotPasswordPage() {
 
           {error && <p className="text-xs text-red-700">{error}</p>}
           {successMessage && (
-            <p className="rounded-xl border border-[#C9A227]/30 bg-[#FFF9E6] px-3 py-2 text-xs text-emerald-950">
-              {successMessage}
-            </p>
+            <p className="auth-alert-info text-xs">{successMessage}</p>
           )}
 
           {emailWarning ? (
-            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
-              {emailWarning}
-            </p>
+            <p className="auth-alert-info text-xs">{emailWarning}</p>
           ) : null}
 
           {resetUrl ? (
-            <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 text-center text-sm">
-              <p className="text-xs text-amber-900/80">
+            <div className="auth-alert-info text-center text-sm">
+              <p className="text-xs opacity-80">
                 לא התקבל מייל? לחצו כאן לאיפוס הסיסמה:
               </p>
               <a
                 href={resetUrl}
-                className="mt-2 inline-block rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-300"
+                className="btn-primary mt-2 inline-block px-5 py-2 text-sm"
               >
                 בחירת סיסמה חדשה
               </a>
@@ -145,8 +134,8 @@ export default function ForgotPasswordPage() {
             disabled={loading}
             className={
               hasSubmitted
-                ? "w-full rounded-full border-2 border-amber-400 bg-white py-2.5 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-amber-50 disabled:opacity-60"
-                : "w-full rounded-full bg-amber-400 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
+                ? "btn-secondary w-full disabled:opacity-60"
+                : "btn-primary w-full disabled:opacity-60"
             }
           >
             {loading

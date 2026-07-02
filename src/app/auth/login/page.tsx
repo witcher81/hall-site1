@@ -82,19 +82,14 @@ function LoginForm() {
   return (
     <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="text-[11px] font-semibold tracking-[0.25em] text-amber-600">
-          HALLS HUB
-        </p>
-        <h1 className="mt-1 text-xl font-semibold text-emerald-950">התחברות</h1>
+        <p className="auth-kicker">HALLS HUB</p>
+        <h1 className="auth-page-title">התחברות</h1>
         {isCheckout ? (
-          <p className="mt-2 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-950">
+          <p className="auth-alert-info mt-2">
             התחברו כדי להשלים את ההזמנה שמילאתם כאורח.
           </p>
         ) : null}
-        <a
-          href="/"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 shadow-[0_4px_14px_rgba(15,59,46,0.08)] transition hover:border-amber-400 hover:bg-amber-50"
-        >
+        <a href="/" className="auth-back-link mt-3">
           <span aria-hidden>←</span>
           <span>חזרה לדף הבית</span>
         </a>
