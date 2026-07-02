@@ -186,6 +186,10 @@ function VerifyEmailForm() {
                   <p className="mt-1 font-mono text-2xl font-bold tracking-[0.35em]">
                     {devCode}
                   </p>
+                  <p className="mt-2 text-[10px] leading-relaxed opacity-70">
+                    זמני — לפני השקה יש להגדיר EMAIL_FROM מאומת ב-Resend ולשלוח
+                    את הקוד במייל בלבד.
+                  </p>
                 </div>
               ) : null}
 

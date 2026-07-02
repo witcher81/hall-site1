@@ -595,6 +595,8 @@ html[data-theme="night"] .bg-white\/95 {
 
 html[data-theme="night"] .bg-amber-50,
 html[data-theme="night"] .bg-amber-50\/70,
+html[data-theme="night"] .bg-amber-50\/60,
+html[data-theme="night"] .bg-amber-100\/60,
 html[data-theme="night"] .bg-\[\#FFF9E6\] {
   background-color: rgb(30 58 95 / 0.35) !important;
 }
@@ -832,6 +834,114 @@ html[data-theme="night"] .border-emerald-400 {
 html[data-theme="night"] .text-emerald-300,
 html[data-theme="night"] .text-emerald-100 {
   color: #bae6fd !important;
+}
+
+/* מצב לילה — משטחים בהירים (שמנת / ירוק בהיר / slate) → כרטיס כהה */
+html[data-theme="night"] .bg-emerald-50,
+html[data-theme="night"] .bg-emerald-50\/40,
+html[data-theme="night"] .bg-emerald-50\/50,
+html[data-theme="night"] .bg-emerald-50\/70,
+html[data-theme="night"] .bg-emerald-50\/80,
+html[data-theme="night"] .bg-emerald-50\/90,
+html[data-theme="night"] .hover\:bg-emerald-50:hover,
+html[data-theme="night"] .hover\:bg-emerald-50\/50:hover,
+html[data-theme="night"] .hover\:bg-emerald-50\/80:hover,
+html[data-theme="night"] .hover\:bg-emerald-100\/80:hover,
+html[data-theme="night"] .hover\:bg-\[\#DFEAE4\]:hover,
+html[data-theme="night"] .hover\:bg-\[\#FFFCF6\]:hover {
+  background-color: rgb(22 32 48 / 0.9) !important;
+}
+
+html[data-theme="night"] .bg-\[\#FFFBF5\],
+html[data-theme="night"] .bg-\[\#FFFBF7\],
+html[data-theme="night"] .bg-\[\#FFFCF6\],
+html[data-theme="night"] .bg-\[\#FFFCF5\],
+html[data-theme="night"] .bg-\[\#FFFBF3\],
+html[data-theme="night"] .bg-\[\#FFF7DD\],
+html[data-theme="night"] .bg-\[\#FFF9E8\],
+html[data-theme="night"] .bg-\[\#F0EBE3\],
+html[data-theme="night"] .bg-\[\#FFFCF7\],
+html[data-theme="night"] .bg-\[\#EDE6DB\],
+html[data-theme="night"] .bg-\[\#fff7ed\],
+html[data-theme="night"] .hover\:bg-\[\#E0D4C3\]:hover,
+html[data-theme="night"] .hover\:bg-\[\#F8F6F2\]:hover,
+html[data-theme="night"] .hover\:bg-\[\#fff7ed\]:hover {
+  background-color: var(--card-muted) !important;
+}
+
+html[data-theme="night"] .bg-white\/60,
+html[data-theme="night"] .bg-white\/85 {
+  background-color: rgb(16 24 38 / 0.72) !important;
+}
+
+html[data-theme="night"] .bg-slate-50,
+html[data-theme="night"] .bg-slate-100,
+html[data-theme="night"] .bg-slate-200\/95 {
+  background-color: rgb(28 38 54 / 0.92) !important;
+}
+
+html[data-theme="night"] [class*="from-[#E8F0EC]"],
+html[data-theme="night"] [class*="from-[#F8F4EC]"],
+html[data-theme="night"] [class*="from-slate-50"],
+html[data-theme="night"] [class*="from-neutral-100"],
+html[data-theme="night"] [class*="from-white"][class*="bg-gradient"],
+html[data-theme="night"] [class*="from-amber-50"][class*="bg-gradient"] {
+  background-image: linear-gradient(
+    to bottom right,
+    rgb(24 34 52 / 0.96),
+    rgb(14 22 36 / 0.98)
+  ) !important;
+}
+
+html[data-theme="night"] [class*="from-amber-50"][class*="to-amber-50"] {
+  background-image: linear-gradient(
+    to left,
+    rgb(22 32 48 / 0.95),
+    rgb(30 58 95 / 0.4),
+    rgb(22 32 48 / 0.95)
+  ) !important;
+}
+
+html[data-theme="night"] .border-amber-200,
+html[data-theme="night"] .border-amber-200\/70,
+html[data-theme="night"] .border-amber-200\/80,
+html[data-theme="night"] .border-emerald-200,
+html[data-theme="night"] .border-emerald-200\/80,
+html[data-theme="night"] .border-emerald-300,
+html[data-theme="night"] .border-emerald-300\/80 {
+  border-color: var(--border-soft) !important;
+}
+
+html[data-theme="night"] .border-\[\#E8E0D4\],
+html[data-theme="night"] .border-\[\#E8E0D6\],
+html[data-theme="night"] .border-\[\#E8D5C4\],
+html[data-theme="night"] .border-\[\#D4C9BC\],
+html[data-theme="night"] .border-\[\#D4C9BC\]\/70,
+html[data-theme="night"] .border-\[\#D4C9BC\]\/80,
+html[data-theme="night"] .border-emerald-950\/12,
+html[data-theme="night"] .border-emerald-950\/15,
+html[data-theme="night"] .border-emerald-950\/18,
+html[data-theme="night"] .border-emerald-950\/20,
+html[data-theme="night"] .border-emerald-950\/25,
+html[data-theme="night"] .border-slate-300\/90 {
+  border-color: var(--border-soft) !important;
+}
+
+html[data-theme="night"] .text-neutral-900,
+html[data-theme="night"] .text-slate-700\/90,
+html[data-theme="night"] .text-slate-800,
+html[data-theme="night"] .text-emerald-900\/80 {
+  color: var(--foreground) !important;
+}
+
+html[data-theme="night"] .text-\[\#5C564C\],
+html[data-theme="night"] .text-\[\#9a3412\] {
+  color: var(--muted) !important;
+}
+
+html[data-theme="night"] .ring-slate-400\/45,
+html[data-theme="night"] .ring-emerald-300\/50 {
+  --tw-ring-color: rgb(56 189 248 / 0.22) !important;
 }
 
 html[data-theme="night"] .site-footer {

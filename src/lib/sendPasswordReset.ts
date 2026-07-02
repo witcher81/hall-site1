@@ -87,9 +87,12 @@ export async function sendPasswordResetForUser(
     if (process.env.NODE_ENV !== "production") {
       console.log(`[password-reset] dev reset url: ${resetUrl}`);
     }
+    const exposeLink = shouldExposeVerificationCodeOnFailure(
+      result.errorCode ?? "missing_api_key"
+    );
     return {
       ok: false,
-      resetUrl,
+      ...(exposeLink ? { resetUrl } : {}),
       skipped: true,
       errorCode: result.errorCode,
       userMessage: userFacingEmailSendError(result.errorCode),

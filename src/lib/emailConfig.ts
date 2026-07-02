@@ -97,18 +97,33 @@ export function userFacingEmailSendError(
   }
 }
 
+/**
+ * חשיפת קוד/קישור על המסך כששליחת מייל נכשלה.
+ *
+ * לפני השקה (אין EMAIL_FROM מאומת): הקוד מוצג בדף האימות.
+ * אחרי שהמיילים עובדים בפרוד: הגדירו DISABLE_EMAIL_VERIFY_CODE_FALLBACK=true ב-Vercel.
+ */
 export function shouldExposeVerificationCodeOnFailure(
   errorCode: EmailSendErrorCode | undefined
 ): boolean {
   if (!errorCode) return false;
   if (process.env.NODE_ENV !== "production") return true;
-  if (process.env.ALLOW_EMAIL_VERIFY_CODE_FALLBACK === "true") return true;
+  if (process.env.DISABLE_EMAIL_VERIFY_CODE_FALLBACK === "true") {
+    return false;
+  }
+  if (!isProductionEmailFromReady()) return true;
   return (
     errorCode === "resend_sandbox" ||
     errorCode === "from_not_verified" ||
     errorCode === "invalid_from" ||
     errorCode === "missing_api_key"
   );
+}
+
+export function isEmailVerifyCodeFallbackActive(): boolean {
+  if (process.env.NODE_ENV !== "production") return true;
+  if (process.env.DISABLE_EMAIL_VERIFY_CODE_FALLBACK === "true") return false;
+  return !isProductionEmailFromReady();
 }
 
 export function isRecoverableFromAddressError(

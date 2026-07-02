@@ -44,7 +44,7 @@ export function verificationEmailClientPayload(
       emailSend.userMessage ??
       (emailSend.skipped
         ? "מייל לא נשלח (Resend לא מוגדר). בפיתוח — הקוד מופיע בדף האימות."
-        : "שליחת קוד האימות נכשלה. בדף האימות לחצו «שליחת קוד חדש»."),
+        : "שליחת קוד האימות נכשלה. בדקו את תיבת הספאם ולחצו «שליחת קוד חדש». אם הבעיה נמשכת — פנו לתמיכה."),
     devCode: emailSend.devCode,
     emailErrorCode: emailSend.errorCode,
   };
@@ -78,9 +78,12 @@ export async function sendEmailVerificationForUser(
     if (process.env.NODE_ENV !== "production") {
       console.log(`[email-verification] dev code: ${rawCode}`);
     }
+    const exposeCode = shouldExposeVerificationCodeOnFailure(
+      result.errorCode ?? "missing_api_key"
+    );
     return {
       ok: false,
-      devCode: rawCode,
+      ...(exposeCode ? { devCode: rawCode } : {}),
       skipped: true,
       errorCode: result.errorCode,
       userMessage: userFacingEmailSendError(result.errorCode),

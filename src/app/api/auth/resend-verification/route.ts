@@ -59,8 +59,8 @@ export async function POST() {
     const message = result.ok
       ? "נשלח קוד אימות חדש לכתובת האימייל שלכם."
       : result.devCode
-        ? "לא ניתן לשלוח מייל כרגע — הקוד מוצג בדף לצורך המשך."
-        : clientPayload.emailWarning ?? "שליחה נכשלה.";
+        ? "לא ניתן לשלוח מייל כרגע — הקוד מוצג בדף."
+        : clientPayload.emailWarning ?? "שליחת המייל נכשלה. נסו שוב בעוד דקה.";
 
     return NextResponse.json({
       message,
