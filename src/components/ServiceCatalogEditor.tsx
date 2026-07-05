@@ -1,6 +1,8 @@
 "use client";
 
+import CatalogFieldHelp, { CatalogSectionExplainer } from "@/components/CatalogFieldHelp";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
+import { getCatalogFieldHelp, getItemPricingHelp } from "@/lib/catalogFieldHelp";
 import { useEffect, useState } from "react";
 import type { CatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
@@ -60,6 +62,7 @@ function itemPriceSingleLabel(pricing: ServiceMenuItemPricing): string {
 }
 
 export default function ServiceCatalogEditor({ template, value, onChange }: Props) {
+  const fieldHelp = getCatalogFieldHelp(template.id);
   const pricingModes = template.itemPricingModes;
   const catalogOptional =
     template.catalogOptional ?? !CATALOG_ESSENTIAL.has(template.id);
@@ -157,10 +160,10 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
             {template.capacityHint}
           </p>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div>
-              <label className="block text-[11px] font-medium text-neutral-600">
-                {template.minCapacityLabel}
-              </label>
+            <CatalogFieldHelp
+              label={template.minCapacityLabel}
+              help={fieldHelp.minGuests}
+            >
               <input
                 type="number"
                 min={1}
@@ -177,13 +180,13 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                     patchMenu({ minGuests: n });
                   }
                 }}
-                className={`${input} mt-1`}
+                className={input}
               />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-neutral-600">
-                {template.maxCapacityLabel}
-              </label>
+            </CatalogFieldHelp>
+            <CatalogFieldHelp
+              label={template.maxCapacityLabel}
+              help={fieldHelp.maxGuests}
+            >
               <input
                 type="number"
                 min={1}
@@ -200,14 +203,11 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                     patchMenu({ maxGuests: n });
                   }
                 }}
-                className={`${input} mt-1`}
+                className={input}
               />
-            </div>
+            </CatalogFieldHelp>
             {template.id === "food" ? (
-              <div>
-                <label className="block text-[11px] font-medium text-neutral-600">
-                  מינימום הזמנה (₪)
-                </label>
+              <CatalogFieldHelp label="מינימום הזמנה (₪)" help={fieldHelp.minOrder}>
                 <input
                   type="number"
                   min={0}
@@ -215,10 +215,10 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                   onChange={(e) =>
                     patchMenu({ minOrderAmountNis: parsePriceInput(e.target.value) })
                   }
-                  className={`${input} mt-1`}
+                  className={input}
                   placeholder="אופציונלי"
                 />
-              </div>
+              </CatalogFieldHelp>
             ) : null}
           </div>
         </div>
@@ -232,28 +232,45 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
         <p className="mt-1 text-[11px] leading-relaxed text-amber-900/80">
           {template.packagesHint}
         </p>
+        {fieldHelp.packagesSectionBody ? (
+          <CatalogSectionExplainer
+            title={fieldHelp.packagesSectionTitle}
+            className="mt-2"
+          >
+            {fieldHelp.packagesSectionBody}
+          </CatalogSectionExplainer>
+        ) : null}
         <ul className="mt-3 space-y-3">
           {value.packages.map((pkg, index) => (
             <li
               key={pkg.id}
               className="rounded-lg border border-amber-200/80 bg-white/85 p-3"
             >
-              <div className="grid gap-2 sm:grid-cols-2">
-                <input
-                  type="text"
-                  dir="rtl"
-                  value={pkg.name}
-                  onChange={(e) => updatePackage(index, { name: e.target.value })}
-                  className={input}
-                  placeholder={
-                    template.id === "beauty"
-                      ? "למשל: איפור כלה מלא"
-                      : template.id === "food"
-                        ? "למשל: חבילת זהב"
-                        : "שם השירות / סוג"
-                  }
-                />
-                <OptionalPriceRangeFields
+              <div className="grid gap-3 sm:grid-cols-2">
+                <CatalogFieldHelp
+                  label="שם הרמה / סוג"
+                  help={fieldHelp.packageName}
+                >
+                  <input
+                    type="text"
+                    dir="rtl"
+                    value={pkg.name}
+                    onChange={(e) => updatePackage(index, { name: e.target.value })}
+                    className={input}
+                    placeholder={
+                      template.id === "beauty"
+                        ? "למשל: איפור כלה מלא"
+                        : template.id === "food"
+                          ? "למשל: מנה בסיסית, כסף, זהב"
+                          : "שם השירות / סוג"
+                    }
+                  />
+                </CatalogFieldHelp>
+                <CatalogFieldHelp
+                  label={template.packagePriceLabel}
+                  help={fieldHelp.packagePrice}
+                >
+                  <OptionalPriceRangeFields
                   useRange={pkg.usePerGuestRange === true}
                   onUseRangeChange={(useRange) => {
                     const p = value.packages[index];
@@ -319,10 +336,14 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                   collapseRangeLabel="מחיר קבוע"
                   inputClassName={`${input} mt-1`}
                 />
+                </CatalogFieldHelp>
               </div>
               {template.showPackageDuration ? (
-                <div className="mt-2">
-                  <label className="block text-[10px] text-neutral-600">משך (שעות)</label>
+                <CatalogFieldHelp
+                  label="משך (שעות)"
+                  help={fieldHelp.packageDuration}
+                  className="mt-2"
+                >
                   <input
                     type="number"
                     min={0}
@@ -332,19 +353,29 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                         durationHours: parsePriceInput(e.target.value),
                       })
                     }
-                    className={`${input} mt-1 max-w-[8rem]`}
+                    className={`${input} max-w-[8rem]`}
                     placeholder="אופציונלי"
                   />
-                </div>
+                </CatalogFieldHelp>
               ) : null}
-              <textarea
-                dir="rtl"
-                rows={2}
-                value={pkg.description ?? ""}
-                onChange={(e) => updatePackage(index, { description: e.target.value })}
-                placeholder="מה כלול? (אופציונלי)"
-                className={textarea}
-              />
+              <CatalogFieldHelp
+                label="מה כלול? (אופציונלי)"
+                help={fieldHelp.packageDescription}
+                className="mt-2"
+              >
+                <textarea
+                  dir="rtl"
+                  rows={2}
+                  value={pkg.description ?? ""}
+                  onChange={(e) => updatePackage(index, { description: e.target.value })}
+                  placeholder={
+                    template.id === "food"
+                      ? "למשל: 3 מנות + שתייה, הגשה, צוות מלצרים"
+                      : "מה כלול בשורה הזו?"
+                  }
+                  className={textarea}
+                />
+              </CatalogFieldHelp>
               <div className="mt-2 flex justify-end">
                 <button
                   type="button"
@@ -371,7 +402,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
           }
           className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:opacity-50"
         >
-          + הוסף שורת מחיר ({value.packages.length})
+          + {fieldHelp.addPackageButton ?? "הוסף שורת מחיר"} ({value.packages.length})
         </button>
       </div>
 
@@ -482,59 +513,88 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
         <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
           {template.catalogHint}
         </p>
+        {fieldHelp.catalogSectionBody ? (
+          <CatalogSectionExplainer
+            title={fieldHelp.catalogSectionTitle}
+            className="mt-2"
+          >
+            {fieldHelp.catalogSectionBody}
+          </CatalogSectionExplainer>
+        ) : null}
         <div className="mt-3 space-y-3">
           {value.sections.map((section, sectionIndex) => (
             <div
               key={section.id}
               className="rounded-lg border border-neutral-200/80 bg-white p-3"
             >
-              <input
-                type="text"
-                dir="rtl"
-                value={section.title}
-                onChange={(e) => updateSection(sectionIndex, { title: e.target.value })}
-                className={input}
-                placeholder={template.catalogSectionPlaceholder}
-              />
+              <CatalogFieldHelp
+                label="שם קבוצה"
+                help={fieldHelp.sectionTitle}
+              >
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={section.title}
+                  onChange={(e) => updateSection(sectionIndex, { title: e.target.value })}
+                  className={input}
+                  placeholder={template.catalogSectionPlaceholder}
+                />
+              </CatalogFieldHelp>
               <ul className="mt-2 space-y-2">
                 {section.items.map((item, itemIndex) => (
                   <li
                     key={item.id}
                     className="rounded-lg border border-neutral-200/60 bg-neutral-50/80 p-2"
                   >
-                    <div className="flex flex-wrap gap-2">
-                      <input
-                        type="text"
-                        dir="rtl"
-                        value={item.label}
-                        onChange={(e) =>
-                          updateItem(sectionIndex, itemIndex, { label: e.target.value })
-                        }
-                        className={`${input} min-w-[8rem] flex-1`}
-                        placeholder={template.catalogItemPlaceholder}
-                      />
-                      <select
-                        value={item.pricing}
-                        onChange={(e) =>
-                          updateItem(sectionIndex, itemIndex, {
-                            pricing: e.target.value as ServiceMenuItemPricing,
-                            exactPrice: null,
-                            minPrice: null,
-                            maxPrice: null,
-                            usePriceRange: false,
-                          })
-                        }
-                        className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <CatalogFieldHelp label="שם הפריט" help={fieldHelp.itemName}>
+                        <input
+                          type="text"
+                          dir="rtl"
+                          value={item.label}
+                          onChange={(e) =>
+                            updateItem(sectionIndex, itemIndex, { label: e.target.value })
+                          }
+                          className={input}
+                          placeholder={template.catalogItemPlaceholder}
+                        />
+                      </CatalogFieldHelp>
+                      <CatalogFieldHelp
+                        label="תמחור"
+                        help={fieldHelp.itemPricing}
                       >
-                        {pricingModes.map((k) => (
-                          <option key={k} value={k}>
-                            {PRICING_LABELS[k]}
-                          </option>
-                        ))}
-                      </select>
+                        <select
+                          value={item.pricing}
+                          onChange={(e) =>
+                            updateItem(sectionIndex, itemIndex, {
+                              pricing: e.target.value as ServiceMenuItemPricing,
+                              exactPrice: null,
+                              minPrice: null,
+                              maxPrice: null,
+                              usePriceRange: false,
+                            })
+                          }
+                          className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
+                        >
+                          {pricingModes.map((k) => (
+                            <option key={k} value={k}>
+                              {PRICING_LABELS[k]}
+                            </option>
+                          ))}
+                        </select>
+                        {getItemPricingHelp(template.id, item.pricing) ? (
+                          <p className="mt-1 text-[10px] text-neutral-500">
+                            {getItemPricingHelp(template.id, item.pricing)}
+                          </p>
+                        ) : null}
+                      </CatalogFieldHelp>
                     </div>
                     {item.pricing !== "included" ? (
-                      <div className="mt-2">
+                      <CatalogFieldHelp
+                        label={itemPriceSingleLabel(item.pricing)}
+                        help={fieldHelp.itemExtraPrice}
+                        className="mt-2"
+                      >
                         <OptionalPriceRangeFields
                           useRange={
                             item.usePriceRange === true ||
@@ -617,20 +677,26 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                           collapseRangeLabel="מחיר קבוע"
                           inputClassName={`${input} mt-1`}
                         />
-                      </div>
+                      </CatalogFieldHelp>
                     ) : null}
-                    <textarea
-                      dir="rtl"
-                      rows={1}
-                      value={item.description ?? ""}
-                      onChange={(e) =>
-                        updateItem(sectionIndex, itemIndex, {
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="תיאור קצר (אופציונלי)"
-                      className={textarea}
-                    />
+                    <CatalogFieldHelp
+                      label="תיאור קצר (אופציונלי)"
+                      help={fieldHelp.itemDescription}
+                      className="mt-2"
+                    >
+                      <textarea
+                        dir="rtl"
+                        rows={1}
+                        value={item.description ?? ""}
+                        onChange={(e) =>
+                          updateItem(sectionIndex, itemIndex, {
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="למשל: כשר, ללא גלוטן, מנה צמחונית"
+                        className={textarea}
+                      />
+                    </CatalogFieldHelp>
                     <div className="mt-1 flex justify-end">
                       <button
                         type="button"
@@ -685,7 +751,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
           }
           className="mt-3 rounded-full border border-dashed border-emerald-950/35 bg-white px-3 py-1.5 text-[11px] font-medium text-emerald-950 hover:bg-neutral-50 disabled:opacity-50"
         >
-          + הוסף קבוצה ({value.sections.length})
+          + {fieldHelp.addSectionButton ?? "הוסף קבוצה"} ({value.sections.length})
         </button>
       </div>
       )}
@@ -745,10 +811,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
         </div>
       ) : null}
 
-      <div>
-        <label className="block text-[11px] font-medium text-neutral-600">
-          {template.notesLabel}
-        </label>
+      <CatalogFieldHelp label={template.notesLabel} help={fieldHelp.notes}>
         <textarea
           dir="rtl"
           rows={2}
@@ -757,7 +820,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
           className={textarea}
           placeholder={template.notesPlaceholder}
         />
-      </div>
+      </CatalogFieldHelp>
     </div>
   );
 }
