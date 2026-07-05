@@ -11,6 +11,11 @@ export default function AdminHomePage() {
           </Link>
         </li>
         <li>
+          <Link href="/admin/moderation" className="text-emerald-950 underline">
+            אישור אולמות ושירותים
+          </Link>
+        </li>
+        <li>
           <Link href="/admin/users" className="text-emerald-950 underline">
             משתמשים וחסימות
           </Link>

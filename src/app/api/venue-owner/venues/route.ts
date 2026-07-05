@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { emailVerificationGuard } from "@/lib/apiAuth";
 import { geocodeIsraelAddress } from "@/lib/geocode";
-import { createNotification } from "@/lib/notifications";
+import {
+  logListingSubmittedForReview,
+  moderationFieldsForNewListing,
+  moderationFieldsForOwnerEdit,
+} from "@/lib/listingModerationService";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -784,6 +788,7 @@ export async function POST(req: NextRequest) {
       autoReplyMessage: autoChk.value,
       customAmenitiesJson,
       venueSoftAttributesJson,
+      ...moderationFieldsForNewListing(),
     },
   });
 
@@ -802,28 +807,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // התראה למחפשים שכבר מתעניינים באולמות בעיר הזו (מועדפים / פניות קודמות).
-  const seekers = await prisma.user.findMany({
-    where: {
-      role: "SEEKER",
-      OR: [
-        { favorites: { some: { venue: { city: venue.city } } } },
-        { inquiriesSent: { some: { venue: { city: venue.city } } } },
-      ],
-    },
-    select: { id: true },
+  await logListingSubmittedForReview({
+    listingType: "VENUE",
+    listingId: venue.id,
+    fromStatus: null,
+    actorUserId: user.id,
   });
-  await Promise.all(
-    seekers.map((s) =>
-      createNotification({
-        userId: s.id,
-        type: "NEW_VENUE_IN_CITY",
-        title: "אולם חדש בעיר שלך",
-        body: `נוסף אולם חדש בעיר ${venue.city}: "${venue.name}".`,
-        href: "/halls",
-      })
-    )
-  );
 
   return NextResponse.json({ venue }, { status: 201 });
   } catch (e) {
@@ -1239,7 +1228,18 @@ export async function PUT(req: NextRequest) {
       customAmenitiesJson,
       venueSoftAttributesJson,
       ...(coordPatch ?? {}),
+      ...moderationFieldsForOwnerEdit({
+        moderationStatus: existing.moderationStatus,
+        contentRevision: existing.contentRevision,
+      }),
     },
+  });
+
+  await logListingSubmittedForReview({
+    listingType: "VENUE",
+    listingId: venue.id,
+    fromStatus: existing.moderationStatus,
+    actorUserId: user.id,
   });
 
   return NextResponse.json({ venue });

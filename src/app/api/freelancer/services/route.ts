@@ -23,6 +23,11 @@ import {
 import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import { saveServiceImageFile } from "@/lib/serviceImageUpload";
 import {
+  logListingSubmittedForReview,
+  moderationFieldsForNewListing,
+  moderationFieldsForOwnerEdit,
+} from "@/lib/listingModerationService";
+import {
   USER_INPUT_MAX,
   badRequest,
   formDataJsonStringTooLong,
@@ -305,7 +310,15 @@ export async function POST(req: NextRequest) {
         galleryImageUrls.length > 0 ? JSON.stringify(galleryImageUrls) : null,
       minPrice: resolvedPrices.minPrice,
       maxPrice: resolvedPrices.maxPrice,
+      ...moderationFieldsForNewListing(),
     },
+  });
+
+  await logListingSubmittedForReview({
+    listingType: "SERVICE",
+    listingId: service.id,
+    fromStatus: null,
+    actorUserId: user.id,
   });
 
   return NextResponse.json({ service }, { status: 201 });
@@ -531,7 +544,18 @@ export async function PUT(req: NextRequest) {
       galleryImageUrls,
       minPrice: resolvedPricesPut.minPrice,
       maxPrice: resolvedPricesPut.maxPrice,
+      ...moderationFieldsForOwnerEdit({
+        moderationStatus: existing.moderationStatus,
+        contentRevision: existing.contentRevision,
+      }),
     },
+  });
+
+  await logListingSubmittedForReview({
+    listingType: "SERVICE",
+    listingId: service.id,
+    fromStatus: existing.moderationStatus,
+    actorUserId: user.id,
   });
 
   return NextResponse.json({ service });

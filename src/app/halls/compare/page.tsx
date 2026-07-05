@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import {
@@ -40,7 +41,7 @@ export default async function HallsComparePage({
     ids.length === 0
       ? []
       : await prisma.venue.findMany({
-          where: { id: { in: ids } },
+          where: { id: { in: ids }, ...approvedListingWhere() },
           select: {
             id: true,
             name: true,

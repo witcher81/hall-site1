@@ -8,6 +8,7 @@ import {
   type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { USER_INPUT_MAX } from "@/lib/userInputValidation";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 
 /** תקרת תוצאות לחיפוש פומבי — מונע טעינת כל הטבלה לזיכרון (DoS) */
 const MAX_PUBLIC_PROVIDER_RESULTS = 500;
@@ -44,6 +45,7 @@ export async function searchPublicProviders(
   const maxPrice = searchParams.get("maxPrice");
 
   const where: Prisma.ServiceWhereInput = {
+    ...approvedListingWhere(),
     ...buildServiceCategoryWhere(category, secondary),
   };
   if (minPrice && minPrice !== "") {

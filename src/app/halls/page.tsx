@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { searchPublicVenues } from "@/lib/publicVenuesSearch";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 import { venuesToMapMarkers } from "@/lib/venueMapMarkers";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
@@ -31,6 +32,7 @@ export default async function HallsPage({ searchParams }: PageProps) {
     await Promise.all([
       searchPublicVenues(sp),
       prisma.venue.findMany({
+        where: approvedListingWhere(),
         select: {
           id: true,
           name: true,

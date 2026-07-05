@@ -8,6 +8,8 @@ export const MessageTypes = {
   PASSWORD_RESET_REQUESTED: "password.reset.requested",
   NOOP: "noop",
   LOG: "log",
+  /** החלטת אישור תוכן — צד אפקטים (webhook חיצוני / CRM בעתיד) */
+  LISTING_MODERATION_DECISION: "listing.moderation.decision",
 } as const;
 
 export type MessageType = (typeof MessageTypes)[keyof typeof MessageTypes];

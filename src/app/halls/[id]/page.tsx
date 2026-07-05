@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
+import { canViewListingDetail } from "@/lib/listingModerationService";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { normalizeEventTypesList } from "@/lib/eventTypeOptions";
@@ -50,10 +52,11 @@ export async function generateMetadata({
       coverImageUrl: true,
       minGuests: true,
       maxGuests: true,
+      moderationStatus: true,
     },
   });
 
-  if (!venue) {
+  if (!venue || venue.moderationStatus !== "APPROVED") {
     return { title: "אולם לא נמצא" };
   }
 
@@ -123,6 +126,9 @@ export default async function HallPublicPage({
     where: { id: venueId },
     select: {
       id: true,
+      ownerId: true,
+      moderationStatus: true,
+      moderationNote: true,
       name: true,
       city: true,
       address: true,
@@ -167,6 +173,28 @@ export default async function HallPublicPage({
   });
 
   if (!venue) {
+    return (
+      <SitePageShell mainWidth="narrow">
+        <p className="text-sm text-neutral-800">האולם לא נמצא.</p>
+        <a
+          href="/halls"
+          className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
+        >
+          חזרה לחיפוש אולמות
+        </a>
+      </SitePageShell>
+    );
+  }
+
+  const canView = canViewListingDetail({
+    moderationStatus: venue.moderationStatus,
+    ownerUserId: venue.ownerId,
+    viewerUserId: user?.id ?? null,
+    viewerEmail: user?.email ?? null,
+    isAdmin: isAdminEmail(user?.email),
+  });
+
+  if (!canView) {
     return (
       <SitePageShell mainWidth="narrow">
         <p className="text-sm text-neutral-800">האולם לא נמצא.</p>

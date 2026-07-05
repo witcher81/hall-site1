@@ -1,4 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
+import { canViewListingDetail } from "@/lib/listingModerationService";
 import { prisma } from "@/lib/prisma";
 import { normalizeEventTypesList } from "@/lib/eventTypeOptions";
 import { parseEventTypesList } from "@/lib/venueEditFormParse";
@@ -36,6 +38,8 @@ export default async function VenueInquiryPage({
     where: { id: venueId },
     select: {
       id: true,
+      ownerId: true,
+      moderationStatus: true,
       name: true,
       minGuests: true,
       maxGuests: true,
@@ -63,6 +67,17 @@ export default async function VenueInquiryPage({
   });
 
   if (!venue) {
+    redirect("/halls");
+  }
+
+  const canView = canViewListingDetail({
+    moderationStatus: venue.moderationStatus,
+    ownerUserId: venue.ownerId,
+    viewerUserId: user?.id ?? null,
+    viewerEmail: user?.email ?? null,
+    isAdmin: isAdminEmail(user?.email),
+  });
+  if (!canView) {
     redirect("/halls");
   }
 

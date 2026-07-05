@@ -2,6 +2,7 @@
 
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { useState } from "react";
+import ListingModerationBadge from "@/components/ListingModerationBadge";
 
 type Service = {
   id: number;
@@ -12,6 +13,8 @@ type Service = {
   description: string | null;
   minPrice: number | null;
   maxPrice: number | null;
+  moderationStatus: string;
+  moderationNote: string | null;
 };
 
 type RecentRequest = {
@@ -138,12 +141,18 @@ export default function FreelancerDashboardClient({ initial }: Props) {
                 )}
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-emerald-950">
-                      {s.name}
-                      {s.category && (
-                        <span className="text-neutral-600"> · {s.category}</span>
-                      )}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold text-emerald-950">
+                        {s.name}
+                        {s.category && (
+                          <span className="text-neutral-600"> · {s.category}</span>
+                        )}
+                      </p>
+                      <ListingModerationBadge
+                        status={s.moderationStatus}
+                        note={s.moderationNote}
+                      />
+                    </div>
                     {blurb ? (
                       <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs text-neutral-600">
                         {blurb}

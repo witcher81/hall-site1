@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { prisma } from "@/lib/prisma";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
@@ -22,8 +23,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const [venues, services] = await Promise.all([
-    prisma.venue.findMany({ select: { id: true, updatedAt: true }, take: 500 }),
-    prisma.service.findMany({ select: { id: true, updatedAt: true }, take: 500 }),
+    prisma.venue.findMany({
+      where: approvedListingWhere(),
+      select: { id: true, updatedAt: true },
+      take: 500,
+    }),
+    prisma.service.findMany({
+      where: approvedListingWhere(),
+      select: { id: true, updatedAt: true },
+      take: 500,
+    }),
   ]);
 
   const venueUrls = venues.map((v) => ({

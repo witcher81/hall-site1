@@ -171,11 +171,19 @@ model Venue {
   boostExpiresAt   DateTime?
   /// מענה אוטומטי לפניות חדשות (אופציונלי)
   autoReplyMessage String?
+  /// PENDING | APPROVED | REJECTED — פרסום ציבורי רק לאחר APPROVED
+  moderationStatus      String   @default("PENDING")
+  moderationNote        String?
+  moderatedAt           DateTime?
+  moderatedByUserId     Int?
+  submittedForReviewAt  DateTime @default(now())
+  contentRevision       Int      @default(1)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   // חיפוש ציבורי (/api/venues): טווחי מספרים; ownerId — דשבורד בעל אולם
   @@index([ownerId])
+  @@index([moderationStatus])
   @@index([maxGuests])
   @@index([minPrice])
   @@index([maxPrice])
@@ -278,6 +286,24 @@ model ContentReport {
   @@index([targetType, targetId])
 }
 
+/// יומן אישור תוכן (אולמות/שירותים) — מוכן ל־API ואוטומציה עתידית
+model ListingModerationEvent {
+  id            Int      @id @default(autoincrement())
+  listingType   String
+  listingId     Int
+  action        String
+  fromStatus    String?
+  toStatus      String
+  note          String?
+  actorUserId   Int?
+  source        String   @default("ADMIN")
+  metadataJson  String?
+  createdAt     DateTime @default(now())
+
+  @@index([listingType, listingId, createdAt])
+  @@index([toStatus, createdAt])
+}
+
 model Payment {
   id              Int      @id @default(autoincrement())
   userId          Int
@@ -333,11 +359,19 @@ model Service {
   packageLinks    EventPackageService[]
   reviews         ServiceReview[]
   favorites       ServiceFavorite[]
+  /// PENDING | APPROVED | REJECTED — פרסום ציבורי רק לאחר APPROVED
+  moderationStatus      String   @default("PENDING")
+  moderationNote        String?
+  moderatedAt           DateTime?
+  moderatedByUserId     Int?
+  submittedForReviewAt  DateTime @default(now())
+  contentRevision       Int      @default(1)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // רשימת שירותים לפי ספק; חיפוש ציבורי (/api/services/public)
   @@index([providerId])
+  @@index([moderationStatus])
   @@index([category])
   @@index([minPrice])
   @@index([maxPrice])

@@ -9,6 +9,7 @@ import {
   normalizeEventTypesList,
 } from "@/lib/eventTypeOptions";
 import { USER_INPUT_MAX } from "@/lib/userInputValidation";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 import { isKnownVenueKashrut } from "@/lib/venueKashrutOptions";
 
 /** תקרת תוצאות לחיפוש פומבי — מונע טעינת כל הטבלה לזיכרון (DoS) */
@@ -110,7 +111,9 @@ export async function searchPublicVenues(
 
   let warning: string | undefined;
 
-  const where: Prisma.VenueWhereInput = {};
+  const where: Prisma.VenueWhereInput = {
+    ...approvedListingWhere(),
+  };
 
   if (city && city.length > 0) {
     where.city = { contains: city, mode: "insensitive" };

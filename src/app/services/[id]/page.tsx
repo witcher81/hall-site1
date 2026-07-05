@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
+import { canViewListingDetail } from "@/lib/listingModerationService";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
 import { parseServiceMenuJson } from "@/lib/serviceMenu";
@@ -49,6 +51,28 @@ export default async function PublicSingleServicePage({
   });
 
   if (!service || service.provider.role !== "FREELANCER") {
+    return (
+      <SitePageShell mainWidth="narrow">
+        <p className="text-sm text-neutral-800">השירות לא נמצא.</p>
+        <a
+          href="/providers"
+          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
+        >
+          חזרה לחיפוש ספקים
+        </a>
+      </SitePageShell>
+    );
+  }
+
+  const canView = canViewListingDetail({
+    moderationStatus: service.moderationStatus,
+    ownerUserId: service.providerId,
+    viewerUserId: user?.id ?? null,
+    viewerEmail: user?.email ?? null,
+    isAdmin: isAdminEmail(user?.email),
+  });
+
+  if (!canView) {
     return (
       <SitePageShell mainWidth="narrow">
         <p className="text-sm text-neutral-800">השירות לא נמצא.</p>

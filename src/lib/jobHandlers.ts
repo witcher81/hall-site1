@@ -29,6 +29,9 @@ export async function executeJob(jobType: string, payload: unknown): Promise<voi
     case "log":
       console.log("[BackgroundJob log]", payload);
       return;
+    case "listing.moderation.decision":
+      console.log("[listing.moderation.decision]", payload);
+      return;
     case "user.register.postCreate": {
       if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
         throw new Error("Invalid payload for user.register.postCreate");

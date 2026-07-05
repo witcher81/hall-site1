@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 
 export const runtime = "nodejs";
 
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const venues = await prisma.venue.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, ...approvedListingWhere() },
       select: {
         id: true,
         name: true,

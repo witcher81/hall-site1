@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 import { venuesToMapMarkers } from "@/lib/venueMapMarkers";
 
 export const runtime = "nodejs";
@@ -11,6 +12,7 @@ const MAX_MAP_VENUES = 5000;
 export async function GET() {
   try {
     const venues = await prisma.venue.findMany({
+      where: approvedListingWhere(),
       take: MAX_MAP_VENUES,
       select: {
         id: true,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ListingModerationBadge from "@/components/ListingModerationBadge";
 
 type Venue = {
   id: number;
@@ -15,6 +16,8 @@ type Venue = {
   hallRentalMax: number | null;
   description: string | null;
   coverImageUrl: string | null;
+  moderationStatus: string;
+  moderationNote: string | null;
 };
 
 type RecentInquiry = {
@@ -129,10 +132,13 @@ export default function VenueOwnerDashboardClient({ initial }: Props) {
                   )}
                 </div>
                 <div className="min-w-0 flex-1 text-right">
-                  <p className="font-semibold text-emerald-950">
-                    {v.name}
-                    <span className="font-normal text-neutral-600"> · {v.city}</span>
-                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold text-emerald-950">
+                      {v.name}
+                      <span className="font-normal text-neutral-600"> · {v.city}</span>
+                    </p>
+                    <ListingModerationBadge status={v.moderationStatus} note={v.moderationNote} />
+                  </div>
                   <p className="mt-0.5 text-xs text-neutral-600">{v.address}</p>
                   {(v.minGuests != null || v.maxGuests != null) && (
                     <p className="mt-0.5 text-xs text-neutral-600">

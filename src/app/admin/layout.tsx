@@ -25,6 +25,9 @@ export default async function AdminLayout({
           <a href="/admin/reports" className="font-medium text-emerald-950 underline">
             דיווחים
           </a>
+          <a href="/admin/moderation" className="font-medium text-emerald-950 underline">
+            אישור תוכן
+          </a>
           <a href="/admin/users" className="font-medium text-emerald-950 underline">
             משתמשים
           </a>

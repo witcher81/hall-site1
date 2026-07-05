@@ -14,6 +14,10 @@ type CreateNotificationInput = {
     | "NEGOTIATION_MESSAGE"
     | "NEGOTIATION_UPDATE"
     | "NEW_VENUE_IN_CITY"
+    | "LISTING_VENUE_APPROVED"
+    | "LISTING_VENUE_REJECTED"
+    | "LISTING_SERVICE_APPROVED"
+    | "LISTING_SERVICE_REJECTED"
     | "WELCOME";
   title: string;
   body?: string | null;
