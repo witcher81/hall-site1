@@ -53,6 +53,7 @@ export default async function ServiceEditPage({
           includesEquipment: service.includesEquipment,
           includesNote: service.includesNote ?? null,
           customIncludesJson: service.customIncludesJson ?? null,
+          menuJson: service.menuJson ?? null,
           coverImageUrl: service.coverImageUrl ?? null,
           galleryImageUrls: service.galleryImageUrls ? (JSON.parse(service.galleryImageUrls) as string[]) : [],
           minPrice: service.minPrice ?? "",

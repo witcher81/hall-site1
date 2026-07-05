@@ -316,6 +316,8 @@ model Service {
   includesEquipment Boolean @default(false)
   /// JSON: מערך { label, checked } — תוספות שכלולות במחיר שהפרילנסר הוסיף
   customIncludesJson String?
+  /// JSON: תפריט אוכל — קיבולת אורחים, חבילות, מנות ומחירים (קטגוריות «אוכל ומשקאות»)
+  menuJson          String?
   /// הסבר קצר למחפשים על מה כלול במחיר (אופציונלי)
   includesNote    String?
   coverImageUrl   String?
@@ -506,6 +508,8 @@ model ServiceRequest {
   inquiry      Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
   eventType    String?
   preferredDate String?
+  /// מספר אורחים — חובה לבקשות לשירותי אוכל/קייטרינג
+  guestCount   Int?
   message      String
   status       String   @default("NEW") // NEW, READ, REPLIED
   providerNote String?

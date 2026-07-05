@@ -2,6 +2,9 @@ export const CATEGORY_VALUE_SEPARATOR = " / ";
 /** מפריד בין מספר תת־קטגוריות תחת אותה קטגוריה ראשית */
 export const CATEGORY_MULTI_SEPARATOR = " · ";
 
+/** קטגוריה ראשית לשירותי אוכל — מפעילה עורך תפריט */
+export const FOOD_BEVERAGE_PRIMARY = "אוכל ומשקאות";
+
 /**
  * קטגוריות שירות לפרילנסרים — מבוסס על אינדקסי ספקים לאירועים בישראל
  * (מיט פור מיט, סוגרים חתונה, Engaged, IEM) + רשימות ספקים בינלאומיות.
@@ -9,7 +12,7 @@ export const CATEGORY_MULTI_SEPARATOR = " · ";
  */
 export const FREELANCER_CATEGORY_GROUPS = [
   {
-    primary: "אוכל ומשקאות",
+    primary: FOOD_BEVERAGE_PRIMARY,
     services: [
       "קייטרינג חלבי",
       "קייטרינג בשרי",

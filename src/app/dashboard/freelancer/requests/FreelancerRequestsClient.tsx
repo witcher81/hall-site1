@@ -20,6 +20,7 @@ type Req = {
   message: string;
   eventType: string | null;
   preferredDate: string | null;
+  guestCount: number | null;
   status: string;
   inquiryStatus?: string | null;
   eventContext?: ServiceRequestEventContext | null;
@@ -316,7 +317,7 @@ export default function FreelancerRequestsClient() {
                     context={r.eventContext}
                     className="mt-3"
                   />
-                ) : (r.eventType || r.preferredDate) ? (
+                ) : (r.eventType || r.preferredDate || r.guestCount != null) ? (
                   <p className="mt-2 text-xs text-neutral-600">
                     {r.eventType && <span>סוג אירוע: {r.eventType}</span>}
                     {r.preferredDate && (
@@ -326,6 +327,11 @@ export default function FreelancerRequestsClient() {
                           r.preferredDate}
                       </span>
                     )}
+                    {r.guestCount != null ? (
+                      <span className="mr-3">
+                        אורחים: {r.guestCount.toLocaleString("he-IL")}
+                      </span>
+                    ) : null}
                   </p>
                 ) : null}
 

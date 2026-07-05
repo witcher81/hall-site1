@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
+import { parseServiceMenuJson } from "@/lib/serviceMenu";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { Suspense } from "react";
 import SingleServiceView from "./SingleServiceView";
@@ -119,6 +120,9 @@ export default async function PublicSingleServicePage({
           includesNote: service.includesNote,
           coverImageUrl: service.coverImageUrl,
           galleryImageUrls: service.galleryImageUrls,
+          menu: service.menuJson
+            ? parseServiceMenuJson(service.menuJson)
+            : null,
           minPrice: service.minPrice,
           maxPrice: service.maxPrice,
         }}

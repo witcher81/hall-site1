@@ -11,6 +11,14 @@ import {
   sanitizeServiceIncludesBundleFromClient,
   serializeServiceIncludesBundle,
 } from "@/lib/serviceIncludes";
+import {
+  deriveServicePricesFromMenu,
+  isFoodServiceCategory,
+  parseServiceMenuJson,
+  sanitizeServiceMenuFromClient,
+  serializeServiceMenuJson,
+  validateServiceMenuForSubmit,
+} from "@/lib/serviceMenu";
 import { saveServiceImageFile } from "@/lib/serviceImageUpload";
 import {
   USER_INPUT_MAX,
@@ -72,6 +80,33 @@ function parseCustomIncludesFormField(
   } catch {
     return null;
   }
+}
+
+function parseMenuFormField(entry: FormDataEntryValue | null): string | null {
+  if (entry === null || entry === "") return null;
+  try {
+    const raw = typeof entry === "string" ? entry : "";
+    const data = JSON.parse(raw) as unknown;
+    return serializeServiceMenuJson(sanitizeServiceMenuFromClient(data));
+  } catch {
+    return null;
+  }
+}
+
+function resolveFoodServicePrices(
+  category: string | null,
+  menuJson: string | null,
+  minPrice: number | null,
+  maxPrice: number | null
+): { minPrice: number | null; maxPrice: number | null } {
+  if (!isFoodServiceCategory(category) || !menuJson) {
+    return { minPrice, maxPrice };
+  }
+  const derived = deriveServicePricesFromMenu(parseServiceMenuJson(menuJson));
+  return {
+    minPrice: derived.minPrice ?? minPrice,
+    maxPrice: derived.maxPrice ?? maxPrice,
+  };
 }
 
 function parseGalleryJson(value: string | null): string[] {
@@ -139,6 +174,7 @@ export async function POST(req: NextRequest) {
     formData.get("customIncludesJson")
   );
   const includesNote = parseIncludesNoteField(formData.get("includesNote"));
+  const menuJson = parseMenuFormField(formData.get("menuJson"));
   const minPrice = toIntOrNull((formData.get("minPrice") as string | null) ?? null);
   const maxPrice = toIntOrNull((formData.get("maxPrice") as string | null) ?? null);
 
@@ -147,6 +183,9 @@ export async function POST(req: NextRequest) {
   }
   if (formDataJsonStringTooLong(formData.get("customIncludesJson"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
     return badRequest("נתוני תוספות ארוכים מדי");
+  }
+  if (formDataJsonStringTooLong(formData.get("menuJson"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+    return badRequest("נתוני תפריט ארוכים מדי");
   }
 
   const nameCheck = validateRequiredText(
@@ -193,6 +232,18 @@ export async function POST(req: NextRequest) {
   const priceErr = validatePriceMinMax(minPrice, maxPrice);
   if (priceErr) return badRequest(priceErr);
 
+  if (isFoodServiceCategory(catCheck.value)) {
+    const menuErr = validateServiceMenuForSubmit(parseServiceMenuJson(menuJson));
+    if (menuErr) return badRequest(menuErr);
+  }
+
+  const resolvedPrices = resolveFoodServicePrices(
+    catCheck.value,
+    menuJson,
+    minPrice,
+    maxPrice
+  );
+
   const coverImage = (formData.get("coverImage") as File | null) ?? null;
   const galleryFiles = formData.getAll("galleryImages") as File[];
   let nonEmptyGallery = 0;
@@ -233,12 +284,13 @@ export async function POST(req: NextRequest) {
       includesTravel,
       includesEquipment,
       customIncludesJson,
+      menuJson: isFoodServiceCategory(catCheck.value) ? menuJson : null,
       includesNote,
       coverImageUrl,
       galleryImageUrls:
         galleryImageUrls.length > 0 ? JSON.stringify(galleryImageUrls) : null,
-      minPrice,
-      maxPrice,
+      minPrice: resolvedPrices.minPrice,
+      maxPrice: resolvedPrices.maxPrice,
     },
   });
 
@@ -321,6 +373,9 @@ export async function PUT(req: NextRequest) {
   const includesNote = formData.has("includesNote")
     ? parseIncludesNoteField(formData.get("includesNote"))
     : existing.includesNote;
+  const menuJson = formData.has("menuJson")
+    ? parseMenuFormField(formData.get("menuJson"))
+    : existing.menuJson;
 
   if (formData.get("socialLinks") !== null) {
     if (formDataJsonStringTooLong(formData.get("socialLinks"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
@@ -330,6 +385,11 @@ export async function PUT(req: NextRequest) {
   if (formData.has("customIncludesJson")) {
     if (formDataJsonStringTooLong(formData.get("customIncludesJson"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
       return badRequest("נתוני תוספות ארוכים מדי");
+    }
+  }
+  if (formData.has("menuJson")) {
+    if (formDataJsonStringTooLong(formData.get("menuJson"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
+      return badRequest("נתוני תפריט ארוכים מדי");
     }
   }
 
@@ -376,6 +436,18 @@ export async function PUT(req: NextRequest) {
   }
   const priceErrPut = validatePriceMinMax(minPrice, maxPrice);
   if (priceErrPut) return badRequest(priceErrPut);
+
+  if (isFoodServiceCategory(catCheckPut.value)) {
+    const menuErr = validateServiceMenuForSubmit(parseServiceMenuJson(menuJson));
+    if (menuErr) return badRequest(menuErr);
+  }
+
+  const resolvedPricesPut = resolveFoodServicePrices(
+    catCheckPut.value,
+    menuJson,
+    minPrice,
+    maxPrice
+  );
 
   const coverImageFile = (formData.get("coverImage") as File | null) ?? null;
   if (coverImageFile && coverImageFile.size > 0) {
@@ -435,11 +507,12 @@ export async function PUT(req: NextRequest) {
       includesTravel,
       includesEquipment,
       customIncludesJson,
+      menuJson: isFoodServiceCategory(catCheckPut.value) ? menuJson : null,
       includesNote,
       coverImageUrl,
       galleryImageUrls,
-      minPrice,
-      maxPrice,
+      minPrice: resolvedPricesPut.minPrice,
+      maxPrice: resolvedPricesPut.maxPrice,
     },
   });
 

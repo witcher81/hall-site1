@@ -9,8 +9,14 @@ import { validatePreferredDateNotPast } from "@/lib/validatePreferredDate";
 import {
   USER_INPUT_MAX,
   badRequest,
+  validateGuestCount,
   validateRequiredText,
 } from "@/lib/userInputValidation";
+import {
+  isFoodServiceCategory,
+  parseServiceMenuJson,
+  validateMenuGuestCount,
+} from "@/lib/serviceMenu";
 
 export const runtime = "nodejs";
 
@@ -55,6 +61,18 @@ export async function POST(req: NextRequest) {
   if (!dateCheck.ok) return dateCheck.response;
   const preferredDate = dateCheck.value;
 
+  const guestCountRaw =
+    body.guestCount != null && body.guestCount !== ""
+      ? Number(body.guestCount)
+      : null;
+  const guestCount =
+    guestCountRaw != null && Number.isFinite(guestCountRaw)
+      ? Math.trunc(guestCountRaw)
+      : null;
+  if (guestCount != null && !validateGuestCount(guestCount)) {
+    return badRequest("מספר אורחים לא תקין");
+  }
+
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
     return NextResponse.json({ error: "נא לבחור שירות" }, { status: 400 });
   }
@@ -65,11 +83,19 @@ export async function POST(req: NextRequest) {
       id: true,
       providerId: true,
       name: true,
+      category: true,
+      menuJson: true,
       provider: { select: { email: true, name: true, businessName: true } },
     },
   });
   if (!service) {
     return NextResponse.json({ error: "שירות לא נמצא" }, { status: 404 });
+  }
+
+  if (isFoodServiceCategory(service.category)) {
+    const menu = parseServiceMenuJson(service.menuJson);
+    const guestErr = validateMenuGuestCount(menu, guestCount);
+    if (guestErr) return badRequest(guestErr);
   }
 
   const request = await prisma.serviceRequest.create({
@@ -79,6 +105,7 @@ export async function POST(req: NextRequest) {
       message,
       eventType,
       preferredDate,
+      guestCount,
     },
   });
 

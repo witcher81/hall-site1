@@ -21,6 +21,7 @@ export type PendingServiceRequestPayload = {
   serviceId: number;
   preferredDate: string;
   eventType?: string;
+  guestCount?: number;
   message: string;
 };
 

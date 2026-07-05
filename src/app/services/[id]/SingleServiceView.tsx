@@ -1,6 +1,7 @@
 "use client";
 
 import ReportContentButton from "@/components/ReportContentButton";
+import ServiceMenuPublicSection from "@/components/ServiceMenuPublicSection";
 import ServiceReviewsSection from "@/components/ServiceReviewsSection";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import ShareButton from "@/components/ShareButton";
@@ -11,6 +12,13 @@ import {
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
+import {
+  isFoodServiceCategory,
+  menuHasContent,
+  parseServiceMenuJson,
+  validateMenuGuestCount,
+  type ServiceMenuConfig,
+} from "@/lib/serviceMenu";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
 import { useEngagedFreelancerProfileView } from "@/lib/useEngagedViewAnalytics";
 import type {
@@ -56,6 +64,7 @@ type Service = {
   galleryImageUrls: string | null;
   minPrice: number | null;
   maxPrice: number | null;
+  menu: ServiceMenuConfig | null;
 };
 
 import { COMMON_INQUIRY_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
@@ -89,6 +98,7 @@ export default function SingleServiceView({
   const [form, setForm] = useState({
     preferredDate: "",
     eventType: "",
+    guestCount: "",
     message: "",
   });
   const [galleryLightboxIndex, setGalleryLightboxIndex] = useState<number | null>(
@@ -108,6 +118,9 @@ export default function SingleServiceView({
     service.minPrice,
     service.maxPrice
   );
+  const isFood = isFoodServiceCategory(service.category);
+  const menu = service.menu;
+  const showMenu = isFood && menu != null && menuHasContent(menu);
   const gallery: string[] = useMemo(() => {
     if (!service.galleryImageUrls) return [];
     try {
@@ -164,6 +177,7 @@ export default function SingleServiceView({
     serviceId: number;
     preferredDate: string;
     eventType?: string;
+    guestCount?: number;
     message: string;
   }): Promise<boolean> {
     setLoading(true);
@@ -205,6 +219,10 @@ export default function SingleServiceView({
     setForm({
       preferredDate: pending.payload.preferredDate,
       eventType: pending.payload.eventType ?? "",
+      guestCount:
+        pending.payload.guestCount != null
+          ? String(pending.payload.guestCount)
+          : "",
       message: pending.payload.message,
     });
     await postServiceRequest(pending.payload);
@@ -230,10 +248,27 @@ export default function SingleServiceView({
       return;
     }
 
+    let guestCountNum: number | undefined;
+    if (showMenu && menu) {
+      const guestRaw = form.guestCount.trim();
+      if (!guestRaw) {
+        setError("נא לציין מספר אורחים");
+        return;
+      }
+      const g = Number(guestRaw);
+      const guestErr = validateMenuGuestCount(menu, Number.isFinite(g) ? g : null);
+      if (guestErr) {
+        setError(guestErr);
+        return;
+      }
+      guestCountNum = Math.trunc(g);
+    }
+
     const payload = {
       serviceId: service.id,
       preferredDate: form.preferredDate.trim(),
       eventType: form.eventType.trim() || undefined,
+      guestCount: guestCountNum,
       message: form.message.trim(),
     };
 
@@ -612,6 +647,10 @@ export default function SingleServiceView({
         </section>
       )}
 
+      {showMenu && menu ? (
+        <ServiceMenuPublicSection menu={menu} />
+      ) : null}
+
       {/* קישורים לשירות */}
       {serviceSocialLinks.length > 0 && (
         <section className="site-card-padded text-right">
@@ -734,6 +773,34 @@ export default function SingleServiceView({
                 ))}
               </select>
             </div>
+            {showMenu && menu ? (
+              <div>
+                <label className="block text-xs font-medium text-neutral-600">
+                  מספר אורחים *
+                </label>
+                <p className="mt-0.5 text-[10px] text-neutral-500">
+                  {menu.minGuests != null && menu.maxGuests != null
+                    ? `הספק משרת ${menu.minGuests}–${menu.maxGuests} אורחים`
+                    : "נדרש לתכנון הכמויות והמחיר"}
+                </p>
+                <input
+                  type="number"
+                  required
+                  min={menu.minGuests ?? 1}
+                  max={menu.maxGuests ?? undefined}
+                  value={form.guestCount}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, guestCount: e.target.value }))
+                  }
+                  className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-emerald-950"
+                  placeholder={
+                    menu.minGuests != null
+                      ? `למשל ${menu.minGuests}`
+                      : "למשל 150"
+                  }
+                />
+              </div>
+            ) : null}
             <div>
               <label className="block text-xs text-neutral-600">הודעה * (לפחות 10 תווים)</label>
               <textarea

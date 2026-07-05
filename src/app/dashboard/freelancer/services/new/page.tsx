@@ -1,6 +1,7 @@
 "use client";
 
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
+import ServiceMenuEditor from "@/components/ServiceMenuEditor";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
@@ -9,6 +10,7 @@ import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
+  FOOD_BEVERAGE_PRIMARY,
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
@@ -18,6 +20,10 @@ import type {
   ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
+import {
+  parseServiceMenuJson,
+  type ServiceMenuConfig,
+} from "@/lib/serviceMenu";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
@@ -42,6 +48,7 @@ export default function NewServicePage() {
     []
   );
   const [paidExtras, setPaidExtras] = useState<ServicePaidExtraItem[]>([]);
+  const [menu, setMenu] = useState<ServiceMenuConfig>(() => parseServiceMenuJson(null));
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
@@ -69,6 +76,8 @@ export default function NewServicePage() {
       if (coverPreview) URL.revokeObjectURL(coverPreview);
     };
   }, [coverPreview]);
+
+  const isFoodService = form.primaryCategory === FOOD_BEVERAGE_PRIMARY;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -101,17 +110,22 @@ export default function NewServicePage() {
             ...c,
             checked: c.label.trim().length > 0 ? true : c.checked,
           })),
-          paidExtras,
+          paidExtras: isFoodService ? [] : paidExtras,
         })
       );
-      const { minPrice: minP, maxPrice: maxP } = buildMinMaxStringsForSubmit({
-        priceUseRange: form.priceUseRange,
-        exactPrice: form.exactPrice,
-        minPrice: form.minPrice,
-        maxPrice: form.maxPrice,
-      });
-      if (minP) fd.append("minPrice", minP);
-      if (maxP) fd.append("maxPrice", maxP);
+      if (isFoodService) {
+        fd.append("menuJson", JSON.stringify(menu));
+      }
+      if (!isFoodService) {
+        const { minPrice: minP, maxPrice: maxP } = buildMinMaxStringsForSubmit({
+          priceUseRange: form.priceUseRange,
+          exactPrice: form.exactPrice,
+          minPrice: form.minPrice,
+          maxPrice: form.maxPrice,
+        });
+        if (minP) fd.append("minPrice", minP);
+        if (maxP) fd.append("maxPrice", maxP);
+      }
       if (coverImage) fd.append("coverImage", coverImage);
       galleryImages.forEach((file) => fd.append("galleryImages", file));
 
@@ -241,57 +255,63 @@ export default function NewServicePage() {
           description="לחצו על הכפתור «+ הוסף רשת / קישור» כדי להוסיף שורה חדשה. בכל שורה בוחרים רשת ומדביקים קישור מלא."
         />
 
-        <ServiceIncludesEditor
-          customIncludes={customIncludes}
-          onCustomIncludesChange={setCustomIncludes}
-          paidExtras={paidExtras}
-          onPaidExtrasChange={setPaidExtras}
-        />
+        {isFoodService ? (
+          <ServiceMenuEditor value={menu} onChange={setMenu} />
+        ) : (
+          <>
+            <ServiceIncludesEditor
+              customIncludes={customIncludes}
+              onCustomIncludesChange={setCustomIncludes}
+              paidExtras={paidExtras}
+              onPaidExtrasChange={setPaidExtras}
+            />
 
-        <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-4">
-          <OptionalPriceRangeFields
-            useRange={form.priceUseRange}
-            onUseRangeChange={(useRange) =>
-              setForm((f) => {
-                if (useRange) {
-                  const ex = f.exactPrice.trim();
-                  return {
-                    ...f,
-                    priceUseRange: true,
-                    minPrice: ex || f.minPrice,
-                    maxPrice: ex || f.maxPrice || ex,
-                    exactPrice: "",
-                  };
+            <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-4">
+              <OptionalPriceRangeFields
+                useRange={form.priceUseRange}
+                onUseRangeChange={(useRange) =>
+                  setForm((f) => {
+                    if (useRange) {
+                      const ex = f.exactPrice.trim();
+                      return {
+                        ...f,
+                        priceUseRange: true,
+                        minPrice: ex || f.minPrice,
+                        maxPrice: ex || f.maxPrice || ex,
+                        exactPrice: "",
+                      };
+                    }
+                    const ep =
+                      f.minPrice && f.minPrice === f.maxPrice
+                        ? f.minPrice
+                        : f.minPrice || f.maxPrice || "";
+                    return {
+                      ...f,
+                      priceUseRange: false,
+                      exactPrice: ep,
+                      minPrice: "",
+                      maxPrice: "",
+                    };
+                  })
                 }
-                const ep =
-                  f.minPrice && f.minPrice === f.maxPrice
-                    ? f.minPrice
-                    : f.minPrice || f.maxPrice || "";
-                return {
-                  ...f,
-                  priceUseRange: false,
-                  exactPrice: ep,
-                  minPrice: "",
-                  maxPrice: "",
-                };
-              })
-            }
-            minPrice={form.priceUseRange ? form.minPrice : form.exactPrice}
-            maxPrice={form.priceUseRange ? form.maxPrice : form.exactPrice}
-            onChange={(min, max) =>
-              setForm((f) =>
-                f.priceUseRange
-                  ? { ...f, minPrice: min, maxPrice: max }
-                  : { ...f, exactPrice: min, minPrice: "", maxPrice: "" }
-              )
-            }
-            singleLabel="מחיר לשירות (₪)"
-            singlePlaceholder="למשל 2500"
-            expandRangeLabel="אין לי מחיר מדויק — אציג טווח מחירים"
-            collapseRangeLabel="יש לי מחיר קבוע לשירות"
-            inputClassName={input}
-          />
-        </div>
+                minPrice={form.priceUseRange ? form.minPrice : form.exactPrice}
+                maxPrice={form.priceUseRange ? form.maxPrice : form.exactPrice}
+                onChange={(min, max) =>
+                  setForm((f) =>
+                    f.priceUseRange
+                      ? { ...f, minPrice: min, maxPrice: max }
+                      : { ...f, exactPrice: min, minPrice: "", maxPrice: "" }
+                  )
+                }
+                singleLabel="מחיר לשירות (₪)"
+                singlePlaceholder="למשל 2500"
+                expandRangeLabel="אין לי מחיר מדויק — אציג טווח מחירים"
+                collapseRangeLabel="יש לי מחיר קבוע לשירות"
+                inputClassName={input}
+              />
+            </div>
+          </>
+        )}
 
         <div>
           <label className="block text-xs font-medium text-neutral-600">
