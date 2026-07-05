@@ -120,8 +120,8 @@ export default function FreelancerCategoryTreePicker({
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
-          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border border-neutral-200 bg-white shadow-2xl">
+        <div className="fixed inset-0 z-[700] flex items-center justify-center overflow-y-auto bg-black/35 p-4 sm:p-6">
+          <div className="my-auto flex max-h-[min(90dvh,calc(100dvh-2rem))] w-full max-w-3xl flex-col rounded-2xl border border-neutral-200 bg-white shadow-2xl">
             <div className="shrink-0 p-4 pb-0">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold text-emerald-950">

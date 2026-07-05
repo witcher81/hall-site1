@@ -39,8 +39,8 @@ export default function FreelancerCategoryPicker({
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
-          <div className="w-full max-w-2xl rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl">
+        <div className="fixed inset-0 z-[700] flex items-center justify-center overflow-y-auto bg-black/35 p-4 sm:p-6">
+          <div className="my-auto w-full max-w-2xl rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h3 className="text-sm font-semibold text-emerald-950">בחירת קטגוריה</h3>
               <button

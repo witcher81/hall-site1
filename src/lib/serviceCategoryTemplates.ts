@@ -51,6 +51,8 @@ export type CatalogTemplate = {
   requireGuestCountInquiry: boolean;
   requirePersonCountInquiry: boolean;
   requireQuantityInquiry: boolean;
+  /** בלוק תוספות/פירוט מוסתר בהתחלה — רק למי שצריך */
+  catalogOptional?: boolean;
   itemPricingModes: Array<
     "included" | "per_guest" | "per_guest_range" | "fixed" | "per_unit" | "per_hour"
   >;
@@ -117,21 +119,23 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
   },
   beauty: {
     id: "beauty",
-    editorTitle: "חבילות איפור ושיער",
-    editorHint: "מחיר לפי אדם — כלה, חתן, אורחות. ציינו מה כלול בכל חבילה.",
-    capacityTitle: "קיבולת (מספר אנשים)",
-    capacityHint: "כמה לקוחות אתם יכולים לטפל ביום האירוע / בחינה.",
+    editorTitle: "מחירון השירות",
+    editorHint:
+      "במקום מחיר אחד כללי — רשמו לכל סוג לקוח כמה אתם גובים (כלה, אורחת, חתן). זה מה שמחפשים רואים בכרטיס.",
+    capacityTitle: "כמה לקוחות ביום אירוע?",
+    capacityHint: "מינימום ומקסימום אנשים שאתם יכולים לטפל בהם באותו יום.",
     minCapacityLabel: "מינימום אנשים *",
     maxCapacityLabel: "מקסימום אנשים *",
-    packagesTitle: "חבילות מחיר",
-    packagesHint: "למשל: חבילת כלה מלאה, איפור אורחת, חתן.",
-    packagePriceLabel: "מחיר לאדם (₪)",
-    packagePriceExpandLabel: "טווח מחיר לאדם",
-    catalogTitle: "שירותים ותוספות",
-    catalogHint: "ניסיון איפור, ליווי לחינה, שינוי לוק — עם מחיר לכל פריט.",
-    catalogSectionPlaceholder: "למשל: כלה, אורחות, חתן",
+    packagesTitle: "סוגי שירות ומחירים",
+    packagesHint:
+      "שורה לכל סוג — למשל «איפור כלה מלא» ב-₪2,500, «איפור אורחת» ב-₪450. לחצו «הוסף שורת מחיר» לעוד סוגים.",
+    packagePriceLabel: "מחיר (₪)",
+    packagePriceExpandLabel: "אין מחיר קבוע — הציגו טווח",
+    catalogTitle: "תוספות בתשלום",
+    catalogHint: "רק אם יש שירותים נפרדים עם מחיר — ניסיון איפור, ליווי לחינה וכו'.",
+    catalogSectionPlaceholder: "קבוצה (אופציונלי)",
     catalogItemPlaceholder: "למשל: ניסיון איפור",
-    notesLabel: "הערות",
+    notesLabel: "הערות ללקוח",
     notesPlaceholder: "למשל: נסיעה עד 30 ק״מ כלולה",
     showGuestCapacity: false,
     showPersonCapacity: true,
@@ -141,6 +145,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requireGuestCountInquiry: false,
     requirePersonCountInquiry: true,
     requireQuantityInquiry: false,
+    catalogOptional: true,
     itemPricingModes: ["included", "per_unit", "fixed"],
   },
   fashion_rental: {

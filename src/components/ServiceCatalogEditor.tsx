@@ -1,6 +1,7 @@
 "use client";
 
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
+import { useEffect, useState } from "react";
 import type { CatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
   createEmptyDeliverable,
@@ -27,13 +28,16 @@ type Props = {
 };
 
 const PRICING_LABELS: Record<ServiceMenuItemPricing, string> = {
-  included: "כלול בחבילה (ללא תוספת)",
+  included: "ללא תוספת תשלום",
   per_guest: "תוספת לאורח (₪)",
   per_guest_range: "תוספת לאורח — טווח",
   fixed: "מחיר קבוע (₪)",
   per_unit: "מחיר ליחידה (₪)",
   per_hour: "מחיר לשעה (₪)",
 };
+
+/** תבניות שבהן רשימת פריטים היא חלק מרכזי (תפריט, דפוס...) */
+const CATALOG_ESSENTIAL = new Set<CatalogTemplate["id"]>(["food", "print_quantity"]);
 
 const input =
   "w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
@@ -57,6 +61,15 @@ function itemPriceSingleLabel(pricing: ServiceMenuItemPricing): string {
 
 export default function ServiceCatalogEditor({ template, value, onChange }: Props) {
   const pricingModes = template.itemPricingModes;
+  const catalogOptional =
+    template.catalogOptional ?? !CATALOG_ESSENTIAL.has(template.id);
+  const [catalogOpen, setCatalogOpen] = useState(!catalogOptional);
+
+  useEffect(() => {
+    if (value.packages.length === 0) {
+      onChange({ ...value, templateId: template.id, packages: [createEmptyMenuPackage()] });
+    }
+  }, [template.id]); // eslint-disable-line react-hooks/exhaustive-deps -- seed once per template
 
   function patchMenu(patch: Partial<ServiceMenuConfig>) {
     onChange({ ...value, templateId: template.id, ...patch });
@@ -115,11 +128,31 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
         <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
           {template.editorHint}
         </p>
+        <ol className="mt-3 space-y-1 text-[11px] text-neutral-700">
+          {showCapacity ? (
+            <li>
+              <strong>①</strong> כמה לקוחות / אורחים אתם משרתים
+            </li>
+          ) : null}
+          <li>
+            <strong>{showCapacity ? "②" : "①"}</strong> לכל סוג שירות — שם + מחיר (המחירון
+            העיקרי)
+          </li>
+          {catalogOptional ? (
+            <li>
+              <strong>{showCapacity ? "③" : "②"}</strong> תוספות ופירוט — רק אם צריך
+              (אופציונלי)
+            </li>
+          ) : null}
+        </ol>
       </div>
 
       {showCapacity ? (
         <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-4">
-          <h3 className="text-sm font-semibold text-emerald-950">{template.capacityTitle}</h3>
+          <h3 className="text-sm font-semibold text-emerald-950">
+            {showCapacity && template.showPersonCapacity ? "① " : ""}
+            {template.capacityTitle}
+          </h3>
           <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
             {template.capacityHint}
           </p>
@@ -192,7 +225,10 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
       ) : null}
 
       <div className="rounded-xl border border-amber-200/90 bg-amber-50/45 p-4">
-        <h3 className="text-sm font-semibold text-amber-900">{template.packagesTitle}</h3>
+        <h3 className="text-sm font-semibold text-amber-900">
+          {showCapacity ? "② " : "① "}
+          {template.packagesTitle}
+        </h3>
         <p className="mt-1 text-[11px] leading-relaxed text-amber-900/80">
           {template.packagesHint}
         </p>
@@ -209,7 +245,13 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                   value={pkg.name}
                   onChange={(e) => updatePackage(index, { name: e.target.value })}
                   className={input}
-                  placeholder="שם החבילה"
+                  placeholder={
+                    template.id === "beauty"
+                      ? "למשל: איפור כלה מלא"
+                      : template.id === "food"
+                        ? "למשל: חבילת זהב"
+                        : "שם השירות / סוג"
+                  }
                 />
                 <OptionalPriceRangeFields
                   useRange={pkg.usePerGuestRange === true}
@@ -300,7 +342,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                 rows={2}
                 value={pkg.description ?? ""}
                 onChange={(e) => updatePackage(index, { description: e.target.value })}
-                placeholder="מה כלול בחבילה"
+                placeholder="מה כלול? (אופציונלי)"
                 className={textarea}
               />
               <div className="mt-2 flex justify-end">
@@ -313,7 +355,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                   }
                   className="rounded-full border border-red-200 bg-white px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
                 >
-                  הסר חבילה
+                  הסר שורה
                 </button>
               </div>
             </li>
@@ -329,7 +371,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
           }
           className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:opacity-50"
         >
-          + הוסף חבילה ({value.packages.length})
+          + הוסף שורת מחיר ({value.packages.length})
         </button>
       </div>
 
@@ -405,8 +447,38 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
         </div>
       ) : null}
 
+      {catalogOptional && !catalogOpen ? (
+        <button
+          type="button"
+          onClick={() => setCatalogOpen(true)}
+          className="w-full rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 px-4 py-3 text-right text-xs text-neutral-700 hover:border-amber-400/60 hover:bg-amber-50/40"
+        >
+          <span className="font-semibold text-emerald-950">
+            {showCapacity ? "③ " : "② "}
+            {template.catalogTitle}
+          </span>
+          <span className="mt-0.5 block text-[11px] text-neutral-600">
+            יש לכם גם תוספות בתשלום או פירוט נוסף? לחצו כאן (לא חובה)
+          </span>
+        </button>
+      ) : (
       <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/60 p-4">
-        <h3 className="text-sm font-semibold text-emerald-950">{template.catalogTitle}</h3>
+        {catalogOptional ? (
+          <button
+            type="button"
+            onClick={() => setCatalogOpen(false)}
+            className="mb-2 text-[10px] text-neutral-500 hover:text-neutral-700"
+          >
+            הסתר תוספות (אופציונלי)
+          </button>
+        ) : null}
+        <h3 className="text-sm font-semibold text-emerald-950">
+          {!catalogOptional && showCapacity ? "③ " : !catalogOptional ? "② " : ""}
+          {template.catalogTitle}
+          {catalogOptional ? (
+            <span className="mr-2 text-[10px] font-normal text-neutral-500">(אופציונלי)</span>
+          ) : null}
+        </h3>
         <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
           {template.catalogHint}
         </p>
@@ -613,9 +685,10 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
           }
           className="mt-3 rounded-full border border-dashed border-emerald-950/35 bg-white px-3 py-1.5 text-[11px] font-medium text-emerald-950 hover:bg-neutral-50 disabled:opacity-50"
         >
-          + הוסף קטגוריה ({value.sections.length})
+          + הוסף קבוצה ({value.sections.length})
         </button>
       </div>
+      )}
 
       {template.showDeliverables ? (
         <div className="rounded-xl border border-sky-200/80 bg-sky-50/40 p-4">
