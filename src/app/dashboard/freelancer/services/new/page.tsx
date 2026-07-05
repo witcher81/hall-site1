@@ -11,7 +11,7 @@ import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
 } from "@/lib/freelancerServiceCategories";
-import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
+import { catalogReplacesIncludesEditor, resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import { buildMinMaxStringsForSubmit } from "@/lib/freelancerServicePriceForm";
 import type {
@@ -87,6 +87,10 @@ export default function NewServicePage() {
     [categoryValue]
   );
   const usesCatalog = form.primaryCategory.trim().length > 0;
+  const showCatalogEditor = usesCatalog && catalogTemplate != null;
+  const showIncludesEditor =
+    !catalogTemplate || !catalogReplacesIncludesEditor(catalogTemplate.id);
+  const showSimplePrice = !showCatalogEditor;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -119,16 +123,19 @@ export default function NewServicePage() {
             ...c,
             checked: c.label.trim().length > 0 ? true : c.checked,
           })),
-          paidExtras: usesCatalog ? [] : paidExtras,
+          paidExtras:
+            showCatalogEditor && catalogReplacesIncludesEditor(catalogTemplate.id)
+              ? []
+              : paidExtras,
         })
       );
-      if (usesCatalog && catalogTemplate) {
+      if (showCatalogEditor && catalogTemplate) {
         fd.append(
           "menuJson",
           JSON.stringify(ensureMenuTemplateId(menu, categoryValue))
         );
       }
-      if (!usesCatalog) {
+      if (showSimplePrice) {
         const { minPrice: minP, maxPrice: maxP } = buildMinMaxStringsForSubmit({
           priceUseRange: form.priceUseRange,
           exactPrice: form.exactPrice,
@@ -267,13 +274,15 @@ export default function NewServicePage() {
           description="לחצו על הכפתור «+ הוסף רשת / קישור» כדי להוסיף שורה חדשה. בכל שורה בוחרים רשת ומדביקים קישור מלא."
         />
 
-        {usesCatalog && catalogTemplate ? (
+        {showCatalogEditor && catalogTemplate ? (
           <ServiceCatalogEditor
             template={catalogTemplate}
             value={menu}
             onChange={setMenu}
           />
-        ) : (
+        ) : null}
+
+        {showIncludesEditor ? (
           <>
             <ServiceIncludesEditor
               customIncludes={customIncludes}
@@ -282,6 +291,7 @@ export default function NewServicePage() {
               onPaidExtrasChange={setPaidExtras}
             />
 
+            {showSimplePrice ? (
             <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-4">
               <OptionalPriceRangeFields
                 useRange={form.priceUseRange}
@@ -326,8 +336,9 @@ export default function NewServicePage() {
                 inputClassName={input}
               />
             </div>
+            ) : null}
           </>
-        )}
+        ) : null}
 
         <div>
           <label className="block text-xs font-medium text-neutral-600">

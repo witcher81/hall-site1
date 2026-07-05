@@ -10,7 +10,7 @@ import {
   composeServiceCategoryValue,
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
-import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
+import { catalogReplacesIncludesEditor, resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import {
   buildMinMaxStringsForSubmit,
@@ -100,6 +100,10 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     [categoryValue]
   );
   const usesCatalog = form.primaryCategory.trim().length > 0;
+  const showCatalogEditor = usesCatalog && catalogTemplate != null;
+  const showIncludesEditor =
+    !catalogTemplate || !catalogReplacesIncludesEditor(catalogTemplate.id);
+  const showSimplePrice = !showCatalogEditor;
   const hasInvalidSocialLinks = socialLinks.some(
     (l) => l.url.trim().length > 0 && normalizeSocialUrl(l.url) === null
   );
@@ -156,10 +160,13 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
             ...c,
             checked: c.label.trim().length > 0 ? true : c.checked,
           })),
-          paidExtras: usesCatalog ? [] : paidExtras,
+          paidExtras:
+            showCatalogEditor && catalogReplacesIncludesEditor(catalogTemplate.id)
+              ? []
+              : paidExtras,
         })
       );
-      if (usesCatalog && catalogTemplate) {
+      if (showCatalogEditor && catalogTemplate) {
         fd.append(
           "menuJson",
           JSON.stringify(ensureMenuTemplateId(menu, categoryValue))
@@ -286,13 +293,15 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         description="לחצו על הכפתור «+ הוסף רשת / קישור» כדי להוסיף שורה חדשה. בכל שורה בוחרים רשת ומדביקים קישור מלא — יוצג למחפשים."
       />
 
-      {usesCatalog && catalogTemplate ? (
+      {showCatalogEditor && catalogTemplate ? (
         <ServiceCatalogEditor
           template={catalogTemplate}
           value={menu}
           onChange={setMenu}
         />
-      ) : (
+      ) : null}
+
+      {showIncludesEditor ? (
         <>
           <ServiceIncludesEditor
             customIncludes={customIncludes}
@@ -301,6 +310,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
             onPaidExtrasChange={setPaidExtras}
           />
 
+          {showSimplePrice ? (
           <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-4">
             <OptionalPriceRangeFields
               useRange={form.priceUseRange}
@@ -345,8 +355,9 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
               inputClassName="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             />
           </div>
+          ) : null}
         </>
-      )}
+      ) : null}
 
       <div>
         <label className="block text-xs font-medium text-neutral-600">

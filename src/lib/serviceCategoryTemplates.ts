@@ -642,3 +642,16 @@ export function serviceUsesCatalogEditor(
 ): boolean {
   return resolveCatalogTemplateFromCategory(category) != null;
 }
+
+/** תבניות שבהן עורך הקטלוג מחליף את «מה כלול» / «תוספות» — לא מסתירים אותן בשאר הקטגוריות */
+const CATALOG_REPLACES_INCLUDES_EDITOR = new Set<CatalogTemplateId>([
+  "food",
+  "staffing",
+  "print_quantity",
+]);
+
+export function catalogReplacesIncludesEditor(
+  templateId: CatalogTemplateId | null | undefined
+): boolean {
+  return templateId != null && CATALOG_REPLACES_INCLUDES_EDITOR.has(templateId);
+}
