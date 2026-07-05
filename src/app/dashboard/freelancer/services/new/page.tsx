@@ -1,7 +1,7 @@
 "use client";
 
+import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
-import ServiceMenuEditor from "@/components/ServiceMenuEditor";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
@@ -10,9 +10,8 @@ import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
-  FOOD_BEVERAGE_PRIMARY,
-  parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
+import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import { buildMinMaxStringsForSubmit } from "@/lib/freelancerServicePriceForm";
 import type {
@@ -21,6 +20,7 @@ import type {
 } from "@/lib/serviceIncludes";
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import {
+  ensureMenuTemplateId,
   parseServiceMenuJson,
   type ServiceMenuConfig,
 } from "@/lib/serviceMenu";
@@ -77,7 +77,16 @@ export default function NewServicePage() {
     };
   }, [coverPreview]);
 
-  const isFoodService = form.primaryCategory === FOOD_BEVERAGE_PRIMARY;
+  const categoryValue = useMemo(
+    () =>
+      composeServiceCategoryValue(form.primaryCategory, form.secondaryCategories),
+    [form.primaryCategory, form.secondaryCategories]
+  );
+  const catalogTemplate = useMemo(
+    () => resolveCatalogTemplateFromCategory(categoryValue),
+    [categoryValue]
+  );
+  const usesCatalog = form.primaryCategory.trim().length > 0;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -110,13 +119,16 @@ export default function NewServicePage() {
             ...c,
             checked: c.label.trim().length > 0 ? true : c.checked,
           })),
-          paidExtras: isFoodService ? [] : paidExtras,
+          paidExtras: usesCatalog ? [] : paidExtras,
         })
       );
-      if (isFoodService) {
-        fd.append("menuJson", JSON.stringify(menu));
+      if (usesCatalog && catalogTemplate) {
+        fd.append(
+          "menuJson",
+          JSON.stringify(ensureMenuTemplateId(menu, categoryValue))
+        );
       }
-      if (!isFoodService) {
+      if (!usesCatalog) {
         const { minPrice: minP, maxPrice: maxP } = buildMinMaxStringsForSubmit({
           priceUseRange: form.priceUseRange,
           exactPrice: form.exactPrice,
@@ -255,8 +267,12 @@ export default function NewServicePage() {
           description="לחצו על הכפתור «+ הוסף רשת / קישור» כדי להוסיף שורה חדשה. בכל שורה בוחרים רשת ומדביקים קישור מלא."
         />
 
-        {isFoodService ? (
-          <ServiceMenuEditor value={menu} onChange={setMenu} />
+        {usesCatalog && catalogTemplate ? (
+          <ServiceCatalogEditor
+            template={catalogTemplate}
+            value={menu}
+            onChange={setMenu}
+          />
         ) : (
           <>
             <ServiceIncludesEditor

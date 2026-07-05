@@ -1,0 +1,637 @@
+import {
+  FOOD_BEVERAGE_PRIMARY,
+  FREELANCER_CATEGORY_GROUPS,
+  parseServiceCategorySelections,
+} from "@/lib/freelancerServiceCategories";
+
+/** מזהה תבנית תמחור ועורך */
+export type CatalogTemplateId =
+  | "food"
+  | "staffing"
+  | "beauty"
+  | "fashion_rental"
+  | "print_quantity"
+  | "photo_video"
+  | "music"
+  | "tech_av"
+  | "equipment_rental"
+  | "attraction"
+  | "planning"
+  | "ceremony"
+  | "design"
+  | "transport"
+  | "corporate"
+  | "activation"
+  | "generic";
+
+export type CatalogTemplate = {
+  id: CatalogTemplateId;
+  editorTitle: string;
+  editorHint: string;
+  /** כותרת בלוק קיבולת */
+  capacityTitle: string;
+  capacityHint: string;
+  minCapacityLabel: string;
+  maxCapacityLabel: string;
+  packagesTitle: string;
+  packagesHint: string;
+  packagePriceLabel: string;
+  packagePriceExpandLabel: string;
+  catalogTitle: string;
+  catalogHint: string;
+  catalogSectionPlaceholder: string;
+  catalogItemPlaceholder: string;
+  notesLabel: string;
+  notesPlaceholder: string;
+  showGuestCapacity: boolean;
+  showPersonCapacity: boolean;
+  showQuantityTiers: boolean;
+  showDeliverables: boolean;
+  showPackageDuration: boolean;
+  requireGuestCountInquiry: boolean;
+  requirePersonCountInquiry: boolean;
+  requireQuantityInquiry: boolean;
+  itemPricingModes: Array<
+    "included" | "per_guest" | "per_guest_range" | "fixed" | "per_unit" | "per_hour"
+  >;
+};
+
+const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
+  food: {
+    id: "food",
+    editorTitle: "תפריט ומחירי אוכל",
+    editorHint:
+      "הגדירו כמה אורחים אתם משרתים, חבילות מחיר לאורח ופירוט מנות — כדי שהלקוח יידע מה מקבל ובכמה.",
+    capacityTitle: "קיבולת אורחים",
+    capacityHint: "טווח האורחים שאתם יכולים להכין ולשרת באירוע.",
+    minCapacityLabel: "מינימום אורחים *",
+    maxCapacityLabel: "מקסימום אורחים *",
+    packagesTitle: "חבילות מחיר",
+    packagesHint: "חבילות מוכנות עם מחיר לאורח — למשל «כסף», «זהב», «מנה בסיסית».",
+    packagePriceLabel: "מחיר לאורח (₪)",
+    packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח לאורח",
+    catalogTitle: "תפריט מנות",
+    catalogHint: "קטגוריות ומנות — לכל מנה ציינו אם כלולה בחבילה או בתוספת תשלום.",
+    catalogSectionPlaceholder: "למשל: מנות ראשונות, עיקריות, קינוחים",
+    catalogItemPlaceholder: "למשל: סלט ירוק, בשר צלוי",
+    notesLabel: "הערות לתפריט (כשרות, אלרגנים)",
+    notesPlaceholder: "למשל: כשר למהדרין, אפשרות ללא גלוטן בתיאום",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "per_guest", "per_guest_range", "fixed"],
+  },
+  staffing: {
+    id: "staffing",
+    editorTitle: "צוות ותמחור לפי אורחים",
+    editorHint:
+      "הגדירו כמה אורחים אתם מכסים, חבילות צוות ומה כלול (שעות, תפקידים, מדים).",
+    capacityTitle: "קיבולת אורחים",
+    capacityHint: "לאיזה גודל אירוע אתם מתאימים — משפיע על גודל הצוות.",
+    minCapacityLabel: "מינימום אורחים *",
+    maxCapacityLabel: "מקסימום אורחים *",
+    packagesTitle: "חבילות צוות",
+    packagesHint: "למשל: צוות בסיס (מלצרים לפי יחס), צוות מורחב עם ברמן.",
+    packagePriceLabel: "מחיר לאורח (₪)",
+    packagePriceExpandLabel: "טווח מחיר לאורח",
+    catalogTitle: "תפקידים ושירותים",
+    catalogHint: "פירוט תפקידים, שעות מינימום ותוספות (ברמן נוסף, מנהל קבלה).",
+    catalogSectionPlaceholder: "למשל: הגשה, בר, קבלת פנים",
+    catalogItemPlaceholder: "למשל: מלצר נוסף לשעה",
+    notesLabel: "הערות תפעול",
+    notesPlaceholder: "למשל: מינימום 4 שעות, מדים כלולים",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "per_guest", "per_hour", "fixed"],
+  },
+  beauty: {
+    id: "beauty",
+    editorTitle: "חבילות איפור ושיער",
+    editorHint: "מחיר לפי אדם — כלה, חתן, אורחות. ציינו מה כלול בכל חבילה.",
+    capacityTitle: "קיבולת (מספר אנשים)",
+    capacityHint: "כמה לקוחות אתם יכולים לטפל ביום האירוע / בחינה.",
+    minCapacityLabel: "מינימום אנשים *",
+    maxCapacityLabel: "מקסימום אנשים *",
+    packagesTitle: "חבילות מחיר",
+    packagesHint: "למשל: חבילת כלה מלאה, איפור אורחת, חתן.",
+    packagePriceLabel: "מחיר לאדם (₪)",
+    packagePriceExpandLabel: "טווח מחיר לאדם",
+    catalogTitle: "שירותים ותוספות",
+    catalogHint: "ניסיון איפור, ליווי לחינה, שינוי לוק — עם מחיר לכל פריט.",
+    catalogSectionPlaceholder: "למשל: כלה, אורחות, חתן",
+    catalogItemPlaceholder: "למשל: ניסיון איפור",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: נסיעה עד 30 ק״מ כלולה",
+    showGuestCapacity: false,
+    showPersonCapacity: true,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: false,
+    requirePersonCountInquiry: true,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "per_unit", "fixed"],
+  },
+  fashion_rental: {
+    id: "fashion_rental",
+    editorTitle: "קטלוג השכרה והתאמות",
+    editorHint: "דגמים, מידות, ימי השכרה ומחיר — לשמלות, חליפות ואקססוריז.",
+    capacityTitle: "מלאי וקיבולת",
+    capacityHint: "כמה לקוחות במקביל או כמה פריטים זמינים.",
+    minCapacityLabel: "מינימום ימי השכרה",
+    maxCapacityLabel: "מקסימום פריטים במלאי",
+    packagesTitle: "חבילות השכרה",
+    packagesHint: "למשל: שמלת כלה + אקססוריז, חליפת חתן.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "טווח מחיר לחבילה",
+    catalogTitle: "פריטים בקטלוג",
+    catalogHint: "פריטים בודדים עם מחיר השכרה והתאמות.",
+    catalogSectionPlaceholder: "למשל: שמלות, חליפות, תכשיטים",
+    catalogItemPlaceholder: "למשל: שמלה מידה 38",
+    notesLabel: "תנאי השכרה",
+    notesPlaceholder: "למשל: פיקדון, ניקוי, החזרה תוך 3 ימים",
+    showGuestCapacity: false,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: false,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_unit"],
+  },
+  print_quantity: {
+    id: "print_quantity",
+    editorTitle: "מוצרים ומחיר לפי כמות",
+    editorHint: "הזמנות, place cards ודפוס — מחיר ליחידה לפי מדרגות כמות.",
+    capacityTitle: "טווח כמויות",
+    capacityHint: "מינימום ומקסימום יחידות בהזמנה אחת.",
+    minCapacityLabel: "מינימום יחידות *",
+    maxCapacityLabel: "מקסימום יחידות *",
+    packagesTitle: "חבילות עיצוב",
+    packagesHint: "למשל: עיצוב בסיסי, עיצוב פרימיום + קליגרפיה.",
+    packagePriceLabel: "מחיר ליחידה (₪)",
+    packagePriceExpandLabel: "טווח מחיר ליחידה",
+    catalogTitle: "סוגי מוצרים",
+    catalogHint: "הזמנה, save the date, תפריט שולחן — עם מחיר ליחידה.",
+    catalogSectionPlaceholder: "למשל: הזמנות, שולחן",
+    catalogItemPlaceholder: "למשל: הזמנה כפולה",
+    notesLabel: "הערות דפוס",
+    notesPlaceholder: "למשל: זמן אספקה 3 שבועות, כולל הדפסה",
+    showGuestCapacity: false,
+    showPersonCapacity: false,
+    showQuantityTiers: true,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: false,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: true,
+    itemPricingModes: ["included", "per_unit", "fixed"],
+  },
+  photo_video: {
+    id: "photo_video",
+    editorTitle: "חבילות צילום / וידאו",
+    editorHint: "שעות כיסוי, תוצרים (תמונות, דקות וידאו) ותוספות — לכל חבילה מחיר.",
+    capacityTitle: "היקף אירוע",
+    capacityHint: "גודל אירוע מומלץ או מקסימום אורחים לכיסוי מלא.",
+    minCapacityLabel: "מינימום אורחים (אופציונלי)",
+    maxCapacityLabel: "מקסימום אורחים (אופציונלי)",
+    packagesTitle: "חבילות שירות",
+    packagesHint: "למשל: 6 שעות + 400 תמונות, וידאו Highlights.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "טווח מחיר לחבילה",
+    catalogTitle: "תוספות ותוצרים",
+    catalogHint: "צלם שני, רחפן, אלבום, Same-day — עם מחיר.",
+    catalogSectionPlaceholder: "למשל: תוספות, תוצרים",
+    catalogItemPlaceholder: "למשל: צלם שני",
+    notesLabel: "הערות מקצועיות",
+    notesPlaceholder: "למשל: זמן אספקה גלריה 4–6 שבועות",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: true,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_hour"],
+  },
+  music: {
+    id: "music",
+    editorTitle: "חבילות מוזיקה והופעה",
+    editorHint: "משך הופעה, הרכב, ציוד כלול ותוספות — לפי קטעי האירוע.",
+    capacityTitle: "היקף אירוע",
+    capacityHint: "גודל אולם / אורחים שההרכב מתאים לו.",
+    minCapacityLabel: "מינימום אורחים",
+    maxCapacityLabel: "מקסימום אורחים",
+    packagesTitle: "חבילות הופעה",
+    packagesHint: "למשל: DJ לקבלת פנים + ריקודים, זמר חופה + 3 שירים.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "תוספות וציוד",
+    catalogHint: "נגן נוסף, הגברה, שיר בקשה.",
+    catalogSectionPlaceholder: "למשל: קבלת פנים, חופה, ריקודים",
+    catalogItemPlaceholder: "למשל: שיר בקשה",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: הגברה בסיסית כלולה",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_hour"],
+  },
+  tech_av: {
+    id: "tech_av",
+    editorTitle: "הגברה, תאורה וטכני",
+    editorHint: "שעות עבודה, ציוד כלול ותוספות טכניות לאירוע.",
+    capacityTitle: "היקף טכני",
+    capacityHint: "גודל אולם / כמות אורחים שהמערכת מכסה.",
+    minCapacityLabel: "מינימום אורחים",
+    maxCapacityLabel: "מקסימום אורחים",
+    packagesTitle: "חבילות טכניות",
+    packagesHint: "למשל: סאונד בסיסי, סאונד+לייט מלא.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "ציוד ושעות נוספות",
+    catalogHint: "מיקרופון נוסף, שעת טכנאי, מסך LED.",
+    catalogSectionPlaceholder: "למשל: הגברה, תאורה",
+    catalogItemPlaceholder: "למשל: מיקרופון אלחוטי",
+    notesLabel: "דרישות מקום",
+    notesPlaceholder: "למשל: נקודת חשמל, גישה להקמה",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_hour"],
+  },
+  equipment_rental: {
+    id: "equipment_rental",
+    editorTitle: "קטלוג השכרת ציוד",
+    editorHint: "פריטים, מחיר ליום / לאירוע, כמות במלאי והובלה.",
+    capacityTitle: "מלאי",
+    capacityHint: "כמות פריטים זמינה או גודל אירוע מקסימלי.",
+    minCapacityLabel: "מינימום ימי השכרה",
+    maxCapacityLabel: "מקסימום פריטים",
+    packagesTitle: "חבילות ציוד",
+    packagesHint: "למשל: 10 שולחנות + 80 כיסאות + מפות.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "פריטים להשכרה",
+    catalogHint: "כל פריט — מחיר ליום או לאירוע וכמות זמינה.",
+    catalogSectionPlaceholder: "למשל: ריהוט, במה, אוהלים",
+    catalogItemPlaceholder: "למשל: שולחן עגול",
+    notesLabel: "הובלה והקמה",
+    notesPlaceholder: "למשל: הובלה עד 50 ק״מ כלולה",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_unit", "per_hour"],
+  },
+  attraction: {
+    id: "attraction",
+    editorTitle: "אטרקציה ומחיר",
+    editorHint: "משך הפעלה, קיבולת קהל ומה כלול בחבילה.",
+    capacityTitle: "קיבולת קהל",
+    capacityHint: "כמה משתתפים בו-זמנית או באירוע.",
+    minCapacityLabel: "מינימום משתתפים",
+    maxCapacityLabel: "מקסימום משתתפים",
+    packagesTitle: "חבילות אטרקציה",
+    packagesHint: "למשל: שעה הפעלה, ערב מלא עם 2 אמנים.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "תוספות",
+    catalogHint: "שעה נוספת, אביזרים, דמות נוספת.",
+    catalogSectionPlaceholder: "למשל: תוספות",
+    catalogItemPlaceholder: "למשל: שעת הארכה",
+    notesLabel: "דרישות מקום",
+    notesPlaceholder: "למשל: שטח 3×3 מ׳, חשמל",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_hour"],
+  },
+  planning: {
+    id: "planning",
+    editorTitle: "חבילות תכנון וניהול",
+    editorHint: "סוג ליווי (מלא / יום האירוע), היקף שירות ומחיר.",
+    capacityTitle: "היקף אירוע",
+    capacityHint: "גודל אירוע אופייני שאתם מלווים.",
+    minCapacityLabel: "מינימום אורחים",
+    maxCapacityLabel: "מקסימום אורחים",
+    packagesTitle: "חבילות שירות",
+    packagesHint: "למשל: תכנון מלא, Day-of coordinator בלבד.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "שירותים כלולים",
+    catalogHint: "פגישות תכנון, ליווי ספקים, הושבה.",
+    catalogSectionPlaceholder: "למשל: לפני האירוע, ביום האירוע",
+    catalogItemPlaceholder: "למשל: פגישת תכנון",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: עד 8 פגישות כלולות",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed"],
+  },
+  ceremony: {
+    id: "ceremony",
+    editorTitle: "חבילות טקס",
+    editorHint: "סוג טקס, שפות, נסיעות ומה כלול במחיר.",
+    capacityTitle: "היקף",
+    capacityHint: "גודל קהל או סוג אירוע.",
+    minCapacityLabel: "מינימום משתתפים",
+    maxCapacityLabel: "מקסימום משתתפים",
+    packagesTitle: "חבילות",
+    packagesHint: "למשל: טקס חופה מלא, ייעוץ רישום נישואין.",
+    packagePriceLabel: "מחיר (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "שירותים נוספים",
+    catalogHint: "פגישת היכרות, טקס באנגלית, נסיעה.",
+    catalogSectionPlaceholder: "למשל: שירותים",
+    catalogItemPlaceholder: "למשל: פגישת היכרות",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: נסיעה עד 40 ק״מ כלולה",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: false,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed"],
+  },
+  design: {
+    id: "design",
+    editorTitle: "עיצוב ופריטי תפאורה",
+    editorHint: "פריטי עיצוב, חבילות לפי גודל אירוע ותוספות.",
+    capacityTitle: "גודל אירוע",
+    capacityHint: "טווח אורחים שהעיצוב מותאם אליו.",
+    minCapacityLabel: "מינימום אורחים",
+    maxCapacityLabel: "מקסימום אורחים",
+    packagesTitle: "חבילות עיצוב",
+    packagesHint: "למשל: חופה בסיסית, עיצוב אולם מלא.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "פריטי עיצוב",
+    catalogHint: "מרכזי שולחן, קישוט כניסה, פרחים.",
+    catalogSectionPlaceholder: "למשל: חופה, שולחנות",
+    catalogItemPlaceholder: "למשל: מרכז שולחן גדול",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: פירוק ביום למחרת כלול",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_unit"],
+  },
+  transport: {
+    id: "transport",
+    editorTitle: "הסעות ותחבורה",
+    editorHint: "סוג רכב, קיבולת נוסעים ומחיר לנסיעה / לאורח.",
+    capacityTitle: "קיבולת נוסעים",
+    capacityHint: "כמה נוסעים בנסיעה או באירוע.",
+    minCapacityLabel: "מינימום נוסעים",
+    maxCapacityLabel: "מקסימום נוסעים",
+    packagesTitle: "חבילות הסעה",
+    packagesHint: "למשל: מיניבוס 20 מקומות, לימוזינה זוג.",
+    packagePriceLabel: "מחיר לנסיעה / לאורח (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "סוגי רכבים",
+    catalogHint: "אוטובוס, מיניבוס, רכב יוקרה — עם מחיר.",
+    catalogSectionPlaceholder: "למשל: רכבים",
+    catalogItemPlaceholder: "למשל: מיניבוס 15 מקומות",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: נסיעות סביב אזור המרכז",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_guest"],
+  },
+  corporate: {
+    id: "corporate",
+    editorTitle: "חבילות כנס ואירוע עסקי",
+    editorHint: "מחיר למשתתף או חבילה מלאה — תוכן, שידור, מיתוג.",
+    capacityTitle: "קיבולת משתתפים",
+    capacityHint: "מינימום ומקסימום משתתפים בכנס / אירוע.",
+    minCapacityLabel: "מינימום משתתפים *",
+    maxCapacityLabel: "מקסימום משתתפים *",
+    packagesTitle: "חבילות",
+    packagesHint: "למשל: כנס היברידי, יום עיון מלא.",
+    packagePriceLabel: "מחיר למשתתף (₪)",
+    packagePriceExpandLabel: "טווח למשתתף",
+    catalogTitle: "שירותים",
+    catalogHint: "תרגום, הקלטה, עמדת ספונסר.",
+    catalogSectionPlaceholder: "למשל: הפקה, תוכן",
+    catalogItemPlaceholder: "למשל: תרגום סימולטני",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: כולל בימה ומערכת הגברה",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_guest"],
+  },
+  activation: {
+    id: "activation",
+    editorTitle: "אקטיבציה ומיתוג חווייתי",
+    editorHint: "עמדות, ימי פעילות ומחיר לפי היקף / משך.",
+    capacityTitle: "קיבולת",
+    capacityHint: "משתתפים צפויים או עמדות במקביל.",
+    minCapacityLabel: "מינימום",
+    maxCapacityLabel: "מקסימום",
+    packagesTitle: "חבילות",
+    packagesHint: "למשל: עמדת VR, אקטיבציה מלאה ליום.",
+    packagePriceLabel: "מחיר (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "עמדות ותוספות",
+    catalogHint: "עמדה נוספת, מיתוג, צוות.",
+    catalogSectionPlaceholder: "למשל: עמדות",
+    catalogItemPlaceholder: "למשל: עמדת מיצג",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: דורש שטח מקורה",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_hour"],
+  },
+  generic: {
+    id: "generic",
+    editorTitle: "חבילות ומחירים",
+    editorHint: "הגדירו מה אתם מציעים, חבילות מחיר ופריטים בתוספת תשלום.",
+    capacityTitle: "היקף שירות",
+    capacityHint: "טווח גודל אירוע / לקוחות שאתם משרתים (אם רלוונטי).",
+    minCapacityLabel: "מינימום",
+    maxCapacityLabel: "מקסימום",
+    packagesTitle: "חבילות",
+    packagesHint: "חבילות מוכנות עם מחיר ברור.",
+    packagePriceLabel: "מחיר (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "פריטים ותוספות",
+    catalogHint: "מה כלול ומה בתוספת תשלום.",
+    catalogSectionPlaceholder: "קטגוריה",
+    catalogItemPlaceholder: "שם פריט",
+    notesLabel: "הערות",
+    notesPlaceholder: "תנאים מיוחדים",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: false,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_guest", "per_hour", "per_unit"],
+  },
+};
+
+/** ברירת מחדל לכל קטגוריה ראשית */
+const PRIMARY_DEFAULT: Record<string, CatalogTemplateId> = {
+  [FOOD_BEVERAGE_PRIMARY]: "food",
+  "תכנון וניהול אירוע": "planning",
+  "צילום ותיעוד": "photo_video",
+  "מוזיקה ובמה": "music",
+  "טקסים": "ceremony",
+  "עיצוב ומיתוג": "design",
+  "יופי ואיפור": "beauty",
+  "הלבשה ואופנה לאירוע": "fashion_rental",
+  "הזמנות ודפוס": "print_quantity",
+  "אטרקציות ובידור": "attraction",
+  "ציוד ולוגיסטיקה": "equipment_rental",
+  "שירותי קהל ותפעול": "staffing",
+  "אירועים עסקיים וכנסים": "corporate",
+  "מיתוג חווייתי ואקטיבציות": "activation",
+  אחר: "generic",
+};
+
+/** דריסות לתת־קטגוריות ספציפיות */
+const SECONDARY_OVERRIDE: Partial<Record<string, CatalogTemplateId>> = {
+  "טכנאי הגברה (סאונדמן)": "tech_av",
+  "מפעיל תאורה (לייטמן)": "tech_av",
+  "מפעיל במה — סאונד ותאורה": "tech_av",
+  "הגברה ותאורה": "tech_av",
+  "מסכי LED והקרנה": "tech_av",
+  "השכרת ציוד כללי לאירועים": "equipment_rental",
+  "השכרת ריהוט (שולחנות, כיסאות)": "equipment_rental",
+  "השכרת כלים, זכוכית וציוד הגשה": "equipment_rental",
+  "במות ותפאורה טכנית": "equipment_rental",
+  "אוהלים והצללות": "equipment_rental",
+  "מלצרים / צוות הגשה": "staffing",
+  "ברמנים / צוות בר": "staffing",
+  "דיילות וקבלת פנים": "staffing",
+  "אבטחה וסדרנות": "staffing",
+  "צוות הקמה ופירוק": "staffing",
+  "הסעות אורחים": "transport",
+  "השכרת רכב יוקרה / לימוזינה": "transport",
+  "אוטובוסים / מיניבוסים לאורחים": "transport",
+  "שירותי חניה (Valet)": "transport",
+  "ניקיון לפני/במהלך/אחרי": "generic",
+  "חובש/פראמדיק לאירוע": "generic",
+  "משגיח כשרות לאירוע": "generic",
+  "מתנות לאורחים (Party favors)": "print_quantity",
+  "שירות VIP / ליווי אורחים": "staffing",
+};
+
+function buildSecondaryTemplateMap(): Record<string, CatalogTemplateId> {
+  const map: Record<string, CatalogTemplateId> = {};
+  for (const group of FREELANCER_CATEGORY_GROUPS) {
+    const fallback = PRIMARY_DEFAULT[group.primary] ?? "generic";
+    for (const service of group.services) {
+      map[service] = SECONDARY_OVERRIDE[service] ?? fallback;
+    }
+  }
+  return map;
+}
+
+export const SECONDARY_CATALOG_TEMPLATE = buildSecondaryTemplateMap();
+
+export function getCatalogTemplate(id: CatalogTemplateId): CatalogTemplate {
+  return TEMPLATES[id];
+}
+
+export function resolveCatalogTemplateId(
+  primary: string,
+  secondaries: string[]
+): CatalogTemplateId | null {
+  const p = primary.trim();
+  if (!p) return null;
+  if (secondaries.length === 1) {
+    return SECONDARY_CATALOG_TEMPLATE[secondaries[0]!] ?? PRIMARY_DEFAULT[p] ?? "generic";
+  }
+  if (secondaries.length > 1) {
+    const ids = new Set(
+      secondaries.map((s) => SECONDARY_CATALOG_TEMPLATE[s] ?? PRIMARY_DEFAULT[p] ?? "generic")
+    );
+    if (ids.size === 1) return [...ids][0]!;
+    return PRIMARY_DEFAULT[p] ?? "generic";
+  }
+  return PRIMARY_DEFAULT[p] ?? "generic";
+}
+
+export function resolveCatalogTemplateFromCategory(
+  category: string | null | undefined
+): CatalogTemplate | null {
+  if (!category?.trim()) return null;
+  const { primary, secondaries } = parseServiceCategorySelections(category);
+  const id = resolveCatalogTemplateId(primary, secondaries);
+  if (!id) return null;
+  return getCatalogTemplate(id);
+}
+
+export function serviceUsesCatalogEditor(
+  category: string | null | undefined
+): boolean {
+  return resolveCatalogTemplateFromCategory(category) != null;
+}

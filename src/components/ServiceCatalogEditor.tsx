@@ -1,0 +1,690 @@
+"use client";
+
+import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
+import type { CatalogTemplate } from "@/lib/serviceCategoryTemplates";
+import {
+  createEmptyDeliverable,
+  createEmptyMenuItem,
+  createEmptyMenuPackage,
+  createEmptyMenuSection,
+  createEmptyQuantityTier,
+  MAX_MENU_ITEMS_PER_SECTION,
+  MAX_MENU_PACKAGES,
+  MAX_MENU_SECTIONS,
+  type ServiceDeliverable,
+  type ServiceMenuConfig,
+  type ServiceMenuItem,
+  type ServiceMenuItemPricing,
+  type ServiceMenuPackage,
+  type ServiceMenuSection,
+  type ServiceQuantityTier,
+} from "@/lib/serviceMenu";
+
+type Props = {
+  template: CatalogTemplate;
+  value: ServiceMenuConfig;
+  onChange: (next: ServiceMenuConfig) => void;
+};
+
+const PRICING_LABELS: Record<ServiceMenuItemPricing, string> = {
+  included: "כלול בחבילה (ללא תוספת)",
+  per_guest: "תוספת לאורח (₪)",
+  per_guest_range: "תוספת לאורח — טווח",
+  fixed: "מחיר קבוע (₪)",
+  per_unit: "מחיר ליחידה (₪)",
+  per_hour: "מחיר לשעה (₪)",
+};
+
+const input =
+  "w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
+const textarea =
+  "mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] leading-relaxed text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
+
+function parsePriceInput(v: string): number | null {
+  const t = v.trim();
+  if (!t) return null;
+  const n = Number(t);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.trunc(n);
+}
+
+function itemPriceSingleLabel(pricing: ServiceMenuItemPricing): string {
+  if (pricing === "per_hour") return "מחיר לשעה (₪)";
+  if (pricing === "per_unit") return "מחיר ליחידה (₪)";
+  if (pricing === "fixed") return "מחיר (₪)";
+  return "מחיר לאורח (₪)";
+}
+
+export default function ServiceCatalogEditor({ template, value, onChange }: Props) {
+  const pricingModes = template.itemPricingModes;
+
+  function patchMenu(patch: Partial<ServiceMenuConfig>) {
+    onChange({ ...value, templateId: template.id, ...patch });
+  }
+
+  function updateSection(index: number, patch: Partial<ServiceMenuSection>) {
+    patchMenu({
+      sections: value.sections.map((s, i) => (i === index ? { ...s, ...patch } : s)),
+    });
+  }
+
+  function updateItem(
+    sectionIndex: number,
+    itemIndex: number,
+    patch: Partial<ServiceMenuItem>
+  ) {
+    const sections = value.sections.map((sec, si) => {
+      if (si !== sectionIndex) return sec;
+      return {
+        ...sec,
+        items: sec.items.map((item, ii) =>
+          ii === itemIndex ? { ...item, ...patch } : item
+        ),
+      };
+    });
+    patchMenu({ sections });
+  }
+
+  function updatePackage(index: number, patch: Partial<ServiceMenuPackage>) {
+    patchMenu({
+      packages: value.packages.map((p, i) => (i === index ? { ...p, ...patch } : p)),
+    });
+  }
+
+  function updateTier(index: number, patch: Partial<ServiceQuantityTier>) {
+    const tiers = value.quantityTiers ?? [];
+    patchMenu({
+      quantityTiers: tiers.map((t, i) => (i === index ? { ...t, ...patch } : t)),
+    });
+  }
+
+  function updateDeliverable(index: number, patch: Partial<ServiceDeliverable>) {
+    const list = value.deliverables ?? [];
+    patchMenu({
+      deliverables: list.map((d, i) => (i === index ? { ...d, ...patch } : d)),
+    });
+  }
+
+  const showCapacity =
+    template.showGuestCapacity || template.showPersonCapacity;
+
+  return (
+    <div className="space-y-4 text-right">
+      <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-4">
+        <h3 className="text-sm font-semibold text-emerald-950">{template.editorTitle}</h3>
+        <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
+          {template.editorHint}
+        </p>
+      </div>
+
+      {showCapacity ? (
+        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-4">
+          <h3 className="text-sm font-semibold text-emerald-950">{template.capacityTitle}</h3>
+          <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
+            {template.capacityHint}
+          </p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <label className="block text-[11px] font-medium text-neutral-600">
+                {template.minCapacityLabel}
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={
+                  template.showPersonCapacity
+                    ? (value.minPersons ?? "")
+                    : (value.minGuests ?? "")
+                }
+                onChange={(e) => {
+                  const n = parsePriceInput(e.target.value);
+                  if (template.showPersonCapacity) {
+                    patchMenu({ minPersons: n });
+                  } else {
+                    patchMenu({ minGuests: n });
+                  }
+                }}
+                className={`${input} mt-1`}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-neutral-600">
+                {template.maxCapacityLabel}
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={
+                  template.showPersonCapacity
+                    ? (value.maxPersons ?? "")
+                    : (value.maxGuests ?? "")
+                }
+                onChange={(e) => {
+                  const n = parsePriceInput(e.target.value);
+                  if (template.showPersonCapacity) {
+                    patchMenu({ maxPersons: n });
+                  } else {
+                    patchMenu({ maxGuests: n });
+                  }
+                }}
+                className={`${input} mt-1`}
+              />
+            </div>
+            {template.id === "food" ? (
+              <div>
+                <label className="block text-[11px] font-medium text-neutral-600">
+                  מינימום הזמנה (₪)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={value.minOrderAmountNis ?? ""}
+                  onChange={(e) =>
+                    patchMenu({ minOrderAmountNis: parsePriceInput(e.target.value) })
+                  }
+                  className={`${input} mt-1`}
+                  placeholder="אופציונלי"
+                />
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="rounded-xl border border-amber-200/90 bg-amber-50/45 p-4">
+        <h3 className="text-sm font-semibold text-amber-900">{template.packagesTitle}</h3>
+        <p className="mt-1 text-[11px] leading-relaxed text-amber-900/80">
+          {template.packagesHint}
+        </p>
+        <ul className="mt-3 space-y-3">
+          {value.packages.map((pkg, index) => (
+            <li
+              key={pkg.id}
+              className="rounded-lg border border-amber-200/80 bg-white/85 p-3"
+            >
+              <div className="grid gap-2 sm:grid-cols-2">
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={pkg.name}
+                  onChange={(e) => updatePackage(index, { name: e.target.value })}
+                  className={input}
+                  placeholder="שם החבילה"
+                />
+                <OptionalPriceRangeFields
+                  useRange={pkg.usePerGuestRange === true}
+                  onUseRangeChange={(useRange) => {
+                    const p = value.packages[index];
+                    if (!p) return;
+                    if (useRange) {
+                      const ex = p.perGuestPrice;
+                      updatePackage(index, {
+                        usePerGuestRange: true,
+                        perGuestPrice: null,
+                        perGuestMin: ex ?? p.perGuestMin ?? null,
+                        perGuestMax: ex ?? p.perGuestMax ?? null,
+                      });
+                      return;
+                    }
+                    const min = p.perGuestMin ?? p.perGuestPrice ?? null;
+                    const max = p.perGuestMax ?? p.perGuestPrice ?? min;
+                    const exact =
+                      min != null && max != null && min === max ? min : min ?? max ?? null;
+                    updatePackage(index, {
+                      usePerGuestRange: false,
+                      perGuestPrice: exact,
+                      perGuestMin: null,
+                      perGuestMax: null,
+                    });
+                  }}
+                  minPrice={
+                    pkg.usePerGuestRange
+                      ? pkg.perGuestMin != null
+                        ? String(pkg.perGuestMin)
+                        : ""
+                      : pkg.perGuestPrice != null
+                        ? String(pkg.perGuestPrice)
+                        : ""
+                  }
+                  maxPrice={
+                    pkg.usePerGuestRange
+                      ? pkg.perGuestMax != null
+                        ? String(pkg.perGuestMax)
+                        : ""
+                      : pkg.perGuestPrice != null
+                        ? String(pkg.perGuestPrice)
+                        : ""
+                  }
+                  onChange={(min, max) => {
+                    const p = value.packages[index];
+                    if (!p) return;
+                    if (p.usePerGuestRange) {
+                      updatePackage(index, {
+                        perGuestMin: parsePriceInput(min),
+                        perGuestMax: parsePriceInput(max),
+                      });
+                      return;
+                    }
+                    updatePackage(index, {
+                      perGuestPrice: parsePriceInput(min),
+                    });
+                  }}
+                  singleLabel={template.packagePriceLabel}
+                  singlePlaceholder="למשל 180"
+                  minLabel="מינימום (₪)"
+                  maxLabel="מקסימום (₪)"
+                  expandRangeLabel={template.packagePriceExpandLabel}
+                  collapseRangeLabel="מחיר קבוע"
+                  inputClassName={`${input} mt-1`}
+                />
+              </div>
+              {template.showPackageDuration ? (
+                <div className="mt-2">
+                  <label className="block text-[10px] text-neutral-600">משך (שעות)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={pkg.durationHours ?? ""}
+                    onChange={(e) =>
+                      updatePackage(index, {
+                        durationHours: parsePriceInput(e.target.value),
+                      })
+                    }
+                    className={`${input} mt-1 max-w-[8rem]`}
+                    placeholder="אופציונלי"
+                  />
+                </div>
+              ) : null}
+              <textarea
+                dir="rtl"
+                rows={2}
+                value={pkg.description ?? ""}
+                onChange={(e) => updatePackage(index, { description: e.target.value })}
+                placeholder="מה כלול בחבילה"
+                className={textarea}
+              />
+              <div className="mt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() =>
+                    patchMenu({
+                      packages: value.packages.filter((_, i) => i !== index),
+                    })
+                  }
+                  className="rounded-full border border-red-200 bg-white px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
+                >
+                  הסר חבילה
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          disabled={value.packages.length >= MAX_MENU_PACKAGES}
+          onClick={() =>
+            patchMenu({
+              packages: [...value.packages, createEmptyMenuPackage()],
+            })
+          }
+          className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:opacity-50"
+        >
+          + הוסף חבילה ({value.packages.length})
+        </button>
+      </div>
+
+      {template.showQuantityTiers ? (
+        <div className="rounded-xl border border-violet-200/80 bg-violet-50/40 p-4">
+          <h3 className="text-sm font-semibold text-violet-950">מדרגות כמות</h3>
+          <p className="mt-1 text-[11px] text-neutral-600">
+            מחיר ליחידה לפי כמות הזמנה — למשל 50–100 יחידות במחיר אחד.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {(value.quantityTiers ?? []).map((tier, index) => (
+              <li
+                key={tier.id}
+                className="grid gap-2 rounded-lg border border-violet-200/70 bg-white p-2 sm:grid-cols-4"
+              >
+                <input
+                  type="number"
+                  min={1}
+                  value={tier.minQty}
+                  onChange={(e) =>
+                    updateTier(index, { minQty: parsePriceInput(e.target.value) ?? 1 })
+                  }
+                  className={input}
+                  placeholder="מינימום"
+                />
+                <input
+                  type="number"
+                  min={1}
+                  value={tier.maxQty ?? ""}
+                  onChange={(e) =>
+                    updateTier(index, { maxQty: parsePriceInput(e.target.value) })
+                  }
+                  className={input}
+                  placeholder="מקסימום"
+                />
+                <input
+                  type="number"
+                  min={0}
+                  value={tier.pricePerUnit ?? ""}
+                  onChange={(e) =>
+                    updateTier(index, { pricePerUnit: parsePriceInput(e.target.value) })
+                  }
+                  className={input}
+                  placeholder="₪ ליחידה"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    patchMenu({
+                      quantityTiers: (value.quantityTiers ?? []).filter(
+                        (_, i) => i !== index
+                      ),
+                    })
+                  }
+                  className="text-[11px] text-red-600 hover:underline"
+                >
+                  הסר
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() =>
+              patchMenu({
+                quantityTiers: [...(value.quantityTiers ?? []), createEmptyQuantityTier()],
+              })
+            }
+            className="mt-2 text-[11px] font-medium text-violet-950 hover:underline"
+          >
+            + הוסף מדרגה
+          </button>
+        </div>
+      ) : null}
+
+      <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/60 p-4">
+        <h3 className="text-sm font-semibold text-emerald-950">{template.catalogTitle}</h3>
+        <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
+          {template.catalogHint}
+        </p>
+        <div className="mt-3 space-y-3">
+          {value.sections.map((section, sectionIndex) => (
+            <div
+              key={section.id}
+              className="rounded-lg border border-neutral-200/80 bg-white p-3"
+            >
+              <input
+                type="text"
+                dir="rtl"
+                value={section.title}
+                onChange={(e) => updateSection(sectionIndex, { title: e.target.value })}
+                className={input}
+                placeholder={template.catalogSectionPlaceholder}
+              />
+              <ul className="mt-2 space-y-2">
+                {section.items.map((item, itemIndex) => (
+                  <li
+                    key={item.id}
+                    className="rounded-lg border border-neutral-200/60 bg-neutral-50/80 p-2"
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        type="text"
+                        dir="rtl"
+                        value={item.label}
+                        onChange={(e) =>
+                          updateItem(sectionIndex, itemIndex, { label: e.target.value })
+                        }
+                        className={`${input} min-w-[8rem] flex-1`}
+                        placeholder={template.catalogItemPlaceholder}
+                      />
+                      <select
+                        value={item.pricing}
+                        onChange={(e) =>
+                          updateItem(sectionIndex, itemIndex, {
+                            pricing: e.target.value as ServiceMenuItemPricing,
+                            exactPrice: null,
+                            minPrice: null,
+                            maxPrice: null,
+                            usePriceRange: false,
+                          })
+                        }
+                        className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
+                      >
+                        {pricingModes.map((k) => (
+                          <option key={k} value={k}>
+                            {PRICING_LABELS[k]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {item.pricing !== "included" ? (
+                      <div className="mt-2">
+                        <OptionalPriceRangeFields
+                          useRange={
+                            item.usePriceRange === true ||
+                            item.pricing === "per_guest_range"
+                          }
+                          onUseRangeChange={(useRange) => {
+                            const row = value.sections[sectionIndex]?.items[itemIndex];
+                            if (!row) return;
+                            if (useRange) {
+                              const ex = row.exactPrice;
+                              updateItem(sectionIndex, itemIndex, {
+                                usePriceRange: true,
+                                pricing:
+                                  row.pricing === "fixed" ||
+                                  row.pricing === "per_unit" ||
+                                  row.pricing === "per_hour"
+                                    ? row.pricing
+                                    : "per_guest_range",
+                                exactPrice: null,
+                                minPrice: ex ?? row.minPrice ?? null,
+                                maxPrice: ex ?? row.maxPrice ?? null,
+                              });
+                              return;
+                            }
+                            const min = row.minPrice ?? row.exactPrice ?? null;
+                            const max = row.maxPrice ?? row.exactPrice ?? min;
+                            const exact =
+                              min != null && max != null && min === max
+                                ? min
+                                : min ?? max ?? null;
+                            const nextPricing =
+                              row.pricing === "fixed" ||
+                              row.pricing === "per_unit" ||
+                              row.pricing === "per_hour"
+                                ? row.pricing
+                                : "per_guest";
+                            updateItem(sectionIndex, itemIndex, {
+                              usePriceRange: false,
+                              pricing: nextPricing,
+                              exactPrice: exact,
+                              minPrice: null,
+                              maxPrice: null,
+                            });
+                          }}
+                          minPrice={
+                            item.usePriceRange || item.pricing === "per_guest_range"
+                              ? item.minPrice != null
+                                ? String(item.minPrice)
+                                : ""
+                              : item.exactPrice != null
+                                ? String(item.exactPrice)
+                                : ""
+                          }
+                          maxPrice={
+                            item.usePriceRange || item.pricing === "per_guest_range"
+                              ? item.maxPrice != null
+                                ? String(item.maxPrice)
+                                : ""
+                              : item.exactPrice != null
+                                ? String(item.exactPrice)
+                                : ""
+                          }
+                          onChange={(min, max) => {
+                            const row = value.sections[sectionIndex]?.items[itemIndex];
+                            if (!row) return;
+                            if (row.usePriceRange || row.pricing === "per_guest_range") {
+                              updateItem(sectionIndex, itemIndex, {
+                                minPrice: parsePriceInput(min),
+                                maxPrice: parsePriceInput(max),
+                              });
+                              return;
+                            }
+                            updateItem(sectionIndex, itemIndex, {
+                              exactPrice: parsePriceInput(min),
+                            });
+                          }}
+                          singleLabel={itemPriceSingleLabel(item.pricing)}
+                          singlePlaceholder="למשל 25"
+                          expandRangeLabel="טווח מחירים"
+                          collapseRangeLabel="מחיר קבוע"
+                          inputClassName={`${input} mt-1`}
+                        />
+                      </div>
+                    ) : null}
+                    <textarea
+                      dir="rtl"
+                      rows={1}
+                      value={item.description ?? ""}
+                      onChange={(e) =>
+                        updateItem(sectionIndex, itemIndex, {
+                          description: e.target.value,
+                        })
+                      }
+                      placeholder="תיאור קצר (אופציונלי)"
+                      className={textarea}
+                    />
+                    <div className="mt-1 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateSection(sectionIndex, {
+                            items: section.items.filter((_, i) => i !== itemIndex),
+                          })
+                        }
+                        className="text-[10px] text-red-600 hover:underline"
+                      >
+                        הסר פריט
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                disabled={section.items.length >= MAX_MENU_ITEMS_PER_SECTION}
+                onClick={() =>
+                  updateSection(sectionIndex, {
+                    items: [...section.items, createEmptyMenuItem()],
+                  })
+                }
+                className="mt-2 text-[11px] font-medium text-emerald-950 hover:underline disabled:opacity-50"
+              >
+                + הוסף פריט
+              </button>
+              <div className="mt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() =>
+                    patchMenu({
+                      sections: value.sections.filter((_, i) => i !== sectionIndex),
+                    })
+                  }
+                  className="rounded-full border border-red-200 bg-white px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
+                >
+                  הסר קטגוריה
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          disabled={value.sections.length >= MAX_MENU_SECTIONS}
+          onClick={() =>
+            patchMenu({
+              sections: [...value.sections, createEmptyMenuSection()],
+            })
+          }
+          className="mt-3 rounded-full border border-dashed border-emerald-950/35 bg-white px-3 py-1.5 text-[11px] font-medium text-emerald-950 hover:bg-neutral-50 disabled:opacity-50"
+        >
+          + הוסף קטגוריה ({value.sections.length})
+        </button>
+      </div>
+
+      {template.showDeliverables ? (
+        <div className="rounded-xl border border-sky-200/80 bg-sky-50/40 p-4">
+          <h3 className="text-sm font-semibold text-sky-950">תוצרים כלולים</h3>
+          <p className="mt-1 text-[11px] text-neutral-600">
+            למשל: מספר תמונות, דקות וידאו, זמן אספקה.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {(value.deliverables ?? []).map((del, index) => (
+              <li key={del.id} className="flex flex-wrap gap-2">
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={del.label}
+                  onChange={(e) => updateDeliverable(index, { label: e.target.value })}
+                  className={`${input} min-w-[6rem] flex-1`}
+                  placeholder="שם (למשל: תמונות)"
+                />
+                <input
+                  type="text"
+                  dir="rtl"
+                  value={del.value}
+                  onChange={(e) => updateDeliverable(index, { value: e.target.value })}
+                  className={`${input} min-w-[6rem] flex-1`}
+                  placeholder="ערך (למשל: 400)"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    patchMenu({
+                      deliverables: (value.deliverables ?? []).filter(
+                        (_, i) => i !== index
+                      ),
+                    })
+                  }
+                  className="text-[11px] text-red-600 hover:underline"
+                >
+                  הסר
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() =>
+              patchMenu({
+                deliverables: [...(value.deliverables ?? []), createEmptyDeliverable()],
+              })
+            }
+            className="mt-2 text-[11px] font-medium text-sky-950 hover:underline"
+          >
+            + הוסף תוצר
+          </button>
+        </div>
+      ) : null}
+
+      <div>
+        <label className="block text-[11px] font-medium text-neutral-600">
+          {template.notesLabel}
+        </label>
+        <textarea
+          dir="rtl"
+          rows={2}
+          value={value.menuNote ?? ""}
+          onChange={(e) => patchMenu({ menuNote: e.target.value })}
+          className={textarea}
+          placeholder={template.notesPlaceholder}
+        />
+      </div>
+    </div>
+  );
+}

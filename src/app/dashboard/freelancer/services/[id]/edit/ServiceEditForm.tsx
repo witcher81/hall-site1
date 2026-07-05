@@ -1,16 +1,16 @@
 "use client";
 
+import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
-import ServiceMenuEditor from "@/components/ServiceMenuEditor";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
-  FOOD_BEVERAGE_PRIMARY,
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
+import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import {
   buildMinMaxStringsForSubmit,
@@ -23,6 +23,7 @@ import {
 } from "@/lib/serviceIncludes";
 import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import {
+  ensureMenuTemplateId,
   parseServiceMenuJson,
   type ServiceMenuConfig,
 } from "@/lib/serviceMenu";
@@ -89,7 +90,16 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   const [menu, setMenu] = useState<ServiceMenuConfig>(() =>
     parseServiceMenuJson(initial.menuJson)
   );
-  const isFoodService = form.primaryCategory === FOOD_BEVERAGE_PRIMARY;
+  const categoryValue = useMemo(
+    () =>
+      composeServiceCategoryValue(form.primaryCategory, form.secondaryCategories),
+    [form.primaryCategory, form.secondaryCategories]
+  );
+  const catalogTemplate = useMemo(
+    () => resolveCatalogTemplateFromCategory(categoryValue),
+    [categoryValue]
+  );
+  const usesCatalog = form.primaryCategory.trim().length > 0;
   const hasInvalidSocialLinks = socialLinks.some(
     (l) => l.url.trim().length > 0 && normalizeSocialUrl(l.url) === null
   );
@@ -146,11 +156,14 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
             ...c,
             checked: c.label.trim().length > 0 ? true : c.checked,
           })),
-          paidExtras: isFoodService ? [] : paidExtras,
+          paidExtras: usesCatalog ? [] : paidExtras,
         })
       );
-      if (isFoodService) {
-        fd.append("menuJson", JSON.stringify(menu));
+      if (usesCatalog && catalogTemplate) {
+        fd.append(
+          "menuJson",
+          JSON.stringify(ensureMenuTemplateId(menu, categoryValue))
+        );
       } else {
         const { minPrice: minP, maxPrice: maxP } = buildMinMaxStringsForSubmit({
           priceUseRange: form.priceUseRange,
@@ -273,8 +286,12 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         description="לחצו על הכפתור «+ הוסף רשת / קישור» כדי להוסיף שורה חדשה. בכל שורה בוחרים רשת ומדביקים קישור מלא — יוצג למחפשים."
       />
 
-      {isFoodService ? (
-        <ServiceMenuEditor value={menu} onChange={setMenu} />
+      {usesCatalog && catalogTemplate ? (
+        <ServiceCatalogEditor
+          template={catalogTemplate}
+          value={menu}
+          onChange={setMenu}
+        />
       ) : (
         <>
           <ServiceIncludesEditor

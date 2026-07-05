@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { CatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
+  catalogPackageUsesPerGuestMultiplier,
   estimatePackageTotal,
   formatMenuItemPrice,
   formatPackagePerGuest,
@@ -11,7 +13,8 @@ import {
 
 type Props = {
   menu: ServiceMenuConfig;
-  /** הצגת מחשבון אורחים אינטראקטיבי */
+  template: CatalogTemplate;
+  /** הצגת מחשבון מחיר אינטראקטיבי */
   interactive?: boolean;
 };
 
@@ -25,21 +28,40 @@ function formatTotalRange(min: number | null, max: number | null): string | null
   return `₪${v.toLocaleString("he-IL")}`;
 }
 
+function formatPackagePrice(pkg: ServiceMenuPackage, template: CatalogTemplate): string | null {
+  const label = formatPackagePerGuest(pkg);
+  if (!label) return null;
+  if (catalogPackageUsesPerGuestMultiplier(template)) return label;
+  if (pkg.usePerGuestRange) {
+    const min = pkg.perGuestMin;
+    const max = pkg.perGuestMax;
+    if (min != null && max != null && min !== max) return `₪${min}–${max}`;
+    if (min != null) return `₪${min}`;
+    if (max != null) return `₪${max}`;
+    return null;
+  }
+  if (pkg.perGuestPrice != null) return `₪${pkg.perGuestPrice}`;
+  return label;
+}
+
 export default function ServiceMenuPublicSection({
   menu,
+  template,
   interactive = true,
 }: Props) {
-  const defaultGuests = menu.minGuests ?? 100;
-  const [guestCount, setGuestCount] = useState(String(defaultGuests));
+  const multiply = catalogPackageUsesPerGuestMultiplier(template);
+  const defaultCount =
+    menu.minGuests ?? menu.minPersons ?? menu.quantityTiers?.[0]?.minQty ?? 100;
+  const [countInput, setCountInput] = useState(String(defaultCount));
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(
     menu.packages[0]?.id ?? null
   );
 
-  const guestNum = useMemo(() => {
-    const n = Number(guestCount);
+  const countNum = useMemo(() => {
+    const n = Number(countInput);
     if (!Number.isFinite(n) || n < 1) return null;
     return Math.trunc(n);
-  }, [guestCount]);
+  }, [countInput]);
 
   const selectedPackage: ServiceMenuPackage | null = useMemo(() => {
     if (!selectedPackageId) return menu.packages[0] ?? null;
@@ -47,24 +69,52 @@ export default function ServiceMenuPublicSection({
   }, [menu.packages, selectedPackageId]);
 
   const estimate = useMemo(() => {
-    if (!guestNum || !selectedPackage) return null;
-    return estimatePackageTotal(selectedPackage, guestNum);
-  }, [guestNum, selectedPackage]);
+    if (!countNum || !selectedPackage) return null;
+    return estimatePackageTotal(selectedPackage, countNum, multiply);
+  }, [countNum, selectedPackage, multiply]);
 
-  const capacityText =
-    menu.minGuests != null && menu.maxGuests != null
-      ? `${menu.minGuests.toLocaleString("he-IL")}–${menu.maxGuests.toLocaleString("he-IL")} אורחים`
-      : menu.minGuests != null
-        ? `מ-${menu.minGuests.toLocaleString("he-IL")} אורחים`
-        : menu.maxGuests != null
-          ? `עד ${menu.maxGuests.toLocaleString("he-IL")} אורחים`
-          : null;
+  const capacityText = useMemo(() => {
+    if (template.showPersonCapacity) {
+      if (menu.minPersons != null && menu.maxPersons != null) {
+        return `${menu.minPersons.toLocaleString("he-IL")}–${menu.maxPersons.toLocaleString("he-IL")} אנשים`;
+      }
+      if (menu.minPersons != null) {
+        return `מ-${menu.minPersons.toLocaleString("he-IL")} אנשים`;
+      }
+      if (menu.maxPersons != null) {
+        return `עד ${menu.maxPersons.toLocaleString("he-IL")} אנשים`;
+      }
+      return null;
+    }
+    if (menu.minGuests != null && menu.maxGuests != null) {
+      const unit = template.requireQuantityInquiry ? "יחידות" : "אורחים";
+      return `${menu.minGuests.toLocaleString("he-IL")}–${menu.maxGuests.toLocaleString("he-IL")} ${unit}`;
+    }
+    if (menu.minGuests != null) {
+      return `מ-${menu.minGuests.toLocaleString("he-IL")}`;
+    }
+    if (menu.maxGuests != null) {
+      return `עד ${menu.maxGuests.toLocaleString("he-IL")}`;
+    }
+    return null;
+  }, [menu, template]);
+
+  const calculatorLabel = template.requirePersonCountInquiry
+    ? "מספר אנשים"
+    : template.requireQuantityInquiry
+      ? "כמות"
+      : "מספר אורחים";
+
+  const showCalculator =
+    interactive && menu.packages.length > 0 && multiply;
 
   return (
     <section className="site-card-padded border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 to-white text-right">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="text-base font-semibold text-emerald-950">תפריט ומחירים</h2>
+          <h2 className="text-base font-semibold text-emerald-950">
+            {template.editorTitle}
+          </h2>
           {capacityText ? (
             <p className="mt-1 text-xs text-neutral-600">
               מתאים ל־<strong className="text-emerald-950">{capacityText}</strong>
@@ -80,10 +130,10 @@ export default function ServiceMenuPublicSection({
 
       {menu.packages.length > 0 ? (
         <div className="mt-4">
-          <p className="text-xs font-semibold text-emerald-950">חבילות</p>
+          <p className="text-xs font-semibold text-emerald-950">{template.packagesTitle}</p>
           <ul className="mt-2 space-y-2">
             {menu.packages.map((pkg) => {
-              const priceLabel = formatPackagePerGuest(pkg);
+              const priceLabel = formatPackagePrice(pkg, template);
               const active = selectedPackage?.id === pkg.id;
               return (
                 <li key={pkg.id}>
@@ -104,6 +154,11 @@ export default function ServiceMenuPublicSection({
                         </span>
                       ) : null}
                     </div>
+                    {pkg.durationHours != null ? (
+                      <p className="mt-1 text-[10px] text-neutral-500">
+                        משך: {pkg.durationHours} שעות
+                      </p>
+                    ) : null}
                     {pkg.description?.trim() ? (
                       <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
                         {pkg.description.trim()}
@@ -117,17 +172,19 @@ export default function ServiceMenuPublicSection({
         </div>
       ) : null}
 
-      {interactive && menu.packages.length > 0 ? (
+      {showCalculator ? (
         <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-3">
-          <p className="text-xs font-semibold text-emerald-950">הערכת מחיר לפי מספר אורחים</p>
+          <p className="text-xs font-semibold text-emerald-950">
+            הערכת מחיר לפי {calculatorLabel}
+          </p>
           <div className="mt-2 flex flex-wrap items-end gap-3">
             <div className="min-w-[8rem] flex-1">
-              <label className="block text-[11px] text-neutral-600">מספר אורחים</label>
+              <label className="block text-[11px] text-neutral-600">{calculatorLabel}</label>
               <input
                 type="number"
                 min={1}
-                value={guestCount}
-                onChange={(e) => setGuestCount(e.target.value)}
+                value={countInput}
+                onChange={(e) => setCountInput(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400"
               />
             </div>
@@ -146,9 +203,50 @@ export default function ServiceMenuPublicSection({
         </div>
       ) : null}
 
+      {(menu.quantityTiers?.length ?? 0) > 0 ? (
+        <div className="mt-4">
+          <p className="text-xs font-semibold text-emerald-950">מדרגות כמות</p>
+          <ul className="mt-2 space-y-1">
+            {menu.quantityTiers!.map((tier) => (
+              <li
+                key={tier.id}
+                className="flex flex-wrap justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs"
+              >
+                <span>
+                  {tier.minQty}
+                  {tier.maxQty != null ? `–${tier.maxQty}` : "+"} יחידות
+                </span>
+                {tier.pricePerUnit != null ? (
+                  <span className="font-semibold">₪{tier.pricePerUnit} ליחידה</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {(menu.deliverables?.length ?? 0) > 0 ? (
+        <div className="mt-4">
+          <p className="text-xs font-semibold text-emerald-950">תוצרים</p>
+          <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+            {menu.deliverables!.map((d) => (
+              <li
+                key={d.id}
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs"
+              >
+                <span className="font-medium text-emerald-950">{d.label}</span>
+                {d.value ? (
+                  <span className="text-neutral-600"> — {d.value}</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {menu.sections.some((s) => s.items.length > 0) ? (
         <div className="mt-5 space-y-4">
-          <p className="text-xs font-semibold text-emerald-950">פירוט מנות</p>
+          <p className="text-xs font-semibold text-emerald-950">{template.catalogTitle}</p>
           {menu.sections.map((section) =>
             section.items.length === 0 ? null : (
               <div key={section.id}>

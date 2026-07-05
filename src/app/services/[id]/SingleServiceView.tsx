@@ -12,11 +12,11 @@ import {
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
+import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import {
-  isFoodServiceCategory,
   menuHasContent,
   parseServiceMenuJson,
-  validateMenuGuestCount,
+  validateCatalogInquiry,
   type ServiceMenuConfig,
 } from "@/lib/serviceMenu";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
@@ -118,9 +118,22 @@ export default function SingleServiceView({
     service.minPrice,
     service.maxPrice
   );
-  const isFood = isFoodServiceCategory(service.category);
+  const catalogTemplate = useMemo(
+    () => resolveCatalogTemplateFromCategory(service.category),
+    [service.category]
+  );
   const menu = service.menu;
-  const showMenu = isFood && menu != null && menuHasContent(menu);
+  const showCatalog =
+    catalogTemplate != null && menu != null && menuHasContent(menu);
+  const requiresCountInquiry =
+    catalogTemplate?.requireGuestCountInquiry ||
+    catalogTemplate?.requirePersonCountInquiry ||
+    catalogTemplate?.requireQuantityInquiry;
+  const countInquiryLabel = catalogTemplate?.requirePersonCountInquiry
+    ? "מספר אנשים"
+    : catalogTemplate?.requireQuantityInquiry
+      ? "כמות"
+      : "מספר אורחים";
   const gallery: string[] = useMemo(() => {
     if (!service.galleryImageUrls) return [];
     try {
@@ -249,19 +262,23 @@ export default function SingleServiceView({
     }
 
     let guestCountNum: number | undefined;
-    if (showMenu && menu) {
-      const guestRaw = form.guestCount.trim();
-      if (!guestRaw) {
-        setError("נא לציין מספר אורחים");
+    if (showCatalog && menu && catalogTemplate && requiresCountInquiry) {
+      const countRaw = form.guestCount.trim();
+      if (!countRaw) {
+        setError(`נא לציין ${countInquiryLabel}`);
         return;
       }
-      const g = Number(guestRaw);
-      const guestErr = validateMenuGuestCount(menu, Number.isFinite(g) ? g : null);
-      if (guestErr) {
-        setError(guestErr);
+      const n = Number(countRaw);
+      const countErr = validateCatalogInquiry(menu, catalogTemplate, {
+        guestCount: catalogTemplate.requireGuestCountInquiry ? n : null,
+        personCount: catalogTemplate.requirePersonCountInquiry ? n : null,
+        quantity: catalogTemplate.requireQuantityInquiry ? n : null,
+      });
+      if (countErr) {
+        setError(countErr);
         return;
       }
-      guestCountNum = Math.trunc(g);
+      guestCountNum = Math.trunc(n);
     }
 
     const payload = {
@@ -647,8 +664,8 @@ export default function SingleServiceView({
         </section>
       )}
 
-      {showMenu && menu ? (
-        <ServiceMenuPublicSection menu={menu} />
+      {showCatalog && menu && catalogTemplate ? (
+        <ServiceMenuPublicSection menu={menu} template={catalogTemplate} />
       ) : null}
 
       {/* קישורים לשירות */}
@@ -773,30 +790,48 @@ export default function SingleServiceView({
                 ))}
               </select>
             </div>
-            {showMenu && menu ? (
+            {showCatalog && menu && catalogTemplate && requiresCountInquiry ? (
               <div>
                 <label className="block text-xs font-medium text-neutral-600">
-                  מספר אורחים *
+                  {countInquiryLabel} *
                 </label>
                 <p className="mt-0.5 text-[10px] text-neutral-500">
-                  {menu.minGuests != null && menu.maxGuests != null
-                    ? `הספק משרת ${menu.minGuests}–${menu.maxGuests} אורחים`
-                    : "נדרש לתכנון הכמויות והמחיר"}
+                  {catalogTemplate.requirePersonCountInquiry &&
+                  menu.minPersons != null &&
+                  menu.maxPersons != null
+                    ? `הספק מטפל ב-${menu.minPersons}–${menu.maxPersons} אנשים`
+                    : catalogTemplate.requireQuantityInquiry &&
+                        menu.minGuests != null &&
+                        menu.maxGuests != null
+                      ? `טווח כמות: ${menu.minGuests}–${menu.maxGuests}`
+                      : menu.minGuests != null && menu.maxGuests != null
+                        ? `הספק משרת ${menu.minGuests}–${menu.maxGuests} אורחים`
+                        : "נדרש לתכנון הכמויות והמחיר"}
                 </p>
                 <input
                   type="number"
                   required
-                  min={menu.minGuests ?? 1}
-                  max={menu.maxGuests ?? undefined}
+                  min={
+                    catalogTemplate.requirePersonCountInquiry
+                      ? (menu.minPersons ?? 1)
+                      : (menu.minGuests ?? 1)
+                  }
+                  max={
+                    catalogTemplate.requirePersonCountInquiry
+                      ? (menu.maxPersons ?? undefined)
+                      : (menu.maxGuests ?? undefined)
+                  }
                   value={form.guestCount}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, guestCount: e.target.value }))
                   }
                   className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-neutral-900 outline-none focus:border-emerald-950"
                   placeholder={
-                    menu.minGuests != null
-                      ? `למשל ${menu.minGuests}`
-                      : "למשל 150"
+                    catalogTemplate.requirePersonCountInquiry && menu.minPersons != null
+                      ? `למשל ${menu.minPersons}`
+                      : menu.minGuests != null
+                        ? `למשל ${menu.minGuests}`
+                        : "למשל 150"
                   }
                 />
               </div>

@@ -13,12 +13,14 @@ import {
 } from "@/lib/serviceIncludes";
 import {
   deriveServicePricesFromMenu,
-  isFoodServiceCategory,
+  ensureMenuTemplateId,
   parseServiceMenuJson,
   sanitizeServiceMenuFromClient,
   serializeServiceMenuJson,
+  serviceUsesCatalogEditor,
   validateServiceMenuForSubmit,
 } from "@/lib/serviceMenu";
+import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import { saveServiceImageFile } from "@/lib/serviceImageUpload";
 import {
   USER_INPUT_MAX,
@@ -82,24 +84,14 @@ function parseCustomIncludesFormField(
   }
 }
 
-function parseMenuFormField(entry: FormDataEntryValue | null): string | null {
-  if (entry === null || entry === "") return null;
-  try {
-    const raw = typeof entry === "string" ? entry : "";
-    const data = JSON.parse(raw) as unknown;
-    return serializeServiceMenuJson(sanitizeServiceMenuFromClient(data));
-  } catch {
-    return null;
-  }
-}
 
-function resolveFoodServicePrices(
+function resolveCatalogServicePrices(
   category: string | null,
   menuJson: string | null,
   minPrice: number | null,
   maxPrice: number | null
 ): { minPrice: number | null; maxPrice: number | null } {
-  if (!isFoodServiceCategory(category) || !menuJson) {
+  if (!serviceUsesCatalogEditor(category) || !menuJson) {
     return { minPrice, maxPrice };
   }
   const derived = deriveServicePricesFromMenu(parseServiceMenuJson(menuJson));
@@ -107,6 +99,24 @@ function resolveFoodServicePrices(
     minPrice: derived.minPrice ?? minPrice,
     maxPrice: derived.maxPrice ?? maxPrice,
   };
+}
+
+function parseMenuFormField(
+  entry: FormDataEntryValue | null,
+  category: string | null
+): string | null {
+  if (entry === null || entry === "") return null;
+  try {
+    const raw = typeof entry === "string" ? entry : "";
+    const data = JSON.parse(raw) as unknown;
+    const menu = ensureMenuTemplateId(
+      sanitizeServiceMenuFromClient(data),
+      category
+    );
+    return serializeServiceMenuJson(menu);
+  } catch {
+    return null;
+  }
 }
 
 function parseGalleryJson(value: string | null): string[] {
@@ -174,7 +184,6 @@ export async function POST(req: NextRequest) {
     formData.get("customIncludesJson")
   );
   const includesNote = parseIncludesNoteField(formData.get("includesNote"));
-  const menuJson = parseMenuFormField(formData.get("menuJson"));
   const minPrice = toIntOrNull((formData.get("minPrice") as string | null) ?? null);
   const maxPrice = toIntOrNull((formData.get("maxPrice") as string | null) ?? null);
 
@@ -201,6 +210,8 @@ export async function POST(req: NextRequest) {
     "קטגוריה"
   );
   if (!catCheck.ok) return badRequest(catCheck.error);
+  const menuJson = parseMenuFormField(formData.get("menuJson"), catCheck.value);
+  const catalogTemplate = resolveCatalogTemplateFromCategory(catCheck.value);
   const descCheck = validateOptionalLongText(
     description,
     USER_INPUT_MAX.DESCRIPTION_LONG,
@@ -232,12 +243,15 @@ export async function POST(req: NextRequest) {
   const priceErr = validatePriceMinMax(minPrice, maxPrice);
   if (priceErr) return badRequest(priceErr);
 
-  if (isFoodServiceCategory(catCheck.value)) {
-    const menuErr = validateServiceMenuForSubmit(parseServiceMenuJson(menuJson));
+  if (catalogTemplate) {
+    const menuErr = validateServiceMenuForSubmit(
+      parseServiceMenuJson(menuJson),
+      catalogTemplate
+    );
     if (menuErr) return badRequest(menuErr);
   }
 
-  const resolvedPrices = resolveFoodServicePrices(
+  const resolvedPrices = resolveCatalogServicePrices(
     catCheck.value,
     menuJson,
     minPrice,
@@ -284,7 +298,7 @@ export async function POST(req: NextRequest) {
       includesTravel,
       includesEquipment,
       customIncludesJson,
-      menuJson: isFoodServiceCategory(catCheck.value) ? menuJson : null,
+      menuJson: serviceUsesCatalogEditor(catCheck.value) ? menuJson : null,
       includesNote,
       coverImageUrl,
       galleryImageUrls:
@@ -373,9 +387,6 @@ export async function PUT(req: NextRequest) {
   const includesNote = formData.has("includesNote")
     ? parseIncludesNoteField(formData.get("includesNote"))
     : existing.includesNote;
-  const menuJson = formData.has("menuJson")
-    ? parseMenuFormField(formData.get("menuJson"))
-    : existing.menuJson;
 
   if (formData.get("socialLinks") !== null) {
     if (formDataJsonStringTooLong(formData.get("socialLinks"), USER_INPUT_MAX.JSON_FORM_FIELD)) {
@@ -406,6 +417,10 @@ export async function PUT(req: NextRequest) {
     "קטגוריה"
   );
   if (!catCheckPut.ok) return badRequest(catCheckPut.error);
+  const menuJson = formData.has("menuJson")
+    ? parseMenuFormField(formData.get("menuJson"), catCheckPut.value)
+    : existing.menuJson;
+  const catalogTemplatePut = resolveCatalogTemplateFromCategory(catCheckPut.value);
   const descCheckPut = validateOptionalLongText(
     description,
     USER_INPUT_MAX.DESCRIPTION_LONG,
@@ -437,12 +452,15 @@ export async function PUT(req: NextRequest) {
   const priceErrPut = validatePriceMinMax(minPrice, maxPrice);
   if (priceErrPut) return badRequest(priceErrPut);
 
-  if (isFoodServiceCategory(catCheckPut.value)) {
-    const menuErr = validateServiceMenuForSubmit(parseServiceMenuJson(menuJson));
+  if (catalogTemplatePut) {
+    const menuErr = validateServiceMenuForSubmit(
+      parseServiceMenuJson(menuJson),
+      catalogTemplatePut
+    );
     if (menuErr) return badRequest(menuErr);
   }
 
-  const resolvedPricesPut = resolveFoodServicePrices(
+  const resolvedPricesPut = resolveCatalogServicePrices(
     catCheckPut.value,
     menuJson,
     minPrice,
@@ -507,7 +525,7 @@ export async function PUT(req: NextRequest) {
       includesTravel,
       includesEquipment,
       customIncludesJson,
-      menuJson: isFoodServiceCategory(catCheckPut.value) ? menuJson : null,
+      menuJson: serviceUsesCatalogEditor(catCheckPut.value) ? menuJson : null,
       includesNote,
       coverImageUrl,
       galleryImageUrls,

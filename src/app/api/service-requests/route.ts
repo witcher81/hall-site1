@@ -12,10 +12,11 @@ import {
   validateGuestCount,
   validateRequiredText,
 } from "@/lib/userInputValidation";
+import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import {
-  isFoodServiceCategory,
   parseServiceMenuJson,
-  validateMenuGuestCount,
+  serviceUsesCatalogEditor,
+  validateCatalogInquiry,
 } from "@/lib/serviceMenu";
 
 export const runtime = "nodejs";
@@ -92,10 +93,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "שירות לא נמצא" }, { status: 404 });
   }
 
-  if (isFoodServiceCategory(service.category)) {
+  const catalogTemplate = resolveCatalogTemplateFromCategory(service.category);
+  if (catalogTemplate && serviceUsesCatalogEditor(service.category)) {
     const menu = parseServiceMenuJson(service.menuJson);
-    const guestErr = validateMenuGuestCount(menu, guestCount);
-    if (guestErr) return badRequest(guestErr);
+    const inquiryErr = validateCatalogInquiry(menu, catalogTemplate, {
+      guestCount: catalogTemplate.requireGuestCountInquiry ? guestCount : null,
+      personCount: catalogTemplate.requirePersonCountInquiry ? guestCount : null,
+      quantity: catalogTemplate.requireQuantityInquiry ? guestCount : null,
+    });
+    if (inquiryErr) return badRequest(inquiryErr);
   }
 
   const request = await prisma.serviceRequest.create({
