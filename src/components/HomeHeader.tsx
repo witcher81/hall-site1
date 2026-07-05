@@ -9,6 +9,7 @@ import NotificationsUnreadBadge from "./NotificationsUnreadBadge";
 import RealtimeEventBridge from "./RealtimeEventBridge";
 import ThemeToggle from "./ThemeToggle";
 import { useSiteTheme } from "./ThemeProvider";
+import { useHeaderThemeToggleVisible } from "@/lib/useThemeToggleDock";
 
 type User = {
   id: number;
@@ -115,6 +116,7 @@ export default function HomeHeader({
 }) {
   const pathname = usePathname();
   const { theme } = useSiteTheme();
+  const showHeaderThemeToggle = useHeaderThemeToggleVisible();
   const [menuOpen, setMenuOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -330,9 +332,7 @@ export default function HomeHeader({
               canCreateManagedUsers={devSwitcherCanCreate}
             />
           ) : null}
-          <div className="hidden sm:block">
-            <ThemeToggle variant="header" />
-          </div>
+          {showHeaderThemeToggle ? <ThemeToggle variant="header" /> : null}
           {user ? (
             <div className="relative" ref={menuRef}>
               <button

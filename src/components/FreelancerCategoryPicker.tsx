@@ -1,5 +1,6 @@
 "use client";
 
+import { highlightSearchText, textMatchesSearch } from "@/lib/highlightSearchText";
 import { useMemo, useState } from "react";
 
 type Props = {
@@ -19,9 +20,9 @@ export default function FreelancerCategoryPicker({
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = query.trim();
     if (!q) return categories;
-    return categories.filter((c) => c.toLowerCase().includes(q) || c.includes(query.trim()));
+    return categories.filter((c) => textMatchesSearch(c, q));
   }, [categories, query]);
 
   return (
@@ -92,7 +93,7 @@ export default function FreelancerCategoryPicker({
                         : "border-neutral-200 bg-white text-neutral-900 hover:border-amber-400/70"
                     }`}
                   >
-                    {c}
+                    {highlightSearchText(c, query)}
                   </button>
                 ))}
               </div>

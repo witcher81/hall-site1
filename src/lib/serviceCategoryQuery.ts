@@ -1,7 +1,10 @@
+import type { Prisma } from "@prisma/client";
 import {
+  CATEGORY_MULTI_SEPARATOR,
   CATEGORY_VALUE_SEPARATOR,
   composeServiceCategoryValue,
   parseServiceCategoryValue,
+  parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 
 /** תוויות ישנות (חיפוש / מדריכים) → קטגוריה ראשית במאגר */
@@ -64,9 +67,7 @@ export function resolveProviderCategoryFilter(
 export function buildServiceCategoryWhere(
   categoryParam: string,
   secondaryParam?: string
-): {
-  OR?: Array<{ category: string } | { category: { startsWith: string } }>;
-} {
+): Pick<Prisma.ServiceWhereInput, "OR"> {
   const { primary, secondary } = resolveProviderCategoryFilter(
     categoryParam,
     secondaryParam
@@ -75,10 +76,17 @@ export function buildServiceCategoryWhere(
 
   if (secondary) {
     const exact = composeServiceCategoryValue(primary, secondary);
+    const sec = secondary.trim();
     return {
       OR: [
         { category: exact },
-        { category: { startsWith: `${exact}${CATEGORY_VALUE_SEPARATOR}` } },
+        { category: { startsWith: `${exact}${CATEGORY_MULTI_SEPARATOR}` } },
+        {
+          category: {
+            contains: `${CATEGORY_MULTI_SEPARATOR}${sec}${CATEGORY_MULTI_SEPARATOR}`,
+          },
+        },
+        { category: { endsWith: `${CATEGORY_MULTI_SEPARATOR}${sec}` } },
       ],
     };
   }
@@ -103,20 +111,22 @@ export function serviceMatchesLegacyBucket(
     const { primary, secondary } = resolveProviderCategoryFilter(legacyBucket);
     if (!primary) return false;
     if (secondary) {
+      const { secondaries } = parseServiceCategorySelections(stored);
+      if (secondaries.includes(secondary.trim())) return true;
       return stored === composeServiceCategoryValue(primary, secondary);
     }
-    const { primary: p } = parseServiceCategoryValue(stored);
+    const { primary: p } = parseServiceCategorySelections(stored);
     const norm = LEGACY_PROVIDER_CATEGORY_TO_PRIMARY[p] ?? p;
     return norm === primary || stored.startsWith(`${primary}${CATEGORY_VALUE_SEPARATOR}`);
   }
 
-  const { primary, secondary } = parseServiceCategoryValue(stored);
+  const { primary, secondaries } = parseServiceCategorySelections(stored);
   const normPrimary = LEGACY_PROVIDER_CATEGORY_TO_PRIMARY[primary] ?? primary;
   if (normPrimary !== spec.primary && !stored.startsWith(`${spec.primary}${CATEGORY_VALUE_SEPARATOR}`)) {
     return false;
   }
   if (!spec.secondaryIncludes?.length) return true;
-  const hay = `${secondary} ${stored}`.toLowerCase();
+  const hay = `${secondaries.join(" ")} ${stored}`.toLowerCase();
   return spec.secondaryIncludes.some((frag) => hay.includes(frag.toLowerCase()));
 }
 

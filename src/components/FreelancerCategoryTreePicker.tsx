@@ -3,19 +3,21 @@
 import {
   CATEGORY_VALUE_SEPARATOR,
   FREELANCER_CATEGORY_GROUPS,
+  formatServiceCategoryDisplay,
 } from "@/lib/freelancerServiceCategories";
-import { useMemo, useState } from "react";
+import { highlightSearchText, textMatchesSearch } from "@/lib/highlightSearchText";
+import { useEffect, useMemo, useState } from "react";
 
 type Props = {
   primaryValue: string;
-  secondaryValue: string;
-  onChange: (next: { primary: string; secondary: string }) => void;
+  secondaryValues: string[];
+  onChange: (next: { primary: string; secondaries: string[] }) => void;
   label?: string;
 };
 
 export default function FreelancerCategoryTreePicker({
   primaryValue,
-  secondaryValue,
+  secondaryValues,
   onChange,
   label = "קטגוריה ראשית ומשנית",
 }: Props) {
@@ -35,27 +37,71 @@ export default function FreelancerCategoryTreePicker({
       : ""
   );
   const [customOtherSecondary, setCustomOtherSecondary] = useState(
-    primaryValue === OTHER_PRIMARY || customOtherPrimary ? secondaryValue : ""
+    primaryValue === OTHER_PRIMARY || customOtherPrimary
+      ? secondaryValues.join(" · ")
+      : ""
   );
 
   const displayValue = useMemo(() => {
     if (!primaryValue) return "בחר קטגוריה";
-    if (!secondaryValue) return primaryValue;
-    return `${primaryValue}${CATEGORY_VALUE_SEPARATOR}${secondaryValue}`;
-  }, [primaryValue, secondaryValue]);
+    if (secondaryValues.length === 0) return primaryValue;
+    return formatServiceCategoryDisplay(
+      `${primaryValue}${CATEGORY_VALUE_SEPARATOR}${secondaryValues.join(" · ")}`
+    );
+  }, [primaryValue, secondaryValues]);
 
   const filteredGroups = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = query.trim();
     if (!q) return FREELANCER_CATEGORY_GROUPS;
     return FREELANCER_CATEGORY_GROUPS.filter((g) => {
-      if (g.primary.toLowerCase().includes(q) || g.primary.includes(query.trim())) {
-        return true;
-      }
-      return g.services.some(
-        (s) => s.toLowerCase().includes(q) || s.includes(query.trim())
-      );
+      if (textMatchesSearch(g.primary, q)) return true;
+      return g.services.some((s) => textMatchesSearch(s, q));
     });
   }, [query]);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) return;
+    const firstMatch = FREELANCER_CATEGORY_GROUPS.find((g) => {
+      if (textMatchesSearch(g.primary, q)) return true;
+      return g.services.some((s) => textMatchesSearch(s, q));
+    });
+    if (firstMatch) {
+      setExpandedPrimary(firstMatch.primary);
+    }
+  }, [query]);
+
+  function toggleSecondary(groupPrimary: string, service: string) {
+    if (primaryValue !== groupPrimary) {
+      onChange({ primary: groupPrimary, secondaries: [service] });
+      return;
+    }
+    if (secondaryValues.includes(service)) {
+      onChange({
+        primary: groupPrimary,
+        secondaries: secondaryValues.filter((s) => s !== service),
+      });
+      return;
+    }
+    onChange({
+      primary: groupPrimary,
+      secondaries: [...secondaryValues, service],
+    });
+  }
+
+  function addCustomSecondary(groupPrimary: string, custom: string) {
+    const label = custom.trim();
+    if (!label) return;
+    if (primaryValue !== groupPrimary) {
+      onChange({ primary: groupPrimary, secondaries: [label] });
+      return;
+    }
+    if (secondaryValues.includes(label)) return;
+    onChange({
+      primary: groupPrimary,
+      secondaries: [...secondaryValues, label],
+    });
+  }
 
   return (
     <div>
@@ -63,10 +109,14 @@ export default function FreelancerCategoryTreePicker({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mt-1 flex w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2 text-right text-sm text-neutral-900 outline-none hover:border-amber-400/70 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+        className="mt-1 flex w-full items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-right text-sm text-neutral-900 outline-none hover:border-amber-400/70 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
       >
-        <span>{displayValue}</span>
-        <span className="text-xs text-neutral-600">פתח רשימה</span>
+        <span className="min-w-0 flex-1 truncate">{displayValue}</span>
+        <span className="shrink-0 text-xs text-neutral-600">
+          {secondaryValues.length > 0
+            ? `${secondaryValues.length} נבחרו · פתח`
+            : "פתח רשימה"}
+        </span>
       </button>
 
       {open ? (
@@ -80,7 +130,7 @@ export default function FreelancerCategoryTreePicker({
                 <button
                   type="button"
                   onClick={() => {
-                    onChange({ primary: "", secondary: "" });
+                    onChange({ primary: "", secondaries: [] });
                     setExpandedPrimary("");
                     setQuery("");
                     setOpen(false);
@@ -92,9 +142,9 @@ export default function FreelancerCategoryTreePicker({
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-600 hover:bg-neutral-50"
+                  className="rounded-full border border-emerald-950/25 bg-emerald-950 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-900"
                 >
-                  סגור
+                  סיום
                 </button>
               </div>
             </div>
@@ -108,12 +158,31 @@ export default function FreelancerCategoryTreePicker({
               className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
             />
 
+            {primaryValue && secondaryValues.length > 0 ? (
+              <p className="mt-2 rounded-lg border border-emerald-200/80 bg-emerald-50/70 px-3 py-2 text-[11px] text-emerald-950">
+                נבחרו <strong>{secondaryValues.length}</strong> תחומים תחת{" "}
+                <strong>{primaryValue}</strong> — לחצו שוב על תג כדי לבטל. לחצו «סיום»
+                כשסיימתם.
+              </p>
+            ) : (
+              <p className="mt-2 text-[11px] text-neutral-600">
+                אפשר לבחור כמה תת־קטגוריות יחד (למשל צילום סטילס + וידאו + מגנטים).
+              </p>
+            )}
+
             <div className="mt-3 max-h-[58vh] overflow-y-auto rounded-xl border border-[#E8E0D4] bg-neutral-50/70 p-2">
               <div className="space-y-2">
                 {filteredGroups.map((group) => {
                   const expanded = expandedPrimary === group.primary;
                   const isPrimarySelected =
-                    primaryValue === group.primary && !secondaryValue;
+                    primaryValue === group.primary && secondaryValues.length === 0;
+                  const q = query.trim();
+                  const primaryMatches = !q || textMatchesSearch(group.primary, q);
+                  const visibleServices = q
+                    ? primaryMatches
+                      ? group.services
+                      : group.services.filter((s) => textMatchesSearch(s, q))
+                    : group.services;
                   return (
                     <div
                       key={group.primary}
@@ -135,7 +204,7 @@ export default function FreelancerCategoryTreePicker({
                         <button
                           type="button"
                           onClick={() =>
-                            onChange({ primary: group.primary, secondary: "" })
+                            onChange({ primary: group.primary, secondaries: [] })
                           }
                           className={`flex-1 rounded-lg px-3 py-2 text-right text-sm ${
                             isPrimarySelected
@@ -143,38 +212,32 @@ export default function FreelancerCategoryTreePicker({
                               : "text-neutral-900 hover:bg-neutral-50"
                           }`}
                         >
-                          {group.primary}
+                          {highlightSearchText(group.primary, query)}
                         </button>
                       </div>
                       {expanded ? (
                         <div className="border-t border-[#E8E0D4] p-2">
                           <p className="mb-2 text-[11px] text-neutral-600">
-                            בחר תת־קטגוריה מתוך {group.primary}
+                            בחרו תת־קטגוריות מתוך {group.primary} (אפשר כמה)
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {group.services.map((service) => {
+                            {visibleServices.map((service) => {
                               const selected =
                                 primaryValue === group.primary &&
-                                secondaryValue === service;
+                                secondaryValues.includes(service);
                               return (
                                 <button
                                   key={`${group.primary}-${service}`}
                                   type="button"
-                                  onClick={() => {
-                                    onChange({
-                                      primary: group.primary,
-                                      secondary: service,
-                                    });
-                                    setOpen(false);
-                                    setQuery("");
-                                  }}
+                                  onClick={() => toggleSecondary(group.primary, service)}
+                                  aria-pressed={selected}
                                   className={`rounded-full border px-3 py-1.5 text-xs ${
                                     selected
-                                      ? "border-[#C9A227] bg-[#FFF7DD] text-emerald-950"
+                                      ? "border-[#C9A227] bg-[#FFF7DD] text-emerald-950 ring-1 ring-amber-400/40"
                                       : "border-neutral-200 bg-white text-neutral-900 hover:border-amber-400/70"
                                   }`}
                                 >
-                                  {service}
+                                  {highlightSearchText(service, query)}
                                 </button>
                               );
                             })}
@@ -204,16 +267,15 @@ export default function FreelancerCategoryTreePicker({
                                     customSecondaryDraftByPrimary[group.primary] ?? ""
                                   ).trim();
                                   if (!custom) return;
-                                  onChange({
-                                    primary: group.primary,
-                                    secondary: custom,
-                                  });
-                                  setOpen(false);
-                                  setQuery("");
+                                  addCustomSecondary(group.primary, custom);
+                                  setCustomSecondaryDraftByPrimary((prev) => ({
+                                    ...prev,
+                                    [group.primary]: "",
+                                  }));
                                 }}
                                 className="rounded-full border border-emerald-950/30 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-neutral-50"
                               >
-                                שמור תת־קטגוריה
+                                הוסף לרשימה
                               </button>
                             </div>
                           </div>
@@ -246,7 +308,7 @@ export default function FreelancerCategoryTreePicker({
                                   const p = customOtherPrimary.trim();
                                   const s = customOtherSecondary.trim();
                                   if (!p || !s) return;
-                                  onChange({ primary: p, secondary: s });
+                                  onChange({ primary: p, secondaries: [s] });
                                   setOpen(false);
                                   setQuery("");
                                 }}
@@ -272,4 +334,3 @@ export default function FreelancerCategoryTreePicker({
     </div>
   );
 }
-

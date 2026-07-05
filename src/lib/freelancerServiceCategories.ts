@@ -1,4 +1,6 @@
 export const CATEGORY_VALUE_SEPARATOR = " / ";
+/** מפריד בין מספר תת־קטגוריות תחת אותה קטגוריה ראשית */
+export const CATEGORY_MULTI_SEPARATOR = " · ";
 
 /**
  * קטגוריות שירות לפרילנסרים — מבוסס על אינדקסי ספקים לאירועים בישראל
@@ -276,26 +278,52 @@ export function getSecondaryServicesForPrimary(primary: string): string[] {
 
 export function composeServiceCategoryValue(
   primary: string,
-  secondary: string
+  secondary: string | string[]
 ): string {
   const p = primary.trim();
-  const s = secondary.trim();
   if (!p) return "";
-  if (!s) return p;
-  return `${p}${CATEGORY_VALUE_SEPARATOR}${s}`;
+  const list = Array.isArray(secondary) ? secondary : [secondary];
+  const cleaned = list.map((s) => s.trim()).filter(Boolean);
+  if (cleaned.length === 0) return p;
+  return `${p}${CATEGORY_VALUE_SEPARATOR}${cleaned.join(CATEGORY_MULTI_SEPARATOR)}`;
+}
+
+export function parseServiceCategorySelections(raw: string): {
+  primary: string;
+  secondaries: string[];
+} {
+  const val = (raw ?? "").trim();
+  if (!val) return { primary: "", secondaries: [] };
+  if (!val.includes(CATEGORY_VALUE_SEPARATOR)) {
+    return { primary: val, secondaries: [] };
+  }
+  const [p, rest] = val.split(CATEGORY_VALUE_SEPARATOR, 2);
+  const primary = (p ?? "").trim();
+  const secondaryPart = (rest ?? "").trim();
+  if (!secondaryPart) return { primary, secondaries: [] };
+  const secondaries = secondaryPart
+    .split(CATEGORY_MULTI_SEPARATOR)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return { primary, secondaries };
+}
+
+export function formatServiceCategoryDisplay(raw: string): string {
+  const { primary, secondaries } = parseServiceCategorySelections(raw);
+  if (!primary) return "בחר קטגוריה";
+  if (secondaries.length === 0) return primary;
+  return composeServiceCategoryValue(primary, secondaries);
 }
 
 export function parseServiceCategoryValue(raw: string): {
   primary: string;
   secondary: string;
 } {
-  const val = (raw ?? "").trim();
-  if (!val) return { primary: "", secondary: "" };
-  if (val.includes(CATEGORY_VALUE_SEPARATOR)) {
-    const [p, s] = val.split(CATEGORY_VALUE_SEPARATOR, 2);
-    return { primary: (p ?? "").trim(), secondary: (s ?? "").trim() };
-  }
-  return { primary: val, secondary: "" };
+  const { primary, secondaries } = parseServiceCategorySelections(raw);
+  return {
+    primary,
+    secondary: secondaries.join(CATEGORY_MULTI_SEPARATOR),
+  };
 }
 
 /** תיאור קצר לכל קטגוריה ראשית — לתצוגה בעמודי שירות */

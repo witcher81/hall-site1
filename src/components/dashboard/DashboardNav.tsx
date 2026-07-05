@@ -7,6 +7,7 @@ import {
   type DashboardRole,
 } from "@/components/dashboard/dashboardNavConfig";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useHeaderThemeToggleVisible } from "@/lib/useThemeToggleDock";
 
 type User = { name: string | null; email: string } | null;
 
@@ -20,6 +21,7 @@ export default function DashboardNav({
   const pathname = usePathname();
   const config = DASHBOARD_NAV[role];
   const displayName = user?.name?.trim() || user?.email || "";
+  const showHeaderThemeToggle = useHeaderThemeToggleVisible();
 
   return (
     <header className="dashboard-nav sticky top-0 z-[500] border-b border-white/10 bg-gradient-to-b from-emerald-950 via-emerald-950 to-[#023528] shadow-[0_8px_32px_rgba(2,44,34,0.35)] backdrop-blur-md">
@@ -36,7 +38,7 @@ export default function DashboardNav({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <ThemeToggle variant="header" />
+            {showHeaderThemeToggle ? <ThemeToggle variant="header" /> : null}
             {displayName ? (
               <span
                 className="hidden max-w-[12rem] truncate text-xs text-white/75 sm:inline sm:text-sm"

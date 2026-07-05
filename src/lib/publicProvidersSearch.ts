@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { Prisma } from "@prisma/client";
 import { buildServiceCategoryWhere } from "@/lib/serviceCategoryQuery";
 import { prisma } from "@/lib/prisma";
 import {
@@ -42,11 +43,7 @@ export async function searchPublicProviders(
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
 
-  const where: {
-    OR?: Array<{ category: string } | { category: { startsWith: string } }>;
-    minPrice?: { gte: number };
-    maxPrice?: { lte: number };
-  } = {
+  const where: Prisma.ServiceWhereInput = {
     ...buildServiceCategoryWhere(category, secondary),
   };
   if (minPrice && minPrice !== "") {

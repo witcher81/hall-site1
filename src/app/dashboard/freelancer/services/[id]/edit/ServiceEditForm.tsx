@@ -7,7 +7,7 @@ import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
-  parseServiceCategoryValue,
+  parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import {
@@ -52,11 +52,11 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     initial.minPrice,
     initial.maxPrice
   );
-  const initialCategory = parseServiceCategoryValue(initial.category);
+  const initialCategory = parseServiceCategorySelections(initial.category);
   const [form, setForm] = useState({
     name: initial.name,
     primaryCategory: initialCategory.primary,
-    secondaryCategory: initialCategory.secondary,
+    secondaryCategories: initialCategory.secondaries,
     description: initial.description,
     serviceArea: initial.serviceArea,
     experienceYears: String(initial.experienceYears ?? ""),
@@ -115,7 +115,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       fd.append("name", form.name.trim());
       fd.append(
         "category",
-        composeServiceCategoryValue(form.primaryCategory, form.secondaryCategory)
+        composeServiceCategoryValue(form.primaryCategory, form.secondaryCategories)
       );
       fd.append("description", form.description.trim());
       fd.append("serviceArea", form.serviceArea.trim());
@@ -176,15 +176,15 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       <div>
         <FreelancerCategoryTreePicker
           primaryValue={form.primaryCategory}
-          secondaryValue={form.secondaryCategory}
-          onChange={({ primary, secondary }) =>
+          secondaryValues={form.secondaryCategories}
+          onChange={({ primary, secondaries }) =>
             setForm((f) => ({
               ...f,
               primaryCategory: primary,
-              secondaryCategory: secondary,
+              secondaryCategories: secondaries,
             }))
           }
-          label="קטגוריה ראשית + תת־קטגוריה"
+          label="קטגוריה ראשית + תת־קטגוריה (אפשר כמה)"
         />
       </div>
 

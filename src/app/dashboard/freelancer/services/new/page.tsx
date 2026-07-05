@@ -9,6 +9,7 @@ import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
+  parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import { buildMinMaxStringsForSubmit } from "@/lib/freelancerServicePriceForm";
@@ -27,7 +28,7 @@ export default function NewServicePage() {
   const [form, setForm] = useState({
     name: "",
     primaryCategory: "",
-    secondaryCategory: "",
+    secondaryCategories: [] as string[],
     description: "",
     serviceArea: "",
     experienceYears: "",
@@ -79,7 +80,7 @@ export default function NewServicePage() {
       fd.append("name", form.name.trim());
       const categoryValue = composeServiceCategoryValue(
         form.primaryCategory,
-        form.secondaryCategory
+        form.secondaryCategories
       );
       if (categoryValue) fd.append("category", categoryValue);
       if (form.description.trim()) fd.append("description", form.description.trim());
@@ -154,15 +155,15 @@ export default function NewServicePage() {
         <div>
           <FreelancerCategoryTreePicker
             primaryValue={form.primaryCategory}
-            secondaryValue={form.secondaryCategory}
-            onChange={({ primary, secondary }) =>
+            secondaryValues={form.secondaryCategories}
+            onChange={({ primary, secondaries }) =>
               setForm((f) => ({
                 ...f,
                 primaryCategory: primary,
-                secondaryCategory: secondary,
+                secondaryCategories: secondaries,
               }))
             }
-            label="קטגוריה ראשית + תת־קטגוריה"
+            label="קטגוריה ראשית + תת־קטגוריה (אפשר כמה)"
           />
         </div>
 

@@ -8,7 +8,7 @@ import LoginPromptModal from "@/components/LoginPromptModal";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import {
   getPrimaryCategoryDescription,
-  parseServiceCategoryValue,
+  parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
@@ -297,7 +297,7 @@ export default function SingleServiceView({
       : null,
   ].filter(Boolean) as { label: string; value: string; icon: string }[];
 
-  const categoryParsed = parseServiceCategoryValue(service.category ?? "");
+  const categoryParsed = parseServiceCategorySelections(service.category ?? "");
   const primaryCategoryDescription = categoryParsed.primary
     ? getPrimaryCategoryDescription(categoryParsed.primary)
     : null;
@@ -422,11 +422,14 @@ export default function SingleServiceView({
                 <span className="rounded-full bg-emerald-950 px-3 py-1 text-sm font-semibold text-white">
                   {categoryParsed.primary}
                 </span>
-                {categoryParsed.secondary ? (
-                  <span className="rounded-full border border-[#C9A227]/50 bg-white px-3 py-1 text-sm font-semibold text-emerald-950">
-                    {categoryParsed.secondary}
+                {categoryParsed.secondaries.map((sec) => (
+                  <span
+                    key={sec}
+                    className="rounded-full border border-[#C9A227]/50 bg-white px-3 py-1 text-sm font-semibold text-emerald-950"
+                  >
+                    {sec}
                   </span>
-                ) : null}
+                ))}
               </div>
               {primaryCategoryDescription ? (
                 <p className="mt-2 text-xs leading-relaxed text-neutral-600">

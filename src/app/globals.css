@@ -235,6 +235,11 @@ body {
   background: color-mix(in srgb, var(--accent) 8%, var(--card));
 }
 
+html[data-theme="night"] .search-text-highlight {
+  background-color: rgb(251 191 36 / 0.35) !important;
+  color: #fef3c7 !important;
+}
+
 /* אזור אישי — בעל אולם / פרילנסר */
 .dashboard-area {
   min-height: 100vh;
