@@ -588,7 +588,6 @@ const SECONDARY_OVERRIDE: Partial<Record<string, CatalogTemplateId>> = {
   "חובש/פראמדיק לאירוע": "generic",
   "משגיח כשרות לאירוע": "generic",
   "מתנות לאורחים (Party favors)": "print_quantity",
-  "שירות VIP / ליווי אורחים": "staffing",
 };
 
 function buildSecondaryTemplateMap(): Record<string, CatalogTemplateId> {

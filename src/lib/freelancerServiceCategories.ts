@@ -81,7 +81,7 @@ export const FREELANCER_CATEGORY_GROUPS = [
     primary: "מוזיקה ובמה",
     services: [
       "DJ ותקליטנים",
-      "יליצן / MC לאירוע",
+      "MC — מנחה אירוע",
       "זמרים ולהקות",
       "זמר חופה / טקס",
       "נגנים להרכבים וקבלת פנים",
@@ -225,7 +225,6 @@ export const FREELANCER_CATEGORY_GROUPS = [
       "ניקיון לפני/במהלך/אחרי",
       "חובש/פראמדיק לאירוע",
       "משגיח כשרות לאירוע",
-      "שירות VIP / ליווי אורחים",
       "מתנות לאורחים (Party favors)",
       "צוות הקמה ופירוק",
     ],
@@ -277,6 +276,20 @@ export const FREELANCER_SERVICE_CATEGORIES = FREELANCER_PRIMARY_CATEGORIES;
 export function getSecondaryServicesForPrimary(primary: string): string[] {
   const group = FREELANCER_CATEGORY_GROUPS.find((g) => g.primary === primary);
   return group ? [...group.services] : [];
+}
+
+/** הסבר קצר לתת־קטגוריות שדורשות הבהרה בבחירה */
+const FREELANCER_SECONDARY_SERVICE_DESCRIPTIONS: Record<string, string> = {
+  "DJ ותקליטנים":
+    "מנגן מוזיקה באירוע — ריקודים, קבלת פנים ומעברים בין קטעים. בדרך כלל לא מדבר הרבה במיקרופון.",
+  "MC — מנחה אירוע":
+    "מדבר במיקרופון, מכריז ומוביל את הטקס והנשף (חופה, כניסות, הכרזות). לא בהכרח מנגן מוזיקה.",
+};
+
+export function getSecondaryServiceDescription(service: string): string | null {
+  const key = service.trim();
+  if (!key) return null;
+  return FREELANCER_SECONDARY_SERVICE_DESCRIPTIONS[key] ?? null;
 }
 
 export function composeServiceCategoryValue(

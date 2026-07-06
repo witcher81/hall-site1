@@ -4,6 +4,7 @@ import {
   CATEGORY_VALUE_SEPARATOR,
   FREELANCER_CATEGORY_GROUPS,
   formatServiceCategoryDisplay,
+  getSecondaryServiceDescription,
 } from "@/lib/freelancerServiceCategories";
 import { highlightSearchText, textMatchesSearch } from "@/lib/highlightSearchText";
 import { useEffect, useMemo, useState } from "react";
@@ -218,19 +219,29 @@ export default function FreelancerCategoryTreePicker({
                               const selected =
                                 primaryValue === group.primary &&
                                 secondaryValues.includes(service);
+                              const serviceHelp = getSecondaryServiceDescription(service);
                               return (
                                 <button
                                   key={`${group.primary}-${service}`}
                                   type="button"
                                   onClick={() => toggleSecondary(group.primary, service)}
                                   aria-pressed={selected}
-                                  className={`rounded-full border px-3 py-1.5 text-xs ${
+                                  className={`rounded-xl border px-3 py-1.5 text-right text-xs ${
+                                    serviceHelp ? "max-w-full sm:max-w-[14rem]" : ""
+                                  } ${
                                     selected
                                       ? "border-[#C9A227] bg-[#FFF7DD] text-emerald-950 ring-1 ring-amber-400/40"
                                       : "border-neutral-200 bg-white text-neutral-900 hover:border-amber-400/70"
                                   }`}
                                 >
-                                  {highlightSearchText(service, query)}
+                                  <span className="block font-medium">
+                                    {highlightSearchText(service, query)}
+                                  </span>
+                                  {serviceHelp ? (
+                                    <span className="mt-0.5 block text-[10px] font-normal leading-snug text-neutral-500">
+                                      {serviceHelp}
+                                    </span>
+                                  ) : null}
                                 </button>
                               );
                             })}

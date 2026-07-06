@@ -544,8 +544,8 @@ const STANDALONE_ENTRIES = [
     businessName: "אלון דביר — MC",
     businessPhone: "050-1111009",
     service: {
-      name: "יליצן ו-MC לחתונה",
-      category: category("מוזיקה ובמה", "יליצן / MC לאירוע"),
+      name: "MC לחתונה",
+      category: category("מוזיקה ובמה", "MC — מנחה אירוע"),
       serviceArea: "כל הארץ",
       experienceYears: 13,
       languages: "עברית, אנגלית",
