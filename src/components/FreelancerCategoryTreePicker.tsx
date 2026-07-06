@@ -1,11 +1,14 @@
 "use client";
 
+import CategoryHoverTooltip from "@/components/CategoryHoverTooltip";
 import {
   CATEGORY_VALUE_SEPARATOR,
   FREELANCER_CATEGORY_GROUPS,
   formatServiceCategoryDisplay,
+  getPrimaryCategoryDescription,
   getSecondaryServiceDescription,
 } from "@/lib/freelancerServiceCategories";
+import { useDelayedHoverTip } from "@/hooks/useDelayedHoverTip";
 import { highlightSearchText, textMatchesSearch } from "@/lib/highlightSearchText";
 import { useEffect, useMemo, useState } from "react";
 
@@ -42,6 +45,7 @@ export default function FreelancerCategoryTreePicker({
       ? secondaryValues.join(" · ")
       : ""
   );
+  const { tip, showAfterDelay, hideTip } = useDelayedHoverTip();
 
   const displayValue = useMemo(() => {
     if (!primaryValue) return "בחר קטגוריה";
@@ -61,6 +65,10 @@ export default function FreelancerCategoryTreePicker({
   }, [query]);
 
   useEffect(() => {
+    if (!open) hideTip();
+  }, [open, hideTip]);
+
+  useEffect(() => {
     const q = query.trim();
     if (!q) return;
     const firstMatch = FREELANCER_CATEGORY_GROUPS.find((g) => {
@@ -71,6 +79,10 @@ export default function FreelancerCategoryTreePicker({
       setExpandedPrimary(firstMatch.primary);
     }
   }, [query]);
+
+  useEffect(() => {
+    if (!open) hideTip();
+  }, [open, hideTip]);
 
   function toggleSecondary(groupPrimary: string, service: string) {
     if (primaryValue !== groupPrimary) {
@@ -158,7 +170,8 @@ export default function FreelancerCategoryTreePicker({
                 </p>
               ) : (
                 <p className="mt-2 text-[11px] text-neutral-600">
-                  אפשר לבחור כמה תת־קטגוריות יחד (למשל צילום סטילס + וידאו + מגנטים).
+                  אפשר לבחור כמה תת־קטגוריות יחד. השאירו את העכבר 3 שניות על עבודה
+                  כדי לראות הסבר.
                 </p>
               )}
             </div>
@@ -200,6 +213,17 @@ export default function FreelancerCategoryTreePicker({
                           onClick={() =>
                             onChange({ primary: group.primary, secondaries: [] })
                           }
+                          onMouseEnter={(e) => {
+                            const body = getPrimaryCategoryDescription(group.primary);
+                            if (!body) return;
+                            showAfterDelay(
+                              `primary:${group.primary}`,
+                              group.primary,
+                              body,
+                              e.currentTarget
+                            );
+                          }}
+                          onMouseLeave={hideTip}
                           className={`flex-1 rounded-lg px-3 py-2 text-right text-sm ${
                             isPrimarySelected
                               ? "bg-[#FFF7DD] text-emerald-950"
@@ -219,29 +243,31 @@ export default function FreelancerCategoryTreePicker({
                               const selected =
                                 primaryValue === group.primary &&
                                 secondaryValues.includes(service);
-                              const serviceHelp = getSecondaryServiceDescription(service);
                               return (
                                 <button
                                   key={`${group.primary}-${service}`}
                                   type="button"
                                   onClick={() => toggleSecondary(group.primary, service)}
+                                  onMouseEnter={(e) =>
+                                    showAfterDelay(
+                                      `${group.primary}:${service}`,
+                                      service,
+                                      getSecondaryServiceDescription(
+                                        service,
+                                        group.primary
+                                      ),
+                                      e.currentTarget
+                                    )
+                                  }
+                                  onMouseLeave={hideTip}
                                   aria-pressed={selected}
-                                  className={`rounded-xl border px-3 py-1.5 text-right text-xs ${
-                                    serviceHelp ? "max-w-full sm:max-w-[14rem]" : ""
-                                  } ${
+                                  className={`rounded-full border px-3 py-1.5 text-xs ${
                                     selected
                                       ? "border-[#C9A227] bg-[#FFF7DD] text-emerald-950 ring-1 ring-amber-400/40"
                                       : "border-neutral-200 bg-white text-neutral-900 hover:border-amber-400/70"
                                   }`}
                                 >
-                                  <span className="block font-medium">
-                                    {highlightSearchText(service, query)}
-                                  </span>
-                                  {serviceHelp ? (
-                                    <span className="mt-0.5 block text-[10px] font-normal leading-snug text-neutral-500">
-                                      {serviceHelp}
-                                    </span>
-                                  ) : null}
+                                  {highlightSearchText(service, query)}
                                 </button>
                               );
                             })}
@@ -344,6 +370,7 @@ export default function FreelancerCategoryTreePicker({
               </button>
             </div>
           </div>
+          <CategoryHoverTooltip tip={tip} />
         </div>
       ) : null}
     </div>

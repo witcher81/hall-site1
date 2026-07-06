@@ -273,23 +273,18 @@ export const FREELANCER_PRIMARY_CATEGORIES = FREELANCER_CATEGORY_GROUPS.map(
 /** תאימות לאזורים ישנים בקוד */
 export const FREELANCER_SERVICE_CATEGORIES = FREELANCER_PRIMARY_CATEGORIES;
 
+import { resolveSecondaryServiceDescription } from "@/lib/freelancerServiceDescriptions";
+
 export function getSecondaryServicesForPrimary(primary: string): string[] {
   const group = FREELANCER_CATEGORY_GROUPS.find((g) => g.primary === primary);
   return group ? [...group.services] : [];
 }
 
-/** הסבר קצר לתת־קטגוריות שדורשות הבהרה בבחירה */
-const FREELANCER_SECONDARY_SERVICE_DESCRIPTIONS: Record<string, string> = {
-  "DJ ותקליטנים":
-    "מנגן מוזיקה באירוע — ריקודים, קבלת פנים ומעברים בין קטעים. בדרך כלל לא מדבר הרבה במיקרופון.",
-  "MC — מנחה אירוע":
-    "מדבר במיקרופון, מכריז ומוביל את הטקס והנשף (חופה, כניסות, הכרזות). לא בהכרח מנגן מוזיקה.",
-};
-
-export function getSecondaryServiceDescription(service: string): string | null {
-  const key = service.trim();
-  if (!key) return null;
-  return FREELANCER_SECONDARY_SERVICE_DESCRIPTIONS[key] ?? null;
+export function getSecondaryServiceDescription(
+  service: string,
+  primary = ""
+): string {
+  return resolveSecondaryServiceDescription(service, primary);
 }
 
 export function composeServiceCategoryValue(
