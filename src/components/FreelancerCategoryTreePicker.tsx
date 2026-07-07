@@ -80,10 +80,6 @@ export default function FreelancerCategoryTreePicker({
     }
   }, [query]);
 
-  useEffect(() => {
-    if (!open) hideTip();
-  }, [open, hideTip]);
-
   function toggleSecondary(groupPrimary: string, service: string) {
     if (primaryValue !== groupPrimary) {
       onChange({ primary: groupPrimary, secondaries: [service] });
