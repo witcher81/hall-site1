@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export const CATEGORY_HOVER_DELAY_MS = 3000;
+export const CATEGORY_HOVER_DELAY_MS = 1000;
 
 export type HoverTipState = {
   title: string;

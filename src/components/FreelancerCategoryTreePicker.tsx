@@ -166,7 +166,7 @@ export default function FreelancerCategoryTreePicker({
                 </p>
               ) : (
                 <p className="mt-2 text-[11px] text-neutral-600">
-                  אפשר לבחור כמה תת־קטגוריות יחד. השאירו את העכבר 3 שניות על עבודה
+                  אפשר לבחור כמה תת־קטגוריות יחד. השאירו את העכבר שנייה על עבודה
                   כדי לראות הסבר.
                 </p>
               )}
