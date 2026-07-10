@@ -559,7 +559,6 @@ const PRIMARY_DEFAULT: Record<string, CatalogTemplateId> = {
   "ציוד ולוגיסטיקה": "equipment_rental",
   "שירותי קהל ותפעול": "staffing",
   "אירועים עסקיים וכנסים": "corporate",
-  "מיתוג חווייתי ואקטיבציות": "activation",
   אחר: "generic",
 };
 
