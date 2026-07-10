@@ -75,6 +75,32 @@ const GENERIC: CatalogFieldHelpSet = {
 
 const BY_TEMPLATE: Partial<Record<CatalogTemplateId, CatalogFieldHelpSet>> = {
   food: FOOD,
+  beverage: {
+    ...FOOD,
+    packagesSectionTitle: "מה זה «רמת בר»?",
+    packagesSectionBody:
+      "רמות open bar — למשל «בר בסיסי» 80₪ לאורח, «פרימיום» 150₪ לאורח.",
+    catalogSectionTitle: "מה זה «רשימת משקאות»?",
+    catalogSectionBody:
+      "קוקטיילים, יינות, בירות — לכל פריט: כלול ברמה או בתוספת לאורח.",
+    sectionTitle: "קבוצת משקאות — למשל «קוקטיילים», «יינות», «ללא אלכוהול».",
+    itemName: "שם המשקה — למשל: מוחיטו, קברנה, בירה.",
+  },
+  food_station: {
+    ...GENERIC,
+    packagesSectionBody:
+      "חבילת עמדה = משך שעות ו/או מחיר קבוע / לאורח — למשל 3 שעות, עד 200 מנות.",
+    catalogSectionTitle: "מה זה «טעמים בעמדה»?",
+    catalogSectionBody: "רשימת טעמים או מנות — כלול או בתוספת.",
+    sectionTitle: "קבוצת טעמים — למשל «גלידה», «תוספות».",
+    itemName: "שם טעם / מנה — למשל: וניל, Nutella.",
+  },
+  registration: {
+    ...GENERIC,
+    packagesSectionBody:
+      "חבילות RSVP, הושבה או צ'ק-אין — מחיר קבוע לאירוע או לאורח.",
+    catalogSectionBody: "שירותים כמו מערכת דיגיטלית, כרטיסי שם, צוות בדלת.",
+  },
   beauty: {
     ...GENERIC,
     packagesSectionTitle: "מה זה כאן?",
@@ -100,11 +126,11 @@ export function getItemPricingHelp(
   templateId: CatalogTemplateId,
   pricing: string
 ): string | undefined {
-  if (templateId === "food") {
-    if (pricing === "included") return "המנה כלולה במחיר לאורח של הרמה — בלי תוספת.";
-    if (pricing === "per_guest") return "מחיר נוסף לכל אורח שבוחר במנה (למשל סטייק +₪40).";
-    if (pricing === "per_guest_range") return "טווח מחיר נוסף לאורח על המנה.";
-    if (pricing === "fixed") return "מחיר קבוע לאירוע על המנה (נדיר — בדרך כלל «לאורח»).";
+  if (templateId === "food" || templateId === "beverage") {
+    if (pricing === "included") return "הפריט כלול במחיר לאורח של הרמה — בלי תוספת.";
+    if (pricing === "per_guest") return "מחיר נוסף לכל אורח (למשל קוקטייל פרימיום +₪15).";
+    if (pricing === "per_guest_range") return "טווח מחיר נוסף לאורח.";
+    if (pricing === "fixed") return "מחיר קבוע לאירוע (נדיר — בדרך כלל «לאורח»).";
   }
   return undefined;
 }

@@ -5,6 +5,7 @@ import {
   type CatalogTemplate,
   type CatalogTemplateId,
 } from "@/lib/serviceCategoryTemplates";
+import { normalizeCatalogTemplateId } from "@/lib/serviceCategorySpec";
 
 export type ServiceMenuItemPricing =
   | "included"
@@ -257,11 +258,13 @@ export function sanitizeServiceMenuFromClient(data: unknown): ServiceMenuConfig 
     return { ...EMPTY_MENU };
   }
   const o = data as Record<string, unknown>;
-  const templateId =
-    typeof o.templateId === "string" &&
-    o.templateId.trim()
-      ? (o.templateId.trim() as CatalogTemplateId)
+  const templateIdRaw =
+    typeof o.templateId === "string" && o.templateId.trim()
+      ? o.templateId.trim()
       : null;
+  const templateId = templateIdRaw
+    ? normalizeCatalogTemplateId(templateIdRaw)
+    : null;
   const minGuests = toGuestIntOrNull(o.minGuests);
   const maxGuests = toGuestIntOrNull(o.maxGuests);
   const minPersons = toGuestIntOrNull(o.minPersons);

@@ -12,7 +12,7 @@ import {
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
-import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
+import { resolveStoredCatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
   menuHasContent,
   parseServiceMenuJson,
@@ -118,11 +118,11 @@ export default function SingleServiceView({
     service.minPrice,
     service.maxPrice
   );
-  const catalogTemplate = useMemo(
-    () => resolveCatalogTemplateFromCategory(service.category),
-    [service.category]
-  );
   const menu = service.menu;
+  const catalogTemplate = useMemo(
+    () => resolveStoredCatalogTemplate(menu ?? {}, service.category),
+    [service.category, menu]
+  );
   const showCatalog =
     catalogTemplate != null && menu != null && menuHasContent(menu);
   const requiresCountInquiry =

@@ -39,7 +39,12 @@ const PRICING_LABELS: Record<ServiceMenuItemPricing, string> = {
 };
 
 /** תבניות שבהן רשימת פריטים היא חלק מרכזי (תפריט, דפוס...) */
-const CATALOG_ESSENTIAL = new Set<CatalogTemplate["id"]>(["food", "print_quantity"]);
+const CATALOG_ESSENTIAL = new Set<CatalogTemplate["id"]>([
+  "food",
+  "beverage",
+  "food_station",
+  "print_quantity",
+]);
 
 const input =
   "w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
@@ -258,11 +263,12 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                     onChange={(e) => updatePackage(index, { name: e.target.value })}
                     className={input}
                     placeholder={
-                      template.id === "beauty"
+                      template.packageNamePlaceholder ??
+                      (template.id === "beauty"
                         ? "למשל: איפור כלה מלא"
-                        : template.id === "food"
-                          ? "למשל: מנה בסיסית, כסף, זהב"
-                          : "שם השירות / סוג"
+                        : template.id === "food" || template.id === "beverage"
+                          ? "למשל: מנה בסיסית, open bar בסיסי"
+                          : "שם השירות / סוג")
                     }
                   />
                 </CatalogFieldHelp>
@@ -369,8 +375,8 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                   value={pkg.description ?? ""}
                   onChange={(e) => updatePackage(index, { description: e.target.value })}
                   placeholder={
-                    template.id === "food"
-                      ? "למשל: 3 מנות + שתייה, הגשה, צוות מלצרים"
+                    template.id === "food" || template.id === "beverage"
+                      ? "למשל: 3 מנות + שתייה, open bar 4 שעות"
                       : "מה כלול בשורה הזו?"
                   }
                   className={textarea}

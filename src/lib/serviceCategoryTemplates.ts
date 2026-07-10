@@ -1,28 +1,17 @@
 import {
-  FOOD_BEVERAGE_PRIMARY,
-  FREELANCER_CATEGORY_GROUPS,
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
+import {
+  buildSecondaryTemplateMap,
+  getSecondaryCatalogHints,
+  normalizeCatalogTemplateId,
+  normalizePrimaryName,
+  normalizeSecondaryName,
+  PRIMARY_DEFAULT,
+  type CatalogTemplateId,
+} from "@/lib/serviceCategorySpec";
 
-/** מזהה תבנית תמחור ועורך */
-export type CatalogTemplateId =
-  | "food"
-  | "staffing"
-  | "beauty"
-  | "fashion_rental"
-  | "print_quantity"
-  | "photo_video"
-  | "music"
-  | "tech_av"
-  | "equipment_rental"
-  | "attraction"
-  | "planning"
-  | "ceremony"
-  | "design"
-  | "transport"
-  | "corporate"
-  | "activation"
-  | "generic";
+export type { CatalogTemplateId };
 
 export type CatalogTemplate = {
   id: CatalogTemplateId;
@@ -53,6 +42,8 @@ export type CatalogTemplate = {
   requireQuantityInquiry: boolean;
   /** בלוק תוספות/פירוט מוסתר בהתחלה — רק למי שצריך */
   catalogOptional?: boolean;
+  /** placeholder לשם חבילה — מ-SECONDARY_CATALOG_HINTS */
+  packageNamePlaceholder?: string;
   itemPricingModes: Array<
     "included" | "per_guest" | "per_guest_range" | "fixed" | "per_unit" | "per_hour"
   >;
@@ -88,7 +79,98 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requireGuestCountInquiry: true,
     requirePersonCountInquiry: false,
     requireQuantityInquiry: false,
+    itemPricingModes: ["included", "per_guest", "per_guest_range", "fixed", "per_unit"],
+  },
+  beverage: {
+    id: "beverage",
+    editorTitle: "בר משקאות ומחירים",
+    editorHint:
+      "הגדירו רמות open bar, מחיר לאורח ורשימת משקאות — קוקטיילים, יינות, בירות וללא אלכוהול.",
+    capacityTitle: "קיבולת אורחים",
+    capacityHint: "טווח האורחים שאתם משרתים בבר.",
+    minCapacityLabel: "מינימום אורחים *",
+    maxCapacityLabel: "מקסימום אורחים *",
+    packagesTitle: "רמות בר (לפי אורח)",
+    packagesHint:
+      "למשל: «בר בסיסי» 80₪ לאורח, «open bar פרימיום» 150₪ לאורח.",
+    packagePriceLabel: "מחיר לאורח (₪)",
+    packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח לאורח",
+    catalogTitle: "רשימת משקאות",
+    catalogHint:
+      "קוקטיילים, יינות, בירות, קפה — לכל פריט: כלול / תוספת לאורח / מחיר קבוע.",
+    catalogSectionPlaceholder: "למשל: קוקטיילים, יינות, בירות, ללא אלכוהול",
+    catalogItemPlaceholder: "למשל: מוחיטו, קברנה, בירה, מיץ",
+    notesLabel: "הערות (כשרות, הגבלות)",
+    notesPlaceholder: "למשל: בר כשר, ללא אלכוהול זמין",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
     itemPricingModes: ["included", "per_guest", "per_guest_range", "fixed"],
+  },
+  food_station: {
+    id: "food_station",
+    editorTitle: "עמדת מזון ומחירים",
+    editorHint:
+      "הגדירו משך הפעלה, מחיר (קבוע או לאורח) וטעמים/מנות בעמדה — גלידה, וופל, סושי וכו'.",
+    capacityTitle: "קיבולת אורחים",
+    capacityHint: "כמה אורחים אתם משרתים בעמדה באירוע.",
+    minCapacityLabel: "מינימום אורחים *",
+    maxCapacityLabel: "מקסימום אורחים *",
+    packagesTitle: "חבילות עמדה",
+    packagesHint:
+      "למשל: 3 שעות / עד 200 מנות — מחיר קבוע או מחיר לאורח.",
+    packagePriceLabel: "מחיר לחבילה / לאורח (₪)",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "טעמים ומנות בעמדה",
+    catalogHint: "רשימת טעמים או מנות — כלול או בתוספת תשלום.",
+    catalogSectionPlaceholder: "למשל: טעמים, תוספות, מנות",
+    catalogItemPlaceholder: "למשל: וניל, שוקולד, Nutella",
+    notesLabel: "הערות (כשרות, אלרגנים)",
+    notesPlaceholder: "למשל: חלבי/בשרי, ללא גלוטן בתיאום",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: true,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "per_guest", "fixed", "per_unit"],
+  },
+  registration: {
+    id: "registration",
+    editorTitle: "רישום, RSVP והושבה",
+    editorHint:
+      "הגדירו חבילות RSVP, הושבה וצ'ק-אין — מחיר קבוע לאירוע או לאורח.",
+    capacityTitle: "קיבולת אורחים",
+    capacityHint: "טווח האורחים שאתם מלווים באירוע.",
+    minCapacityLabel: "מינימום אורחים *",
+    maxCapacityLabel: "מקסימום אורחים *",
+    packagesTitle: "חבילות שירות",
+    packagesHint:
+      "למשל: RSVP בלבד, RSVP + הושבה, צוות בכניסה.",
+    packagePriceLabel: "מחיר (₪) — קבוע או לאורח",
+    packagePriceExpandLabel: "טווח מחיר",
+    catalogTitle: "שירותים כלולים",
+    catalogHint: "מערכת דיגיטלית, כרטיסי שם, צוות בדלת — עם מחיר אם רלוונטי.",
+    catalogSectionPlaceholder: "למשל: דיגיטלי, הושבה, כניסה",
+    catalogItemPlaceholder: "למשל: מערכת RSVP, כרטיסי שם",
+    notesLabel: "הערות",
+    notesPlaceholder: "למשל: כולל הדרכה לפני האירוע",
+    showGuestCapacity: true,
+    showPersonCapacity: false,
+    showQuantityTiers: false,
+    showDeliverables: false,
+    showPackageDuration: false,
+    requireGuestCountInquiry: true,
+    requirePersonCountInquiry: false,
+    requireQuantityInquiry: false,
+    itemPricingModes: ["included", "fixed", "per_guest"],
   },
   staffing: {
     id: "staffing",
@@ -479,40 +561,12 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     showGuestCapacity: true,
     showPersonCapacity: false,
     showQuantityTiers: false,
-    showDeliverables: false,
+    showDeliverables: true,
     showPackageDuration: true,
     requireGuestCountInquiry: true,
     requirePersonCountInquiry: false,
     requireQuantityInquiry: false,
     itemPricingModes: ["included", "fixed", "per_guest"],
-  },
-  activation: {
-    id: "activation",
-    editorTitle: "אקטיבציה ומיתוג חווייתי",
-    editorHint: "עמדות, ימי פעילות ומחיר לפי היקף / משך.",
-    capacityTitle: "קיבולת",
-    capacityHint: "משתתפים צפויים או עמדות במקביל.",
-    minCapacityLabel: "מינימום",
-    maxCapacityLabel: "מקסימום",
-    packagesTitle: "חבילות",
-    packagesHint: "למשל: עמדת VR, אקטיבציה מלאה ליום.",
-    packagePriceLabel: "מחיר (₪)",
-    packagePriceExpandLabel: "טווח מחיר",
-    catalogTitle: "עמדות ותוספות",
-    catalogHint: "עמדה נוספת, מיתוג, צוות.",
-    catalogSectionPlaceholder: "למשל: עמדות",
-    catalogItemPlaceholder: "למשל: עמדת מיצג",
-    notesLabel: "הערות",
-    notesPlaceholder: "למשל: דורש שטח מקורה",
-    showGuestCapacity: true,
-    showPersonCapacity: false,
-    showQuantityTiers: false,
-    showDeliverables: false,
-    showPackageDuration: true,
-    requireGuestCountInquiry: true,
-    requirePersonCountInquiry: false,
-    requireQuantityInquiry: false,
-    itemPricingModes: ["included", "fixed", "per_hour"],
   },
   generic: {
     id: "generic",
@@ -544,85 +598,63 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
   },
 };
 
-/** ברירת מחדל לכל קטגוריה ראשית */
-const PRIMARY_DEFAULT: Record<string, CatalogTemplateId> = {
-  [FOOD_BEVERAGE_PRIMARY]: "food",
-  "תכנון וניהול אירוע": "planning",
-  "צילום ותיעוד": "photo_video",
-  "מוזיקה ובמה": "music",
-  "טקסים": "ceremony",
-  "עיצוב ומיתוג": "design",
-  "יופי ואיפור": "beauty",
-  "הלבשה ואופנה לאירוע": "fashion_rental",
-  "הזמנות ודפוס": "print_quantity",
-  "אטרקציות ובידור": "attraction",
-  "ציוד ולוגיסטיקה": "equipment_rental",
-  "שירותי קהל ותפעול": "staffing",
-  "אירועים עסקיים וכנסים": "corporate",
-  אחר: "generic",
-};
-
-/** דריסות לתת־קטגוריות ספציפיות */
-const SECONDARY_OVERRIDE: Partial<Record<string, CatalogTemplateId>> = {
-  "טכנאי הגברה (סאונדמן)": "tech_av",
-  "מפעיל תאורה (לייטמן)": "tech_av",
-  "מפעיל במה — סאונד ותאורה": "tech_av",
-  "הגברה ותאורה": "tech_av",
-  "מסכי LED והקרנה": "tech_av",
-  "השכרת ציוד כללי לאירועים": "equipment_rental",
-  "השכרת ריהוט (שולחנות, כיסאות)": "equipment_rental",
-  "השכרת כלים, זכוכית וציוד הגשה": "equipment_rental",
-  "במות ותפאורה טכנית": "equipment_rental",
-  "אוהלים והצללות": "equipment_rental",
-  "מלצרים / צוות הגשה": "staffing",
-  "ברמנים / צוות בר": "staffing",
-  "דיילות וקבלת פנים": "staffing",
-  "אבטחה וסדרנות": "staffing",
-  "צוות הקמה ופירוק": "staffing",
-  "הסעות אורחים": "transport",
-  "השכרת רכב יוקרה / לימוזינה": "transport",
-  "אוטובוסים / מיניבוסים לאורחים": "transport",
-  "שירותי חניה (Valet)": "transport",
-  "ניקיון לפני/במהלך/אחרי": "generic",
-  "חובש/פראמדיק לאירוע": "generic",
-  "משגיח כשרות לאירוע": "generic",
-  "מתנות לאורחים (Party favors)": "print_quantity",
-};
-
-function buildSecondaryTemplateMap(): Record<string, CatalogTemplateId> {
-  const map: Record<string, CatalogTemplateId> = {};
-  for (const group of FREELANCER_CATEGORY_GROUPS) {
-    const fallback = PRIMARY_DEFAULT[group.primary] ?? "generic";
-    for (const service of group.services) {
-      map[service] = SECONDARY_OVERRIDE[service] ?? fallback;
-    }
-  }
-  return map;
-}
-
 export const SECONDARY_CATALOG_TEMPLATE = buildSecondaryTemplateMap();
 
 export function getCatalogTemplate(id: CatalogTemplateId): CatalogTemplate {
   return TEMPLATES[id];
 }
 
+function lookupTemplateIdForSecondary(secondary: string, primary: string): CatalogTemplateId {
+  const normalized = normalizeSecondaryName(secondary);
+  return (
+    SECONDARY_CATALOG_TEMPLATE[normalized] ??
+    PRIMARY_DEFAULT[normalizePrimaryName(primary)] ??
+    "generic"
+  );
+}
+
 export function resolveCatalogTemplateId(
   primary: string,
   secondaries: string[]
 ): CatalogTemplateId | null {
-  const p = primary.trim();
+  const p = normalizePrimaryName(primary.trim());
   if (!p) return null;
-  if (secondaries.length === 1) {
-    return SECONDARY_CATALOG_TEMPLATE[secondaries[0]!] ?? PRIMARY_DEFAULT[p] ?? "generic";
+  const normalizedSecondaries = secondaries
+    .map((s) => normalizeSecondaryName(s.trim()))
+    .filter(Boolean);
+  if (normalizedSecondaries.length === 1) {
+    return lookupTemplateIdForSecondary(normalizedSecondaries[0]!, p);
   }
-  if (secondaries.length > 1) {
+  if (normalizedSecondaries.length > 1) {
     const ids = new Set(
-      secondaries.map((s) => SECONDARY_CATALOG_TEMPLATE[s] ?? PRIMARY_DEFAULT[p] ?? "generic")
+      normalizedSecondaries.map((s) => lookupTemplateIdForSecondary(s, p))
     );
     if (ids.size === 1) return [...ids][0]!;
     return PRIMARY_DEFAULT[p] ?? "generic";
   }
   return PRIMARY_DEFAULT[p] ?? "generic";
+}
+
+export function applySecondaryCatalogHints(
+  template: CatalogTemplate,
+  secondary: string | null | undefined
+): CatalogTemplate {
+  const hints = getSecondaryCatalogHints(secondary);
+  if (!hints) return template;
+  return {
+    ...template,
+    ...(hints.packagesHint ? { packagesHint: hints.packagesHint } : {}),
+    ...(hints.packageNamePlaceholder
+      ? { packageNamePlaceholder: hints.packageNamePlaceholder }
+      : {}),
+    ...(hints.catalogSectionPlaceholder
+      ? { catalogSectionPlaceholder: hints.catalogSectionPlaceholder }
+      : {}),
+    ...(hints.catalogItemPlaceholder
+      ? { catalogItemPlaceholder: hints.catalogItemPlaceholder }
+      : {}),
+    ...(hints.notesPlaceholder ? { notesPlaceholder: hints.notesPlaceholder } : {}),
+  };
 }
 
 export function resolveCatalogTemplateFromCategory(
@@ -632,7 +664,23 @@ export function resolveCatalogTemplateFromCategory(
   const { primary, secondaries } = parseServiceCategorySelections(category);
   const id = resolveCatalogTemplateId(primary, secondaries);
   if (!id) return null;
-  return getCatalogTemplate(id);
+  const base = getCatalogTemplate(id);
+  const hintSource =
+    secondaries.length === 1 ? secondaries[0]! : secondaries[0] ?? null;
+  return applySecondaryCatalogHints(base, hintSource);
+}
+
+export function resolveStoredCatalogTemplate(
+  menu: { templateId?: CatalogTemplateId | null },
+  category: string | null | undefined
+): CatalogTemplate | null {
+  const fromCategory = resolveCatalogTemplateFromCategory(category);
+  if (!menu.templateId) return fromCategory;
+  const normalized = normalizeCatalogTemplateId(String(menu.templateId));
+  if (!normalized) return fromCategory;
+  const base = getCatalogTemplate(normalized);
+  const { secondaries } = parseServiceCategorySelections(category ?? "");
+  return applySecondaryCatalogHints(base, secondaries[0] ?? null);
 }
 
 export function serviceUsesCatalogEditor(
@@ -641,11 +689,25 @@ export function serviceUsesCatalogEditor(
   return resolveCatalogTemplateFromCategory(category) != null;
 }
 
-/** תבניות שבהן עורך הקטלוג מחליף את «מה כלול» / «תוספות» — לא מסתירים אותן בשאר הקטגוריות */
+/** תבניות שבהן עורך הקטלוג מחליף את «מה כלול» / «תוספות» */
 const CATALOG_REPLACES_INCLUDES_EDITOR = new Set<CatalogTemplateId>([
   "food",
+  "beverage",
+  "food_station",
+  "registration",
   "staffing",
+  "beauty",
+  "fashion_rental",
   "print_quantity",
+  "photo_video",
+  "music",
+  "tech_av",
+  "equipment_rental",
+  "attraction",
+  "planning",
+  "design",
+  "transport",
+  "corporate",
 ]);
 
 export function catalogReplacesIncludesEditor(
@@ -653,3 +715,5 @@ export function catalogReplacesIncludesEditor(
 ): boolean {
   return templateId != null && CATALOG_REPLACES_INCLUDES_EDITOR.has(templateId);
 }
+
+export { normalizeCatalogTemplateId, PRIMARY_DEFAULT };
