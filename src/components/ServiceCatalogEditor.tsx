@@ -144,9 +144,13 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
           ) : null}
           <li>
             <strong>{showCapacity ? "②" : "①"}</strong>{" "}
-            {template.id === "food" || template.id === "beverage"
+            {template.id === "food"
               ? "מחיר לאורח — כמה זה עולה"
-              : "לכל סוג שירות — שם + מחיר (המחירון העיקרי)"}
+              : template.id === "beverage" ||
+                  template.id === "food_station" ||
+                  template.id === "registration"
+                ? "מחיר השירות — כמה עולה לאירוע"
+                : "לכל סוג שירות — שם + מחיר (המחירון העיקרי)"}
           </li>
           {!catalogOptional ? (
             <li>
@@ -155,7 +159,9 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                 ? "תפריט — מה כלול במחיר"
                 : template.id === "beverage"
                   ? "רשימת משקאות — מה כלול במחיר"
-                  : template.catalogTitle}
+                  : template.id === "food_station"
+                    ? "טעמים / מנות — מה כלול במחיר"
+                    : template.catalogTitle}
             </li>
           ) : catalogOptional ? (
             <li>
@@ -265,9 +271,13 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
               <div className="grid gap-3 sm:grid-cols-2">
                 <CatalogFieldHelp
                   label={
-                    template.id === "food" || template.id === "beverage"
+                    template.id === "food"
                       ? "שם סוג המחיר"
-                      : "שם הרמה / סוג"
+                      : template.id === "beverage" ||
+                          template.id === "food_station" ||
+                          template.id === "registration"
+                        ? "שם החבילה / השירות"
+                        : "שם הרמה / סוג"
                   }
                   help={fieldHelp.packageName}
                 >
@@ -383,9 +393,13 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
               ) : null}
               <CatalogFieldHelp
                 label={
-                  template.id === "food" || template.id === "beverage"
+                  template.id === "food"
                     ? "סיכום קצר מה כלול במחיר (אופציונלי)"
-                    : "מה כלול? (אופציונלי)"
+                    : template.id === "beverage" ||
+                        template.id === "food_station" ||
+                        template.id === "registration"
+                      ? "סיכום קצר מה כלול בשירות (אופציונלי)"
+                      : "מה כלול? (אופציונלי)"
                 }
                 help={fieldHelp.packageDescription}
                 className="mt-2"
@@ -400,7 +414,9 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                       ? "למשל: מנה ראשונה + עיקרית + קינוח, הגשה"
                       : template.id === "beverage"
                         ? "למשל: open bar 4 שעות, כולל בירה ויין"
-                        : "מה כלול בשורה הזו?"
+                        : template.id === "food_station"
+                          ? "למשל: כולל מפעיל, כלים, עד 200 מנות"
+                          : "מה כלול בשורה הזו?"
                   }
                   className={textarea}
                 />

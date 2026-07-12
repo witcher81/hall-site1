@@ -505,23 +505,32 @@ export function formatMenuItemPrice(item: ServiceMenuItem): string | null {
   return `₪${p}`;
 }
 
-export function formatPackagePerGuest(pkg: ServiceMenuPackage): string | null {
+export function formatPackagePrice(
+  pkg: ServiceMenuPackage,
+  options?: { perGuestSuffix?: boolean }
+): string | null {
+  const suffix = options?.perGuestSuffix ? " לאורח" : "";
   if (pkg.usePerGuestRange) {
     const min = pkg.perGuestMin;
     const max = pkg.perGuestMax;
-    if (min != null && max != null && min !== max) return `₪${min}–${max} לאורח`;
-    if (min != null) return `מ-₪${min} לאורח`;
-    if (max != null) return `עד ₪${max} לאורח`;
+    if (min != null && max != null && min !== max) return `₪${min}–${max}${suffix}`;
+    if (min != null) return `מ-₪${min}${suffix}`;
+    if (max != null) return `עד ₪${max}${suffix}`;
     return null;
   }
-  if (pkg.perGuestPrice != null) return `₪${pkg.perGuestPrice} לאורח`;
+  if (pkg.perGuestPrice != null) return `₪${pkg.perGuestPrice}${suffix}`;
   return null;
+}
+
+/** @deprecated השתמשו ב-formatPackagePrice עם perGuestSuffix */
+export function formatPackagePerGuest(pkg: ServiceMenuPackage): string | null {
+  return formatPackagePrice(pkg, { perGuestSuffix: true });
 }
 
 export function catalogPackageUsesPerGuestMultiplier(
   template: CatalogTemplate | null | undefined
 ): boolean {
-  if (!template) return true;
+  if (!template) return false;
   return /לאורח|לאדם|למשתתף/.test(template.packagePriceLabel);
 }
 

@@ -76,32 +76,67 @@ const GENERIC: CatalogFieldHelpSet = {
 const BY_TEMPLATE: Partial<Record<CatalogTemplateId, CatalogFieldHelpSet>> = {
   food: FOOD,
   beverage: {
-    ...FOOD,
-    packagesSectionTitle: "מה זה «מחיר לאורח לבר»?",
+    ...GENERIC,
+    packagesSectionTitle: "מה זה «מחיר השירות»?",
     packagesSectionBody:
-      "כמה עולה הבר לאורח אחד — למשל «בר בסיסי» ₪80, «open bar» ₪150. את רשימת המשקאות רושמים בחלק התחתון.",
+      "מחיר קבוע לבר באירוע — לא לפי אורח. למשל: «בר בסיסי 4 שעות» ₪3,500, «open bar» ₪6,000. את רשימת המשקאות רושמים בחלק התחתון.",
     catalogSectionTitle: "מה זה «רשימת משקאות»?",
     catalogSectionBody:
-      "קוקטיילים, יינות, בירות — לכל פריט: כלול במחיר מלמעלה או בתוספת לאורח.",
-    packageName: "שם סוג הבר — למשל: «בר בסיסי», «open bar».",
-    addPackageButton: "עוד מחיר לאורח — למשל גם «ללא אלכוהול»",
+      "קוקטיילים, יינות, בירות — לכל פריט: כלול במחיר השירות או בתוספת (למשל בקבוק פרימיום).",
+    packageName: "שם החבילה / סוג הבר — למשל: «בר בסיסי 4 שעות», «open bar».",
+    packagePrice: "מחיר קבוע לשירות / לערב. דוגמה: 3500 = ₪3,500 לבר באירוע.",
+    packagePriceRange: "אם אין מחיר קבוע — הציגו טווח לפי גודל אירוע או משך.",
+    packageDescription:
+      "סיכום קצר מה כלול במחיר — למשל: צוות ברמן, כוסות, קרח. הפירוט של המשקאות בחלק התחתון.",
+    packageDuration: "כמה שעות הפעלה כלולות בחבילה.",
+    itemPricing:
+      "«כלול» = במחיר השירות. «מחיר קבוע» / «ליחידה» = תוספת (למשל בקבוק).",
+    addPackageButton: "עוד חבילת בר — למשל גם «ללא אלכוהול»",
+    addSectionButton: "עוד קבוצת משקאות",
     sectionTitle: "קבוצת משקאות — למשל «קוקטיילים», «יינות», «ללא אלכוהול».",
     itemName: "שם המשקה — למשל: מוחיטו, קברנה, בירה.",
   },
   food_station: {
     ...GENERIC,
+    packagesSectionTitle: "מה זה «מחיר השירות»?",
     packagesSectionBody:
-      "חבילת עמדה = משך שעות ו/או מחיר קבוע / לאורח — למשל 3 שעות, עד 200 מנות.",
+      "מחיר קבוע לעמדת מזון באירוע — לא לפי אורח. למשל: «עמדת גלידה 3 שעות» ₪2,800. את הטעמים רושמים בחלק התחתון.",
     catalogSectionTitle: "מה זה «טעמים בעמדה»?",
-    catalogSectionBody: "רשימת טעמים או מנות — כלול או בתוספת.",
+    catalogSectionBody: "רשימת טעמים או מנות — כלול במחיר השירות או בתוספת.",
+    packageName: "שם החבילה — למשל: «עמדה 3 שעות».",
+    packagePrice: "מחיר קבוע לעמדה / לערב.",
+    packageDuration: "כמה שעות הפעלה כלולות.",
+    addPackageButton: "עוד חבילת עמדה",
     sectionTitle: "קבוצת טעמים — למשל «גלידה», «תוספות».",
     itemName: "שם טעם / מנה — למשל: וניל, Nutella.",
   },
   registration: {
     ...GENERIC,
+    packagesSectionTitle: "מה זה «מחיר השירות»?",
     packagesSectionBody:
-      "חבילות RSVP, הושבה או צ'ק-אין — מחיר קבוע לאירוע או לאורח.",
+      "מחיר קבוע ל-RSVP / הושבה / צ'ק-אין — בדרך כלל לאירוע שלם, לא לאורח.",
     catalogSectionBody: "שירותים כמו מערכת דיגיטלית, כרטיסי שם, צוות בדלת.",
+    packageName: "שם החבילה — למשל: «RSVP + הושבה».",
+    packagePrice: "מחיר קבוע לאירוע.",
+    addPackageButton: "עוד חבילת שירות",
+  },
+  transport: {
+    ...GENERIC,
+    packagesSectionTitle: "מה זה «מחיר השירות»?",
+    packagesSectionBody:
+      "מחיר לנסיעה או לערב — לא לפי אורח. למשל מיניבוס הלוך-חזור או לימוזינה לערב.",
+    packageName: "שם השירות — למשל: «מיניבוס הלוך-חזור».",
+    packagePrice: "מחיר לנסיעה / לערב.",
+    addPackageButton: "עוד חבילת הסעה",
+  },
+  corporate: {
+    ...GENERIC,
+    packagesSectionTitle: "מה זה «מחיר השירות»?",
+    packagesSectionBody:
+      "מחיר קבוע ליום / לכנס — שידור, תרגום, מיתוג. לא בהכרח לפי משתתף.",
+    packageName: "שם השירות — למשל: «שידור היברידי ליום».",
+    packagePrice: "מחיר קבוע לשירות / ליום.",
+    addPackageButton: "עוד חבילת שירות",
   },
   beauty: {
     ...GENERIC,
@@ -128,11 +163,17 @@ export function getItemPricingHelp(
   templateId: CatalogTemplateId,
   pricing: string
 ): string | undefined {
-  if (templateId === "food" || templateId === "beverage") {
+  if (templateId === "food") {
     if (pricing === "included") return "כלול במחיר לאורח מלמעלה — בלי תוספת.";
-    if (pricing === "per_guest") return "מחיר נוסף לכל אורח (למשל סטייק / קוקטייל +₪30).";
+    if (pricing === "per_guest") return "מחיר נוסף לכל אורח (למשל סטייק +₪30).";
     if (pricing === "per_guest_range") return "טווח מחיר נוסף לאורח.";
     if (pricing === "fixed") return "מחיר קבוע לאירוע (נדיר — בדרך כלל «תוספת לאורח»).";
+  }
+  if (templateId === "beverage") {
+    if (pricing === "included") return "כלול במחיר השירות מלמעלה — בלי תוספת.";
+    if (pricing === "fixed") return "תוספת במחיר קבוע לאירוע (למשל בקבוק מיוחד).";
+    if (pricing === "per_unit") return "מחיר ליחידה (למשל בקבוק / מנה).";
+    if (pricing === "per_guest") return "תוספת לאורח — רק אם באמת גובים כך.";
   }
   return undefined;
 }

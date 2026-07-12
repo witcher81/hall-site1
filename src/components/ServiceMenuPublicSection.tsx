@@ -6,7 +6,7 @@ import {
   catalogPackageUsesPerGuestMultiplier,
   estimatePackageTotal,
   formatMenuItemPrice,
-  formatPackagePerGuest,
+  formatPackagePrice,
   type ServiceMenuConfig,
   type ServiceMenuPackage,
 } from "@/lib/serviceMenu";
@@ -28,20 +28,10 @@ function formatTotalRange(min: number | null, max: number | null): string | null
   return `₪${v.toLocaleString("he-IL")}`;
 }
 
-function formatPackagePrice(pkg: ServiceMenuPackage, template: CatalogTemplate): string | null {
-  const label = formatPackagePerGuest(pkg);
-  if (!label) return null;
-  if (catalogPackageUsesPerGuestMultiplier(template)) return label;
-  if (pkg.usePerGuestRange) {
-    const min = pkg.perGuestMin;
-    const max = pkg.perGuestMax;
-    if (min != null && max != null && min !== max) return `₪${min}–${max}`;
-    if (min != null) return `₪${min}`;
-    if (max != null) return `₪${max}`;
-    return null;
-  }
-  if (pkg.perGuestPrice != null) return `₪${pkg.perGuestPrice}`;
-  return label;
+function formatPackagePriceLabel(pkg: ServiceMenuPackage, template: CatalogTemplate): string | null {
+  return formatPackagePrice(pkg, {
+    perGuestSuffix: catalogPackageUsesPerGuestMultiplier(template),
+  });
 }
 
 export default function ServiceMenuPublicSection({
@@ -133,7 +123,7 @@ export default function ServiceMenuPublicSection({
           <p className="text-xs font-semibold text-emerald-950">{template.packagesTitle}</p>
           <ul className="mt-2 space-y-2">
             {menu.packages.map((pkg) => {
-              const priceLabel = formatPackagePrice(pkg, template);
+              const priceLabel = formatPackagePriceLabel(pkg, template);
               const active = selectedPackage?.id === pkg.id;
               return (
                 <li key={pkg.id}>

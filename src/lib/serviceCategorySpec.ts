@@ -109,11 +109,14 @@ export const SECONDARY_TEMPLATE_OVERRIDE: Partial<
   "ניקיון לפני/במהלך/אחרי": "generic",
   "חובש/פראמדיק לאירוע": "generic",
   "משגיח כשרות לאירוע": "generic",
+  "אבטחה וסדרנות": "generic",
+  "צוות הקמה ופירוק": "generic",
 };
 
 export type SecondaryCatalogHints = {
   packagesHint?: string;
   packageNamePlaceholder?: string;
+  packagePriceLabel?: string;
   catalogSectionPlaceholder?: string;
   catalogItemPlaceholder?: string;
   notesPlaceholder?: string;
@@ -156,29 +159,39 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     catalogItemPlaceholder: "למשל: אנטריקוט, כנפיים, תפוחי אדמה",
   },
   "בר משקאות ואלכוהול": {
-    packagesHint: "למשל: בר בסיסי, open bar, פרימיום — מחיר לאורח.",
+    packagesHint:
+      "למשל: בר בסיסי 4 שעות ₪3,500, open bar ₪6,000 — מחיר לשירות, לא לאורח.",
     packageNamePlaceholder: "למשל: open bar 4 שעות",
     catalogSectionPlaceholder: "למשל: וודקה, וויסקי, בירות, ללא אלכוהול",
     catalogItemPlaceholder: "למשל: וודקה, ג'ין, בירה, מיץ",
   },
   "בר קוקטיילים": {
+    packagesHint: "למשל: בר קוקטיילים 4 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: בר קוקטיילים 4 שעות",
     catalogSectionPlaceholder: "למשל: קוקטיילים קלאסיים, קוקטיילים מיוחדים",
     catalogItemPlaceholder: "למשל: מוחיטו, נגרוני, קוקטייל בית",
   },
   "בר יין": {
+    packagesHint: "למשל: בר יין לערב — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: בר יין 5 שעות",
     catalogSectionPlaceholder: "למשל: יינות לבנים, אדומים, מבעבעים",
     catalogItemPlaceholder: "למשל: קברנה, שרדונה, פרוסקו",
   },
   סומלייה: {
-    packagesHint: "למשל: ליווי + 6 בקבוקים, יום מלא — מחיר לאורח או קבוע.",
+    packagesHint: "למשל: ליווי + יינות לערב — מחיר קבוע.",
+    packageNamePlaceholder: "למשל: סומלייה לערב",
     catalogSectionPlaceholder: "למשל: יינות לבנים, אדומים, תעודות",
     catalogItemPlaceholder: "למשל: קברנה סוביניון, רוזה פרובנס",
   },
   "בר קפה": {
+    packagesHint: "למשל: בר קפה 4 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: בר קפה 4 שעות",
     catalogSectionPlaceholder: "למשל: קפה, תה, שוקולד חם",
     catalogItemPlaceholder: "למשל: אספרסו, קפוצ'ינו, לאטה",
   },
   "בר אקטיבי": {
+    packagesHint: "למשל: בר אקטיבי לערב — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: בר אקטיבי 3 שעות",
     catalogSectionPlaceholder: "למשל: משקאות מיוחדים, קוקטיילים, מיצים",
     catalogItemPlaceholder: "למשל: קוקטייל מיוחד, שייק",
   },
@@ -191,31 +204,43 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     catalogItemPlaceholder: "למשל: עוגת שוקולד, מאפינס, פירות העונה",
   },
   "עוגות לאירועים": {
-    packagesHint: "למשל: עוגה ל-30 / 50 / 100 מנות — מחיר קבוע לגודל.",
+    packagesHint: "מחיר קבוע לפי גודל עוגה — למשל 30 / 50 / 100 מנות.",
     packageNamePlaceholder: "למשל: עוגה 50 מנות",
+    packagePriceLabel: "מחיר לעוגה (₪)",
   },
   "בר מתוקים": {
+    packagesHint: "למשל: בר מתוקים 3 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: בר מתוקים 3 שעות",
     catalogSectionPlaceholder: "למשל: ממתקים, שוקולד, פירות",
     catalogItemPlaceholder: "למשל: טרפלס, בר שוקולד, וופלים",
   },
   "עמדת גלידה": {
-    packagesHint: "למשל: 3 שעות / עד 200 מנות — מחיר קבוע או לאורח.",
+    packagesHint: "למשל: עמדת גלידה 3 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: עמדה 3 שעות",
     catalogSectionPlaceholder: "למשל: טעמי גלידה",
     catalogItemPlaceholder: "למשל: וניל, שוקולד, פיסטוק",
   },
   "עמדת וופל בלגי": {
+    packagesHint: "למשל: עמדת וופל 3 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: עמדה 3 שעות",
     catalogSectionPlaceholder: "למשל: וופלים, תוספות",
     catalogItemPlaceholder: "למשל: וופל קלאסי, Nutella, פירות",
   },
   "עמדת קרפים": {
+    packagesHint: "למשל: עמדת קרפים 3 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: עמדה 3 שעות",
     catalogSectionPlaceholder: "למשל: קרפים מתוקים ומלוחים",
     catalogItemPlaceholder: "למשל: קרפ שוקולד, קרפ גבינה",
   },
   "עמדת פופקורן": {
+    packagesHint: "למשל: עמדת פופקורן 3 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: עמדה 3 שעות",
     catalogSectionPlaceholder: "למשל: טעמים",
     catalogItemPlaceholder: "למשל: חמאה, קרמל, גבינה",
   },
   "עמדת סושי": {
+    packagesHint: "למשל: עמדת סושי 3 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: עמדה 3 שעות",
     catalogSectionPlaceholder: "למשל: רולים, ניגירי",
     catalogItemPlaceholder: "למשל: רול ירק, סלמון",
   },
@@ -226,7 +251,7 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     catalogItemPlaceholder: "למשל: פגישות תכנון, ליווי ספקים",
   },
   "הפקת אירועי חברה/כנסים": {
-    packagesHint: "למשל: כנס חד-יומי, כנס רב-יומי — מחיר למשתתף או קבוע.",
+    packagesHint: "למשל: כנס חד-יומי — מחיר קבוע להפקה.",
     catalogItemPlaceholder: "למשל: ניהול במה, ליווי ספקים",
   },
   "מתאם/ת יום האירוע": {
@@ -234,12 +259,13 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     packageNamePlaceholder: "למשל: ליווי יום האירוע",
   },
   "שירות אישורי הגעה והושבה": {
-    packagesHint: "למשל: RSVP בלבד, RSVP + הושבה — מחיר לאורח או קבוע.",
+    packagesHint: "למשל: RSVP בלבד / RSVP + הושבה — מחיר קבוע לאירוע.",
     packageNamePlaceholder: "למשל: RSVP + הושבה",
     catalogItemPlaceholder: "למשל: מערכת דיגיטלית, כרטיסי שם",
   },
   "רישום וצ׳ק-אין אורחים בכניסה": {
-    packagesHint: "למשל: צוות בכניסה, מערכת רישום — מחיר לאורח או קבוע.",
+    packagesHint: "למשל: צוות בכניסה / מערכת רישום — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: צוות צ'ק-אין",
     catalogItemPlaceholder: "למשל: צוות בדלת, iPad לרישום",
   },
   "צילום סטילס לאירוע": {
@@ -281,6 +307,52 @@ export const SECONDARY_CATALOG_HINTS: Partial<
   "מלצרים": {
     packagesHint: "מחיר לאורח — יחס מלצרים לפי גודל אירוע.",
     catalogItemPlaceholder: "למשל: מלצר נוסף לשעה",
+  },
+  "אבטחה וסדרנות": {
+    packagesHint: "מחיר קבוע לאירוע / לפי שעות צוות — לא לאורח.",
+    packageNamePlaceholder: "למשל: אבטחה 6 שעות",
+    packagePriceLabel: "מחיר לשירות (₪)",
+  },
+  "צוות הקמה ופירוק": {
+    packagesHint: "מחיר קבוע להקמה ופירוק — לא לאורח.",
+    packageNamePlaceholder: "למשל: הקמה ופירוק מלא",
+    packagePriceLabel: "מחיר לשירות (₪)",
+  },
+  "הסעות אורחים": {
+    packagesHint: "למשל: שאטל הלוך-חזור — מחיר לנסיעה / לערב.",
+    packageNamePlaceholder: "למשל: שאטל הלוך-חזור",
+  },
+  "השכרת לימוזינה": {
+    packagesHint: "למשל: לימוזינה לערב — מחיר קבוע.",
+    packageNamePlaceholder: "למשל: לימוזינה 4 שעות",
+  },
+  "אוטובוסים ומיניבוסים לאורחים": {
+    packagesHint: "למשל: אוטובוס הלוך-חזור — מחיר לנסיעה.",
+    packageNamePlaceholder: "למשל: אוטובוס הלוך-חזור",
+  },
+  "שירותי חניה (Valet)": {
+    packagesHint: "למשל: Valet לערב — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: Valet 5 שעות",
+  },
+  "שידור היברידי": {
+    packagesHint: "למשל: שידור ליום כנס — מחיר קבוע לשירות.",
+    packageNamePlaceholder: "למשל: שידור היברידי ליום",
+  },
+  "צילום כנסים ותוכן שיווקי": {
+    packagesHint: "למשל: צילום כנס ליום — מחיר קבוע + תוצרים.",
+    packageNamePlaceholder: "למשל: צילום כנס ליום",
+  },
+  "תרגום סימולטני": {
+    packagesHint: "למשל: תרגום ליום / לשפה — מחיר קבוע.",
+    packageNamePlaceholder: "למשל: תרגום סימולטני ליום",
+  },
+  "שירותי תמלול ונגישות": {
+    packagesHint: "למשל: תמלול ליום — מחיר קבוע.",
+    packageNamePlaceholder: "למשל: תמלול ליום",
+  },
+  "הפקה, עיצוב ומיתוג לכנסים ווובינרים": {
+    packagesHint: "למשל: הפקה + מיתוג לכנס — מחיר קבוע.",
+    packageNamePlaceholder: "למשל: הפקה מלאה לכנס",
   },
   "שירות אחר": {
     packagesHint: "תארו מה אתם מציעים ומחיר — חבילות חופשיות.",
