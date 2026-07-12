@@ -2,9 +2,16 @@
 
 export const EVENT_TYPE_BAR_BAT = "בר מצווה / בת מצווה";
 export const EVENT_TYPE_BRIT = "ברית / בריתה";
+export const EVENT_TYPE_BACHELOR = "מסיבת רווקים / רווקות";
 
 const LEGACY_BAR_BAT = ["בר מצווה", "בת מצווה"] as const;
 const LEGACY_BRIT = ["ברית", "בריתה"] as const;
+const LEGACY_BACHELOR = [
+  "מסיבת רווקים",
+  "מסיבת רווקות",
+  "רווקים",
+  "רווקות",
+] as const;
 
 /** רשימה מלאה — סינון חיפוש (אולמות, חבילות) */
 export const STANDARD_EVENT_TYPE_OPTIONS = [
@@ -12,6 +19,7 @@ export const STANDARD_EVENT_TYPE_OPTIONS = [
   EVENT_TYPE_BAR_BAT,
   EVENT_TYPE_BRIT,
   "חינה",
+  EVENT_TYPE_BACHELOR,
   "יום הולדת",
   "אירוע עסקי",
   "כנס",
@@ -36,6 +44,7 @@ export const VENUE_PRESET_EVENT_TYPES = [
   EVENT_TYPE_BAR_BAT,
   EVENT_TYPE_BRIT,
   "חינה",
+  EVENT_TYPE_BACHELOR,
   "אירוע עסקי",
   "כנס",
   "יום הולדת",
@@ -46,12 +55,14 @@ export const EVENT_PLAN_EVENT_TYPE_OPTIONS = [
   "חתונה",
   EVENT_TYPE_BAR_BAT,
   EVENT_TYPE_BRIT,
+  EVENT_TYPE_BACHELOR,
   "יום הולדת",
 ] as const;
 
 /** מדריך אחרי בחירת אולם */
 export const AFTER_VENUE_EVENT_TYPE_OPTIONS = [
   "חתונה",
+  EVENT_TYPE_BACHELOR,
   "יום הולדת",
   EVENT_TYPE_BAR_BAT,
   EVENT_TYPE_BRIT,
@@ -62,6 +73,7 @@ export function normalizeEventTypeLabel(label: string): string {
   const t = label.trim();
   if ((LEGACY_BAR_BAT as readonly string[]).includes(t)) return EVENT_TYPE_BAR_BAT;
   if ((LEGACY_BRIT as readonly string[]).includes(t)) return EVENT_TYPE_BRIT;
+  if ((LEGACY_BACHELOR as readonly string[]).includes(t)) return EVENT_TYPE_BACHELOR;
   if (t === "אחר") return "אירוע אחר";
   return t;
 }
@@ -108,6 +120,9 @@ export function eventTypeSearchContainsVariants(filterType: string): string[] {
   if (n === EVENT_TYPE_BRIT) {
     return [...LEGACY_BRIT, EVENT_TYPE_BRIT];
   }
+  if (n === EVENT_TYPE_BACHELOR) {
+    return [...LEGACY_BACHELOR, EVENT_TYPE_BACHELOR];
+  }
   return [n];
 }
 
@@ -126,6 +141,11 @@ export function findStoredEventTypeProfileKey(
   }
   if (normalized === EVENT_TYPE_BRIT) {
     for (const k of [...LEGACY_BRIT, EVENT_TYPE_BRIT]) {
+      if (storedKeys.includes(k)) return k;
+    }
+  }
+  if (normalized === EVENT_TYPE_BACHELOR) {
+    for (const k of [...LEGACY_BACHELOR, EVENT_TYPE_BACHELOR]) {
       if (storedKeys.includes(k)) return k;
     }
   }

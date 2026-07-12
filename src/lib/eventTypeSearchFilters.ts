@@ -1,5 +1,6 @@
 import {
   EVENT_TYPE_BAR_BAT,
+  EVENT_TYPE_BACHELOR,
   EVENT_TYPE_BRIT,
   normalizeEventTypeLabel,
 } from "@/lib/eventTypeOptions";
@@ -106,6 +107,14 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
     { value: "גינה", label: "גינה / חצר" },
     { value: "בר", label: "בר משקאות" },
   ],
+  [EVENT_TYPE_BACHELOR]: [
+    { value: "בר", label: "בר משקאות" },
+    { value: "בריכ", label: "בריכה / ג'קוזי" },
+    { value: "מוזיק", label: "מוזיקה / DJ" },
+    { value: "עמד", label: "עמדות / אטרקציות" },
+    { value: "לינה", label: "לינה במקום" },
+    { value: "פרטי", label: "מקום פרטי / סגור" },
+  ],
 };
 
 export type EventQuickChip = {
@@ -187,6 +196,19 @@ export function offerProductKeysForEventType(
     ];
   }
   if (et === "יום הולדת") return PARTY_PRODUCTS;
+  if (et === EVENT_TYPE_BACHELOR) {
+    return [
+      "seaView",
+      "boutique",
+      "accessible",
+      "hasParkingNearby",
+      "hasFood",
+      "hasDanceFloor",
+      "hasSoundSystem",
+      "hasAcumLicense",
+      "hasTableSetup",
+    ];
+  }
   if (et === "אירוע עסקי" || et === "כנס") {
     return [
       "accessible",
@@ -264,6 +286,30 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         id: "bday-dance",
         label: "מסיבה עם ריקודים",
         toggles: { hasDanceFloor: true, hasSoundSystem: true },
+      },
+    ];
+  }
+  if (et === EVENT_TYPE_BACHELOR) {
+    return [
+      {
+        id: "bachelor-party",
+        label: "מסיבה עם ריקודים ובר",
+        toggles: {
+          hasDanceFloor: true,
+          hasSoundSystem: true,
+          hasFood: true,
+          boutique: true,
+        },
+      },
+      {
+        id: "bachelor-private",
+        label: "מקום פרטי / קטן",
+        toggles: { boutique: true, hasFood: true },
+      },
+      {
+        id: "bachelor-outdoor",
+        label: "בחוץ / עם נוף",
+        toggles: { seaView: true, hasSoundSystem: true },
       },
     ];
   }

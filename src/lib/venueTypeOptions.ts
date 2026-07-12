@@ -32,12 +32,13 @@ export const VENUE_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: "אולם קהילתי", label: "אולם קהילתי / מתנ״ס" },
   {
     value: "בית כנסת כאולם",
-    label: "בית כנסת המשמש גם כאולם אירועים",
+    label: "בית כנסת / אולם אירועים בקהילה",
   },
   { value: "קיבוץ", label: "קיבוץ / מושב (מתחם כפרי)" },
   { value: "שמורת טבע", label: "שמורת טבע / אגם" },
   { value: "מקלט", label: "מקלט / מרתף לאירועים" },
   { value: "דירת Airbnb", label: "דירת Airbnb / דירת אירוח" },
+  { value: "צימר", label: "צימר / יחידת אירוח כפרית" },
   { value: "בוטיק", label: "מלון בוטיק / מתחם בוטיק" },
 ];
 

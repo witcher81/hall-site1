@@ -17,6 +17,7 @@ export type NaturalSearchHints = {
 
 import {
   EVENT_TYPE_BAR_BAT,
+  EVENT_TYPE_BACHELOR,
   EVENT_TYPE_BRIT,
 } from "@/lib/eventTypeOptions";
 
@@ -30,6 +31,13 @@ const EVENT_ALIASES: Record<string, string> = {
   ברית: EVENT_TYPE_BRIT,
   בריתה: EVENT_TYPE_BRIT,
   חינה: "חינה",
+  "מסיבת רווקים / רווקות": EVENT_TYPE_BACHELOR,
+  "מסיבת רווקים": EVENT_TYPE_BACHELOR,
+  "מסיבת רווקות": EVENT_TYPE_BACHELOR,
+  רווקים: EVENT_TYPE_BACHELOR,
+  רווקות: EVENT_TYPE_BACHELOR,
+  bachelor: EVENT_TYPE_BACHELOR,
+  bachelorette: EVENT_TYPE_BACHELOR,
   "יום הולדת": "יום הולדת",
   "אירוע עסקי": "אירוע עסקי",
   כנס: "כנס",
