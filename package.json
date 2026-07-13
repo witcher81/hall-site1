@@ -26,6 +26,11 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test && npm run test:e2e",
     "dev:all": "npm run dev:stop && concurrently \"npm run dev\" \"npx prisma studio --port 5555 --browser none\" \"powershell -NoProfile -Command \\\"Start-Sleep -Seconds 2; Start-Process 'http://localhost:5555'\\\"\""
   },
   "dependencies": {
@@ -46,6 +51,7 @@
     "stripe": "^22.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
@@ -57,6 +63,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

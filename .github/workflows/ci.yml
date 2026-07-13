@@ -1,5 +1,5 @@
 # CI — בדיקות אוטומטיות על כל push / PR ל־main
-# CD — פריסה לפרודקשן: Vercel מחובר ל־GitHub ומבנה אוטומטית מ־main (אין צורך בקובץ נפרד כאן)
+# CD — פריסה לפרודקשן: Vercel מחובר ל־GitHub ומבנה אוטומטית מ־main
 
 name: CI
 
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,8 +36,41 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
 
+      - name: Unit + API tests
+        run: npm test
+
       - name: ESLint
         run: npm run lint
+        continue-on-error: true
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Playwright smoke
+        run: npm run test:e2e
+        env:
+          CI: "true"
+          JWT_SECRET: "ci-test-jwt-secret-at-least-16"
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         continue-on-error: true
 
   audit:
