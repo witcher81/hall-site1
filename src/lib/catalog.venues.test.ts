@@ -38,7 +38,8 @@ describe("serviceCategoryTemplates resolve", () => {
     );
     expect(t?.id).toBe("beverage");
     expect(catalogReplacesIncludesEditor("beverage")).toBe(true);
-    expect(catalogReplacesIncludesEditor("ceremony")).toBe(false);
+    expect(catalogReplacesIncludesEditor("ceremony")).toBe(true);
+    expect(catalogReplacesIncludesEditor("generic")).toBe(true);
   });
 
   it("falls back staffing for teams primary", () => {

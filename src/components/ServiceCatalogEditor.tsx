@@ -38,8 +38,8 @@ const PRICING_LABELS: Record<ServiceMenuItemPricing, string> = {
   per_hour: "מחיר לשעה (₪)",
 };
 
-/** תבניות שבהן רשימת פריטים היא חלק מרכזי (תפריט, דפוס...) */
-const CATALOG_ESSENTIAL = new Set<CatalogTemplate["id"]>([
+/** תבניות שבהן רשימת פריטים היא חלק מרכזי (תפריט, דפוס...) — fallback אם אין catalogEssential */
+const CATALOG_ESSENTIAL_FALLBACK = new Set<CatalogTemplate["id"]>([
   "food",
   "beverage",
   "food_station",
@@ -69,8 +69,9 @@ function itemPriceSingleLabel(pricing: ServiceMenuItemPricing): string {
 export default function ServiceCatalogEditor({ template, value, onChange }: Props) {
   const fieldHelp = getCatalogFieldHelp(template.id);
   const pricingModes = template.itemPricingModes;
-  const catalogOptional =
-    template.catalogOptional ?? !CATALOG_ESSENTIAL.has(template.id);
+  const catalogEssential =
+    template.catalogEssential ?? CATALOG_ESSENTIAL_FALLBACK.has(template.id);
+  const catalogOptional = template.catalogOptional ?? !catalogEssential;
   const [catalogOpen, setCatalogOpen] = useState(!catalogOptional);
 
   useEffect(() => {
@@ -144,31 +145,19 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
           ) : null}
           <li>
             <strong>{showCapacity ? "②" : "①"}</strong>{" "}
-            {template.id === "food"
-              ? "מחיר לאורח — כמה זה עולה"
-              : template.id === "beverage" ||
-                  template.id === "food_station" ||
-                  template.id === "registration"
-                ? "מחיר השירות — כמה עולה לאירוע"
-                : "לכל סוג שירות — שם + מחיר (המחירון העיקרי)"}
+            {template.packagesStepLabel ?? "לכל סוג שירות — שם + מחיר (המחירון העיקרי)"}
           </li>
           {!catalogOptional ? (
             <li>
               <strong>{showCapacity ? "③" : "②"}</strong>{" "}
-              {template.id === "food"
-                ? "תפריט — מה כלול במחיר"
-                : template.id === "beverage"
-                  ? "רשימת משקאות — מה כלול במחיר"
-                  : template.id === "food_station"
-                    ? "טעמים / מנות — מה כלול במחיר"
-                    : template.catalogTitle}
+              {template.catalogStepLabel ?? template.catalogTitle}
             </li>
-          ) : catalogOptional ? (
+          ) : (
             <li>
               <strong>{showCapacity ? "③" : "②"}</strong> תוספות ופירוט — רק אם צריך
               (אופציונלי)
             </li>
-          ) : null}
+          )}
         </ol>
       </div>
 
@@ -228,7 +217,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                 className={input}
               />
             </CatalogFieldHelp>
-            {template.id === "food" ? (
+            {template.showMinOrderAmount ? (
               <CatalogFieldHelp label="מינימום הזמנה (₪)" help={fieldHelp.minOrder}>
                 <input
                   type="number"
@@ -270,15 +259,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <CatalogFieldHelp
-                  label={
-                    template.id === "food"
-                      ? "שם סוג המחיר"
-                      : template.id === "beverage" ||
-                          template.id === "food_station" ||
-                          template.id === "registration"
-                        ? "שם החבילה / השירות"
-                        : "שם הרמה / סוג"
-                  }
+                  label={template.packageNameFieldLabel ?? "שם הרמה / סוג"}
                   help={fieldHelp.packageName}
                 >
                   <input
@@ -288,14 +269,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                     onChange={(e) => updatePackage(index, { name: e.target.value })}
                     className={input}
                     placeholder={
-                      template.packageNamePlaceholder ??
-                      (template.id === "beauty"
-                        ? "למשל: איפור כלה מלא"
-                        : template.id === "food"
-                          ? "למשל: תפריט מבוגרים, ילדים"
-                          : template.id === "beverage"
-                            ? "למשל: בר בסיסי, open bar"
-                            : "שם השירות / סוג")
+                      template.packageNamePlaceholder ?? "שם השירות / סוג"
                     }
                   />
                 </CatalogFieldHelp>
@@ -393,13 +367,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
               ) : null}
               <CatalogFieldHelp
                 label={
-                  template.id === "food"
-                    ? "סיכום קצר מה כלול במחיר (אופציונלי)"
-                    : template.id === "beverage" ||
-                        template.id === "food_station" ||
-                        template.id === "registration"
-                      ? "סיכום קצר מה כלול בשירות (אופציונלי)"
-                      : "מה כלול? (אופציונלי)"
+                  template.packageDescriptionFieldLabel ?? "מה כלול? (אופציונלי)"
                 }
                 help={fieldHelp.packageDescription}
                 className="mt-2"
@@ -410,13 +378,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                   value={pkg.description ?? ""}
                   onChange={(e) => updatePackage(index, { description: e.target.value })}
                   placeholder={
-                    template.id === "food"
-                      ? "למשל: מנה ראשונה + עיקרית + קינוח, הגשה"
-                      : template.id === "beverage"
-                        ? "למשל: open bar 4 שעות, כולל בירה ויין"
-                        : template.id === "food_station"
-                          ? "למשל: כולל מפעיל, כלים, עד 200 מנות"
-                          : "מה כלול בשורה הזו?"
+                    template.packageDescriptionPlaceholder ?? "מה כלול בשורה הזו?"
                   }
                   className={textarea}
                 />

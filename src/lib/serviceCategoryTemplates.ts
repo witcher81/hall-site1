@@ -42,6 +42,20 @@ export type CatalogTemplate = {
   requireQuantityInquiry: boolean;
   /** בלוק תוספות/פירוט מוסתר בהתחלה — רק למי שצריך */
   catalogOptional?: boolean;
+  /** רשימת פריטים חלק מרכזי (תפריט / משקאות / דפוס) — לא מקופל */
+  catalogEssential?: boolean;
+  /** שדה מינימום הזמנה ב₪ (קייטרינג) */
+  showMinOrderAmount?: boolean;
+  /** שורת שלב במבוא העורך — מחירים */
+  packagesStepLabel?: string;
+  /** שורת שלב במבוא העורך — קטלוג */
+  catalogStepLabel?: string;
+  /** תווית שדה שם חבילה */
+  packageNameFieldLabel?: string;
+  /** תווית שדה תיאור חבילה */
+  packageDescriptionFieldLabel?: string;
+  /** placeholder לתיאור חבילה */
+  packageDescriptionPlaceholder?: string;
   /** placeholder לשם חבילה — מ-SECONDARY_CATALOG_HINTS */
   packageNamePlaceholder?: string;
   itemPricingModes: Array<
@@ -65,6 +79,11 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     packagePriceLabel: "מחיר לאורח (₪)",
     packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח לאורח",
     packageNamePlaceholder: "למשל: תפריט מבוגרים, ילדים",
+    packagesStepLabel: "מחיר לאורח — כמה זה עולה",
+    catalogStepLabel: "תפריט — מה כלול במחיר",
+    packageNameFieldLabel: "שם סוג המחיר",
+    packageDescriptionFieldLabel: "סיכום קצר מה כלול במחיר (אופציונלי)",
+    packageDescriptionPlaceholder: "למשל: מנה ראשונה + עיקרית + קינוח, הגשה",
     catalogTitle: "תפריט — מה כלול",
     catalogHint:
       "כאן רושמים את המנות עצמן (ראשונות, עיקריות, קינוחים). כל מנה יכולה להיות כלולה במחיר למעלה או בתוספת (למשל סטייק +₪30 לאורח).",
@@ -77,6 +96,8 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     showQuantityTiers: false,
     showDeliverables: false,
     showPackageDuration: false,
+    showMinOrderAmount: true,
+    catalogEssential: true,
     requireGuestCountInquiry: true,
     requirePersonCountInquiry: false,
     requireQuantityInquiry: false,
@@ -97,6 +118,11 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     packagePriceLabel: "מחיר לשירות (₪)",
     packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח",
     packageNamePlaceholder: "למשל: בר בסיסי 4 שעות, open bar",
+    packagesStepLabel: "מחיר השירות — כמה עולה לאירוע",
+    catalogStepLabel: "רשימת משקאות — מה כלול במחיר",
+    packageNameFieldLabel: "שם החבילה / השירות",
+    packageDescriptionFieldLabel: "סיכום קצר מה כלול בשירות (אופציונלי)",
+    packageDescriptionPlaceholder: "למשל: open bar 4 שעות, כולל בירה ויין",
     catalogTitle: "רשימת משקאות — מה כלול",
     catalogHint:
       "כאן רושמים את המשקאות עצמם — קוקטיילים, יינות, בירות, קפה. כלול במחיר השירות או בתוספת.",
@@ -109,6 +135,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     showQuantityTiers: false,
     showDeliverables: false,
     showPackageDuration: true,
+    catalogEssential: true,
     requireGuestCountInquiry: true,
     requirePersonCountInquiry: false,
     requireQuantityInquiry: false,
@@ -118,14 +145,14 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     id: "food_station",
     editorTitle: "עמדת מזון ומחירים",
     editorHint:
-      "שני חלקים: קודם מחיר העמדה לאירוע (למשל 3 שעות) — אחר כך טעמים/מנות שכלולים.",
+      "שני חלקים: קודם מחיר העמדה/העוגה לאירוע — אחר כך טעמים/מנות שכלולים. מתאים גם לעוגות במחיר קבוע.",
     capacityTitle: "קיבולת אורחים",
     capacityHint: "לאיזה גודל אירוע העמדה מתאימה — לא המחיר עצמו.",
     minCapacityLabel: "מינימום אורחים *",
     maxCapacityLabel: "מקסימום אורחים *",
     packagesTitle: "מחיר השירות",
     packagesHint:
-      "מחיר קבוע לעמדה באירוע — לא לאורח. למשל: «עמדת גלידה 3 שעות» ₪2,800.",
+      "מחיר קבוע לעמדה / לעוגה — לא לאורח. למשל: «עמדת גלידה 3 שעות» ₪2,800 או «עוגה 50 מנות».",
     packagePriceLabel: "מחיר לשירות (₪)",
     packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח",
     packageNamePlaceholder: "למשל: עמדה 3 שעות",
@@ -140,6 +167,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     showQuantityTiers: false,
     showDeliverables: false,
     showPackageDuration: true,
+    catalogEssential: true,
     requireGuestCountInquiry: true,
     requirePersonCountInquiry: false,
     requireQuantityInquiry: false,
@@ -180,13 +208,13 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     id: "staffing",
     editorTitle: "צוות ותמחור",
     editorHint:
-      "הגדירו כמה אורחים אתם מכסים, מחיר צוות (לרוב לפי אורח או לפי שעה) ומה כלול.",
+      "מלצרים/בר/קבלה — לרוב מחיר לאורח או לשעה. אבטחה, ניקיון, חובש והקמה — לרוב מחיר קבוע לאירוע (הhint של תת־הקטגוריה מכוון).",
     capacityTitle: "קיבולת אורחים",
     capacityHint: "לאיזה גודל אירוע אתם מתאימים — משפיע על גודל הצוות.",
     minCapacityLabel: "מינימום אורחים *",
     maxCapacityLabel: "מקסימום אורחים *",
     packagesTitle: "מחיר צוות",
-    packagesHint: "למשל: צוות מלצרים לפי יחס אורחים, או מחיר לשעת ברמן.",
+    packagesHint: "מלצרים: מחיר לאורח לפי יחס. ברמן: לשעה. אבטחה/ניקיון/חובש/הקמה: מחיר קבוע לאירוע או לפי שעות צוות.",
     packagePriceLabel: "מחיר לאורח (₪)",
     packagePriceExpandLabel: "טווח מחיר לאורח",
     catalogTitle: "תפקידים ושירותים",
@@ -239,7 +267,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
   fashion_rental: {
     id: "fashion_rental",
     editorTitle: "קטלוג השכרה והתאמות",
-    editorHint: "דגמים, מידות, ימי השכרה ומחיר — לשמלות, חליפות ואקססוריז.",
+    editorHint: "השכרה: דגמים, מידות וימי השכרה. תפירה: הhint של תת־הקטגוריה מחליף לשפת מידות ומסירה.",
     capacityTitle: "מלאי וקיבולת",
     capacityHint: "כמה לקוחות במקביל או כמה פריטים זמינים.",
     minCapacityLabel: "מינימום ימי השכרה",
@@ -287,6 +315,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     showQuantityTiers: true,
     showDeliverables: false,
     showPackageDuration: false,
+    catalogEssential: true,
     requireGuestCountInquiry: false,
     requirePersonCountInquiry: false,
     requireQuantityInquiry: true,
@@ -407,7 +436,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
   attraction: {
     id: "attraction",
     editorTitle: "אטרקציה ומחיר",
-    editorHint: "משך הפעלה, קיבולת קהל ומה כלול בחבילה.",
+    editorHint: "משך הפעלה, קיבולת קהל ומה כלול — כולל מגנטים, מראות ויונים.",
     capacityTitle: "קיבולת קהל",
     capacityHint: "כמה משתתפים בו-זמנית או באירוע.",
     minCapacityLabel: "מינימום משתתפים",
@@ -463,7 +492,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
   ceremony: {
     id: "ceremony",
     editorTitle: "חבילות טקס",
-    editorHint: "סוג טקס, שפות, נסיעות ומה כלול במחיר.",
+    editorHint: "סוג טקס, שפות, נסיעות ומה כלול במחיר — מחיר קבוע לחבילה.",
     capacityTitle: "היקף",
     capacityHint: "גודל קהל או סוג אירוע.",
     minCapacityLabel: "מינימום משתתפים",
@@ -583,7 +612,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     minCapacityLabel: "מינימום",
     maxCapacityLabel: "מקסימום",
     packagesTitle: "חבילות",
-    packagesHint: "חבילות מוכנות עם מחיר ברור.",
+    packagesHint: "חבילות מוכנות עם מחיר ברור — שם + מחיר לכל שורה.",
     packagePriceLabel: "מחיר (₪)",
     packagePriceExpandLabel: "טווח מחיר",
     catalogTitle: "פריטים ותוספות",
@@ -663,6 +692,16 @@ export function applySecondaryCatalogHints(
       ? { catalogItemPlaceholder: hints.catalogItemPlaceholder }
       : {}),
     ...(hints.notesPlaceholder ? { notesPlaceholder: hints.notesPlaceholder } : {}),
+    ...(hints.editorTitle ? { editorTitle: hints.editorTitle } : {}),
+    ...(hints.editorHint ? { editorHint: hints.editorHint } : {}),
+    ...(hints.capacityTitle ? { capacityTitle: hints.capacityTitle } : {}),
+    ...(hints.capacityHint ? { capacityHint: hints.capacityHint } : {}),
+    ...(hints.minCapacityLabel ? { minCapacityLabel: hints.minCapacityLabel } : {}),
+    ...(hints.maxCapacityLabel ? { maxCapacityLabel: hints.maxCapacityLabel } : {}),
+    ...(hints.packagesTitle ? { packagesTitle: hints.packagesTitle } : {}),
+    ...(hints.catalogTitle ? { catalogTitle: hints.catalogTitle } : {}),
+    ...(hints.catalogHint ? { catalogHint: hints.catalogHint } : {}),
+    ...(hints.notesLabel ? { notesLabel: hints.notesLabel } : {}),
   };
 }
 
@@ -714,9 +753,11 @@ const CATALOG_REPLACES_INCLUDES_EDITOR = new Set<CatalogTemplateId>([
   "equipment_rental",
   "attraction",
   "planning",
+  "ceremony",
   "design",
   "transport",
   "corporate",
+  "generic",
 ]);
 
 export function catalogReplacesIncludesEditor(

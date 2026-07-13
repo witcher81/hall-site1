@@ -93,24 +93,26 @@ export const SECONDARY_TEMPLATE_OVERRIDE: Partial<
   "מראת סלפי": "attraction",
   // מוזיקה — אטרקציה
   "מופעי ריקוד ובמה": "attraction",
-  // טקסים — generic
-  "הפרחת יונים או פרפרים": "generic",
+  // אוכל — עוגות (מחיר שירות קבוע, לא לאורח)
+  "עוגות לאירועים": "food_station",
+  // טקסים — אטרקציה
+  "הפרחת יונים או פרפרים": "attraction",
   // הלבשה — יופי
   "סטיילינג והנחיית לוק לזוג": "beauty",
   // ציוד — טכני
   "הגברה לאירועים (סאונדמן)": "tech_av",
   "תאורה לאירועים (לייטמן)": "tech_av",
   "מסכי LED והקרנה": "tech_av",
-  // צוותים — הסעות / generic
+  // צוותים — הסעות / תפעול (staffing, לא generic)
   "הסעות אורחים": "transport",
   "השכרת לימוזינה": "transport",
   "אוטובוסים ומיניבוסים לאורחים": "transport",
   "שירותי חניה (Valet)": "transport",
-  "ניקיון לפני/במהלך/אחרי": "generic",
-  "חובש/פראמדיק לאירוע": "generic",
-  "משגיח כשרות לאירוע": "generic",
-  "אבטחה וסדרנות": "generic",
-  "צוות הקמה ופירוק": "generic",
+  "ניקיון לפני/במהלך/אחרי": "staffing",
+  "חובש/פראמדיק לאירוע": "staffing",
+  "משגיח כשרות לאירוע": "staffing",
+  "אבטחה וסדרנות": "staffing",
+  "צוות הקמה ופירוק": "staffing",
 };
 
 export type SecondaryCatalogHints = {
@@ -120,6 +122,17 @@ export type SecondaryCatalogHints = {
   catalogSectionPlaceholder?: string;
   catalogItemPlaceholder?: string;
   notesPlaceholder?: string;
+  /** דריסות שפה לתת־קטגוריה (למשל תפירה במקום השכרה) */
+  editorTitle?: string;
+  editorHint?: string;
+  capacityTitle?: string;
+  capacityHint?: string;
+  minCapacityLabel?: string;
+  maxCapacityLabel?: string;
+  packagesTitle?: string;
+  catalogTitle?: string;
+  catalogHint?: string;
+  notesLabel?: string;
 };
 
 /** placeholders לפי תת־קטגוריה — דריסה חלקית של טקסטי התבנית */
@@ -204,9 +217,12 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     catalogItemPlaceholder: "למשל: עוגת שוקולד, מאפינס, פירות העונה",
   },
   "עוגות לאירועים": {
-    packagesHint: "מחיר קבוע לפי גודל עוגה — למשל 30 / 50 / 100 מנות.",
+    packagesHint: "מחיר קבוע לפי גודל עוגה — למשל 30 / 50 / 100 מנות. לא מחיר לאורח.",
     packageNamePlaceholder: "למשל: עוגה 50 מנות",
     packagePriceLabel: "מחיר לעוגה (₪)",
+    catalogSectionPlaceholder: "למשל: טעמים, עיטורים",
+    catalogItemPlaceholder: "למשל: שוקולד בלגי, פרחים ממותקים",
+    notesPlaceholder: "למשל: חלבי, ללא גלוטן בתיאום, זמן הזמנה 10 ימים",
   },
   "בר מתוקים": {
     packagesHint: "למשל: בר מתוקים 3 שעות — מחיר קבוע לאירוע.",
@@ -296,10 +312,6 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     packagesHint: "למשל: לפי שעות — מחיר לשעה או קבוע.",
     packageNamePlaceholder: "למשל: 4 שעות הנחיה",
   },
-  "הפרחת יונים או פרפרים": {
-    packagesHint: "מחיר קבוע לחבילה — למשל 10 יונים.",
-    packageNamePlaceholder: "למשל: 20 יונים",
-  },
   "הזמנות מודפסות": {
     catalogSectionPlaceholder: "למשל: הזמנות, save the date",
     catalogItemPlaceholder: "למשל: הזמנה כפולה, כרטיס מקופל",
@@ -312,11 +324,136 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     packagesHint: "מחיר קבוע לאירוע / לפי שעות צוות — לא לאורח.",
     packageNamePlaceholder: "למשל: אבטחה 6 שעות",
     packagePriceLabel: "מחיר לשירות (₪)",
+    catalogItemPlaceholder: "למשל: סדרן נוסף לשעה",
+    notesPlaceholder: "למשל: כולל תיאום עם האולם, מדים",
   },
   "צוות הקמה ופירוק": {
     packagesHint: "מחיר קבוע להקמה ופירוק — לא לאורח.",
     packageNamePlaceholder: "למשל: הקמה ופירוק מלא",
     packagePriceLabel: "מחיר לשירות (₪)",
+    catalogItemPlaceholder: "למשל: שעת הקמה נוספת",
+    notesPlaceholder: "למשל: כולל כלי עבודה, נסיעה עד 40 ק״מ",
+  },
+  "ניקיון לפני/במהלך/אחרי": {
+    packagesHint: "מחיר קבוע לאירוע / לפי שעות צוות — לא לאורח.",
+    packageNamePlaceholder: "למשל: ניקיון אחרי אירוע",
+    packagePriceLabel: "מחיר לשירות (₪)",
+    catalogItemPlaceholder: "למשל: ניקיון מטבח נוסף",
+    notesPlaceholder: "למשל: חומרי ניקוי כלולים",
+  },
+  "חובש/פראמדיק לאירוע": {
+    packagesHint: "מחיר קבוע לאירוע לפי שעות נוכחות — לא לאורח.",
+    packageNamePlaceholder: "למשל: חובש 6 שעות",
+    packagePriceLabel: "מחיר לשירות (₪)",
+    catalogItemPlaceholder: "למשל: שעת הארכה",
+    notesPlaceholder: "למשל: ציוד עזרה ראשונה כלול",
+  },
+  "משגיח כשרות לאירוע": {
+    packagesHint: "מחיר קבוע לאירוע / לפי שעות — לא לאורח.",
+    packageNamePlaceholder: "למשל: משגיח לערב",
+    packagePriceLabel: "מחיר לשירות (₪)",
+    notesPlaceholder: "למשל: תעודת השגחה, תיאום עם המטבח",
+  },
+  "צוות קבלת פנים": {
+    packagesHint: "מחיר לאורח או לחבילת צוות — לפי יחס דיילות.",
+    packageNamePlaceholder: "למשל: קבלת פנים 4 דיילות",
+    catalogItemPlaceholder: "למשל: דיילת נוספת לשעה",
+  },
+  ברמנים: {
+    packagesHint: "מחיר לשעת ברמן או לחבילת ערב — לא בהכרח לאורח.",
+    packageNamePlaceholder: "למשל: ברמן 5 שעות",
+    packagePriceLabel: "מחיר לשירות (₪)",
+    catalogItemPlaceholder: "למשל: ברמן נוסף לשעה",
+  },
+  "שמלות כלה — השכרה": {
+    packagesHint: "למשל: שמלת כלה + אקססוריז — מחיר להשכרה.",
+    packageNamePlaceholder: "למשל: שמלה + רעלה",
+    catalogItemPlaceholder: "למשל: שמלה מידה 38",
+    notesPlaceholder: "למשל: פיקדון, ניקוי, החזרה תוך 3 ימים",
+  },
+  "שמלות כלה — תפירה והתאמות": {
+    editorTitle: "תפירה והתאמות",
+    editorHint:
+      "מחיר לתפירה / להתאמה לפי דגם ומידות — לא השכרה. ציינו מועד מסירה וסבבי מדידות.",
+    capacityTitle: "היקף הזמנות",
+    capacityHint: "כמה הזמנות במקביל אתם מקבלים לתקופה.",
+    minCapacityLabel: "מינימום ימי עבודה",
+    maxCapacityLabel: "מקסימום הזמנות במקביל",
+    packagesTitle: "חבילות תפירה",
+    packagesHint: "למשל: תפירה מלאה, התאמות בלבד — מחיר לתפירה.",
+    packageNamePlaceholder: "למשל: תפירה מלאה + 3 מדידות",
+    packagePriceLabel: "מחיר לתפירה (₪)",
+    catalogTitle: "שירותי תפירה",
+    catalogHint: "התאמות, רפליקה, תוספות בד — עם מחיר.",
+    catalogSectionPlaceholder: "למשל: תפירה, התאמות",
+    catalogItemPlaceholder: "למשל: קיצור שובל",
+    notesLabel: "מועד מסירה ותנאים",
+    notesPlaceholder: "למשל: מסירה 8 שבועות לפני האירוע, 3 מדידות כלולות",
+  },
+  "חליפות חתן — השכרה": {
+    packagesHint: "למשל: חליפה + עניבה — מחיר להשכרה.",
+    packageNamePlaceholder: "למשל: חליפת חתן מלאה",
+    catalogItemPlaceholder: "למשל: חליפה מידה 50",
+  },
+  "חליפות חתן — תפור": {
+    editorTitle: "חליפות תפורות",
+    editorHint: "מחיר לתפירה לפי מידות — לא השכרה. ציינו מועד מסירה.",
+    capacityTitle: "היקף הזמנות",
+    capacityHint: "כמה הזמנות במקביל.",
+    minCapacityLabel: "מינימום ימי עבודה",
+    maxCapacityLabel: "מקסימום הזמנות במקביל",
+    packagesTitle: "חבילות תפירה",
+    packagesHint: "למשל: חליפה תפורה מלאה — מחיר לתפירה.",
+    packageNamePlaceholder: "למשל: חליפה תפורה + אפודה",
+    packagePriceLabel: "מחיר לתפירה (₪)",
+    catalogTitle: "שירותי תפירה",
+    catalogItemPlaceholder: "למשל: התאמת מכנסיים",
+    notesLabel: "מועד מסירה ותנאים",
+    notesPlaceholder: "למשל: מסירה 6 שבועות לפני, 2 מדידות",
+  },
+  "שמלה שנייה לריקודים": {
+    editorTitle: "שמלה שנייה — תפירה / התאמה",
+    editorHint: "מחיר לתפירה או להשכרה של שמלה שנייה — ציינו מה כלול.",
+    packagesHint: "למשל: שמלה שנייה לתפירה / להשכרה — מחיר לחבילה.",
+    packageNamePlaceholder: "למשל: שמלה שנייה קצרה",
+    packagePriceLabel: "מחיר (₪)",
+    notesPlaceholder: "למשל: מועד מסירה, מידות",
+  },
+  "שמלת ערב": {
+    packagesHint: "השכרה או רכישה — מחיר לחבילה / לדגם.",
+    packageNamePlaceholder: "למשל: שמלת ערב מידה 40",
+  },
+  "תכשיטים, נעליים ואקסוריז לכלה": {
+    packagesHint: "השכרה או רכישה — מחיר לפריט / לחבילה.",
+    packageNamePlaceholder: "למשל: סט תכשיטים",
+    catalogItemPlaceholder: "למשל: עגילים, נעליים",
+  },
+  "רב לטקס": {
+    packagesHint: "מחיר קבוע לטקס — כולל/לא כולל פגישת היכרות.",
+    packageNamePlaceholder: "למשל: טקס חופה מלא",
+    catalogItemPlaceholder: "למשל: פגישת היכרות",
+  },
+  "עורך טקס": {
+    packagesHint: "מחיר קבוע לטקס חילוני / אישי.",
+    packageNamePlaceholder: "למשל: טקס אישי",
+  },
+  מוהל: {
+    packagesHint: "מחיר קבוע לברית — ציינו מה כלול.",
+    packageNamePlaceholder: "למשל: ברית מלאה",
+  },
+  "עורך דין לטקס חילוני": {
+    packagesHint: "מחיר קבוע לטקס + ייעוץ רישום.",
+    packageNamePlaceholder: "למשל: טקס + ליווי רישום",
+  },
+  "מדריך בר/בת מצווה בכותל": {
+    packagesHint: "מחיר קבוע להדרכה / לטקס בכותל.",
+    packageNamePlaceholder: "למשל: הדרכה + טקס",
+  },
+  "הפרחת יונים או פרפרים": {
+    packagesHint: "מחיר קבוע לחבילה — למשל 10 יונים / פרפרים.",
+    packageNamePlaceholder: "למשל: 20 יונים",
+    catalogItemPlaceholder: "למשל: תוספת 10 יונים",
+    notesPlaceholder: "למשל: דורש אישור מקום, מזג אוויר",
   },
   "הסעות אורחים": {
     packagesHint: "למשל: שאטל הלוך-חזור — מחיר לנסיעה / לערב.",

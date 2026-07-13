@@ -26,6 +26,25 @@ describe("serviceCategorySpec", () => {
     );
   });
 
+  it("remaps ops to staffing, cakes to food_station, doves to attraction", () => {
+    expect(SECONDARY_TEMPLATE_OVERRIDE["אבטחה וסדרנות"]).toBe("staffing");
+    expect(SECONDARY_TEMPLATE_OVERRIDE["ניקיון לפני/במהלך/אחרי"]).toBe("staffing");
+    expect(SECONDARY_TEMPLATE_OVERRIDE["חובש/פראמדיק לאירוע"]).toBe("staffing");
+    expect(SECONDARY_TEMPLATE_OVERRIDE["משגיח כשרות לאירוע"]).toBe("staffing");
+    expect(SECONDARY_TEMPLATE_OVERRIDE["צוות הקמה ופירוק"]).toBe("staffing");
+    expect(SECONDARY_TEMPLATE_OVERRIDE["עוגות לאירועים"]).toBe("food_station");
+    expect(SECONDARY_TEMPLATE_OVERRIDE["הפרחת יונים או פרפרים"]).toBe("attraction");
+  });
+
+  it("leaves generic only for אחר primary secondaries", () => {
+    const map = buildSecondaryTemplateMap();
+    const generics = Object.entries(map).filter(([, id]) => id === "generic");
+    expect(generics.length).toBeGreaterThanOrEqual(1);
+    expect(generics.every(([name]) => name === "שירות אחר" || name.includes("אחר"))).toBe(
+      true
+    );
+  });
+
   it("aliases legacy activation template to attraction", () => {
     expect(normalizeCatalogTemplateId("activation")).toBe("attraction");
     expect(LEGACY_CATALOG_TEMPLATE_ALIASES.activation).toBe("attraction");
