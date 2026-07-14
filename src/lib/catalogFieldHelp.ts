@@ -26,25 +26,25 @@ export type CatalogFieldHelpSet = {
 const FOOD: CatalogFieldHelpSet = {
   packagesSectionTitle: "מה זה «מחיר לאורח»?",
   packagesSectionBody:
-    "מחיר בסיס לאורח אחד (לא רשימת מנות). דוגמה: מבוגרים ₪180, ילדים ₪80. את המנות מוסיפים למטה ב«תפריט».",
-  catalogSectionTitle: "מה זה «תפריט»?",
+    "כל שורה = קבוצה (מבוגרים / ילדים) + מחיר לאורח + המנות שכלולות במחיר. תוספות בתשלום — בנפרד למטה.",
+  catalogSectionTitle: "מה זה «תוספות בתשלום»?",
   catalogSectionBody:
-    "רשימת המנות. «כלול» = בלי תוספת. «תוספת לאורח» = מחיר נוסף (למשל סטייק +₪30).",
+    "רק דברים שלא כלולים במחיר החבילה — למשל סטייק בתוספת. המנות הבסיסיות נמצאות בתוך שורת המחיר.",
   minGuests: "המינימום שלקוחות יכולים להזמין מכם.",
   maxGuests: "המקסימום שאתם יכולים להכין באירוע אחד.",
   minOrder: "סכום מינימום להזמנה — אופציונלי.",
   packageName: "למשל: תפריט מבוגרים / ילדים / צמחוני.",
   packagePrice: "כמה ₪ לאורח אחד בשורה הזו.",
   packagePriceRange: "אם אין מחיר קבוע — הציגו טווח (למשל 150–220).",
-  packageDescription: "אופציונלי. את המנות המפורטות רושמים בתפריט למטה.",
-  sectionTitle: "קבוצת מנות — למשל ראשונות / עיקריות.",
-  itemName: "שם המנה.",
-  itemPricing: "כלול במחיר למעלה, או תוספת לאורח.",
-  itemExtraPrice: "סכום התוספת לאורח.",
+  packageDescription: "אופציונלי — הערת שורה קצרה.",
+  sectionTitle: "קבוצת תוספות — למשל שדרוגים.",
+  itemName: "שם המנה / התוספת.",
+  itemPricing: "תוספת לאורח או מחיר קבוע.",
+  itemExtraPrice: "סכום התוספת.",
   itemDescription: "פרט קצר — כשרות / אלרגנים.",
   notes: "כשרות, אלרגנים, תנאי הזמנה.",
   addPackageButton: "עוד שורת מחיר (למשל ילדים)",
-  addSectionButton: "עוד קבוצת מנות",
+  addSectionButton: "עוד קבוצת תוספות",
 };
 
 const GENERIC: CatalogFieldHelpSet = {

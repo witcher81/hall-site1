@@ -47,6 +47,8 @@ describe("serviceCategoryTemplates resolve", () => {
       "staffing"
     );
     expect(getCatalogTemplate("food").packagePriceLabel).toContain("לאורח");
+    expect(getCatalogTemplate("food").catalogOptional).toBe(true);
+    expect(getCatalogTemplate("food").catalogTitle).toContain("תוספות");
   });
 });
 
@@ -66,6 +68,33 @@ describe("serviceMenu sanitize/validate", () => {
       validateServiceMenuForSubmit(ok, getCatalogTemplate("food"))
     ).toBeNull();
     expect(menuHasContent(ok)).toBe(true);
+  });
+
+  it("keeps includedItems on packages as included pricing", () => {
+    const m = sanitizeServiceMenuFromClient({
+      templateId: "food",
+      minGuests: 20,
+      maxGuests: 100,
+      packages: [
+        {
+          name: "מבוגרים",
+          perGuestPrice: 180,
+          includedItems: [
+            { label: "סלט", pricing: "per_guest", exactPrice: 30 },
+            { label: "  ", pricing: "included" },
+            { label: "אנטריקוט", description: "medium" },
+          ],
+        },
+      ],
+    });
+    expect(m.packages[0]?.includedItems).toHaveLength(2);
+    expect(m.packages[0]?.includedItems?.[0]).toMatchObject({
+      label: "סלט",
+      pricing: "included",
+    });
+    expect(m.packages[0]?.includedItems?.[0]?.exactPrice).toBeUndefined();
+    expect(m.packages[0]?.includedItems?.[1]?.label).toBe("אנטריקוט");
+    expect(m.packages[0]?.includedItems?.[1]?.description).toBe("medium");
   });
 
   it("aliases activation templateId to attraction", () => {

@@ -154,6 +154,26 @@ export default function ServiceMenuPublicSection({
                         {pkg.description.trim()}
                       </p>
                     ) : null}
+                    {(pkg.includedItems?.filter((i) => i.label.trim()).length ?? 0) >
+                    0 ? (
+                      <ul className="mt-2 space-y-0.5 border-t border-neutral-100 pt-2 text-[11px] text-neutral-700">
+                        {pkg.includedItems!
+                          .filter((i) => i.label.trim())
+                          .map((item) => (
+                            <li key={item.id} className="flex gap-1.5">
+                              <span className="text-emerald-700" aria-hidden>
+                                ·
+                              </span>
+                              <span>
+                                {item.label.trim()}
+                                {item.description?.trim()
+                                  ? ` — ${item.description.trim()}`
+                                  : ""}
+                              </span>
+                            </li>
+                          ))}
+                      </ul>
+                    ) : null}
                   </button>
                 </li>
               );
