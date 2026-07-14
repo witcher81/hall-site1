@@ -141,7 +141,7 @@ export default function OptionalPriceRangeFields({
     >
       {!useRange ? (
         <div>
-          <p className={titleClass}>{singleLabel}</p>
+          {singleLabel ? <p className={titleClass}>{singleLabel}</p> : null}
           <input
             type="number"
             min={0}

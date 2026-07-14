@@ -73,6 +73,10 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
     template.catalogEssential ?? CATALOG_ESSENTIAL_FALLBACK.has(template.id);
   const catalogOptional = template.catalogOptional ?? !catalogEssential;
   const [catalogOpen, setCatalogOpen] = useState(!catalogOptional);
+  /** סיכום אופציונלי לחבילה — נפתח רק בלחיצה או אם כבר יש תוכן */
+  const [packageDescOpen, setPackageDescOpen] = useState<Record<string, boolean>>(
+    {}
+  );
 
   useEffect(() => {
     if (value.packages.length === 0) {
@@ -245,18 +249,24 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
         </p>
         {fieldHelp.packagesSectionBody ? (
           <CatalogSectionExplainer
-            title={fieldHelp.packagesSectionTitle}
+            title={fieldHelp.packagesSectionTitle ?? "צריך עוד הסבר?"}
             className="mt-2"
           >
             {fieldHelp.packagesSectionBody}
           </CatalogSectionExplainer>
         ) : null}
         <ul className="mt-3 space-y-3">
-          {value.packages.map((pkg, index) => (
+          {value.packages.map((pkg, index) => {
+            const descVisible =
+              Boolean(pkg.description?.trim()) || packageDescOpen[pkg.id] === true;
+            return (
             <li
               key={pkg.id}
               className="rounded-lg border border-amber-200/80 bg-white/85 p-3"
             >
+              <p className="mb-2 text-[10px] font-medium text-neutral-500">
+                שורה {index + 1} — רק שם + מחיר
+              </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <CatalogFieldHelp
                   label={template.packageNameFieldLabel ?? "שם הרמה / סוג"}
@@ -335,13 +345,13 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                       perGuestPrice: parsePriceInput(min),
                     });
                   }}
-                  singleLabel={template.packagePriceLabel}
+                  singleLabel=""
                   singlePlaceholder="למשל 180"
                   minLabel="מינימום (₪)"
                   maxLabel="מקסימום (₪)"
                   expandRangeLabel={template.packagePriceExpandLabel}
                   collapseRangeLabel="מחיר קבוע"
-                  inputClassName={`${input} mt-1`}
+                  inputClassName={input}
                 />
                 </CatalogFieldHelp>
               </div>
@@ -365,24 +375,38 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                   />
                 </CatalogFieldHelp>
               ) : null}
-              <CatalogFieldHelp
-                label={
-                  template.packageDescriptionFieldLabel ?? "מה כלול? (אופציונלי)"
-                }
-                help={fieldHelp.packageDescription}
-                className="mt-2"
-              >
-                <textarea
-                  dir="rtl"
-                  rows={2}
-                  value={pkg.description ?? ""}
-                  onChange={(e) => updatePackage(index, { description: e.target.value })}
-                  placeholder={
-                    template.packageDescriptionPlaceholder ?? "מה כלול בשורה הזו?"
+              {descVisible ? (
+                <CatalogFieldHelp
+                  label={
+                    template.packageDescriptionFieldLabel ?? "מה כלול? (אופציונלי)"
                   }
-                  className={textarea}
-                />
-              </CatalogFieldHelp>
+                  help={fieldHelp.packageDescription}
+                  className="mt-2"
+                >
+                  <textarea
+                    dir="rtl"
+                    rows={2}
+                    value={pkg.description ?? ""}
+                    onChange={(e) =>
+                      updatePackage(index, { description: e.target.value })
+                    }
+                    placeholder={
+                      template.packageDescriptionPlaceholder ?? "מה כלול בשורה הזו?"
+                    }
+                    className={textarea}
+                  />
+                </CatalogFieldHelp>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPackageDescOpen((prev) => ({ ...prev, [pkg.id]: true }))
+                  }
+                  className="mt-2 text-[11px] font-medium text-amber-900/80 underline decoration-amber-400/50 underline-offset-2 hover:text-amber-950"
+                >
+                  + הוסף סיכום קצר (אופציונלי)
+                </button>
+              )}
               <div className="mt-2 flex justify-end">
                 <button
                   type="button"
@@ -397,7 +421,8 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                 </button>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
         <button
           type="button"
