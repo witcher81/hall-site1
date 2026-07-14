@@ -92,8 +92,9 @@ export default function OptionalPriceRangeFields({
     const nextMax =
       maxPrice.trim() && maxPrice.trim() !== v ? maxPrice.trim() : "";
     if (isControlled) {
+      // רק onUseRangeChange — קריאה נוספת ל-onChange משתמשת ב-state ישן
+      // ודורסת את useRange=true (במיוחד כשהשדות ריקים).
       onUseRangeChange?.(true);
-      onChange(v, nextMax);
       return;
     }
     setUseRange(true);
@@ -109,7 +110,6 @@ export default function OptionalPriceRangeFields({
         : minPrice.trim() || maxPrice.trim();
     if (isControlled) {
       onUseRangeChange?.(false);
-      onChange(ep, ep);
       return;
     }
     setUseRange(false);
