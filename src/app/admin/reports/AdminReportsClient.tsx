@@ -38,35 +38,58 @@ export default function AdminReportsClient() {
     void load();
   }
 
-  if (loading) return <p className="text-sm text-neutral-600">טוען...</p>;
+  if (loading) {
+    return (
+      <p className="rounded-2xl border border-dashed border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-600">
+        טוען דיווחים...
+      </p>
+    );
+  }
+
+  if (reports.length === 0) {
+    return (
+      <p className="rounded-2xl border border-dashed border-neutral-200 bg-white px-4 py-8 text-center text-sm text-neutral-600">
+        אין דיווחים פתוחים כרגע.
+      </p>
+    );
+  }
 
   return (
     <ul className="space-y-3 text-right text-sm">
-      {reports.length === 0 && <li className="text-neutral-600">אין דיווחים פתוחים.</li>}
       {reports.map((r) => (
-        <li key={r.id} className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="font-semibold text-emerald-950">
-            #{r.id} — {r.targetType} {r.targetId}
-          </p>
-          <p className="mt-1 text-xs text-neutral-600">{r.reason}</p>
-          {r.details && <p className="mt-1 text-xs">{r.details}</p>}
-          <p className="mt-1 text-[11px] text-neutral-500">
-            {r.reporter?.email ?? "אורח"} · {r.status}
-          </p>
-          <div className="mt-2 flex gap-2 justify-end">
-            <button
-              type="button"
-              onClick={() => setStatus(r.id, "RESOLVED")}
-              className="rounded-full border px-3 py-1 text-xs"
-            >
-              טופל
-            </button>
+        <li
+          key={r.id}
+          className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="font-semibold text-emerald-950">
+                #{r.id} — {r.targetType} #{r.targetId}
+              </p>
+              <p className="mt-1 text-sm text-neutral-800">{r.reason}</p>
+              {r.details ? (
+                <p className="mt-1 text-xs text-neutral-600">{r.details}</p>
+              ) : null}
+              <p className="mt-2 text-[11px] text-neutral-500">
+                {r.reporter?.name || r.reporter?.email || "אורח"} ·{" "}
+                {new Date(r.createdAt).toLocaleString("he-IL")} · {r.status}
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-neutral-100 pt-3">
             <button
               type="button"
               onClick={() => setStatus(r.id, "DISMISSED")}
-              className="rounded-full border px-3 py-1 text-xs"
+              className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
             >
               דחה
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatus(r.id, "RESOLVED")}
+              className="rounded-full bg-emerald-950 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-900"
+            >
+              טופל
             </button>
           </div>
         </li>

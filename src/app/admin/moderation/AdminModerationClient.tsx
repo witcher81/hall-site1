@@ -82,15 +82,14 @@ export default function AdminModerationClient() {
   return (
     <div className="space-y-4 text-right text-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-neutral-700">
-          אולמות ושירותים חדשים/מעודכנים ממתינים לאישור לפני פרסום באתר.
-        </p>
         {data?.pendingCounts ? (
-          <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-950">
-            {data.pendingCounts.total} ממתינים (
-            {data.pendingCounts.venues} אולמות, {data.pendingCounts.services} שירותים)
+          <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-950">
+            {data.pendingCounts.total} ממתינים · {data.pendingCounts.venues}{" "}
+            אולמות · {data.pendingCounts.services} שירותים
           </span>
-        ) : null}
+        ) : (
+          <span />
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -104,10 +103,10 @@ export default function AdminModerationClient() {
             key={tab.id}
             type="button"
             onClick={() => setStatus(tab.id)}
-            className={`rounded-full border px-3 py-1 text-xs ${
+            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
               status === tab.id
                 ? "border-emerald-950 bg-emerald-950 text-white"
-                : "border-neutral-200 bg-white text-neutral-700"
+                : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
             }`}
           >
             {tab.label}
@@ -179,15 +178,15 @@ export default function AdminModerationClient() {
                       href={item.publicHref}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-full border px-3 py-1 text-xs text-neutral-700"
+                      className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
                     >
-                      תצוגה (בעלים/אדמין)
+                      תצוגה
                     </a>
                     <button
                       type="button"
                       disabled={busyKey === key}
                       onClick={() => void decide(item, "REJECTED")}
-                      className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-700"
+                      className="rounded-full border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                     >
                       דחה
                     </button>
@@ -195,7 +194,7 @@ export default function AdminModerationClient() {
                       type="button"
                       disabled={busyKey === key}
                       onClick={() => void decide(item, "APPROVED")}
-                      className="rounded-full bg-emerald-950 px-3 py-1 text-xs font-semibold text-white"
+                      className="rounded-full bg-emerald-950 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-900 disabled:opacity-50"
                     >
                       אשר לפרסום
                     </button>
