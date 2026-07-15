@@ -1,4 +1,5 @@
 import HomeHeader from "@/components/HomeHeader";
+import { isAdminEmail } from "@/lib/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { loadDevSwitcherUsers } from "@/lib/devSwitcherData";
 
@@ -38,6 +39,7 @@ export default async function SitePageShell({
         canUseDevUserSwitcher={devSwitcher != null}
         devSwitcherUsers={devSwitcher?.users}
         devSwitcherCanCreate={devSwitcher?.canCreateManagedUsers}
+        isAdmin={isAdminEmail(user?.email)}
       />
       <main
         className={[MAIN_CLASS[mainWidth], mainClassName].filter(Boolean).join(" ")}

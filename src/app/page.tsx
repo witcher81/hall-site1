@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
 import { loadDevSwitcherUsers } from "@/lib/devSwitcherData";
 import {
   getHomeFeaturedVenues,
@@ -23,6 +24,7 @@ export default async function Home() {
         canUseDevUserSwitcher={devSwitcher != null}
         devSwitcherUsers={devSwitcher?.users}
         devSwitcherCanCreate={devSwitcher?.canCreateManagedUsers}
+        isAdmin={isAdminEmail(user?.email)}
       />
       <HomePage featuredVenues={featuredVenues} topServices={topServices} />
     </div>

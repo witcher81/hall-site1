@@ -107,12 +107,15 @@ export default function HomeHeader({
   canUseDevUserSwitcher = false,
   devSwitcherUsers,
   devSwitcherCanCreate = false,
+  isAdmin = false,
 }: {
   user: User | null;
   canUseDevUserSwitcher?: boolean;
   devSwitcherUsers?: DevSwitcherUserRow[];
   /** אדמין (ADMIN_EMAILS) — מועבר מהשרת, לא תלוי ב-fetch בדפדפן */
   devSwitcherCanCreate?: boolean;
+  /** אדמין אתר — קישור לפאנל /admin */
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const { theme } = useSiteTheme();
@@ -127,6 +130,7 @@ export default function HomeHeader({
     const links = personalAreaLinks(user?.role);
     return getActivePersonalHref(pathname, links);
   }, [pathname, user?.role]);
+  const adminNavActive = pathname.startsWith("/admin");
   const canUseMessages =
     user &&
     (user.role === "SEEKER" ||
@@ -267,6 +271,19 @@ export default function HomeHeader({
                 <NotificationsUnreadBadge />
               </Link>
             )}
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                aria-current={adminNavActive ? "page" : undefined}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] ${
+                  adminNavActive
+                    ? "border-amber-300 bg-amber-400 text-emerald-950"
+                    : "border-amber-400/60 bg-amber-400/15 text-[#F5E6A8] hover:bg-amber-400/25"
+                }`}
+              >
+                פאנל ניהול
+              </Link>
+            ) : null}
             {user && personalLinks.length > 0 && (
               <div className="relative" ref={personalRef}>
                 <button
@@ -477,6 +494,20 @@ export default function HomeHeader({
                         <NotificationsUnreadBadge />
                       </Link>
                     )}
+                    {isAdmin ? (
+                      <Link
+                        href="/admin"
+                        aria-current={adminNavActive ? "page" : undefined}
+                        className={`${navLinkMobileBase} font-semibold ${
+                          adminNavActive
+                            ? "bg-amber-400/25 text-emerald-950 ring-1 ring-amber-400/60"
+                            : "text-amber-900 hover:bg-amber-50"
+                        }`}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        פאנל ניהול
+                      </Link>
+                    ) : null}
                   </div>
                   {personalLinks.length > 0 && (
                     <div className="border-b border-neutral-200/80 py-2 sm:hidden">
@@ -515,6 +546,20 @@ export default function HomeHeader({
                   >
                     <span>הגדרות</span>
                   </Link>
+                  {isAdmin ? (
+                    <Link
+                      href="/admin"
+                      aria-current={adminNavActive ? "page" : undefined}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 font-semibold ${
+                        adminNavActive
+                          ? navLinkMobileActive
+                          : "text-amber-900 hover:bg-amber-50"
+                      }`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <span>פאנל ניהול</span>
+                    </Link>
+                  ) : null}
                   <button
                     type="button"
                     onClick={handleLogout}
