@@ -467,7 +467,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                   }
                   className="mt-2 text-[11px] font-medium text-amber-900/80 underline decoration-amber-400/50 underline-offset-2 hover:text-amber-950"
                 >
-                  + הוסף סיכום קצר (אופציונלי)
+                  + הוסף הערות (אופציונלי)
                 </button>
               )}
               {showPackageIncludedMenu ? (

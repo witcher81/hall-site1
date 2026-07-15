@@ -82,7 +82,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     packagesStepLabel: "מחיר + מנות לכל קבוצה",
     catalogStepLabel: "תוספות בתשלום (אופציונלי)",
     packageNameFieldLabel: "שם",
-    packageDescriptionFieldLabel: "סיכום קצר (אופציונלי)",
+    packageDescriptionFieldLabel: "הערות (אופציונלי)",
     packageDescriptionPlaceholder: "למשל: הגשה כלולה",
     catalogTitle: "תוספות בתשלום",
     catalogHint:
@@ -121,7 +121,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     packagesStepLabel: "מחיר + משקאות לכל חבילה",
     catalogStepLabel: "תוספות בתשלום (אופציונלי)",
     packageNameFieldLabel: "שם החבילה / השירות",
-    packageDescriptionFieldLabel: "סיכום קצר (אופציונלי)",
+    packageDescriptionFieldLabel: "הערות (אופציונלי)",
     packageDescriptionPlaceholder: "למשל: כולל ברמן וכוסות",
     catalogTitle: "תוספות בתשלום",
     catalogHint:
@@ -159,7 +159,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     packagesStepLabel: "מחיר + טעמים לכל חבילה",
     catalogStepLabel: "תוספות בתשלום (אופציונלי)",
     packageNameFieldLabel: "שם החבילה / השירות",
-    packageDescriptionFieldLabel: "סיכום קצר (אופציונלי)",
+    packageDescriptionFieldLabel: "הערות (אופציונלי)",
     packageDescriptionPlaceholder: "למשל: כולל מפעיל וכלים",
     catalogTitle: "תוספות בתשלום",
     catalogHint: "רק תוספות בתשלום — לא הכלולים בחבילה למעלה.",

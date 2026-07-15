@@ -36,7 +36,7 @@ const FOOD: CatalogFieldHelpSet = {
   packageName: "למשל: תפריט מבוגרים / ילדים / צמחוני.",
   packagePrice: "כמה ₪ לאורח אחד בשורה הזו.",
   packagePriceRange: "אם אין מחיר קבוע — הציגו טווח (למשל 150–220).",
-  packageDescription: "אופציונלי — הערת שורה קצרה.",
+  packageDescription: "אופציונלי — הערות לשורה (למשל הגשה כלולה).",
   sectionTitle: "קבוצת תוספות — למשל שדרוגים.",
   itemName: "שם המנה / התוספת.",
   itemPricing: "תוספת לאורח או מחיר קבוע.",
