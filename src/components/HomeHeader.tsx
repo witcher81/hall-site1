@@ -27,9 +27,6 @@ function personalAreaLinks(role: string | undefined): { href: string; label: str
         { href: "/my-inquiries", label: "הפניות שלי" },
         { href: "/my-service-requests", label: "הבקשות לספקים" },
         { href: "/event-tools", label: "כלי תכנון אירוע" },
-        { href: "/my-plans", label: "תוכניות אירוע" },
-        { href: "/event-planner", label: "צ׳קליסט אירוע" },
-        { href: "/event-builder", label: "בניית חבילה" },
       ];
     case "VENUE_OWNER":
       return [
@@ -48,7 +45,7 @@ type NavKey =
   | "providers"
   | "packages"
   | "favorites"
-  | "eventBuilder"
+  | "eventTools"
   | "messages"
   | "notifications";
 
@@ -60,7 +57,14 @@ function navKeyActive(pathname: string, key: NavKey): boolean {
     return pathname === "/providers" || pathname.startsWith("/providers/");
   if (key === "packages") return pathname.startsWith("/packages");
   if (key === "favorites") return pathname.startsWith("/favorites");
-  if (key === "eventBuilder") return pathname.startsWith("/event-builder");
+  if (key === "eventTools") {
+    return (
+      pathname.startsWith("/event-tools") ||
+      pathname.startsWith("/my-plans") ||
+      pathname.startsWith("/event-planner") ||
+      pathname.startsWith("/event-builder")
+    );
+  }
   if (key === "messages") return pathname.startsWith("/messages");
   if (key === "notifications") return pathname.startsWith("/notifications");
   return false;
@@ -88,6 +92,14 @@ function getActivePersonalHref(
   links: { href: string }[]
 ): string | null {
   if (links.length === 0) return null;
+  const isPlanningToolPath =
+    pathname.startsWith("/event-tools") ||
+    pathname.startsWith("/my-plans") ||
+    pathname.startsWith("/event-planner") ||
+    pathname.startsWith("/event-builder");
+  if (isPlanningToolPath && links.some((l) => l.href === "/event-tools")) {
+    return "/event-tools";
+  }
   const sorted = [...links].sort((a, b) => b.href.length - a.href.length);
   for (const { href } of sorted) {
     if (pathname === href || pathname.startsWith(`${href}/`)) return href;
@@ -229,15 +241,15 @@ export default function HomeHeader({
                   מועדפים
                 </Link>
                 <Link
-                  href="/event-builder"
-                  aria-current={navKeyActive(pathname, "eventBuilder") ? "page" : undefined}
+                  href="/event-tools"
+                  aria-current={navKeyActive(pathname, "eventTools") ? "page" : undefined}
                   className={`${navLinkDesktopBase} ${
-                    navKeyActive(pathname, "eventBuilder")
+                    navKeyActive(pathname, "eventTools")
                       ? navLinkDesktopActive
                       : navLinkDesktopIdle
                   }`}
                 >
-                  בניית אירוע
+                  כלי תכנון
                 </Link>
               </>
             )}
@@ -443,18 +455,18 @@ export default function HomeHeader({
                           מועדפים
                         </Link>
                         <Link
-                          href="/event-builder"
+                          href="/event-tools"
                           aria-current={
-                            navKeyActive(pathname, "eventBuilder") ? "page" : undefined
+                            navKeyActive(pathname, "eventTools") ? "page" : undefined
                           }
                           className={`${navLinkMobileBase} ${
-                            navKeyActive(pathname, "eventBuilder")
+                            navKeyActive(pathname, "eventTools")
                               ? navLinkMobileActive
                               : navLinkMobileIdle
                           }`}
                           onClick={() => setMenuOpen(false)}
                         >
-                          בניית אירוע
+                          כלי תכנון
                         </Link>
                       </>
                     )}
