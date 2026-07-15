@@ -50,6 +50,39 @@ describe("serviceCategoryTemplates resolve", () => {
     expect(getCatalogTemplate("food").catalogOptional).toBe(true);
     expect(getCatalogTemplate("food").catalogTitle).toContain("תוספות");
   });
+
+  it("enables package included items on every catalog template", () => {
+    const ids = [
+      "food",
+      "beverage",
+      "food_station",
+      "registration",
+      "staffing",
+      "beauty",
+      "fashion_rental",
+      "print_quantity",
+      "photo_video",
+      "music",
+      "tech_av",
+      "equipment_rental",
+      "attraction",
+      "planning",
+      "ceremony",
+      "design",
+      "transport",
+      "corporate",
+      "generic",
+    ] as const;
+    expect(ids).toHaveLength(19);
+    for (const id of ids) {
+      const t = getCatalogTemplate(id);
+      expect(t.showPackageIncludedItems).toBe(true);
+      expect(t.catalogOptional).toBe(true);
+      expect(t.packageIncludedTitle?.trim()).toBeTruthy();
+      expect(t.packageIncludedItemPlaceholder?.trim()).toBeTruthy();
+      expect(t.packageIncludedAddLabel?.trim()).toBeTruthy();
+    }
+  });
 });
 
 describe("serviceMenu sanitize/validate", () => {

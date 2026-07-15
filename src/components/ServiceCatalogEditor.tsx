@@ -43,33 +43,6 @@ const CATALOG_ESSENTIAL_FALLBACK = new Set<CatalogTemplate["id"]>([
   "print_quantity",
 ]);
 
-/** תבניות עם מנות/טעמים בתוך שורת המחיר */
-const PACKAGE_INCLUDED_MENU = new Set<CatalogTemplate["id"]>([
-  "food",
-  "beverage",
-  "food_station",
-]);
-
-function packageIncludedListTitle(templateId: CatalogTemplate["id"]): string {
-  if (templateId === "beverage") return "משקאות בחבילה הזו";
-  if (templateId === "food_station") return "טעמים / מנות בחבילה הזו";
-  return "מנות בתפריט הזה";
-}
-
-function packageIncludedItemPlaceholder(
-  templateId: CatalogTemplate["id"]
-): string {
-  if (templateId === "beverage") return "למשל: מוחיטו, בירה";
-  if (templateId === "food_station") return "למשל: וניל, שוקולד";
-  return "למשל: סלט ירוק";
-}
-
-function packageIncludedAddLabel(templateId: CatalogTemplate["id"]): string {
-  if (templateId === "beverage") return "+ הוסף משקה";
-  if (templateId === "food_station") return "+ הוסף טעם / מנה";
-  return "+ הוסף מנה";
-}
-
 const input =
   "w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
 const textarea =
@@ -96,7 +69,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
   const catalogEssential =
     template.catalogEssential ?? CATALOG_ESSENTIAL_FALLBACK.has(template.id);
   const catalogOptional = template.catalogOptional ?? !catalogEssential;
-  const showPackageIncludedMenu = PACKAGE_INCLUDED_MENU.has(template.id);
+  const showPackageIncludedMenu = template.showPackageIncludedItems === true;
   const [catalogOpen, setCatalogOpen] = useState(!catalogOptional);
   /** סיכום אופציונלי לחבילה — נפתח רק בלחיצה או אם כבר יש תוכן */
   const [packageDescOpen, setPackageDescOpen] = useState<Record<string, boolean>>(
@@ -106,7 +79,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
   useEffect(() => {
     if (value.packages.length === 0) {
       const pkg = createEmptyMenuPackage();
-      if (PACKAGE_INCLUDED_MENU.has(template.id)) {
+      if (template.showPackageIncludedItems) {
         pkg.includedItems = [createEmptyMenuItem()];
       }
       onChange({ ...value, templateId: template.id, packages: [pkg] });
@@ -327,7 +300,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
               <p className="mb-2 text-[10px] font-medium text-neutral-500">
                 שורה {index + 1}
                 {showPackageIncludedMenu
-                  ? " — שם, מחיר ומנות"
+                  ? " — שם, מחיר ומה כלול"
                   : " — שם + מחיר"}
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -473,10 +446,11 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
               {showPackageIncludedMenu ? (
                 <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/40 p-2.5">
                   <p className="text-[11px] font-semibold text-emerald-950">
-                    {packageIncludedListTitle(template.id)}
+                    {template.packageIncludedTitle ?? "מה כלול"}
                   </p>
                   <p className="mt-0.5 text-[10px] text-neutral-500">
-                    רק מה שכלול במחיר השורה הזו
+                    {template.packageIncludedHint ??
+                      "רק מה שכלול במחיר השורה הזו"}
                   </p>
                   <ul className="mt-2 space-y-1.5">
                     {(pkg.includedItems ?? []).map((item, itemIndex) => (
@@ -491,7 +465,10 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                             })
                           }
                           className={`${input} flex-1`}
-                          placeholder={packageIncludedItemPlaceholder(template.id)}
+                          placeholder={
+                            template.packageIncludedItemPlaceholder ??
+                            "למשל: פריט כלול"
+                          }
                         />
                         <button
                           type="button"
@@ -511,7 +488,7 @@ export default function ServiceCatalogEditor({ template, value, onChange }: Prop
                     onClick={() => addIncludedItem(index)}
                     className="mt-2 text-[11px] font-medium text-emerald-900 hover:underline disabled:opacity-50"
                   >
-                    {packageIncludedAddLabel(template.id)}
+                    {template.packageIncludedAddLabel ?? "+ הוסף פריט כלול"}
                   </button>
                 </div>
               ) : null}
