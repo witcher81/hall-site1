@@ -8,14 +8,39 @@ import {
 import { FREELANCER_CATEGORY_GROUPS } from "@/lib/freelancerServiceCategories";
 
 describe("serviceCategorySpec", () => {
-  it("maps all secondaries (127)", () => {
+  it("maps all secondaries (128)", () => {
     const map = buildSecondaryTemplateMap();
     const count = FREELANCER_CATEGORY_GROUPS.reduce(
       (sum, g) => sum + g.services.length,
       0
     );
-    expect(count).toBe(127);
-    expect(Object.keys(map)).toHaveLength(127);
+    expect(count).toBe(128);
+    expect(Object.keys(map)).toHaveLength(128);
+  });
+
+  it("maps marriage proposals to planning template", () => {
+    const map = buildSecondaryTemplateMap();
+    expect(map["הצעות נישואין"]).toBe("planning");
+  });
+
+  it("customizes marriage proposal catalog copy", async () => {
+    const { resolveCatalogTemplateFromCategory } = await import(
+      "@/lib/serviceCategoryTemplates"
+    );
+    const { getCatalogFieldHelp } = await import("@/lib/catalogFieldHelp");
+    const t = resolveCatalogTemplateFromCategory(
+      "תכנון וניהול אירוע / הצעות נישואין"
+    );
+    expect(t?.id).toBe("planning");
+    expect(t?.editorTitle).toContain("הצעות נישואין");
+    expect(t?.packageIncludedTitle).toContain("הצעה");
+    expect(t?.catalogTitle).toContain("תוספות");
+    expect(t?.showPackageDuration).toBe(true);
+    expect(t?.requireGuestCountInquiry).toBe(false);
+    expect(t?.packagesStepLabel).toContain("הצעה");
+    const help = getCatalogFieldHelp("planning", "הצעות נישואין");
+    expect(help.packagesSectionTitle).toContain("חבילת הצעה");
+    expect(help.addPackageButton).toContain("הצעה");
   });
 
   it("maps bars to beverage and stations to food_station", () => {

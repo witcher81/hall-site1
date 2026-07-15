@@ -279,6 +279,7 @@ export default function NewServicePage() {
             template={catalogTemplate}
             value={menu}
             onChange={setMenu}
+            secondary={form.secondaryCategories[0] ?? null}
           />
         ) : null}
 

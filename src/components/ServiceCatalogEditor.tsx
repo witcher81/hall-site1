@@ -27,6 +27,8 @@ type Props = {
   template: CatalogTemplate;
   value: ServiceMenuConfig;
   onChange: (next: ServiceMenuConfig) => void;
+  /** תת־קטגוריה — לעזרת שדות מותאמת (למשל הצעות נישואין) */
+  secondary?: string | null;
 };
 
 const PRICING_LABELS: Record<ServiceMenuItemPricing, string> = {
@@ -63,8 +65,13 @@ function itemPriceSingleLabel(pricing: ServiceMenuItemPricing): string {
   return "מחיר לאורח (₪)";
 }
 
-export default function ServiceCatalogEditor({ template, value, onChange }: Props) {
-  const fieldHelp = getCatalogFieldHelp(template.id);
+export default function ServiceCatalogEditor({
+  template,
+  value,
+  onChange,
+  secondary,
+}: Props) {
+  const fieldHelp = getCatalogFieldHelp(template.id, secondary);
   const pricingModes = template.itemPricingModes;
   const catalogEssential =
     template.catalogEssential ?? CATALOG_ESSENTIAL_FALLBACK.has(template.id);

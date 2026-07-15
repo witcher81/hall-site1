@@ -839,9 +839,47 @@ export function applySecondaryCatalogHints(
     ...(hints.minCapacityLabel ? { minCapacityLabel: hints.minCapacityLabel } : {}),
     ...(hints.maxCapacityLabel ? { maxCapacityLabel: hints.maxCapacityLabel } : {}),
     ...(hints.packagesTitle ? { packagesTitle: hints.packagesTitle } : {}),
+    ...(hints.packagesStepLabel
+      ? { packagesStepLabel: hints.packagesStepLabel }
+      : {}),
+    ...(hints.catalogStepLabel
+      ? { catalogStepLabel: hints.catalogStepLabel }
+      : {}),
     ...(hints.catalogTitle ? { catalogTitle: hints.catalogTitle } : {}),
     ...(hints.catalogHint ? { catalogHint: hints.catalogHint } : {}),
     ...(hints.notesLabel ? { notesLabel: hints.notesLabel } : {}),
+    ...(hints.packageNameFieldLabel
+      ? { packageNameFieldLabel: hints.packageNameFieldLabel }
+      : {}),
+    ...(hints.packageDescriptionFieldLabel
+      ? { packageDescriptionFieldLabel: hints.packageDescriptionFieldLabel }
+      : {}),
+    ...(hints.packageDescriptionPlaceholder
+      ? { packageDescriptionPlaceholder: hints.packageDescriptionPlaceholder }
+      : {}),
+    ...(hints.packagePriceExpandLabel
+      ? { packagePriceExpandLabel: hints.packagePriceExpandLabel }
+      : {}),
+    ...(hints.packageIncludedTitle
+      ? { packageIncludedTitle: hints.packageIncludedTitle }
+      : {}),
+    ...(hints.packageIncludedHint
+      ? { packageIncludedHint: hints.packageIncludedHint }
+      : {}),
+    ...(hints.packageIncludedItemPlaceholder
+      ? {
+          packageIncludedItemPlaceholder: hints.packageIncludedItemPlaceholder,
+        }
+      : {}),
+    ...(hints.packageIncludedAddLabel
+      ? { packageIncludedAddLabel: hints.packageIncludedAddLabel }
+      : {}),
+    ...(typeof hints.showPackageDuration === "boolean"
+      ? { showPackageDuration: hints.showPackageDuration }
+      : {}),
+    ...(typeof hints.requireGuestCountInquiry === "boolean"
+      ? { requireGuestCountInquiry: hints.requireGuestCountInquiry }
+      : {}),
   };
 }
 

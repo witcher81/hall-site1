@@ -130,9 +130,21 @@ export type SecondaryCatalogHints = {
   minCapacityLabel?: string;
   maxCapacityLabel?: string;
   packagesTitle?: string;
+  packagesStepLabel?: string;
+  catalogStepLabel?: string;
   catalogTitle?: string;
   catalogHint?: string;
   notesLabel?: string;
+  packageNameFieldLabel?: string;
+  packageDescriptionFieldLabel?: string;
+  packageDescriptionPlaceholder?: string;
+  packagePriceExpandLabel?: string;
+  packageIncludedTitle?: string;
+  packageIncludedHint?: string;
+  packageIncludedItemPlaceholder?: string;
+  packageIncludedAddLabel?: string;
+  showPackageDuration?: boolean;
+  requireGuestCountInquiry?: boolean;
 };
 
 /** placeholders לפי תת־קטגוריה — דריסה חלקית של טקסטי התבנית */
@@ -265,6 +277,42 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     packageNamePlaceholder: "למשל: הפקה מלאה",
     catalogSectionPlaceholder: "למשל: לפני האירוע, ביום האירוע",
     catalogItemPlaceholder: "למשל: פגישות תכנון, ליווי ספקים",
+  },
+  "הצעות נישואין": {
+    editorTitle: "הצעות נישואין — חבילות ומחיר",
+    editorHint:
+      "לכל חבילה: שם + מחיר + מה כלול ברגע ההצעה. תוספות בתשלום (צלם נסתר, נגן…) — למטה, אופציונלי.",
+    capacityTitle: "אורחים ברגע ההצעה",
+    capacityHint:
+      "כמה אנשים יכולים להיות ברגע עצמו (רק הזוג / עם משפחה וחברים) — עוזר להתאמה, לא בהכרח לתמחור.",
+    minCapacityLabel: "מינימום אורחים",
+    maxCapacityLabel: "מקסימום אורחים",
+    packagesTitle: "חבילות הצעה",
+    packagesHint:
+      "שורה לכל חבילה — למשל «הצעה בטבע», «חבילה מלאה עם עיצוב וצילום». שם + מחיר + מה כלול במחיר.",
+    packagesStepLabel: "מחיר + מה כלול בהצעה",
+    catalogStepLabel: "תוספות בתשלום (אופציונלי)",
+    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח",
+    packageNameFieldLabel: "שם החבילה",
+    packageNamePlaceholder: "למשל: הצעה בטבע + עיצוב",
+    packageDescriptionFieldLabel: "הערות (אופציונלי)",
+    packageDescriptionPlaceholder: "למשל: כולל תיאום עם הלוקיישן",
+    packageIncludedTitle: "מה כלול בהצעה הזו",
+    packageIncludedHint:
+      "רק מה שנכלל במחיר השורה — לוקיישן, עיצוב, הקמה, תיאום וכו'.",
+    packageIncludedItemPlaceholder: "למשל: בחירת לוקיישן, עיצוב פרחים, הקמה",
+    packageIncludedAddLabel: "+ הוסף פריט כלול",
+    catalogTitle: "תוספות בתשלום",
+    catalogHint:
+      "שירותים בתוספת מחיר מעבר לחבילה — צילום נסתר, נגן, שמפניה, רחפן וכו'.",
+    catalogSectionPlaceholder: "למשל: צילום, מוזיקה, עיצוב נוסף",
+    catalogItemPlaceholder: "למשל: צלם נסתר, כינור, מגדל שמפניה",
+    notesLabel: "הערות ללקוח",
+    notesPlaceholder:
+      "למשל: נסיעה עד 40 ק״מ כלולה, תיאום סודי עם השותף/ה, ביטול לפי מדיניות",
+    showPackageDuration: true,
+    requireGuestCountInquiry: false,
   },
   "הפקת אירועי חברה/כנסים": {
     packagesHint: "למשל: כנס חד-יומי — מחיר קבוע להפקה.",
@@ -567,7 +615,7 @@ export function getSecondaryCatalogHints(
   return SECONDARY_CATALOG_HINTS[normalized] ?? null;
 }
 
-/** וידוא שכל 127 תתי־קטגוריות ממופות — נכשל ב-build אם חסר */
+/** וידוא שכל 128 תתי־קטגוריות ממופות — נכשל ב-build אם חסר */
 export function verifyServiceCategorySpec(): void {
   const map = buildSecondaryTemplateMap();
   let count = 0;
@@ -579,9 +627,9 @@ export function verifyServiceCategorySpec(): void {
       }
     }
   }
-  if (count !== 127) {
+  if (count !== 128) {
     throw new Error(
-      `serviceCategorySpec: צפויות 127 תתי־קטגוריות, נמצאו ${count}`
+      `serviceCategorySpec: צפויות 128 תתי־קטגוריות, נמצאו ${count}`
     );
   }
 }

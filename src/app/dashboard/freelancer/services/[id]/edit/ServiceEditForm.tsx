@@ -298,6 +298,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           template={catalogTemplate}
           value={menu}
           onChange={setMenu}
+          secondary={form.secondaryCategories[0] ?? null}
         />
       ) : null}
 

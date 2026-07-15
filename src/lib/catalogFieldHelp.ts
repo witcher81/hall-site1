@@ -239,8 +239,40 @@ const BY_TEMPLATE: Record<CatalogTemplateId, CatalogFieldHelpSet> = {
   generic: GENERIC,
 };
 
-export function getCatalogFieldHelp(templateId: CatalogTemplateId): CatalogFieldHelpSet {
-  return { ...GENERIC, ...BY_TEMPLATE[templateId] };
+/** עזרה לפי תת־קטגוריה — דריסה מעל עזרת התבנית */
+const BY_SECONDARY: Partial<Record<string, Partial<CatalogFieldHelpSet>>> = {
+  "הצעות נישואין": {
+    packagesSectionTitle: "מה זה «חבילת הצעה»?",
+    packagesSectionBody:
+      "כל שורה = חבילת הצעת נישואין: שם ברור + מחיר + רשימת מה כלול (לוקיישן, עיצוב, הקמה…). תוספות כמו צלם נסתר — בנפרד למטה.",
+    catalogSectionTitle: "מה זה «תוספות בתשלום»?",
+    catalogSectionBody:
+      "רק שירותים שלא כלולים במחיר החבילה — צילום נסתר, נגן, שמפניה, רחפן וכו'.",
+    minGuests: "כמה אנשים מינימום ברגע ההצעה (לרוב הזוג בלבד).",
+    maxGuests: "מקסימום אם מזמינים גם משפחה / חברים לסיים את הרגע יחד.",
+    packageName: "למשל: הצעה בטבע, חבילה מלאה עם עיצוב וצילום.",
+    packagePrice: "מחיר קבוע לחבילת ההצעה (לא לפי אורח).",
+    packagePriceRange: "אם המחיר משתנה לפי לוקיישן או היקף — הציגו טווח.",
+    packageDescription: "הערות קצרות לשורה — למשל תיאום סודי עם השותף/ה.",
+    packageDuration: "כמה זמן ההקמה / הרגע כלולים בחבילה (אם רלוונטי).",
+    sectionTitle: "קבוצת תוספות — למשל צילום, מוזיקה.",
+    itemName: "שם התוספת — למשל צלם נסתר.",
+    itemPricing: "מחיר קבוע לתוספת (בדרך כלל).",
+    notes: "נסיעות, מדיניות ביטול, אישורים ללוקיישן, סודיות.",
+    addPackageButton: "עוד חבילת הצעה",
+    addSectionButton: "עוד קבוצת תוספות",
+  },
+};
+
+export function getCatalogFieldHelp(
+  templateId: CatalogTemplateId,
+  secondary?: string | null
+): CatalogFieldHelpSet {
+  const base = { ...GENERIC, ...BY_TEMPLATE[templateId] };
+  const key = secondary?.trim();
+  if (!key) return base;
+  const extra = BY_SECONDARY[key];
+  return extra ? { ...base, ...extra } : base;
 }
 
 export function getItemPricingHelp(
