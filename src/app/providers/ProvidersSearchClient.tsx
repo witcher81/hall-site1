@@ -9,6 +9,11 @@ import {
 import { resolveProviderCategoryFilter } from "@/lib/serviceCategoryQuery";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
+import {
+  isPrimaryAvailable,
+  isSecondaryAvailable,
+  type ServiceCategoryAvailability,
+} from "@/lib/searchAvailabilityPure";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
@@ -113,8 +118,10 @@ function hasActiveFilters(sp: URLSearchParams): boolean {
 
 export default function ProvidersSearchClient({
   initialServices = [],
+  categoryAvailability = { primaries: [], secondariesByPrimary: {} },
 }: {
   initialServices?: PublicProviderServiceItem[];
+  categoryAvailability?: ServiceCategoryAvailability;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -273,21 +280,31 @@ export default function ProvidersSearchClient({
                 <label className={labelClass}>קטגוריה ראשית</label>
                 <select
                   value={form.category}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (
+                      next &&
+                      !isPrimaryAvailable(categoryAvailability, next)
+                    ) {
+                      return;
+                    }
                     setForm((f) => ({
                       ...f,
-                      category: e.target.value,
+                      category: next,
                       secondary: "",
-                    }))
-                  }
+                    }));
+                  }}
                   className={fieldClass}
                 >
                   <option value="">הכל</option>
-                  {FREELANCER_SERVICE_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                  {FREELANCER_SERVICE_CATEGORIES.map((c) => {
+                    const ok = isPrimaryAvailable(categoryAvailability, c);
+                    return (
+                      <option key={c} value={c} disabled={!ok}>
+                        {ok ? c : `${c} (אין עדיין)`}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4">
@@ -295,17 +312,35 @@ export default function ProvidersSearchClient({
                 <select
                   value={form.secondary}
                   disabled={!form.category || secondaryOptions.length === 0}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, secondary: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (
+                      next &&
+                      !isSecondaryAvailable(
+                        categoryAvailability,
+                        form.category,
+                        next
+                      )
+                    ) {
+                      return;
+                    }
+                    setForm((f) => ({ ...f, secondary: next }));
+                  }}
                   className={`${fieldClass} disabled:opacity-50`}
                 >
                   <option value="">כל השירותים בקטגוריה</option>
-                  {secondaryOptions.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
+                  {secondaryOptions.map((s) => {
+                    const ok = isSecondaryAvailable(
+                      categoryAvailability,
+                      form.category,
+                      s
+                    );
+                    return (
+                      <option key={s} value={s} disabled={!ok}>
+                        {ok ? s : `${s} (אין עדיין)`}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               <div className="min-w-0 rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4 lg:col-span-2">
@@ -361,22 +396,34 @@ export default function ProvidersSearchClient({
             >
               הכל
             </button>
-            {QUICK_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() =>
-                  patchUrlParam("category", currentCategory === cat ? "" : cat)
-                }
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  currentCategory === cat
-                    ? "bg-emerald-950 text-white"
-                    : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {QUICK_CATEGORIES.map((cat) => {
+              const ok = isPrimaryAvailable(categoryAvailability, cat);
+              const selected = currentCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  disabled={!ok}
+                  title={ok ? undefined : "אין עדיין ספקים בקטגוריה זו"}
+                  onClick={() => {
+                    if (!ok) return;
+                    patchUrlParam(
+                      "category",
+                      currentCategory === cat ? "" : cat
+                    );
+                  }}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    !ok
+                      ? "cursor-not-allowed border border-neutral-200 bg-neutral-50 text-neutral-400"
+                      : selected
+                        ? "bg-emerald-950 text-white"
+                        : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                  }`}
+                >
+                  {ok ? cat : `${cat} · אין עדיין`}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -391,8 +438,16 @@ export default function ProvidersSearchClient({
         <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
           {active ? (
             <>
-              <p className="font-medium text-emerald-950">לא נמצאו שירותים לפי הסינון</p>
-              <p className="mt-2">נסו לשנות קטגוריה או טווח מחיר, או ללחוץ «נקה סינון».</p>
+              <p className="font-medium text-emerald-950">
+                {form.secondary.trim()
+                  ? `אין עדיין «${form.secondary.trim()}» באתר`
+                  : form.category.trim()
+                    ? `אין עדיין ספקים ב«${form.category.trim()}»`
+                    : "לא נמצאו שירותים לפי הסינון"}
+              </p>
+              <p className="mt-2">
+                נסו קטגוריה אחרת או טווח מחיר, או לחצו «נקה סינון».
+              </p>
             </>
           ) : (
             <p>לא נמצאו שירותים. נסו לשנות פרמטרים.</p>

@@ -2,6 +2,7 @@ import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
 import { searchPublicProviders } from "@/lib/publicProvidersSearch";
+import { getApprovedServiceCategoryAvailability } from "@/lib/searchAvailability";
 import ProvidersSearchClient from "./ProvidersSearchClient";
 
 type PageProps = {
@@ -23,7 +24,11 @@ function toUrlSearchParams(
 
 export default async function ProvidersPage({ searchParams }: PageProps) {
   const sp = toUrlSearchParams(await searchParams);
-  const { services: initialServices } = await searchPublicProviders(sp);
+  const [{ services: initialServices }, categoryAvailability] =
+    await Promise.all([
+      searchPublicProviders(sp),
+      getApprovedServiceCategoryAvailability(),
+    ]);
 
   return (
     <SitePageShell>
@@ -31,7 +36,10 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
         title="שירותי ספקים"
         description="מאגר ספקים מקצועיים לאירועים — צילום, DJ, קייטרינג, עיצוב, איפור ועוד. בוחרים קטגוריה וטווח מחיר, רואים מי מציע את השירות ושולחים בקשה ישירות לספקים."
       />
-      <ProvidersSearchClient initialServices={initialServices} />
+      <ProvidersSearchClient
+        initialServices={initialServices}
+        categoryAvailability={categoryAvailability}
+      />
       <SiteFooter />
     </SitePageShell>
   );

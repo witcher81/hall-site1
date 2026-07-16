@@ -588,6 +588,7 @@ export default function HallsSearchClient({
   initialVenues = [],
   initialMapVenues = [],
   initialWarning = null,
+  availableCities = [],
 }: {
   userLoggedIn?: boolean;
   initialFavoriteVenueIds?: number[];
@@ -596,6 +597,8 @@ export default function HallsSearchClient({
   /** כל האולמות למפה — נטען בשרת, בלי תלות ב-API */
   initialMapVenues?: MapVenue[];
   initialWarning?: string | null;
+  /** ערים עם אולמות מאושרים — לחסימת ערים ריקות באוטוקומפליט */
+  availableCities?: string[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1119,6 +1122,7 @@ export default function HallsSearchClient({
               }
               placeholder="הקלד עיר או בחר מהרשימה"
               extraCities={searchExtraCities}
+              availableCities={availableCities}
               className={fieldClass}
             />
           </div>
@@ -1514,7 +1518,11 @@ export default function HallsSearchClient({
         <HallsResultsSkeleton />
       ) : venues.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-8 text-center text-sm text-neutral-600 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
-          <p>לא נמצאו אולמות לפי הסינון. נסה לשנות פרמטרים או להשאיר שדות ריקים.</p>
+          <p>
+            {form.city.trim()
+              ? `אין עדיין אולמות ב${form.city.trim()}. נסו עיר אחרת או הסירו את סינון העיר.`
+              : "לא נמצאו אולמות לפי הסינון. נסה לשנות פרמטרים או להשאיר שדות ריקים."}
+          </p>
           {searchParams.toString() ? (
             <p className="mt-2 text-xs text-neutral-500">
               ייתכן שחיפוש קודם נשמר בדפדפן ומסנן תוצאות.
