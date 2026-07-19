@@ -25,19 +25,43 @@ export default function DashboardNav({
 
   return (
     <header className="dashboard-nav sticky top-0 z-[500] backdrop-blur-md">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-3 py-3.5">
-          <div className="flex min-w-0 items-center gap-3">
+      <div className="mx-auto max-w-[1600px] px-3 sm:px-4 lg:px-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 lg:flex-nowrap">
+          <div className="flex min-w-0 shrink-0 items-center gap-2 xl:gap-3">
             <Link
               href="/"
               className="text-lg font-bold tracking-tight text-white transition hover:text-amber-300"
+              aria-label="Halls Hub — דף הבית"
             >
               Halls Hub
             </Link>
             <span className="dashboard-nav-badge">{config.badge}</span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <nav
+            className="order-3 -mx-1 flex w-full gap-1 overflow-x-auto pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:order-none lg:mx-0 lg:min-w-0 lg:flex-1 lg:justify-center lg:pt-0"
+            aria-label="ניווט אזור אישי"
+          >
+            {config.links.map((item) => {
+              const isActive = item.isActive(pathname);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={
+                    isActive
+                      ? "dashboard-nav-link dashboard-nav-link-active"
+                      : "dashboard-nav-link"
+                  }
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="mr-auto flex shrink-0 items-center gap-2 sm:gap-3">
             {showHeaderThemeToggle ? <ThemeToggle variant="header" /> : null}
             {displayName ? (
               <span
@@ -47,32 +71,8 @@ export default function DashboardNav({
                 {displayName}
               </span>
             ) : null}
-            <Link href="/" className="dashboard-nav-home">
-              דף הבית
-            </Link>
           </div>
         </div>
-
-        <nav
-          className="-mx-1 flex gap-1 overflow-x-auto pb-3.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          aria-label="ניווט אזור אישי"
-        >
-          {config.links.map((item) => {
-            const isActive = item.isActive(pathname);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={
-                  isActive ? "dashboard-nav-link dashboard-nav-link-active" : "dashboard-nav-link"
-                }
-                aria-current={isActive ? "page" : undefined}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
       </div>
     </header>
   );
