@@ -71,7 +71,7 @@ function navKeyActive(pathname: string, key: NavKey): boolean {
 }
 
 const navLinkDesktopBase =
-  "shrink-0 rounded-full px-3 py-1.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227]";
+  "shrink-0 whitespace-nowrap rounded-full px-2 py-1.5 text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3 xl:text-sm";
 const navLinkDesktopActive =
   "bg-amber-400/25 font-semibold text-[#F5E6A8] ring-1 ring-amber-400/70 shadow-[0_0_0_1px_rgba(201,162,39,0.15)]";
 const navLinkDesktopIdle = "text-slate-200 hover:text-white";
@@ -187,13 +187,13 @@ export default function HomeHeader({
   return (
     <header className="site-header relative z-50 border-b border-slate-800 bg-emerald-950 backdrop-blur-sm">
       {user ? <RealtimeEventBridge /> : null}
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex min-w-0 flex-1 items-center gap-3 justify-start sm:gap-4">
+      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-3 py-4 lg:px-4 xl:gap-4 xl:px-6">
+        <div className="flex min-w-0 flex-1 items-center justify-start gap-2 xl:gap-4">
           <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-slate-50">
             Halls Hub
           </Link>
           {/* ניווט אחיד: אותם פריטי בסיס לכולם; "אזור אישי" = מה שהיה תלוי־תפקיד */}
-          <nav className="hidden min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 sm:flex lg:gap-x-3">
+          <nav className="hidden min-w-0 flex-1 flex-nowrap items-center gap-x-1 min-[900px]:flex xl:gap-x-2">
             <Link
               href="/halls"
               aria-current={navKeyActive(pathname, "halls") ? "page" : undefined}
@@ -287,7 +287,7 @@ export default function HomeHeader({
               <Link
                 href="/admin"
                 aria-current={adminNavActive ? "page" : undefined}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] ${
+                className={`shrink-0 whitespace-nowrap rounded-full border px-2 py-1.5 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3 xl:text-sm ${
                   adminNavActive
                     ? "border-amber-300 bg-amber-400 text-emerald-950"
                     : "border-amber-400/60 bg-amber-400/15 text-[#F5E6A8] hover:bg-amber-400/25"
@@ -301,7 +301,7 @@ export default function HomeHeader({
                 <button
                   type="button"
                   onClick={() => setPersonalOpen((v) => !v)}
-                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                  className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2 py-1 text-xs font-semibold transition xl:px-3 ${
                     personalOpen
                       ? "border-[#C9A227] bg-amber-400 text-white shadow-sm"
                       : activePersonalHref
@@ -394,7 +394,7 @@ export default function HomeHeader({
               {menuOpen && (
                 <div className="user-menu absolute left-0 z-[60] mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-2 text-right text-sm shadow-xl">
                   {/* במסכים צרים: הניווט המלא בתפריט המשתמש */}
-                  <div className="border-b border-neutral-200/80 pb-2 sm:hidden">
+                  <div className="border-b border-neutral-200/80 pb-2 min-[900px]:hidden">
                     <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-600">
                       ניווט
                     </p>
@@ -522,7 +522,7 @@ export default function HomeHeader({
                     ) : null}
                   </div>
                   {personalLinks.length > 0 && (
-                    <div className="border-b border-neutral-200/80 py-2 sm:hidden">
+                    <div className="border-b border-neutral-200/80 py-2 min-[900px]:hidden">
                       <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-600">
                         אזור אישי
                       </p>
