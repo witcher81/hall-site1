@@ -21,6 +21,8 @@ export default function DashboardMain({
 }) {
   return (
     <main
+      id="main-content"
+      tabIndex={-1}
       className={[
         "dashboard-main mx-auto px-4 sm:px-6 lg:px-8",
         WIDTH_CLASS[width],

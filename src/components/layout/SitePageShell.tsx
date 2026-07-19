@@ -42,6 +42,8 @@ export default async function SitePageShell({
         isAdmin={isAdminEmail(user?.email)}
       />
       <main
+        id="main-content"
+        tabIndex={-1}
         className={[MAIN_CLASS[mainWidth], mainClassName].filter(Boolean).join(" ")}
       >
         {children}

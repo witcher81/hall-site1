@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import AccessibilityWidget from "@/components/accessibility/AccessibilityWidget";
+import SkipToContentLink from "@/components/accessibility/SkipToContentLink";
 import CookieConsentProvider from "@/components/consent/CookieConsentProvider";
 import GlobalThemeToggle from "@/components/GlobalThemeToggle";
 import ThemeInit from "@/components/ThemeInit";
@@ -46,7 +48,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
+          <SkipToContentLink />
           <CookieConsentProvider>{children}</CookieConsentProvider>
+          <AccessibilityWidget />
           <GlobalThemeToggle />
         </ThemeProvider>
       </body>

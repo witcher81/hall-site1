@@ -26,7 +26,9 @@ export default async function Home() {
         devSwitcherCanCreate={devSwitcher?.canCreateManagedUsers}
         isAdmin={isAdminEmail(user?.email)}
       />
-      <HomePage featuredVenues={featuredVenues} topServices={topServices} />
+      <main id="main-content" tabIndex={-1}>
+        <HomePage featuredVenues={featuredVenues} topServices={topServices} />
+      </main>
     </div>
   );
 }
