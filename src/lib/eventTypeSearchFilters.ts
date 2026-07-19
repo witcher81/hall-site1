@@ -80,7 +80,7 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
   חתונה: [
     { value: "לובי", label: "לובי / קבלת פנים" },
     { value: "גג", label: "גג פתוח" },
-    { value: "בר", label: "בר משקאות" },
+    { value: "בר משקאות", label: "בר משקאות" },
     { value: "VIP", label: "אזור VIP" },
   ],
   "יום הולדת": [
@@ -91,7 +91,7 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
   ],
   [EVENT_TYPE_BAR_BAT]: [
     { value: "במה", label: "במה / הופעות" },
-    { value: "בר", label: "בר / קינוחים" },
+    { value: "בר קינוחים", label: "בר / קינוחים" },
   ],
   [EVENT_TYPE_BRIT]: [
     { value: "מקרן", label: "מסך / מקרן" },
@@ -105,15 +105,41 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
   ],
   חינה: [
     { value: "גינה", label: "גינה / חצר" },
-    { value: "בר", label: "בר משקאות" },
+    { value: "בר משקאות", label: "בר משקאות" },
   ],
   [EVENT_TYPE_BACHELOR]: [
-    { value: "בר", label: "בר משקאות" },
+    { value: "בר משקאות", label: "בר משקאות" },
     { value: "בריכ", label: "בריכה / ג'קוזי" },
     { value: "מוזיק", label: "מוזיקה / DJ" },
     { value: "עמד", label: "עמדות / אטרקציות" },
     { value: "לינה", label: "לינה במקום" },
     { value: "פרטי", label: "מקום פרטי / סגור" },
+  ],
+  "אירוע עסקי": [
+    { value: "מקרן", label: "מסך / מקרן" },
+    { value: "במה", label: "במה / במה להרצאות" },
+    { value: "וייפיי", label: "Wi‑Fi / אינטרנט" },
+    { value: "חניה", label: "חניה נוחה" },
+    { value: "לובי", label: "לובי / קבלת פנים" },
+  ],
+  כנס: [
+    { value: "מקרן", label: "מסך / מקרן" },
+    { value: "במה", label: "במה / דוכן נואמים" },
+    { value: "תרגום", label: "תרגום / תמלול" },
+    { value: "וייפיי", label: "Wi‑Fi / אינטרנט" },
+    { value: "חניה", label: "חניה נוחה" },
+  ],
+  "מסיבת סיום": [
+    { value: "במה", label: "במה / הופעות" },
+    { value: "מוזיק", label: "מוזיקה / DJ" },
+    { value: "בר משקאות", label: "בר משקאות" },
+    { value: "עמד", label: "עמדות / אטרקציות" },
+  ],
+  "אירוע אחר": [
+    { value: "לובי", label: "לובי / קבלת פנים" },
+    { value: "גינה", label: "גינה / חצר" },
+    { value: "במה", label: "במה / הופעות" },
+    { value: "בר משקאות", label: "בר משקאות" },
   ],
 };
 
@@ -242,11 +268,7 @@ export function softAttrFiltersForEventType(
 ): SoftAttrFilterOption[] {
   const et = normalizeEventTypeLabel(eventType.trim());
   if (!et) return [];
-  return (
-    SOFT_ATTR_FILTERS_BY_EVENT[et] ??
-    SOFT_ATTR_FILTERS_BY_EVENT[EVENT_TYPE_BAR_BAT] ??
-    []
-  );
+  return SOFT_ATTR_FILTERS_BY_EVENT[et] ?? [];
 }
 
 export function eventQuickChipsForEventType(eventType: string): EventQuickChip[] {
@@ -343,6 +365,34 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         id: "brit-private",
         label: "חדר פרטי לטקס",
         toggles: { hasBridalRoom: true, boutique: true },
+      },
+    ];
+  }
+  if (et === "חינה") {
+    return [
+      {
+        id: "henna-garden",
+        label: "חינה בגינה",
+        toggles: { seaView: true, hasSoundSystem: true, hasFood: true },
+      },
+      {
+        id: "henna-dance",
+        label: "חינה עם ריקודים",
+        toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
+      },
+    ];
+  }
+  if (et === "מסיבת סיום") {
+    return [
+      {
+        id: "grad-party",
+        label: "מסיבה עם ריקודים",
+        toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
+      },
+      {
+        id: "grad-small",
+        label: "אירוע קטן",
+        toggles: { boutique: true, hasFood: true },
       },
     ];
   }

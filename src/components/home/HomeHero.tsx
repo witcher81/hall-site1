@@ -7,25 +7,70 @@ import { FormEvent, useState } from "react";
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=2400&q=80";
 
+function providersHref(category: string, secondary?: string): string {
+  const params = new URLSearchParams({ category });
+  if (secondary) params.set("secondary", secondary);
+  return `/providers?${params.toString()}`;
+}
+
 function routeQuickSearch(raw: string): string {
   const q = raw.trim();
   if (!q) return "/halls";
-  if (/dj|די.?ג/i.test(q)) {
-    return `/providers?category=${encodeURIComponent("מוזיקה ובמה")}`;
+  if (/הצעת.?נישואין|הצעות.?נישואין|proposal/i.test(q)) {
+    return providersHref("תכנון וניהול אירוע", "הצעות נישואין");
   }
-  if (/צלם|צילום|וידאו|מגנט/i.test(q)) {
-    return `/providers?category=${encodeURIComponent("צילום ותיעוד")}`;
+  if (/dj|די.?ג׳?יי|תקליט/i.test(q)) {
+    return providersHref("מוזיקה ובמה", "DJ ותקליטנים");
   }
-  if (/קייטרינג|אוכל|בר/i.test(q)) {
-    return `/providers?category=${encodeURIComponent("אוכל ומשקאות")}`;
+  if (/מגנט/i.test(q)) {
+    return providersHref("צילום ותיעוד", "צלם מגנטים");
   }
-  if (/עיצוב|פרח|קישוט/i.test(q)) {
-    return `/providers?category=${encodeURIComponent("עיצוב ומיתוג")}`;
+  if (/צלם|צילום|וידאו/i.test(q)) {
+    return providersHref("צילום ותיעוד");
   }
-  if (/זמר|להק|מוזיק/i.test(q)) {
-    return `/providers?category=${encodeURIComponent("מוזיקה ובמה")}`;
+  if (/ברמן|ברמנים/i.test(q)) {
+    return providersHref("צוותים ותפעול לאירוע", "ברמנים");
   }
-  if (/אולם|גן|חתונה/i.test(q)) return "/halls";
+  if (/מלצר|אבטח|לימוזין|הסע/i.test(q)) {
+    return providersHref("צוותים ותפעול לאירוע");
+  }
+  if (/קייטרינג|שף|מזנון|קינוח/i.test(q)) {
+    return providersHref("אוכל ומשקאות");
+  }
+  if (/בר\b|קוקטייל|אלכוהול/i.test(q)) {
+    return providersHref("אוכל ומשקאות");
+  }
+  if (/איפור|שיער|כלה|יופי/i.test(q)) {
+    return providersHref("יופי ואיפור");
+  }
+  if (/שמלה|חליפ|אופנה|הלבש/i.test(q)) {
+    return providersHref("הלבשה ואופנה לאירוע");
+  }
+  if (/הזמנ|דפוס|קליגרפ/i.test(q)) {
+    return providersHref("הזמנות ודפוס");
+  }
+  if (/טקס|רב|מוהל|עורך.?טקס/i.test(q)) {
+    return providersHref("טקסים");
+  }
+  if (/אטרקצ|קוסם|ליצן|זיקוק|בידור/i.test(q)) {
+    return providersHref("אטרקציות ובידור");
+  }
+  if (/הגבר|תאור|ציוד|אוהל|מסך.?led/i.test(q)) {
+    return providersHref("ציוד ולוגיסטיקה");
+  }
+  if (/כנס|וובינר|תרגום.?סימולט|היבריד/i.test(q)) {
+    return providersHref("אירועים עסקיים וכנסים");
+  }
+  if (/מתאם|הפקת.?אירוע|תכנון.?אירוע|מנהל.?אירוע/i.test(q)) {
+    return providersHref("תכנון וניהול אירוע");
+  }
+  if (/עיצוב|פרח|קישוט|בלונ/i.test(q)) {
+    return providersHref("עיצוב ומיתוג");
+  }
+  if (/זמר|להק|מוזיק|מנחה|mc/i.test(q)) {
+    return providersHref("מוזיקה ובמה");
+  }
+  if (/אולם|גן.?אירוע|חתונה|צימר/i.test(q)) return "/halls";
   return `/halls?city=${encodeURIComponent(q)}`;
 }
 

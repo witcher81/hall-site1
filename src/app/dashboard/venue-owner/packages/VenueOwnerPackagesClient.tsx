@@ -11,6 +11,7 @@ import {
   type EventPackageVenueInclude,
   type PackageTier,
 } from "@/lib/eventPackageTypes";
+import { FREELANCER_PRIMARY_CATEGORIES } from "@/lib/freelancerServiceCategories";
 
 type Venue = { id: number; name: string; city: string };
 
@@ -46,16 +47,7 @@ type PackageRow = {
   serviceIds: number[];
 };
 
-const SERVICE_ROLES = [
-  "צילום",
-  "מוזיקה / DJ",
-  "קייטרינג",
-  "פרחים",
-  "תאורה",
-  "איפור",
-  "הסעדה",
-  "אחר",
-];
+const SERVICE_ROLES = [...FREELANCER_PRIMARY_CATEGORIES];
 
 const emptyForm = {
   title: "",

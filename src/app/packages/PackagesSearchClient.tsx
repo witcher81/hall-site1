@@ -28,7 +28,18 @@ import { PACKAGE_SEARCH_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
 
 const EVENT_TYPE_OPTIONS = PACKAGE_SEARCH_EVENT_TYPE_OPTIONS;
 
-const QUICK_CITIES = ["תל אביב", "חיפה", "ירושלים", "הרצליה", "רמת גן", "פתח תקווה"];
+const QUICK_CITIES = [
+  "תל אביב",
+  "חיפה",
+  "ירושלים",
+  "הרצליה",
+  "רמת גן",
+  "פתח תקווה",
+  "ראשון לציון",
+  "נתניה",
+  "באר שבע",
+  "אשדוד",
+];
 
 const EMPTY_SEARCH_FORM = {
   q: "",

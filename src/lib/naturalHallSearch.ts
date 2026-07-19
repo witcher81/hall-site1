@@ -1,5 +1,6 @@
 /** ממיר שאילתת חיפוש חופשית (עברית) לפרמטרי סינון בסיסיים — ללא LLM */
 import { parseKashrutHintFromText } from "@/lib/venueKashrutOptions";
+import { UNIQUE_ISRAEL_CITIES } from "@/components/CityDatalist";
 
 export type NaturalSearchHints = {
   city?: string;
@@ -46,28 +47,10 @@ const EVENT_ALIASES: Record<string, string> = {
   אחר: "אירוע אחר",
 };
 
-const CITY_HINTS = [
-  "תל אביב",
-  "ירושלים",
-  "חיפה",
-  "באר שבע",
-  "אשדוד",
-  "אשקלון",
-  "נתניה",
-  "רמת גן",
-  "פתח תקווה",
-  "הרצליה",
-  "רעננה",
-  "כפר סבא",
-  "מודיעין",
-  "ראשון לציון",
-  "חולון",
-  "בת ים",
-  "עכו",
-  "טבריה",
-  "אילת",
-  "נצרת",
-];
+/** ערים ארוכות קודם — כדי ש«תל אביב-יפו» יתפוס לפני «תל אביב» */
+const CITY_HINTS = [...UNIQUE_ISRAEL_CITIES].sort(
+  (a, b) => b.length - a.length
+);
 
 export function parseNaturalHallSearchQuery(raw: string): NaturalSearchHints {
   const q = raw.trim().toLowerCase();

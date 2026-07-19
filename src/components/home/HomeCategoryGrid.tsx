@@ -19,7 +19,7 @@ export default function HomeCategoryGrid() {
             <li
               key={cat.id}
               className={`home-animate-in ${
-                ["home-stagger-1", "home-stagger-2", "home-stagger-3", "home-stagger-4", "home-stagger-5", "home-stagger-6", "home-stagger-6", "home-stagger-6"][i] ?? "home-stagger-6"
+                ["home-stagger-1", "home-stagger-2", "home-stagger-3", "home-stagger-4", "home-stagger-5", "home-stagger-6", "home-stagger-6", "home-stagger-6", "home-stagger-6"][i] ?? "home-stagger-6"
               }`}
             >
               <Link
