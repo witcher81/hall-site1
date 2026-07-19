@@ -208,7 +208,7 @@ export function inquiryStepPillClass(step: InquiryStatusStep): string {
       : "bg-emerald-100 text-emerald-900";
   }
   if (step.active) {
-    return "bg-amber-400 text-white";
+    return "bg-amber-400 text-neutral-950";
   }
   if (step.done) {
     return "bg-emerald-100 text-emerald-900";

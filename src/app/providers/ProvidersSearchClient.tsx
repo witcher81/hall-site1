@@ -17,6 +17,7 @@ import {
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import SocialLinksRow from "@/components/SocialLinksRow";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
+import Image from "next/image";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { PublicProviderServiceItem } from "@/lib/publicProvidersSearch";
@@ -267,7 +268,7 @@ export default function ProvidersSearchClient({
                 <>
                   <span>פתח חיפוש</span>
                   {activeFilterCount > 0 ? (
-                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-white">
+                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-neutral-950">
                       {activeFilterCount}
                     </span>
                   ) : null}
@@ -375,7 +376,7 @@ export default function ProvidersSearchClient({
               </button>
               <button
                 type="submit"
-                className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
+                className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-neutral-950 shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
               >
                 החל חיפוש
               </button>
@@ -485,14 +486,16 @@ export default function ProvidersSearchClient({
               >
                 <a href={`/services/${s.id}`} className="block p-4 pb-3">
                   {s.coverImageUrl ? (
-                    <div className="relative mb-2">
+                    <div className="relative mb-2 h-32 w-full overflow-hidden rounded-xl">
                       {popularProviderIds.has(s.providerId) && (
                         <PopularBadge className="absolute right-2 top-2 z-10" />
                       )}
-                      <img
+                      <Image
                         src={s.coverImageUrl}
                         alt={s.name}
-                        className="h-32 w-full rounded-xl object-cover"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover"
                       />
                     </div>
                   ) : (

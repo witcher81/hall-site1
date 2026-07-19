@@ -154,7 +154,7 @@ export default function ResetPasswordClient({
                 </p>
                 <a
                   href={storedResetUrl}
-                  className="mt-3 inline-block rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-300"
+                  className="mt-3 inline-block rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-neutral-950 hover:bg-amber-300"
                 >
                   בחירת סיסמה חדשה
                 </a>

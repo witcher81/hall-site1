@@ -416,7 +416,7 @@ export default function MessagesClient({
             >
               <span className="font-medium">{titleFor(c)}</span>
               {c.unreadCount > 0 && (
-                <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-950">
                   {c.unreadCount}
                 </span>
               )}
@@ -543,7 +543,7 @@ export default function MessagesClient({
         <h2 className="mb-2 flex items-center justify-between text-sm font-semibold text-emerald-950">
           <span>שיחות</span>
           {totalUnread > 0 && (
-            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] text-white">
+            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[11px] text-neutral-950">
               {totalUnread}
             </span>
           )}
@@ -596,7 +596,7 @@ export default function MessagesClient({
                 >
                   בעלי אולמות
                   {venueOwnerUnread > 0 && (
-                    <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-950">
                       {venueOwnerUnread}
                     </span>
                   )}
@@ -612,7 +612,7 @@ export default function MessagesClient({
                 >
                   פרילנסרים
                   {freelancerUnread > 0 && (
-                    <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="mr-2 inline-flex rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-950">
                       {freelancerUnread}
                     </span>
                   )}

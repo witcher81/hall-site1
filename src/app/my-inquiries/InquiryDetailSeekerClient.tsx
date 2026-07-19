@@ -152,7 +152,7 @@ export default function InquiryDetailSeekerClient({
               {canSeekerCheckout(inquiry.status) ? (
                 <Link
                   href={inquiryCheckoutHref(inquiry.id)}
-                  className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-amber-300"
+                  className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-neutral-950 shadow-sm transition hover:bg-amber-300"
                 >
                   תשלום מקדמה
                 </Link>
@@ -219,7 +219,7 @@ export default function InquiryDetailSeekerClient({
               </p>
               <Link
                 href={inquiryCheckoutHref(inquiry.id)}
-                className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-amber-400 px-5 text-sm font-bold text-white shadow-md transition hover:bg-amber-300"
+                className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-amber-400 px-5 text-sm font-bold text-neutral-950 shadow-md transition hover:bg-amber-300"
               >
                 מעבר לתשלום מקדמה
               </Link>

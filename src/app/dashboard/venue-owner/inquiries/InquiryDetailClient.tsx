@@ -521,7 +521,7 @@ export default function InquiryDetailClient({ initial }: Props) {
                       type="button"
                       onClick={saveOwnerNoteEdit}
                       disabled={notePending}
-                      className="rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-300 disabled:opacity-60"
+                      className="rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold text-neutral-950 hover:bg-amber-300 disabled:opacity-60"
                     >
                       {notePending ? "שומר..." : "שמור"}
                     </button>

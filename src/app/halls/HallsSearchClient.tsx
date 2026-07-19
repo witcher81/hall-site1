@@ -9,6 +9,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import VenueKashrutSelect from "@/components/VenueKashrutSelect";
@@ -394,11 +395,12 @@ function VenueResultCard({
           <PopularBadge className="absolute right-2 top-2 z-10" />
         )}
         {v.coverImageUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          <Image
             src={v.coverImageUrl}
             alt={v.name}
-            className="h-full w-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-[#B0A99A]">
@@ -1059,7 +1061,7 @@ export default function HallsSearchClient({
                 <>
                   <span>פתח מסננים</span>
                   {activeFilterCount > 0 ? (
-                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-white">
+                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-neutral-950">
                       {activeFilterCount}
                     </span>
                   ) : null}
@@ -1456,7 +1458,7 @@ export default function HallsSearchClient({
           </p>
           <button
             type="submit"
-            className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
+            className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-neutral-950 shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
           >
             עדכן עכשיו
           </button>
@@ -1636,7 +1638,7 @@ export default function HallsSearchClient({
                   const ids = compareIds.join(",");
                   router.push(`/halls/compare?ids=${ids}`);
                 }}
-                className="rounded-full bg-amber-400 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-amber-300"
+                className="rounded-full bg-amber-400 px-4 py-1.5 text-[11px] font-semibold text-neutral-950 hover:bg-amber-300"
               >
                 השווה אולמות
               </button>

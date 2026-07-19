@@ -1491,7 +1491,7 @@ export default function VenueEditForm({
                 type="file"
                 accept="image/*"
                 onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
-                className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#E5C96B]"
+                className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-950 hover:file:bg-[#E5C96B]"
               />
               <p className="mt-1 text-[11px] text-neutral-600">
                 להחליף: בחר תמונה חדשה. לא בוחרים – נשארת התמונה הקיימת.
@@ -1796,7 +1796,7 @@ export default function VenueEditForm({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-full bg-amber-400 px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
+              className="rounded-full bg-amber-400 px-6 py-2.5 text-xs font-semibold text-neutral-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
             >
               {saving ? "שומר..." : "שמירת שינויים"}
             </button>

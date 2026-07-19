@@ -259,7 +259,7 @@ export default function ServiceReviewsSection({
                     type="button"
                     disabled={submitting}
                     onClick={() => void handleSubmit()}
-                    className="rounded-full bg-amber-400 px-5 py-2 text-xs font-semibold text-white hover:bg-amber-500 disabled:opacity-60"
+                    className="rounded-full bg-amber-400 px-5 py-2 text-xs font-semibold text-neutral-950 hover:bg-amber-500 disabled:opacity-60"
                   >
                     {submitting ? "שולח..." : "שליחת ביקורת"}
                   </button>
@@ -321,7 +321,7 @@ export default function ServiceReviewsSection({
                             type="button"
                             disabled={submitting}
                             onClick={() => void handleSaveEdit()}
-                            className="rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                            className="rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold text-neutral-950 disabled:opacity-60"
                           >
                             שמירה
                           </button>

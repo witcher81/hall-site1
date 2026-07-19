@@ -217,7 +217,7 @@ export default function AfterVenueGuideClient({
         </a>
         <a
           href={`/halls/${venueId}/inquiry`}
-          className="inline-flex items-center justify-center rounded-2xl bg-amber-400 px-4 py-3 font-bold text-white shadow transition hover:bg-amber-300"
+          className="inline-flex items-center justify-center rounded-2xl bg-amber-400 px-4 py-3 font-bold text-neutral-950 shadow transition hover:bg-amber-300"
         >
           המשך לשליחת בקשה לאולם
         </a>

@@ -95,7 +95,7 @@ export default function VenueOwnerProfileForm({ email, mode, initial }: Props) {
         <button
           type="submit"
           disabled={loading || hasInvalidPhone}
-          className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
+          className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-neutral-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
         >
           {loading ? "שומר..." : copy.submitLabel}
         </button>

@@ -39,7 +39,7 @@ export default function InquiryWizardNav({ steps, currentIndex, onGoTo }: Props)
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                     active
-                      ? "bg-amber-400 text-white"
+                      ? "bg-amber-400 text-neutral-950"
                       : done
                         ? "bg-emerald-950 text-white"
                         : "bg-[#E8E0D4] text-neutral-600"

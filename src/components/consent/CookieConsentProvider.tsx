@@ -175,7 +175,7 @@ export default function CookieConsentProvider({
               <button
                 type="button"
                 onClick={handleAcceptAll}
-                className="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-300"
+                className="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-neutral-950 shadow-sm hover:bg-amber-300"
               >
                 קבלת הכל
               </button>
@@ -279,7 +279,7 @@ export default function CookieConsentProvider({
               <button
                 type="button"
                 onClick={handleSavePreferences}
-                className="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-300"
+                className="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-neutral-950 shadow-sm hover:bg-amber-300"
               >
                 שמירת העדפות
               </button>

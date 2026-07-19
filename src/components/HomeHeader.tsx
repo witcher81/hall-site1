@@ -303,7 +303,7 @@ export default function HomeHeader({
                   onClick={() => setPersonalOpen((v) => !v)}
                   className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2 py-1 text-xs font-semibold transition xl:px-3 ${
                     personalOpen
-                      ? "border-[#C9A227] bg-amber-400 text-white shadow-sm"
+                      ? "border-[#C9A227] bg-amber-400 text-neutral-950 shadow-sm"
                       : activePersonalHref
                         ? "border-[#C9A227]/80 bg-amber-400/20 text-[#F5E6A8] ring-1 ring-amber-400/50"
                         : "border-white/35 bg-white/10 text-white hover:bg-white/20"
@@ -592,7 +592,7 @@ export default function HomeHeader({
               </a>
               <a
                 href="/auth/register"
-                className="rounded-full bg-amber-400 px-3 py-2 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:bg-amber-300 sm:px-4"
+                className="rounded-full bg-amber-400 px-3 py-2 text-sm font-semibold text-neutral-950 shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:bg-amber-300 sm:px-4"
               >
                 הרשמה
               </a>

@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import CityDatalist from "@/components/CityDatalist";
@@ -154,8 +155,13 @@ function PackageResultCard({ pkg }: { pkg: PackageRow }) {
               {PACKAGE_TIER_LABELS[tier]}
             </span>
           ) : null}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={img} alt="" className="h-full w-full object-cover" />
+          <Image
+            src={img}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
+          />
         </div>
         <div className="p-4">
           <h2 className="font-semibold text-neutral-900">{pkg.title}</h2>
@@ -429,7 +435,7 @@ export default function PackagesSearchClient({
                 <>
                   <span>פתח חיפוש</span>
                   {activeFilterCount > 0 ? (
-                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-white">
+                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-amber-400 px-1.5 text-[11px] font-bold text-neutral-950">
                       {activeFilterCount}
                     </span>
                   ) : null}
@@ -575,7 +581,7 @@ export default function PackagesSearchClient({
               </button>
               <button
                 type="submit"
-                className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-white shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
+                className="min-h-[50px] rounded-2xl bg-amber-400 px-10 text-base font-bold text-neutral-950 shadow-md transition hover:bg-[#b89220] sm:min-w-[200px]"
               >
                 החל חיפוש
               </button>
@@ -630,7 +636,7 @@ export default function PackagesSearchClient({
                   }
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                     currentCity === city
-                      ? "bg-amber-400 text-white"
+                      ? "bg-amber-400 text-neutral-950"
                       : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
                   }`}
                 >

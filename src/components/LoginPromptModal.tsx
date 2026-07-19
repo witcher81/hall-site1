@@ -45,7 +45,7 @@ export default function LoginPromptModal({
         <div className="mt-5 flex flex-col gap-2 sm:flex-row-reverse">
           <a
             href={loginHref}
-            className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full bg-amber-400 px-4 text-sm font-semibold text-white hover:bg-amber-300"
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full bg-amber-400 px-4 text-sm font-semibold text-neutral-950 hover:bg-amber-300"
           >
             התחברות
           </a>

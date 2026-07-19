@@ -1369,7 +1369,7 @@ export default function VenueInquiryClient({
               <button
                 type="submit"
                 disabled={loading}
-                className="min-h-[52px] flex-1 rounded-2xl bg-amber-400 px-6 text-base font-bold text-white shadow-lg hover:bg-amber-300 disabled:opacity-60 sm:max-w-xs sm:ml-auto"
+                className="min-h-[52px] flex-1 rounded-2xl bg-amber-400 px-6 text-base font-bold text-neutral-950 shadow-lg hover:bg-amber-300 disabled:opacity-60 sm:max-w-xs sm:ml-auto"
               >
                 {loading
                   ? "שולח..."

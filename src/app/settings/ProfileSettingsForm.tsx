@@ -88,7 +88,7 @@ export default function ProfileSettingsForm({ user }: { user: SettingsUser }) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-300 disabled:opacity-60"
+          className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-neutral-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
         >
           {saving ? "שומר..." : "שמירת פרופיל"}
         </button>

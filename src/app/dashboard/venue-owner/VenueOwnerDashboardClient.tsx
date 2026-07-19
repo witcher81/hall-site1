@@ -95,7 +95,7 @@ export default function VenueOwnerDashboardClient({ initial }: Props) {
         </div>
         <a
           href="/dashboard/venue-owner/venues/new"
-          className="inline-flex justify-center rounded-full bg-amber-400 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(0,0,0,0.18)] transition hover:bg-amber-300"
+          className="inline-flex justify-center rounded-full bg-amber-400 px-5 py-2.5 text-sm font-semibold text-neutral-950 shadow-[0_10px_28px_rgba(0,0,0,0.18)] transition hover:bg-amber-300"
         >
           יצירת אולם חדש
         </a>

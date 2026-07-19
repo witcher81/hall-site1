@@ -295,7 +295,7 @@ export default function DevUserSwitcher({
                   <button
                     type="submit"
                     disabled={addLoading}
-                    className="flex-1 rounded bg-amber-400 px-2 py-1.5 text-xs font-medium text-white hover:bg-amber-300 disabled:opacity-50"
+                    className="flex-1 rounded bg-amber-400 px-2 py-1.5 text-xs font-medium text-neutral-950 hover:bg-amber-300 disabled:opacity-50"
                   >
                     {addLoading ? "..." : "הוסף והתחבר"}
                   </button>

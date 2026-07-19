@@ -350,7 +350,7 @@ export default function VenueDetailsClient({
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end lg:shrink-0">
               <a
                 href={`/dashboard/venue-owner/venues/${venue.id}/edit`}
-                className="inline-flex justify-center rounded-full bg-amber-400 px-6 py-2.5 text-center text-sm font-semibold text-white shadow-[0_10px_28px_rgba(0,0,0,0.25)] transition hover:bg-amber-300"
+                className="inline-flex justify-center rounded-full bg-amber-400 px-6 py-2.5 text-center text-sm font-semibold text-neutral-950 shadow-[0_10px_28px_rgba(0,0,0,0.25)] transition hover:bg-amber-300"
               >
                 עריכת אולם
               </a>
@@ -406,7 +406,7 @@ export default function VenueDetailsClient({
             type="button"
             onClick={handleBoost}
             disabled={boosting}
-            className="mt-1 inline-flex items-center justify-center rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-300 disabled:opacity-60"
+            className="mt-1 inline-flex items-center justify-center rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-neutral-950 shadow-sm transition hover:bg-amber-300 disabled:opacity-60"
           >
             {boosting
               ? "מעבד..."

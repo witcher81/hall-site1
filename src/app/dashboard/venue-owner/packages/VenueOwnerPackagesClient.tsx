@@ -392,7 +392,7 @@ export default function VenueOwnerPackagesClient({ venues }: { venues: Venue[] }
           <button
             type="button"
             onClick={() => openCreate()}
-            className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-300"
+            className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-neutral-950 shadow-sm hover:bg-amber-300"
           >
             {showForm ? "ביטול" : "חבילה חדשה"}
           </button>

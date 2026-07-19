@@ -103,7 +103,7 @@ export default function FreelancerDashboardClient({ initial }: Props) {
         </div>
         <a
           href="/dashboard/freelancer/services/new"
-          className="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-300"
+          className="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-neutral-950 shadow-sm hover:bg-amber-300"
         >
           הוספת שירות חדש
         </a>
@@ -174,7 +174,7 @@ export default function FreelancerDashboardClient({ initial }: Props) {
                   </div>
                   <a
                     href={detailHref}
-                    className="shrink-0 rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-300"
+                    className="shrink-0 rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-neutral-950 shadow-sm hover:bg-amber-300"
                   >
                     לצפייה
                   </a>

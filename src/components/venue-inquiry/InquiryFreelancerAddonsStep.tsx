@@ -401,7 +401,7 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
                 >
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs transition ${
-                      open ? "bg-amber-400 text-white" : "bg-emerald-950/10 text-emerald-950"
+                      open ? "bg-amber-400 text-neutral-950" : "bg-emerald-950/10 text-emerald-950"
                     }`}
                     aria-hidden
                   >
@@ -428,7 +428,7 @@ export default function InquiryFreelancerAddonsStep({ selected, onChange }: Prop
                     ) : null}
                   </span>
                   {selectedInCategory > 0 ? (
-                    <span className="shrink-0 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="shrink-0 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-neutral-950">
                       {selectedInCategory} נבחרו
                     </span>
                   ) : null}

@@ -192,7 +192,7 @@ function OfferFormModal({
             type="button"
             disabled={loading}
             onClick={() => onSubmit({ amountNis, amountMaxNis, message })}
-            className="flex-1 rounded-xl bg-amber-400 py-2.5 text-sm font-bold text-white hover:bg-amber-300 disabled:opacity-60"
+            className="flex-1 rounded-xl bg-amber-400 py-2.5 text-sm font-bold text-neutral-950 hover:bg-amber-300 disabled:opacity-60"
           >
             {loading ? "שולח..." : "שלח הצעה"}
           </button>

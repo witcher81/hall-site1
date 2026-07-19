@@ -1,11 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
+/** תמונת hero — רוחב סביר למובייל/דסקטופ, לא 2400px */
 const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=2400&q=80";
+  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=75";
 
 function providersHref(category: string, secondary?: string): string {
   const params = new URLSearchParams({ category });
@@ -85,9 +87,14 @@ export default function HomeHero() {
 
   return (
     <section className="relative min-h-[min(88vh,720px)] w-full overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center scale-105"
-        style={{ backgroundImage: `url(${HERO_IMAGE})` }}
+      <Image
+        src={HERO_IMAGE}
+        alt=""
+        fill
+        priority
+        fetchPriority="high"
+        sizes="100vw"
+        className="object-cover scale-105"
         aria-hidden
       />
       <div

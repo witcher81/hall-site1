@@ -353,7 +353,7 @@ export default function FreelancerRequestsClient() {
                       <button
                         type="button"
                         onClick={() => markAs(r.id, "REPLIED", repliedNote)}
-                        className="rounded-full bg-amber-400 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-300"
+                        className="rounded-full bg-amber-400 px-3 py-1.5 text-xs font-medium text-neutral-950 hover:bg-amber-300"
                       >
                         שמור וסמן כנענה
                       </button>

@@ -793,6 +793,9 @@ export default function VenuePublicView({
                     src={heroImage.url}
                     alt={`${venue.name} תמונה ${heroImageIndex + 1}`}
                     className="h-full w-full object-cover object-center"
+                    fetchPriority={heroImageIndex === 0 ? "high" : "auto"}
+                    decoding="async"
+                    sizes="100vw"
                   />
                 );
               })()}
@@ -1163,7 +1166,7 @@ export default function VenuePublicView({
                   }
                   className={`rounded-full px-3 py-1 ${
                     activeCategory === cat.id
-                      ? "bg-amber-400 text-white"
+                      ? "bg-amber-400 text-neutral-950"
                       : "bg-[#EDE6DB] text-neutral-900 hover:bg-[#E0D4C3]"
                   }`}
                 >
@@ -1261,7 +1264,7 @@ export default function VenuePublicView({
           <div className="mt-5">
             <a
               href={`/halls/${venue.id}/inquiry`}
-              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-amber-400 px-5 text-base font-bold text-white shadow-lg transition hover:bg-amber-300 sm:max-w-md"
+              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-amber-400 px-5 text-base font-bold text-neutral-950 shadow-lg transition hover:bg-amber-300 sm:max-w-md"
             >
               התחלת הזמנה (ללא התחברות)
             </a>
@@ -1287,7 +1290,7 @@ export default function VenuePublicView({
           <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <a
               href={`/halls/${venue.id}/inquiry`}
-              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-amber-400 px-5 text-base font-bold text-white shadow-lg transition hover:bg-amber-300"
+              className="inline-flex min-h-[56px] w-full items-center justify-center rounded-2xl bg-amber-400 px-5 text-base font-bold text-neutral-950 shadow-lg transition hover:bg-amber-300"
             >
               מעבר לשליחת בקשה
             </a>

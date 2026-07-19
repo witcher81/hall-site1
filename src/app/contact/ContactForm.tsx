@@ -88,7 +88,7 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={sending}
-        className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-white hover:bg-amber-300 disabled:opacity-60"
+        className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-amber-300 disabled:opacity-60"
       >
         {sending ? "שולח..." : "שליחה"}
       </button>
