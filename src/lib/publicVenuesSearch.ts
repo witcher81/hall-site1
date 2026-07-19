@@ -38,7 +38,6 @@ export type PublicVenueListItem = {
   hallRentalMin: number | null;
   hallRentalMax: number | null;
   eventTypes: string[];
-  description: string | null;
   kashrut: string | null;
   parking: string | null;
   parkingKind: string | null;
@@ -53,9 +52,7 @@ export type PublicVenueListItem = {
   hasSoundSystem: boolean;
   hasAcumLicense: boolean;
   coverImageUrl: string | null;
-  galleryImageUrls: string[];
   customAmenities: { label: string; checked: boolean; priceMode: "included" | "extra" }[];
-  eventTypeProfiles: Record<string, unknown>;
   isBoosted: boolean;
 };
 
@@ -301,7 +298,6 @@ export async function searchPublicVenues(
       hallRentalMin: true,
       hallRentalMax: true,
       eventTypes: true,
-      description: true,
       kashrut: true,
       parking: true,
       parkingKind: true,
@@ -324,7 +320,6 @@ export async function searchPublicVenues(
       customAmenitiesJson: true,
       eventTypeProfilesJson: true,
       coverImageUrl: true,
-      galleryImageUrls: true,
       boostExpiresAt: true,
       createdAt: true,
     },
@@ -418,7 +413,13 @@ export async function searchPublicVenues(
   });
 
   const list: PublicVenueListItem[] = sorted.map((v) => {
-    const { boostExpiresAt, createdAt, customAmenitiesJson, eventTypeProfilesJson, ...rest } = v;
+    const {
+      boostExpiresAt,
+      createdAt: _createdAt,
+      customAmenitiesJson,
+      eventTypeProfilesJson: _eventTypeProfilesJson,
+      ...rest
+    } = v;
     const customAmenities: {
       label: string;
       checked: boolean;
@@ -445,31 +446,35 @@ export async function searchPublicVenues(
         /* ignore */
       }
     }
-    let eventTypeProfiles: Record<string, unknown> = {};
-    if (eventTypeProfilesJson) {
-      try {
-        const parsedProfiles = JSON.parse(eventTypeProfilesJson) as unknown;
-        if (
-          typeof parsedProfiles === "object" &&
-          parsedProfiles &&
-          !Array.isArray(parsedProfiles)
-        ) {
-          eventTypeProfiles = parsedProfiles as Record<string, unknown>;
-        }
-      } catch {
-        eventTypeProfiles = {};
-      }
-    }
     return {
-      ...rest,
+      id: rest.id,
+      name: rest.name,
+      city: rest.city,
+      address: rest.address,
+      minGuests: rest.minGuests,
+      maxGuests: rest.maxGuests,
+      minPrice: rest.minPrice,
+      maxPrice: rest.maxPrice,
+      hallRentalMin: rest.hallRentalMin,
+      hallRentalMax: rest.hallRentalMax,
       eventTypes: v.eventTypes
         ? normalizeEventTypesList(JSON.parse(v.eventTypes) as string[])
         : [],
-      galleryImageUrls: v.galleryImageUrls
-        ? (JSON.parse(v.galleryImageUrls) as string[])
-        : [],
+      kashrut: rest.kashrut,
+      parking: rest.parking,
+      parkingKind: rest.parkingKind,
+      venueType: rest.venueType,
+      seaView: rest.seaView,
+      boutique: rest.boutique,
+      accessible: rest.accessible,
+      hasChuppa: rest.hasChuppa,
+      hasFood: rest.hasFood,
+      hasTableSetup: rest.hasTableSetup,
+      hasDanceFloor: rest.hasDanceFloor,
+      hasSoundSystem: rest.hasSoundSystem,
+      hasAcumLicense: rest.hasAcumLicense,
+      coverImageUrl: rest.coverImageUrl,
       customAmenities,
-      eventTypeProfiles,
       isBoosted: !!(boostExpiresAt && boostExpiresAt > now),
     };
   });

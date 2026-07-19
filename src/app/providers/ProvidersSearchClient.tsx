@@ -169,24 +169,21 @@ export default function ProvidersSearchClient({
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    const qs = searchParams.toString();
-    fetch(`/api/services/public${qs ? `?${qs}` : ""}`)
-      .then((res) => res.json())
-      .then((data) => setServices(data.services ?? []))
-      .catch(() => setServices([]))
-      .finally(() => setLoading(false));
-  }, [searchParams]);
+    setServices(initialServices);
+    setLoading(false);
+  }, [initialServices]);
 
   function applySearch(nextForm: SearchFormState) {
     const next = buildParamsFromForm(nextForm).toString();
     lastPushedQsRef.current = next;
+    setLoading(true);
     router.replace(next ? `/providers?${next}` : "/providers", { scroll: false });
   }
 
   function clearAllFilters() {
     setForm({ ...EMPTY_SEARCH_FORM });
     lastPushedQsRef.current = "";
+    setLoading(true);
     router.replace("/providers", { scroll: false });
   }
 
@@ -197,6 +194,7 @@ export default function ProvidersSearchClient({
     if (key === "category" && !value) params.delete("secondary");
     const next = params.toString();
     lastPushedQsRef.current = next;
+    setLoading(true);
     router.replace(next ? `/providers?${next}` : "/providers", { scroll: false });
   }
 

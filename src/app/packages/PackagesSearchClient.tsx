@@ -335,12 +335,14 @@ export default function PackagesSearchClient({
   function applySearch(nextForm: SearchFormState) {
     const next = buildParamsFromForm(nextForm).toString();
     lastPushedQsRef.current = next;
+    setLoading(true);
     router.replace(next ? `/packages?${next}` : "/packages", { scroll: false });
   }
 
   function clearAllFilters() {
     setForm({ ...EMPTY_SEARCH_FORM });
     lastPushedQsRef.current = "";
+    setLoading(true);
     router.replace("/packages", { scroll: false });
   }
 
@@ -350,20 +352,14 @@ export default function PackagesSearchClient({
     else params.delete(key);
     const next = params.toString();
     lastPushedQsRef.current = next;
+    setLoading(true);
     router.replace(next ? `/packages?${next}` : "/packages", { scroll: false });
   }
 
   useEffect(() => {
-    setLoading(true);
-    const qs = searchParams.toString();
-    fetch(`/api/packages${qs ? `?${qs}` : ""}`)
-      .then((res) => res.json())
-      .then((data: { packages?: PackageRow[] }) =>
-        setPackages(Array.isArray(data.packages) ? data.packages : [])
-      )
-      .catch(() => setPackages([]))
-      .finally(() => setLoading(false));
-  }, [searchParams]);
+    setPackages(initialPackages);
+    setLoading(false);
+  }, [initialPackages]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

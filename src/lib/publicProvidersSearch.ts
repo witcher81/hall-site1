@@ -65,7 +65,20 @@ export async function searchPublicProviders(
     where,
     take: MAX_PUBLIC_PROVIDER_RESULTS,
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      category: true,
+      shortDescription: true,
+      description: true,
+      serviceArea: true,
+      experienceYears: true,
+      languages: true,
+      coverImageUrl: true,
+      minPrice: true,
+      maxPrice: true,
+      providerId: true,
+      customIncludesJson: true,
       provider: {
         select: {
           id: true,

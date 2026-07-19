@@ -653,7 +653,9 @@ export default function HallsSearchClient({
     );
     const qs = params.toString();
     lastPushedQsRef.current = qs;
-    router.replace(qs ? `/halls?${qs}` : "/halls", { scroll: false });
+    // replaceState — בלי ניווט Next, כדי לא להריץ שוב חיפוש SSR רק בגלל view=map
+    const href = qs ? `/halls?${qs}` : "/halls";
+    window.history.replaceState(window.history.state, "", href);
   }
 
   const mapFallbackVenues = useMemo(
@@ -721,9 +723,13 @@ export default function HallsSearchClient({
         buildParamsFromForm(form),
         mapOpenRef.current
       ).toString();
-      const current = searchParamsRef.current.toString();
+      const current = withMapViewParam(
+        new URLSearchParams(searchParamsRef.current.toString()),
+        mapOpenRef.current
+      ).toString();
       if (searchParamsQueryEqual(next, current)) return;
       lastPushedQsRef.current = next;
+      setLoading(true);
       router.replace(next ? `/halls?${next}` : "/halls", { scroll: false });
     }, 380);
     return () => window.clearTimeout(t);
@@ -745,6 +751,20 @@ export default function HallsSearchClient({
       .catch(() => setPopularVenueOrder([]));
   }, []);
 
+  const savedSearchQuery = useMemo(() => {
+    const p = new URLSearchParams(searchParams.toString());
+    p.delete(MAP_VIEW_PARAM);
+    return p.toString();
+  }, [searchParams]);
+
+  // תוצאות מגיעות מ־SSR של /halls — בלי fetch כפול ל־/api/venues
+  useEffect(() => {
+    setVenues(initialVenues);
+    setSearchWarning(initialWarning ?? null);
+    setFetchError(null);
+    setLoading(false);
+  }, [initialVenues, initialWarning]);
+
   function clearAllFilters() {
     try {
       localStorage.removeItem(HALLS_SEARCH_STORAGE_KEY);
@@ -755,97 +775,9 @@ export default function HallsSearchClient({
     setMapOpen(false);
     setForm({ ...EMPTY_SEARCH_FORM });
     lastPushedQsRef.current = "";
+    setLoading(true);
     router.replace("/halls", { scroll: false });
   }
-
-  useEffect(() => {
-    setLoading(true);
-    setFetchError(null);
-    const params = new URLSearchParams();
-    const city = searchParams.get("city");
-    const minGuests = searchParams.get("minGuests");
-    const maxGuests = searchParams.get("maxGuests");
-    const minPrice = searchParams.get("minPrice");
-    const maxPrice = searchParams.get("maxPrice");
-    const guestsRange = searchParams.get("guestsRange");
-    const priceRange = searchParams.get("priceRange");
-    const guestsPriceRange = searchParams.get("guestsPriceRange");
-    const hallRentalMin = searchParams.get("hallRentalMin");
-    const hallRentalMax = searchParams.get("hallRentalMax");
-    const eventType = searchParams.get("eventType");
-     const kashrut = searchParams.get("kashrut");
-     const parkingKind = searchParams.get("parkingKind");
-     const parkingLegacy = searchParams.get("parking");
-     const venueType = searchParams.get("venueType");
-     const seaView = searchParams.get("seaView");
-     const boutique = searchParams.get("boutique");
-     const accessible = searchParams.get("accessible");
-     const hasChuppa = searchParams.get("hasChuppa");
-     const hasChuppaOutdoor = searchParams.get("hasChuppaOutdoor");
-     const hasChuppaCovered = searchParams.get("hasChuppaCovered");
-     const hasBridalRoom = searchParams.get("hasBridalRoom");
-     const hasFood = searchParams.get("hasFood");
-     const hasVeganFood = searchParams.get("hasVeganFood");
-     const hasTableSetup = searchParams.get("hasTableSetup");
-     const hasDanceFloor = searchParams.get("hasDanceFloor");
-     const hasSoundSystem = searchParams.get("hasSoundSystem");
-     const hasAcumLicense = searchParams.get("hasAcumLicense");
-     const hasParkingNearby = searchParams.get("hasParkingNearby");
-     const softAttr = searchParams.get("softAttr");
-     const birthdayAgeGroup = searchParams.get("birthdayAgeGroup");
-    if (city) params.set("city", city);
-    if (guestsRange === "true") params.set("guestsRange", "true");
-    if (priceRange === "true") params.set("priceRange", "true");
-    if (guestsPriceRange === "true") params.set("guestsPriceRange", "true");
-    if (minGuests) params.set("minGuests", minGuests);
-    if (maxGuests) params.set("maxGuests", maxGuests);
-    if (minPrice) params.set("minPrice", minPrice);
-    if (maxPrice) params.set("maxPrice", maxPrice);
-    if (hallRentalMin) params.set("hallRentalMin", hallRentalMin);
-    if (hallRentalMax) params.set("hallRentalMax", hallRentalMax);
-    if (eventType) params.set("eventType", eventType);
-    if (kashrut) params.set("kashrut", kashrut);
-    if (parkingKind) params.set("parkingKind", parkingKind);
-    if (parkingLegacy) params.set("parking", parkingLegacy);
-    if (venueType) params.set("venueType", venueType);
-    if (seaView) params.set("seaView", seaView);
-    if (boutique) params.set("boutique", boutique);
-    if (accessible) params.set("accessible", accessible);
-    if (hasChuppa) params.set("hasChuppa", hasChuppa);
-    if (hasChuppaOutdoor) params.set("hasChuppaOutdoor", hasChuppaOutdoor);
-    if (hasChuppaCovered) params.set("hasChuppaCovered", hasChuppaCovered);
-    if (hasBridalRoom) params.set("hasBridalRoom", hasBridalRoom);
-    if (hasFood) params.set("hasFood", hasFood);
-    if (hasVeganFood) params.set("hasVeganFood", hasVeganFood);
-    if (hasTableSetup) params.set("hasTableSetup", hasTableSetup);
-    if (hasDanceFloor) params.set("hasDanceFloor", hasDanceFloor);
-    if (hasSoundSystem) params.set("hasSoundSystem", hasSoundSystem);
-    if (hasAcumLicense) params.set("hasAcumLicense", hasAcumLicense);
-    if (hasParkingNearby) params.set("hasParkingNearby", hasParkingNearby);
-    if (softAttr) params.set("softAttr", softAttr);
-    if (birthdayAgeGroup) params.set("birthdayAgeGroup", birthdayAgeGroup);
-    const qs = params.toString();
-    fetch(`/api/venues${qs ? `?${qs}` : ""}`)
-      .then(async (res) => {
-        const data = await res.json().catch(() => null);
-        if (!res.ok) {
-          const msg =
-            (typeof data?.error === "string" && data.error) ||
-            "לא ניתן לטעון אולמות מהשרת";
-          setFetchError(msg);
-          return;
-        }
-        setFetchError(null);
-        setSearchWarning(
-          typeof data?.warning === "string" ? data.warning : null
-        );
-        setVenues(data?.venues ?? []);
-      })
-      .catch(() => {
-        setFetchError("שגיאת רשת בטעינת האולמות");
-      })
-      .finally(() => setLoading(false));
-  }, [searchParams]);
 
   function applyNaturalSearch() {
     const hints = parseNaturalHallSearchQuery(naturalQuery);
@@ -867,12 +799,6 @@ export default function HallsSearchClient({
     }));
   }
 
-  const savedSearchQuery = useMemo(() => {
-    const p = new URLSearchParams(searchParams.toString());
-    p.delete(MAP_VIEW_PARAM);
-    return p.toString();
-  }, [searchParams]);
-
   const mapVenueIds = useMemo(
     () => (venues.length > 0 ? venues.map((v) => v.id) : null),
     [venues]
@@ -885,6 +811,7 @@ export default function HallsSearchClient({
       mapOpenRef.current
     ).toString();
     lastPushedQsRef.current = next;
+    setLoading(true);
     router.replace(next ? `/halls?${next}` : "/halls", { scroll: false });
   }
 
