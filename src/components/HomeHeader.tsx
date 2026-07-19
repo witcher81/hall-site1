@@ -133,8 +133,10 @@ export default function HomeHeader({
   const { theme } = useSiteTheme();
   const showHeaderThemeToggle = useHeaderThemeToggleVisible();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [guestNavOpen, setGuestNavOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const guestNavRef = useRef<HTMLDivElement | null>(null);
   const personalRef = useRef<HTMLDivElement | null>(null);
 
   const personalLinks = personalAreaLinks(user?.role);
@@ -169,6 +171,12 @@ export default function HomeHeader({
   }
 
   useEffect(() => {
+    setGuestNavOpen(false);
+    setMenuOpen(false);
+    setPersonalOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       const t = e.target as Node;
       if (personalRef.current && !personalRef.current.contains(t)) {
@@ -177,12 +185,15 @@ export default function HomeHeader({
       if (menuRef.current && !menuRef.current.contains(t)) {
         setMenuOpen(false);
       }
+      if (guestNavRef.current && !guestNavRef.current.contains(t)) {
+        setGuestNavOpen(false);
+      }
     }
-    if (personalOpen || menuOpen) {
+    if (personalOpen || menuOpen || guestNavOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [personalOpen, menuOpen]);
+  }, [personalOpen, menuOpen, guestNavOpen]);
 
   return (
     <header className="site-header relative z-50 border-b border-slate-800 bg-emerald-950 backdrop-blur-sm">
@@ -584,6 +595,92 @@ export default function HomeHeader({
             </div>
           ) : (
             <>
+              {/* תפריט המבורגר לאורחים — רק במסכים צרים (בדסקטופ הניווט כבר בשורה) */}
+              <div className="relative min-[900px]:hidden" ref={guestNavRef}>
+                <button
+                  type="button"
+                  onClick={() => setGuestNavOpen((v) => !v)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/30 text-white transition hover:bg-white/10"
+                  aria-expanded={guestNavOpen}
+                  aria-controls="guest-mobile-nav"
+                  aria-label={guestNavOpen ? "סגור תפריט ניווט" : "פתח תפריט ניווט"}
+                >
+                  {guestNavOpen ? (
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      aria-hidden
+                    >
+                      <path d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      aria-hidden
+                    >
+                      <path d="M4 7h16M4 12h16M4 17h16" />
+                    </svg>
+                  )}
+                </button>
+                {guestNavOpen ? (
+                  <div
+                    id="guest-mobile-nav"
+                    role="navigation"
+                    aria-label="ניווט ראשי"
+                    className="absolute left-0 z-[60] mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-2 text-right text-sm shadow-xl"
+                  >
+                    <Link
+                      href="/halls"
+                      aria-current={navKeyActive(pathname, "halls") ? "page" : undefined}
+                      className={`${navLinkMobileBase} ${
+                        navKeyActive(pathname, "halls")
+                          ? navLinkMobileActive
+                          : navLinkMobileIdle
+                      }`}
+                      onClick={() => setGuestNavOpen(false)}
+                    >
+                      חיפוש אולמות
+                    </Link>
+                    <Link
+                      href="/providers"
+                      aria-current={
+                        navKeyActive(pathname, "providers") ? "page" : undefined
+                      }
+                      className={`${navLinkMobileBase} ${
+                        navKeyActive(pathname, "providers")
+                          ? navLinkMobileActive
+                          : navLinkMobileIdle
+                      }`}
+                      onClick={() => setGuestNavOpen(false)}
+                    >
+                      שירותי ספקים
+                    </Link>
+                    <Link
+                      href="/packages"
+                      aria-current={
+                        navKeyActive(pathname, "packages") ? "page" : undefined
+                      }
+                      className={`${navLinkMobileBase} ${
+                        navKeyActive(pathname, "packages")
+                          ? navLinkMobileActive
+                          : navLinkMobileIdle
+                      }`}
+                      onClick={() => setGuestNavOpen(false)}
+                    >
+                      חבילות אירוע
+                    </Link>
+                  </div>
+                ) : null}
+              </div>
               <a
                 href="/auth/login"
                 className="rounded-full border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 sm:px-4"
