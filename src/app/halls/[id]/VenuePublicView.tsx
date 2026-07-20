@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import VenuePackagesSection, {
   type VenuePackageCard,
@@ -529,6 +529,9 @@ export default function VenuePublicView({
     null
   );
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [stickyInquiryVisible, setStickyInquiryVisible] = useState(false);
+  const topInquiryCtaRef = useRef<HTMLDivElement | null>(null);
+  const inquirySectionRef = useRef<HTMLElement | null>(null);
 
   const whatsappUrl = useMemo(
     () =>
@@ -547,6 +550,42 @@ export default function VenuePublicView({
       block: "start",
     });
   };
+
+  /** כפתור צף: מופיע כשגוללים מעבר ל־CTA למעלה, ונעלם ליד אזור הבקשה */
+  useEffect(() => {
+    if (!showInquiryCta) {
+      setStickyInquiryVisible(false);
+      return;
+    }
+    const topEl = topInquiryCtaRef.current;
+    const sectionEl = inquirySectionRef.current;
+    if (!topEl || !sectionEl) return;
+
+    let topOut = false;
+    let sectionIn = false;
+
+    const update = () => {
+      setStickyInquiryVisible(topOut && !sectionIn);
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.target === topEl) {
+            topOut = !entry.isIntersecting;
+          } else if (entry.target === sectionEl) {
+            sectionIn = entry.isIntersecting;
+          }
+        }
+        update();
+      },
+      { root: null, threshold: 0.08, rootMargin: "0px 0px -8% 0px" }
+    );
+
+    observer.observe(topEl);
+    observer.observe(sectionEl);
+    return () => observer.disconnect();
+  }, [showInquiryCta]);
 
   const handleCalendarDaySelect = (ymd: string) => {
     router.push(`/halls/${venue.id}/inquiry?date=${encodeURIComponent(ymd)}`);
@@ -912,7 +951,10 @@ export default function VenuePublicView({
         </div>
 
         {showInquiryCta ? (
-          <div className="border-b border-amber-200/70 bg-gradient-to-l from-amber-50 via-amber-100/60 to-amber-50 px-5 py-4 sm:px-8 sm:py-5">
+          <div
+            ref={topInquiryCtaRef}
+            className="border-b border-amber-200/70 bg-gradient-to-l from-amber-50 via-amber-100/60 to-amber-50 px-5 py-4 sm:px-8 sm:py-5"
+          >
             <button
               type="button"
               onClick={scrollToInquirySection}
@@ -1262,6 +1304,7 @@ export default function VenuePublicView({
 
       <section
         id="venue-inquiry"
+        ref={inquirySectionRef}
         className="site-card-padded scroll-mt-24 border-2 border-amber-400/40 bg-gradient-to-br from-amber-50/90 to-white/95 text-right"
       >
         <p className="text-[11px] font-semibold tracking-wide text-amber-600">השלב הבא</p>
@@ -1434,6 +1477,24 @@ export default function VenuePublicView({
         onClose={() => setLoginPromptOpen(false)}
         redirectPath={`/halls/${venue.id}`}
       />
+
+      {showInquiryCta && stickyInquiryVisible ? (
+        <div
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-4"
+          role="region"
+          aria-label="שליחת בקשה מהירה"
+        >
+          <div className="pointer-events-auto mx-auto max-w-3xl rounded-2xl border border-amber-300/70 bg-white/95 p-2.5 shadow-[0_-8px_32px_rgba(15,59,46,0.18)] backdrop-blur-md pl-14 sm:pl-2.5">
+            <button
+              type="button"
+              onClick={scrollToInquirySection}
+              className="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-amber-400 px-4 text-base font-bold text-neutral-950 shadow-sm transition hover:bg-amber-300"
+            >
+              שליחת בקשה
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
