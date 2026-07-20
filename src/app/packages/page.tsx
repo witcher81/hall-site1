@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
 import { searchPublicPackages } from "@/lib/publicPackagesSearch";
 import PackagesSearchClient from "./PackagesSearchClient";
+
+export const metadata: Metadata = {
+  title: "חבילות אירוע",
+  description:
+    "חבילות מוכנות מאולמות וספקים – בסיס, משודרג ופרימיום. בחרו חבילה, התאימו אישית ושלחו בקשה ב־Halls Hub.",
+  alternates: { canonical: "/packages" },
+};
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

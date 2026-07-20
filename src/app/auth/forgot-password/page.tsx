@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useId, useState } from "react";
 import TurnstileWidget from "@/components/TurnstileWidget";
 
 const RESET_URL_STORAGE_KEY = "hall_reset_url";
 
 export default function ForgotPasswordPage() {
+  const emailId = useId();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -82,10 +83,11 @@ export default function ForgotPasswordPage() {
           </p>
 
           <div>
-            <label className="block text-xs font-medium text-neutral-600">
+            <label htmlFor={emailId} className="block text-xs font-medium text-neutral-600">
               אימייל
             </label>
             <input
+              id={emailId}
               name="email"
               type="email"
               required

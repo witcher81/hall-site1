@@ -13,6 +13,7 @@ import {
   saveCookieConsent,
   type CookieConsentChoices,
 } from "@/lib/cookieConsent";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 
 type DraftChoices = {
   functional: boolean;
@@ -67,6 +68,9 @@ export default function CookieConsentProvider({
     functional: false,
     analytics: false,
   });
+
+  const closePrefs = useCallback(() => setPrefsOpen(false), []);
+  useEscapeToClose(prefsOpen, closePrefs);
 
   const syncDraftFromStorage = useCallback(() => {
     const stored = readCookieConsent();
@@ -190,7 +194,7 @@ export default function CookieConsentProvider({
           role="dialog"
           aria-modal="true"
           aria-label="הגדרות עוגיות"
-          onClick={() => setPrefsOpen(false)}
+          onClick={closePrefs}
         >
           <div
             className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-6 text-right shadow-xl"
@@ -257,7 +261,7 @@ export default function CookieConsentProvider({
             <div className="mt-5 flex flex-wrap justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setPrefsOpen(false)}
+                onClick={closePrefs}
                 className="rounded-full border border-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
               >
                 סגירה

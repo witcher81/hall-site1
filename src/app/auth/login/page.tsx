@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useId, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import PasswordInput from "@/components/PasswordInput";
@@ -15,6 +15,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const afterLogin = safeInternalPath(searchParams.get("redirect"));
   const isCheckout = searchParams.get("checkout") === "1";
+  const emailId = useId();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -99,10 +100,11 @@ function LoginForm() {
           className="site-card-padded mt-6 space-y-4 text-right"
         >
           <div>
-            <label className="block text-xs font-medium text-neutral-600">
+            <label htmlFor={emailId} className="block text-xs font-medium text-neutral-600">
               אימייל
             </label>
             <input
+              id={emailId}
               name="email"
               type="email"
               required

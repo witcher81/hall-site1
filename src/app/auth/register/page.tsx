@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useId, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ISRAELI_MOBILE_PREFIXES } from "@/lib/israeliPhone";
 import TurnstileWidget from "@/components/TurnstileWidget";
@@ -16,6 +16,10 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const afterRegister = safeInternalPath(searchParams.get("redirect"));
   const isCheckout = searchParams.get("checkout") === "1";
+  const nameId = useId();
+  const emailId = useId();
+  const phonePrefixId = useId();
+  const phoneDigitsId = useId();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [role, setRole] = useState<
@@ -145,10 +149,11 @@ function RegisterForm() {
           className="site-card-padded mt-6 space-y-4 text-right"
         >
           <div>
-            <label className="block text-xs font-medium text-neutral-600">
+            <label htmlFor={nameId} className="block text-xs font-medium text-neutral-600">
               שם מלא
             </label>
             <input
+              id={nameId}
               name="name"
               type="text"
               required
@@ -159,10 +164,11 @@ function RegisterForm() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-neutral-600">
+            <label htmlFor={emailId} className="block text-xs font-medium text-neutral-600">
               אימייל
             </label>
             <input
+              id={emailId}
               name="email"
               type="email"
               required
@@ -171,7 +177,7 @@ function RegisterForm() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-neutral-600">
+            <label htmlFor={phoneDigitsId} className="block text-xs font-medium text-neutral-600">
               טלפון נייד
             </label>
             <p className="mt-0.5 text-[11px] text-neutral-500">
@@ -179,8 +185,10 @@ function RegisterForm() {
             </p>
             <div className="site-input-group mt-1.5 flex flex-row-reverse items-stretch gap-2">
               <select
+                id={phonePrefixId}
                 name="phonePrefix"
                 required
+                aria-label="קידומת טלפון נייד"
                 className="site-input site-input--prefix"
                 defaultValue=""
               >
@@ -194,6 +202,7 @@ function RegisterForm() {
                 ))}
               </select>
               <input
+                id={phoneDigitsId}
                 name="phoneDigits"
                 type="text"
                 inputMode="numeric"
@@ -203,6 +212,7 @@ function RegisterForm() {
                 maxLength={7}
                 pattern="[0-9]{7}"
                 placeholder="7 ספרות"
+                aria-label="מספר טלפון נייד ללא קידומת"
                 className="site-input site-input--grow"
                 onInput={(e) => {
                   const el = e.currentTarget;

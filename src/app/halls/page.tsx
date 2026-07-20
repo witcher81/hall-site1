@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { searchPublicVenues } from "@/lib/publicVenuesSearch";
@@ -7,6 +8,13 @@ import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
 import HallsSearchClient from "./HallsSearchClient";
+
+export const metadata: Metadata = {
+  title: "חיפוש אולמות לאירוע",
+  description:
+    "חיפוש אולמות וגני אירועים לפי עיר, מספר אורחים, תקציב וסוג אירוע – השוואה, מפה ופנייה ישירה ב־Halls Hub.",
+  alternates: { canonical: "/halls" },
+};
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

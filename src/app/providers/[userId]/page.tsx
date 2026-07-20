@@ -1,12 +1,86 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import { parseSocialLinksJson } from "@/lib/socialLinks";
+import { absoluteImageUrl, truncateMeta } from "@/lib/seoMeta";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 import ProviderViewClient from "./ProviderViewClient";
 
-export default async function ProviderPage({
-  params,
-}: { params: Promise<{ userId: string }> }) {
+type PageProps = { params: Promise<{ userId: string }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { userId } = await params;
+  const providerId = Number(userId);
+  if (!Number.isInteger(providerId) || providerId <= 0) {
+    return { title: "ספק לא נמצא" };
+  }
+
+  const provider = await prisma.user.findUnique({
+    where: { id: providerId, role: "FREELANCER" },
+    select: {
+      name: true,
+      businessName: true,
+      businessAddress: true,
+      services: {
+        where: approvedListingWhere(),
+        select: { category: true, coverImageUrl: true, name: true },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+
+  if (!provider) return { title: "ספק לא נמצא" };
+
+  const displayName = provider.businessName || provider.name || "ספק";
+  const categories = [
+    ...new Set(
+      provider.services
+        .map((s) => s.category?.trim())
+        .filter((c): c is string => Boolean(c))
+    ),
+  ];
+  const title = provider.businessAddress
+    ? `${displayName} · ${truncateMeta(provider.businessAddress, 40)}`
+    : displayName;
+  const description = truncateMeta(
+    [
+      `ספק אירועים ב־Halls Hub`,
+      categories.length ? `שירותים: ${categories.slice(0, 3).join(", ")}.` : null,
+      provider.businessAddress ? `אזור: ${provider.businessAddress}.` : null,
+    ]
+      .filter(Boolean)
+      .join(" "),
+    160
+  );
+  const ogUrl = absoluteImageUrl(
+    provider.services.find((s) => s.coverImageUrl)?.coverImageUrl
+  );
+
+  return {
+    title,
+    description:
+      description ||
+      `${displayName} – ספק שירותים לאירועים ב־Halls Hub.`,
+    alternates: { canonical: `/providers/${providerId}` },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `/providers/${providerId}`,
+      ...(ogUrl && { images: [{ url: ogUrl, alt: displayName }] }),
+    },
+    twitter: {
+      card: ogUrl ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(ogUrl && { images: [ogUrl] }),
+    },
+  };
+}
+
+export default async function ProviderPage({ params }: PageProps) {
   const { userId } = await params;
   const providerId = Number(userId);
 

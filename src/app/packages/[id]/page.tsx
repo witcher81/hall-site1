@@ -10,6 +10,7 @@ import {
 import { PACKAGE_TIER_LABELS, parsePackageTier } from "@/lib/eventPackageTypes";
 import { prisma } from "@/lib/prisma";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
+import { absoluteImageUrl, truncateMeta } from "@/lib/seoMeta";
 import PackageInquiryLink from "@/components/packages/PackageInquiryLink";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -21,13 +22,41 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const pkg = await prisma.eventPackage.findFirst({
     where: { id: pid, isPublished: true },
-    select: { title: true, subtitle: true, venue: { select: { city: true } } },
+    select: {
+      title: true,
+      subtitle: true,
+      description: true,
+      venue: { select: { city: true, coverImageUrl: true, name: true } },
+    },
   });
   if (!pkg) return { title: "חבילה לא נמצאה" };
 
+  const title = `${pkg.title} · ${pkg.venue.city}`;
+  const description = truncateMeta(
+    pkg.subtitle ||
+      pkg.description ||
+      `חבילת אירוע באולם ${pkg.venue.name} ב${pkg.venue.city} – Halls Hub`,
+    160
+  );
+  const ogUrl = absoluteImageUrl(pkg.venue.coverImageUrl);
+
   return {
-    title: `${pkg.title} · ${pkg.venue.city}`,
-    description: pkg.subtitle || `חבילת אירוע ב${pkg.venue.city} – Halls Hub`,
+    title,
+    description,
+    alternates: { canonical: `/packages/${pid}` },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `/packages/${pid}`,
+      ...(ogUrl && { images: [{ url: ogUrl, alt: pkg.title }] }),
+    },
+    twitter: {
+      card: ogUrl ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(ogUrl && { images: [ogUrl] }),
+    },
   };
 }
 

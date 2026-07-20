@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
 import { searchPublicProviders } from "@/lib/publicProvidersSearch";
 import { getApprovedServiceCategoryAvailability } from "@/lib/searchAvailability";
 import ProvidersSearchClient from "./ProvidersSearchClient";
+
+export const metadata: Metadata = {
+  title: "שירותי ספקים לאירוע",
+  description:
+    "חיפוש ספקי אירועים – צילום, DJ, קייטרינג, עיצוב, איפור ועוד. סינון לפי קטגוריה ומחיר, ושליחת בקשה ישירות ב־Halls Hub.",
+  alternates: { canonical: "/providers" },
+};
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

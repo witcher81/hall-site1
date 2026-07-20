@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { formatOfferAmount } from "@/lib/negotiationFormat";
 import type {
   NegotiationAuthorRole,
@@ -9,6 +9,7 @@ import type {
   NegotiationThreadView,
   NegotiationTimelineItem,
 } from "@/lib/negotiationTypes";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 
 function roleLabel(role: NegotiationAuthorRole): string {
   switch (role) {
@@ -133,20 +134,42 @@ function OfferFormModal({
   }) => void;
   loading: boolean;
 }) {
+  const amountId = useId();
+  const amountMaxId = useId();
+  const messageId = useId();
+  const titleId = useId();
   const [amountNis, setAmountNis] = useState("");
   const [amountMaxNis, setAmountMaxNis] = useState("");
   const [message, setMessage] = useState("");
 
+  useEscapeToClose(open, onClose);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-      <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl">
-        <h3 className="font-serif text-base font-semibold text-emerald-950">{title}</h3>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+    >
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label="סגור"
+        onClick={onClose}
+      />
+      <div className="relative w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl">
+        <h3 id={titleId} className="font-serif text-base font-semibold text-emerald-950">
+          {title}
+        </h3>
         <div className="mt-4 space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-neutral-700">סכום (₪)</label>
+            <label htmlFor={amountId} className="block text-xs font-semibold text-neutral-700">
+              סכום (₪)
+            </label>
             <input
+              id={amountId}
               type="number"
               min={0}
               value={amountNis}
@@ -156,10 +179,11 @@ function OfferFormModal({
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-neutral-700">
+            <label htmlFor={amountMaxId} className="block text-xs font-semibold text-neutral-700">
               מקסימום (אופציונלי)
             </label>
             <input
+              id={amountMaxId}
               type="number"
               min={0}
               value={amountMaxNis}
@@ -169,8 +193,11 @@ function OfferFormModal({
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-neutral-700">הערה</label>
+            <label htmlFor={messageId} className="block text-xs font-semibold text-neutral-700">
+              הערה
+            </label>
             <textarea
+              id={messageId}
               rows={2}
               value={message}
               onChange={(e) => setMessage(e.target.value)}

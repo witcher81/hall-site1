@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: path === "" ? 1 : 0.8,
   }));
 
-  const [venues, services] = await Promise.all([
+  const [venues, services, packages, providers] = await Promise.all([
     prisma.venue.findMany({
       where: approvedListingWhere(),
       select: { id: true, updatedAt: true },
@@ -30,6 +30,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
     prisma.service.findMany({
       where: approvedListingWhere(),
+      select: { id: true, updatedAt: true, providerId: true },
+      take: 500,
+    }),
+    prisma.eventPackage.findMany({
+      where: { isPublished: true },
+      select: { id: true, updatedAt: true },
+      take: 500,
+    }),
+    prisma.user.findMany({
+      where: {
+        role: "FREELANCER",
+        services: { some: approvedListingWhere() },
+      },
       select: { id: true, updatedAt: true },
       take: 500,
     }),
@@ -49,5 +62,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...venueUrls, ...serviceUrls];
+  const packageUrls = packages.map((p) => ({
+    url: `${base}/packages/${p.id}`,
+    lastModified: p.updatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.65,
+  }));
+
+  const providerUrls = providers.map((p) => ({
+    url: `${base}/providers/${p.id}`,
+    lastModified: p.updatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.55,
+  }));
+
+  return [
+    ...staticPages,
+    ...venueUrls,
+    ...serviceUrls,
+    ...packageUrls,
+    ...providerUrls,
+  ];
 }

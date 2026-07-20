@@ -26,6 +26,7 @@ import { buildWhatsAppUrl } from "@/lib/whatsappContact";
 import type { PublicEventTypeProfile } from "@/lib/venueEventTypeProfilesPublic";
 import { VENUE_HALL_SOFT_PRESET_LABEL } from "@/lib/venueHallSoftPresets";
 import { venueKashrutLabel } from "@/lib/venueKashrutOptions";
+import { useEscapeToClose } from "@/lib/useEscapeToClose";
 
 type User = { id: number; email: string; name: string | null; role?: string } | null;
 type PriceMode = "included" | "extra";
@@ -738,6 +739,35 @@ export default function VenuePublicView({
       lightboxIndex === lightboxImages.length - 1 ? 0 : lightboxIndex + 1
     );
   };
+
+  useEscapeToClose(lightboxIndex !== null, closeLightbox);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setLightboxIndex((i) => {
+          if (i === null || lightboxImages.length === 0) return i;
+          return i === 0 ? lightboxImages.length - 1 : i - 1;
+        });
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setLightboxIndex((i) => {
+          if (i === null || lightboxImages.length === 0) return i;
+          return i === lightboxImages.length - 1 ? 0 : i + 1;
+        });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [lightboxIndex, lightboxImages.length]);
 
   const goHeroPrev = () => {
     if (allImages.length <= 1) return;
