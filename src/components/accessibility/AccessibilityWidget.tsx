@@ -43,12 +43,18 @@ const TOGGLES: { key: ToggleKey; label: string }[] = [
   { key: "grayscale", label: "גווני אפור" },
 ];
 
+const PANEL_EXIT_MS = 220;
+
 export default function AccessibilityWidget() {
   const panelId = useId();
   const [open, setOpen] = useState(false);
+  /** נשאר ב־DOM בזמן אנימציית סגירה */
+  const [mounted, setMounted] = useState(false);
+  const [entered, setEntered] = useState(false);
   const [prefs, setPrefs] = useState<AccessibilityPrefs>(DEFAULT_A11Y_PREFS);
   const [ready, setReady] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const exitTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const loaded = loadAccessibilityPrefs();
@@ -80,6 +86,49 @@ export default function AccessibilityWidget() {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (exitTimerRef.current != null) {
+      window.clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = null;
+    }
+
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+        prefs.stopAnimations);
+
+    if (open) {
+      setMounted(true);
+      if (reduceMotion) {
+        setEntered(true);
+        return;
+      }
+      setEntered(false);
+      const raf = window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => setEntered(true));
+      });
+      return () => window.cancelAnimationFrame(raf);
+    }
+
+    if (!mounted) return;
+    if (reduceMotion) {
+      setEntered(false);
+      setMounted(false);
+      return;
+    }
+    setEntered(false);
+    exitTimerRef.current = window.setTimeout(() => {
+      setMounted(false);
+      exitTimerRef.current = null;
+    }, PANEL_EXIT_MS);
+    return () => {
+      if (exitTimerRef.current != null) {
+        window.clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+    };
+  }, [open, prefs.stopAnimations, mounted]);
+
   function patch(partial: Partial<AccessibilityPrefs>) {
     setPrefs((prev) => ({ ...prev, ...partial }));
   }
@@ -103,13 +152,15 @@ export default function AccessibilityWidget() {
       ref={rootRef}
       className="a11y-widget fixed bottom-4 left-4 z-[620] sm:bottom-5 sm:left-5"
     >
-      {open ? (
+      {mounted ? (
         <div
           id={panelId}
           role="dialog"
           aria-modal="true"
           aria-label="תפריט נגישות"
-          className="a11y-widget-panel mb-3 w-[min(100vw-2rem,20rem)] rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-xl"
+          className={`a11y-widget-panel mb-3 w-[min(100vw-2rem,20rem)] rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-xl ${
+            entered ? "a11y-widget-panel--open" : ""
+          }`}
         >
           <div className="mb-3 flex items-start justify-between gap-2">
             <div>
@@ -190,7 +241,7 @@ export default function AccessibilityWidget() {
         }`}
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label="פתח תפריט נגישות"
+        aria-label={open ? "סגור תפריט נגישות" : "פתח תפריט נגישות"}
         title="נגישות"
         onClick={() => setOpen((v) => !v)}
       >

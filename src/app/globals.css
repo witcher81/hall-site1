@@ -1572,5 +1572,31 @@ html.a11y-high-contrast button {
 .a11y-widget-panel {
   max-height: min(70vh, 32rem);
   overflow-y: auto;
+  transform-origin: bottom left;
+  opacity: 0;
+  transform: translate3d(0, 18px, 0) scale(0.72);
+  transition:
+    opacity 0.2s ease,
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.a11y-widget-panel--open {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .a11y-widget-panel {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+html.a11y-stop-animations .a11y-widget-panel {
+  transition: none;
 }
 
