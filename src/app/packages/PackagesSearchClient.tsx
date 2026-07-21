@@ -283,6 +283,7 @@ export default function PackagesSearchClient({
   const searchParams = useSearchParams();
   const [packages, setPackages] = useState<PackageRow[]>(initialPackages);
   const [loading, setLoading] = useState(initialPackages.length === 0);
+  const [visibleCount, setVisibleCount] = useState(24);
   const [form, setForm] = useState<SearchFormState>(() => ({ ...EMPTY_SEARCH_FORM }));
   const [filtersOpen, setFiltersOpen] = useState(false);
   const lastPushedQsRef = useRef<string | null>(null);
@@ -359,6 +360,7 @@ export default function PackagesSearchClient({
   useEffect(() => {
     setPackages(initialPackages);
     setLoading(false);
+    setVisibleCount(24);
   }, [initialPackages]);
 
   function handleSubmit(e: React.FormEvent) {
@@ -718,12 +720,12 @@ export default function PackagesSearchClient({
               חבילות שמתאימות לסינון — לחיצה לפרטים, «התאם חבילה» לעריכה אישית לפני שליחה.
             </p>
           </div>
-          {groupPackagesByTier(packages).map((group, gi) => {
+          {groupPackagesByTier(packages.slice(0, visibleCount)).map((group, gi) => {
             const tier = group[0] ? parsePackageTier(group[0].tier) : null;
             const heading =
               tier && PACKAGE_TIERS.includes(tier)
                 ? `שכבת ${PACKAGE_TIER_LABELS[tier]}`
-                : gi === 0 && group.length === packages.length
+                : gi === 0 && group.length === Math.min(visibleCount, packages.length)
                   ? null
                   : "חבילות נוספות";
             return (
@@ -739,6 +741,22 @@ export default function PackagesSearchClient({
               </div>
             );
           })}
+          {visibleCount < packages.length ? (
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-xs text-neutral-600">
+                מוצגים {Math.min(visibleCount, packages.length)} מתוך {packages.length}
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  setVisibleCount((n) => Math.min(n + 24, packages.length))
+                }
+                className="min-h-[44px] rounded-xl border border-neutral-200 bg-white px-6 text-sm font-semibold text-emerald-950 transition hover:bg-neutral-50"
+              >
+                הצג עוד תוצאות
+              </button>
+            </div>
+          ) : null}
         </section>
       )}
     </div>

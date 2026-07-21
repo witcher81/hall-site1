@@ -135,6 +135,7 @@ export default function ProvidersSearchClient({
     new Set()
   );
   const [loading, setLoading] = useState(initialServices.length === 0);
+  const [visibleCount, setVisibleCount] = useState(24);
   const [form, setForm] = useState<SearchFormState>(() => ({ ...EMPTY_SEARCH_FORM }));
   const [filtersOpen, setFiltersOpen] = useState(false);
   const lastPushedQsRef = useRef<string | null>(null);
@@ -171,6 +172,7 @@ export default function ProvidersSearchClient({
   useEffect(() => {
     setServices(initialServices);
     setLoading(false);
+    setVisibleCount(24);
   }, [initialServices]);
 
   function applySearch(nextForm: SearchFormState) {
@@ -466,84 +468,102 @@ export default function ProvidersSearchClient({
           ) : null}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((s) => {
-            const socialLinks = parseSocialLinksJson(s.provider.socialLinksJson);
-            const blurb = mergeFreelancerServiceDescriptionForForm(
-              s.shortDescription,
-              s.description
-            );
-            const priceLine = formatFreelancerServicePriceShekelCompact(
-              s.minPrice,
-              s.maxPrice
-            );
-            return (
-              <div
-                key={s.id}
-                className="site-card overflow-hidden text-right transition hover:border-amber-400/50 hover:shadow-lg"
-              >
-                <a href={`/services/${s.id}`} className="block p-4 pb-3">
-                  {s.coverImageUrl ? (
-                    <div className="relative mb-2 h-32 w-full overflow-hidden rounded-xl">
-                      {popularProviderIds.has(s.providerId) && (
-                        <PopularBadge className="absolute right-2 top-2 z-10" />
-                      )}
-                      <Image
-                        src={s.coverImageUrl}
-                        alt={s.name}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    popularProviderIds.has(s.providerId) && (
-                      <div className="mb-2 flex justify-end">
-                        <PopularBadge />
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {services.slice(0, visibleCount).map((s) => {
+              const socialLinks = parseSocialLinksJson(s.provider.socialLinksJson);
+              const blurb = mergeFreelancerServiceDescriptionForForm(
+                s.shortDescription,
+                s.description
+              );
+              const priceLine = formatFreelancerServicePriceShekelCompact(
+                s.minPrice,
+                s.maxPrice
+              );
+              return (
+                <div
+                  key={s.id}
+                  className="site-card overflow-hidden text-right transition hover:border-amber-400/50 hover:shadow-lg"
+                >
+                  <a href={`/services/${s.id}`} className="block p-4 pb-3">
+                    {s.coverImageUrl ? (
+                      <div className="relative mb-2 h-32 w-full overflow-hidden rounded-xl">
+                        {popularProviderIds.has(s.providerId) && (
+                          <PopularBadge className="absolute right-2 top-2 z-10" />
+                        )}
+                        <Image
+                          src={s.coverImageUrl}
+                          alt={s.name}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover"
+                        />
                       </div>
-                    )
-                  )}
-                  <h2 className="font-semibold text-emerald-950">{s.name}</h2>
-                  {s.category && (
-                    <p className="mt-0.5 text-xs text-neutral-600">{s.category}</p>
-                  )}
-                  {blurb ? (
-                    <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs text-neutral-600">
-                      {blurb}
-                    </p>
-                  ) : null}
-                  {s.serviceArea && (
+                    ) : (
+                      popularProviderIds.has(s.providerId) && (
+                        <div className="mb-2 flex justify-end">
+                          <PopularBadge />
+                        </div>
+                      )
+                    )}
+                    <h2 className="font-semibold text-emerald-950">{s.name}</h2>
+                    {s.category && (
+                      <p className="mt-0.5 text-xs text-neutral-600">{s.category}</p>
+                    )}
+                    {blurb ? (
+                      <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs text-neutral-600">
+                        {blurb}
+                      </p>
+                    ) : null}
+                    {s.serviceArea && (
+                      <p className="mt-1 text-xs text-neutral-600">
+                        אזור שירות: {s.serviceArea}
+                      </p>
+                    )}
+                    {(s.experienceYears != null || s.languages) && (
+                      <p className="mt-1 text-xs text-neutral-600">
+                        {[
+                          s.experienceYears != null
+                            ? `ניסיון: ${s.experienceYears} שנים`
+                            : null,
+                          s.languages ? `שפות: ${s.languages}` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    )}
                     <p className="mt-1 text-xs text-neutral-600">
-                      אזור שירות: {s.serviceArea}
+                      {s.provider.businessName || s.provider.name || "ספק"}
                     </p>
+                    {priceLine != null && (
+                      <p className="mt-1 text-xs text-neutral-800">{priceLine}</p>
+                    )}
+                  </a>
+                  {socialLinks.length > 0 && (
+                    <div className="border-t border-neutral-200/80 bg-[#141414] px-3 py-2.5">
+                      <SocialLinksRow links={socialLinks} compact dark />
+                    </div>
                   )}
-                  {(s.experienceYears != null || s.languages) && (
-                    <p className="mt-1 text-xs text-neutral-600">
-                      {[
-                        s.experienceYears != null
-                          ? `ניסיון: ${s.experienceYears} שנים`
-                          : null,
-                        s.languages ? `שפות: ${s.languages}` : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  )}
-                  <p className="mt-1 text-xs text-neutral-600">
-                    {s.provider.businessName || s.provider.name || "ספק"}
-                  </p>
-                  {priceLine != null && (
-                    <p className="mt-1 text-xs text-neutral-800">{priceLine}</p>
-                  )}
-                </a>
-                {socialLinks.length > 0 && (
-                  <div className="border-t border-neutral-200/80 bg-[#141414] px-3 py-2.5">
-                    <SocialLinksRow links={socialLinks} compact dark />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
+          {visibleCount < services.length ? (
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-xs text-neutral-600">
+                מוצגים {Math.min(visibleCount, services.length)} מתוך {services.length}
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  setVisibleCount((n) => Math.min(n + 24, services.length))
+                }
+                className="min-h-[44px] rounded-xl border border-neutral-200 bg-white px-6 text-sm font-semibold text-emerald-950 transition hover:bg-neutral-50"
+              >
+                הצג עוד תוצאות
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

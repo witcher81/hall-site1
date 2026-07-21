@@ -615,6 +615,7 @@ export default function HallsSearchClient({
   const [searchWarning, setSearchWarning] = useState<string | null>(
     initialWarning
   );
+  const [visibleRestCount, setVisibleRestCount] = useState(24);
   const [form, setForm] = useState(() => ({ ...EMPTY_SEARCH_FORM }));
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const [naturalQuery, setNaturalQuery] = useState("");
@@ -763,6 +764,7 @@ export default function HallsSearchClient({
     setSearchWarning(initialWarning ?? null);
     setFetchError(null);
     setLoading(false);
+    setVisibleRestCount(24);
   }, [initialVenues, initialWarning]);
 
   function clearAllFilters() {
@@ -858,6 +860,11 @@ export default function HallsSearchClient({
   const restVenues = useMemo(
     () => venues.filter((v) => !topPickIds.has(v.id)),
     [venues, topPickIds]
+  );
+
+  const visibleRestVenues = useMemo(
+    () => restVenues.slice(0, visibleRestCount),
+    [restVenues, visibleRestCount]
   );
 
   const popularVenueIds = useMemo(
@@ -1509,7 +1516,7 @@ export default function HallsSearchClient({
                 </h2>
               )}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {restVenues.map((v) => (
+                {visibleRestVenues.map((v) => (
                   <VenueResultCard
                     key={v.id}
                     v={v}
@@ -1525,6 +1532,25 @@ export default function HallsSearchClient({
                   />
                 ))}
               </div>
+              {visibleRestCount < restVenues.length ? (
+                <div className="flex flex-col items-center gap-2 pt-2">
+                  <p className="text-xs text-neutral-600">
+                    מוצגים {Math.min(visibleRestCount, restVenues.length)} מתוך{" "}
+                    {restVenues.length}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisibleRestCount((n) =>
+                        Math.min(n + 24, restVenues.length)
+                      )
+                    }
+                    className="min-h-[44px] rounded-xl border border-neutral-200 bg-white px-6 text-sm font-semibold text-emerald-950 transition hover:bg-neutral-50"
+                  >
+                    הצג עוד תוצאות
+                  </button>
+                </div>
+              ) : null}
             </section>
           )}
 
