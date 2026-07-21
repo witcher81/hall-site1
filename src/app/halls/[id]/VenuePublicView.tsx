@@ -1480,7 +1480,7 @@ export default function VenuePublicView({
 
       {showInquiryCta && stickyInquiryVisible ? (
         <div
-          className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-4"
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-4 ui-sticky-rise"
           role="region"
           aria-label="שליחת בקשה מהירה"
         >

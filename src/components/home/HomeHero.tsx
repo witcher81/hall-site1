@@ -94,11 +94,14 @@ export default function HomeHero() {
         priority
         fetchPriority="high"
         sizes="100vw"
-        className="object-cover scale-105"
+        className="object-cover home-hero-kenburns"
         aria-hidden
       />
       <div
         className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-neutral-950/90"
+        aria-hidden
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(251,191,36,0.14),transparent_55%)]"
         aria-hidden
       />
       <div className="relative mx-auto flex min-h-[min(88vh,720px)] max-w-6xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
@@ -134,7 +137,7 @@ export default function HomeHero() {
 
           <form
             onSubmit={onSearch}
-            className="home-animate-in home-stagger-3 mt-8 flex max-w-xl overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-1.5 shadow-2xl backdrop-blur-xl"
+            className="home-animate-in home-stagger-3 home-search-glow mt-8 flex max-w-xl overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl"
           >
             <input
               type="search"

@@ -7,13 +7,15 @@ function ThemeSwitch({ theme }: { theme: SiteTheme }) {
   return (
     <span
       role="presentation"
-      className={`flex h-6 w-12 shrink-0 items-center rounded-full px-1 text-[10px] font-medium transition-colors ${
-        theme === "night"
-          ? "justify-end bg-sky-500/80 text-sky-950"
-          : "justify-start bg-amber-300 text-amber-900"
+      className={`relative flex h-6 w-12 shrink-0 items-center rounded-full px-1 text-[10px] font-medium transition-colors duration-300 ${
+        theme === "night" ? "bg-sky-500/80 text-sky-950" : "bg-amber-300 text-amber-900"
       }`}
     >
-      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[8px] text-slate-900 shadow-sm">
+      <span
+        className={`absolute top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[8px] text-slate-900 shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          theme === "night" ? "left-1 translate-x-6" : "left-1 translate-x-0"
+        }`}
+      >
         {theme === "night" ? "☾" : "☼"}
       </span>
     </span>

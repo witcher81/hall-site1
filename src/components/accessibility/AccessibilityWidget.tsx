@@ -234,7 +234,7 @@ export default function AccessibilityWidget() {
 
       <button
         type="button"
-        className={`a11y-widget-fab flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] ${
+        className={`a11y-widget-fab a11y-widget-fab--pulse flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-lg transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] ${
           open || prefsAreActive(prefs)
             ? "border-amber-300 bg-emerald-950 text-amber-200"
             : "border-white/30 bg-emerald-950 text-white hover:border-amber-300/70"

@@ -388,6 +388,19 @@ html[data-theme="night"] .search-text-highlight {
     0 4px 6px -1px rgb(0 0 0 / 0.06),
     0 2px 4px -2px rgb(0 0 0 / 0.05);
   backdrop-filter: blur(8px);
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s ease,
+    border-color 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .site-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 14px 28px -8px rgb(15 59 46 / 0.14),
+      0 4px 10px -4px rgb(0 0 0 / 0.08);
+  }
 }
 
 .site-card-padded {
@@ -450,11 +463,18 @@ html[data-theme="night"] .search-text-highlight {
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
   transition:
     background-color 0.15s ease,
-    transform 0.15s ease;
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
+  transform: translateY(-1px) scale(1.015);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
 }
 
 .btn-primary:disabled {
@@ -1466,6 +1486,111 @@ html[data-theme="night"] .home-surface-panel {
     opacity: 1;
     transform: none;
   }
+
+  .home-hero-kenburns,
+  .a11y-widget-fab--pulse,
+  .ui-dock-rise,
+  .ui-sticky-rise,
+  .home-search-glow {
+    animation: none !important;
+  }
+
+  .site-card:hover,
+  .btn-primary:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* —— תחושת «טכנולוגי» עדינה: תנועות משותפות —— */
+@keyframes home-kenburns {
+  from {
+    transform: scale(1.05);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
+.home-hero-kenburns {
+  animation: home-kenburns 22s ease-in-out alternate infinite;
+  will-change: transform;
+}
+
+@keyframes a11y-fab-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 20px rgb(2 44 34 / 0.35),
+      0 0 0 0 rgb(251 191 36 / 0.35);
+  }
+  55% {
+    box-shadow:
+      0 10px 26px rgb(2 44 34 / 0.4),
+      0 0 0 10px rgb(251 191 36 / 0);
+  }
+}
+
+.a11y-widget-fab--pulse:not([aria-expanded="true"]) {
+  animation: a11y-fab-pulse 2.8s ease-out infinite;
+}
+
+@keyframes ui-dock-rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.ui-dock-rise {
+  transform-origin: bottom left;
+  animation: ui-dock-rise-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ui-sticky-rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 120%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.ui-sticky-rise {
+  animation: ui-sticky-rise-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes home-search-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 25px 50px -12px rgb(0 0 0 / 0.45),
+      0 0 0 1px rgb(255 255 255 / 0.12),
+      inset 0 0 0 0 rgb(251 191 36 / 0);
+  }
+  50% {
+    box-shadow:
+      0 25px 50px -12px rgb(0 0 0 / 0.45),
+      0 0 0 1px rgb(251 191 36 / 0.35),
+      inset 0 0 24px rgb(251 191 36 / 0.08);
+  }
+}
+
+.home-search-glow {
+  animation: home-search-glow 4.5s ease-in-out infinite;
+}
+
+html.a11y-stop-animations .home-hero-kenburns,
+html.a11y-stop-animations .a11y-widget-fab--pulse,
+html.a11y-stop-animations .ui-dock-rise,
+html.a11y-stop-animations .ui-sticky-rise,
+html.a11y-stop-animations .home-search-glow {
+  animation: none !important;
 }
 
 /* —— נגישות: קישור דילוג + מצבי תצוגה —— */
