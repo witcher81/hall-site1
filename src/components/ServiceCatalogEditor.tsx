@@ -10,6 +10,7 @@ import {
   createEmptyMenuItem,
   createEmptyMenuPackage,
   createEmptyMenuSection,
+  createEmptyPaidExtraItem,
   createEmptyQuantityTier,
   MAX_MENU_ITEMS_PER_SECTION,
   MAX_MENU_PACKAGES,
@@ -73,15 +74,24 @@ export default function ServiceCatalogEditor({
 }: Props) {
   const fieldHelp = getCatalogFieldHelp(template.id, secondary);
   const pricingModes = template.itemPricingModes;
+  const paidPricingModes = pricingModes.filter((m) => m !== "included");
   const catalogEssential =
     template.catalogEssential ?? CATALOG_ESSENTIAL_FALLBACK.has(template.id);
   const catalogOptional = template.catalogOptional ?? !catalogEssential;
   const showPackageIncludedMenu = template.showPackageIncludedItems === true;
-  const [catalogOpen, setCatalogOpen] = useState(!catalogOptional);
+  const hasLegacyGlobalCatalog = value.sections.some(
+    (s) =>
+      s.title.trim().length > 0 ||
+      s.items.some((item) => item.label.trim().length > 0)
+  );
+  const [catalogOpen, setCatalogOpen] = useState(false);
   /** סיכום אופציונלי לחבילה — נפתח רק בלחיצה או אם כבר יש תוכן */
   const [packageDescOpen, setPackageDescOpen] = useState<Record<string, boolean>>(
     {}
   );
+  const [packageExtrasOpen, setPackageExtrasOpen] = useState<
+    Record<string, boolean>
+  >({});
 
   useEffect(() => {
     if (value.packages.length === 0) {
@@ -157,6 +167,39 @@ export default function ServiceCatalogEditor({
     });
   }
 
+  function updateExtraItem(
+    packageIndex: number,
+    itemIndex: number,
+    patch: Partial<ServiceMenuItem>
+  ) {
+    const pkg = value.packages[packageIndex];
+    if (!pkg) return;
+    const items = [...(pkg.extraItems ?? [])];
+    const cur = items[itemIndex];
+    if (!cur) return;
+    items[itemIndex] = { ...cur, ...patch };
+    updatePackage(packageIndex, { extraItems: items });
+  }
+
+  function addExtraItem(packageIndex: number) {
+    const pkg = value.packages[packageIndex];
+    if (!pkg) return;
+    const items = [...(pkg.extraItems ?? [])];
+    if (items.length >= MAX_MENU_ITEMS_PER_SECTION) return;
+    const defaultPricing = paidPricingModes[0] ?? "fixed";
+    items.push({ ...createEmptyPaidExtraItem(), pricing: defaultPricing });
+    updatePackage(packageIndex, { extraItems: items });
+    setPackageExtrasOpen((prev) => ({ ...prev, [pkg.id]: true }));
+  }
+
+  function removeExtraItem(packageIndex: number, itemIndex: number) {
+    const pkg = value.packages[packageIndex];
+    if (!pkg) return;
+    updatePackage(packageIndex, {
+      extraItems: (pkg.extraItems ?? []).filter((_, i) => i !== itemIndex),
+    });
+  }
+
   function updateTier(index: number, patch: Partial<ServiceQuantityTier>) {
     const tiers = value.quantityTiers ?? [];
     patchMenu({
@@ -189,19 +232,8 @@ export default function ServiceCatalogEditor({
           ) : null}
           <li>
             <strong>{showCapacity ? "②" : "①"}</strong>{" "}
-            {template.packagesStepLabel ?? "לכל סוג שירות — שם + מחיר (המחירון העיקרי)"}
+            {template.packagesStepLabel ?? "מה מוכרים, מחיר, ומה כלול — כולל תוספות בתשלום בתוך האפשרות"}
           </li>
-          {!catalogOptional ? (
-            <li>
-              <strong>{showCapacity ? "③" : "②"}</strong>{" "}
-              {template.catalogStepLabel ?? template.catalogTitle}
-            </li>
-          ) : (
-            <li>
-              <strong>{showCapacity ? "③" : "②"}</strong> תוספות ופירוט — רק אם צריך
-              (אופציונלי)
-            </li>
-          )}
         </ol>
       </div>
 
@@ -501,6 +533,123 @@ export default function ServiceCatalogEditor({
                   </button>
                 </div>
               ) : null}
+
+              {(() => {
+                const extras = pkg.extraItems ?? [];
+                const extrasVisible =
+                  extras.some((e) => e.label.trim() || e.exactPrice != null) ||
+                  packageExtrasOpen[pkg.id] === true;
+                if (!extrasVisible) {
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => addExtraItem(index)}
+                      className="mt-3 w-full rounded-lg border border-dashed border-amber-300/80 bg-amber-50/40 px-3 py-2 text-right text-[11px] font-medium text-amber-950 hover:bg-amber-50"
+                    >
+                      + תוספת בתשלום לאפשרות הזו (אופציונלי)
+                    </button>
+                  );
+                }
+                return (
+                  <div className="mt-3 rounded-lg border border-amber-200/90 bg-amber-50/50 p-2.5">
+                    <p className="text-[11px] font-semibold text-amber-950">
+                      {template.catalogTitle || "תוספות בתשלום"}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-neutral-600">
+                      רק לאפשרות הזו — מעבר למחיר הבסיס
+                    </p>
+                    <ul className="mt-2 space-y-2">
+                      {extras.map((item, itemIndex) => (
+                        <li
+                          key={item.id}
+                          className="rounded-lg border border-amber-200/70 bg-white p-2"
+                        >
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <input
+                              type="text"
+                              dir="rtl"
+                              value={item.label}
+                              onChange={(e) =>
+                                updateExtraItem(index, itemIndex, {
+                                  label: e.target.value,
+                                })
+                              }
+                              className={input}
+                              placeholder={
+                                template.catalogItemPlaceholder ?? "למשל: תוספת"
+                              }
+                            />
+                            <select
+                              value={
+                                item.pricing === "included"
+                                  ? paidPricingModes[0] ?? "fixed"
+                                  : item.pricing
+                              }
+                              onChange={(e) =>
+                                updateExtraItem(index, itemIndex, {
+                                  pricing: e.target.value as ServiceMenuItemPricing,
+                                  exactPrice: null,
+                                  minPrice: null,
+                                  maxPrice: null,
+                                  usePriceRange: false,
+                                })
+                              }
+                              className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
+                            >
+                              {(paidPricingModes.length > 0
+                                ? paidPricingModes
+                                : (["fixed"] as ServiceMenuItemPricing[])
+                              ).map((k) => (
+                                <option key={k} value={k}>
+                                  {PRICING_LABELS[k]}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="mt-2 flex flex-wrap items-end gap-2">
+                            <div className="min-w-[7rem] flex-1">
+                              <label className="block text-[10px] text-neutral-600">
+                                {itemPriceSingleLabel(item.pricing)}
+                              </label>
+                              <input
+                                type="number"
+                                min={0}
+                                value={item.exactPrice ?? ""}
+                                onChange={(e) =>
+                                  updateExtraItem(index, itemIndex, {
+                                    exactPrice: parsePriceInput(e.target.value),
+                                    usePriceRange: false,
+                                    minPrice: null,
+                                    maxPrice: null,
+                                  })
+                                }
+                                className={`${input} mt-0.5`}
+                                placeholder="למשל: 30"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeExtraItem(index, itemIndex)}
+                              className="shrink-0 text-[11px] text-red-600 hover:underline"
+                            >
+                              הסר
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      disabled={extras.length >= MAX_MENU_ITEMS_PER_SECTION}
+                      onClick={() => addExtraItem(index)}
+                      className="mt-2 text-[11px] font-medium text-amber-950 hover:underline disabled:opacity-50"
+                    >
+                      + עוד תוספת בתשלום
+                    </button>
+                  </div>
+                );
+              })()}
+
               <div className="mt-2 flex justify-end">
                 <button
                   type="button"
@@ -608,18 +757,18 @@ export default function ServiceCatalogEditor({
         </div>
       ) : null}
 
-      {catalogOptional && !catalogOpen ? (
+      {hasLegacyGlobalCatalog ? (
+        catalogOptional && !catalogOpen ? (
         <button
           type="button"
           onClick={() => setCatalogOpen(true)}
           className="w-full rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 px-4 py-3 text-right text-xs text-neutral-700 hover:border-amber-400/60 hover:bg-amber-50/40"
         >
           <span className="font-semibold text-emerald-950">
-            {showCapacity ? "③ " : "② "}
-            {template.catalogTitle}
+            תוספות כלליות ישנות
           </span>
           <span className="mt-0.5 block text-[11px] text-neutral-600">
-            יש לכם גם תוספות בתשלום או פירוט נוסף? לחצו כאן (לא חובה)
+            נשמרו פעם ברמת השירות. עדיף להעביר אותן לתוך כל אפשרות למעלה.
           </span>
         </button>
       ) : (
@@ -630,15 +779,14 @@ export default function ServiceCatalogEditor({
             onClick={() => setCatalogOpen(false)}
             className="mb-2 text-[10px] text-neutral-500 hover:text-neutral-700"
           >
-            הסתר תוספות (אופציונלי)
+            הסתר תוספות ישנות
           </button>
         ) : null}
         <h3 className="text-sm font-semibold text-emerald-950">
-          {!catalogOptional && showCapacity ? "③ " : !catalogOptional ? "② " : ""}
-          {template.catalogTitle}
-          {catalogOptional ? (
-            <span className="mr-2 text-[10px] font-normal text-neutral-500">(אופציונלי)</span>
-          ) : null}
+          תוספות כלליות (ישן)
+          <span className="mr-2 text-[10px] font-normal text-neutral-500">
+            עדיף בתוך האפשרות למעלה
+          </span>
         </h3>
         <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
           {template.catalogHint}
@@ -884,7 +1032,8 @@ export default function ServiceCatalogEditor({
           + {fieldHelp.addSectionButton ?? "הוסף קבוצה"} ({value.sections.length})
         </button>
       </div>
-      )}
+      )
+      ) : null}
 
       {template.showDeliverables ? (
         <div className="rounded-xl border border-sky-200/80 bg-sky-50/40 p-4">

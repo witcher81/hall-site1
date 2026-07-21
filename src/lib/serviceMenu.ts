@@ -56,6 +56,8 @@ export type ServiceMenuPackage = {
   durationHours?: number | null;
   /** מנות / פריטים כלולים במחיר החבילה (לפי קבוצת מחיר) */
   includedItems?: ServiceMenuItem[];
+  /** תוספות בתשלום לאפשרות הזו */
+  extraItems?: ServiceMenuItem[];
 };
 
 export type ServiceMenuConfig = {
@@ -228,6 +230,24 @@ function sanitizePackage(raw: unknown): ServiceMenuPackage | null {
     }
   }
 
+  const extraItems: ServiceMenuItem[] = [];
+  if (Array.isArray(o.extraItems)) {
+    for (const item of o.extraItems) {
+      if (extraItems.length >= MAX_MENU_ITEMS_PER_SECTION) break;
+      const parsed = sanitizeMenuItem(item);
+      if (!parsed) continue;
+      // תוספת בתשלום — לא «included» בלי מחיר
+      if (parsed.pricing === "included") {
+        extraItems.push({
+          ...parsed,
+          pricing: "fixed",
+        });
+      } else {
+        extraItems.push(parsed);
+      }
+    }
+  }
+
   return {
     id,
     name,
@@ -237,6 +257,7 @@ function sanitizePackage(raw: unknown): ServiceMenuPackage | null {
       ? { usePerGuestRange: true, perGuestMin, perGuestMax }
       : { perGuestPrice }),
     ...(includedItems.length > 0 ? { includedItems } : {}),
+    ...(extraItems.length > 0 ? { extraItems } : {}),
   };
 }
 
@@ -600,7 +621,13 @@ export function createEmptyMenuSection(title = ""): ServiceMenuSection {
 }
 
 export function createEmptyMenuPackage(name = ""): ServiceMenuPackage {
-  return { id: newId("pkg"), name, perGuestPrice: null, includedItems: [] };
+  return {
+    id: newId("pkg"),
+    name,
+    perGuestPrice: null,
+    includedItems: [],
+    extraItems: [],
+  };
 }
 
 export function createEmptyMenuItem(label = ""): ServiceMenuItem {
@@ -608,6 +635,15 @@ export function createEmptyMenuItem(label = ""): ServiceMenuItem {
     id: newId("item"),
     label,
     pricing: "included",
+  };
+}
+
+export function createEmptyPaidExtraItem(label = ""): ServiceMenuItem {
+  return {
+    id: newId("item"),
+    label,
+    pricing: "fixed",
+    exactPrice: null,
   };
 }
 

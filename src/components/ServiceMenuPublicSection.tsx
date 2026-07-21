@@ -174,6 +174,39 @@ export default function ServiceMenuPublicSection({
                           ))}
                       </ul>
                     ) : null}
+                    {(pkg.extraItems?.filter((i) => i.label.trim()).length ?? 0) >
+                    0 ? (
+                      <ul className="mt-2 space-y-0.5 border-t border-amber-100 pt-2 text-[11px] text-neutral-700">
+                        <li className="mb-0.5 text-[10px] font-semibold text-amber-900">
+                          תוספות בתשלום
+                        </li>
+                        {pkg.extraItems!
+                          .filter((i) => i.label.trim())
+                          .map((item) => {
+                            const price = formatMenuItemPrice(item);
+                            return (
+                              <li key={item.id} className="flex flex-wrap justify-between gap-2">
+                                <span className="flex gap-1.5">
+                                  <span className="text-amber-700" aria-hidden>
+                                    ·
+                                  </span>
+                                  <span>
+                                    {item.label.trim()}
+                                    {item.description?.trim()
+                                      ? ` — ${item.description.trim()}`
+                                      : ""}
+                                  </span>
+                                </span>
+                                {price ? (
+                                  <span className="shrink-0 font-semibold text-neutral-800">
+                                    {price}
+                                  </span>
+                                ) : null}
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    ) : null}
                   </button>
                 </li>
               );

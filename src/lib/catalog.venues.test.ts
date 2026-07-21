@@ -130,6 +130,33 @@ describe("serviceMenu sanitize/validate", () => {
     expect(m.packages[0]?.includedItems?.[1]?.description).toBe("medium");
   });
 
+  it("keeps paid extraItems on packages with pricing", () => {
+    const m = sanitizeServiceMenuFromClient({
+      templateId: "food_station",
+      packages: [
+        {
+          name: "עמדת גלידה",
+          perGuestPrice: 1800,
+          extraItems: [
+            { label: "גביע גדול", pricing: "fixed", exactPrice: 15 },
+            { label: "  ", pricing: "fixed" },
+            { label: "תוספת", pricing: "included", exactPrice: 10 },
+          ],
+        },
+      ],
+    });
+    expect(m.packages[0]?.extraItems).toHaveLength(2);
+    expect(m.packages[0]?.extraItems?.[0]).toMatchObject({
+      label: "גביע גדול",
+      pricing: "fixed",
+      exactPrice: 15,
+    });
+    expect(m.packages[0]?.extraItems?.[1]).toMatchObject({
+      label: "תוספת",
+      pricing: "fixed",
+    });
+  });
+
   it("aliases activation templateId to attraction", () => {
     const m = sanitizeServiceMenuFromClient({ templateId: "activation" });
     expect(m.templateId).toBe("attraction");
