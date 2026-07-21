@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import InquiryNegotiationHub from "@/components/inquiry-negotiation/InquiryNegotiationHub";
 import ServiceRequestMessageBody from "@/components/service-requests/ServiceRequestMessageBody";
@@ -43,6 +43,9 @@ export default function FreelancerRequestsClient() {
   const searchParams = useSearchParams();
   const urlInquiryId = Number(searchParams.get("inquiryId"));
   const urlThreadId = Number(searchParams.get("threadId"));
+  const urlRequestId = Number(searchParams.get("requestId"));
+  const focusRequestId =
+    Number.isInteger(urlRequestId) && urlRequestId > 0 ? urlRequestId : null;
 
   const [requests, setRequests] = useState<Req[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +58,7 @@ export default function FreelancerRequestsClient() {
   const [negotiationThreadId, setNegotiationThreadId] = useState<number | null>(
     Number.isInteger(urlThreadId) && urlThreadId > 0 ? urlThreadId : null
   );
+  const focusedOnceRef = useRef(false);
 
   useEffect(() => {
     fetch("/api/freelancer/requests")
@@ -64,6 +68,29 @@ export default function FreelancerRequestsClient() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (loading || !focusRequestId || focusedOnceRef.current) return;
+    const el = document.getElementById(`freelancer-request-${focusRequestId}`);
+    if (!el) return;
+    focusedOnceRef.current = true;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const target = requests.find((r) => r.id === focusRequestId);
+    if (target?.status === "NEW") {
+      void fetch("/api/freelancer/requests", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: focusRequestId, status: "READ" }),
+      }).then((res) => {
+        if (!res.ok) return;
+        setRequests((prev) =>
+          prev.map((r) =>
+            r.id === focusRequestId ? { ...r, status: "READ" } : r
+          )
+        );
+      });
+    }
+  }, [loading, focusRequestId, requests]);
 
   const filtered =
     filter === "" ? requests : requests.filter((r) => r.status === filter);
@@ -201,8 +228,13 @@ export default function FreelancerRequestsClient() {
 
               return (
               <article
+                id={`freelancer-request-${r.id}`}
                 key={r.id}
-                className={`rounded-2xl border p-4 shadow-[0_12px_40px_rgba(15,59,46,0.06)] ${
+                className={`scroll-mt-24 rounded-2xl border p-4 shadow-[0_12px_40px_rgba(15,59,46,0.06)] ${
+                  focusRequestId === r.id
+                    ? "ring-2 ring-amber-400 ring-offset-2"
+                    : ""
+                } ${
                   cancelled
                     ? "border-red-200/70 bg-red-50/40"
                     : r.status === "NEW"
