@@ -7,7 +7,6 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
 import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
-import SocialLinksEditor from "@/components/SocialLinksEditor";
 import {
   composeServiceCategoryValue,
 } from "@/lib/freelancerServiceCategories";
@@ -18,7 +17,6 @@ import type {
   ServiceCustomInclude,
   ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
-import { normalizeSocialUrl, type SocialLink } from "@/lib/socialLinks";
 import {
   ensureMenuTemplateId,
   parseServiceMenuJson,
@@ -51,10 +49,6 @@ export default function NewServicePage() {
   const [menu, setMenu] = useState<ServiceMenuConfig>(() => parseServiceMenuJson(null));
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-  const hasInvalidSocialLinks = socialLinks.some(
-    (l) => l.url.trim().length > 0 && normalizeSocialUrl(l.url) === null
-  );
   const coverPreview = useMemo(
     () => (coverImage ? URL.createObjectURL(coverImage) : null),
     [coverImage]
@@ -109,10 +103,6 @@ export default function NewServicePage() {
       if (form.serviceArea.trim()) fd.append("serviceArea", form.serviceArea.trim());
       if (form.experienceYears.trim()) fd.append("experienceYears", form.experienceYears.trim());
       if (form.languages.trim()) fd.append("languages", form.languages.trim());
-      fd.append(
-        "socialLinks",
-        JSON.stringify(socialLinks.filter((l) => l.url.trim()))
-      );
       fd.append("includesTravel", "false");
       fd.append("includesEquipment", "false");
       fd.append("includesNote", "");
@@ -176,7 +166,7 @@ export default function NewServicePage() {
       <DashboardPageHero
         role="freelancer"
         title="הוספת שירות חדש"
-        description="מלא/י את פרטי השירות. לאחר השמירה תועבר/י לרשימת השירותים."
+        description="כאן ממלאים רק פרטי השירות עצמו. שם המותג, תיאור עליי, טלפון ורשתות — בפרופיל העסקי."
         backHref="/dashboard/freelancer"
         backLabel="חזרה לשירותים שלי"
       />
@@ -214,9 +204,20 @@ export default function NewServicePage() {
           />
         </div>
 
+        <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2.5 text-xs leading-relaxed text-amber-950">
+          שם העסק, תיאור קצר עליך, טלפון ורשתות חברתיות נערכים ב־
+          <a
+            href="/dashboard/freelancer/profile"
+            className="mx-1 font-semibold underline underline-offset-2"
+          >
+            הפרופיל העסקי
+          </a>
+          ומוצגים גם בעמוד הספק הציבורי.
+        </div>
+
         <div>
           <label className="block text-xs font-medium text-neutral-600">
-            ספרו קצת עליכם ומה אתם עושים
+            תיאור השירות
           </label>
           <textarea
             rows={5}
@@ -225,14 +226,17 @@ export default function NewServicePage() {
               setForm((f) => ({ ...f, description: e.target.value }))
             }
             className={input}
-            placeholder="למשל: מי אתם, מה הניסיון שלכם, באילו סוגי אירועים אתם מתמחים והסבר קצר על השירות שאתם נותנים..."
+            placeholder="מה כולל השירות הזה בפועל: סוגי אירועים, חבילות, משך, ציוד מיוחד — לא סיפור כללי על העסק (זה בפרופיל)."
           />
+          <p className="mt-1 text-[11px] text-neutral-600">
+            תיאור כללי על העסק / עליך — בפרופיל העסקי.
+          </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label className="block text-xs font-medium text-neutral-600">
-              אזור שירות
+              אזור שירות (לשירות זה)
             </label>
             <ServiceAreaTagsField
               value={form.serviceArea}
@@ -267,12 +271,6 @@ export default function NewServicePage() {
             className="mt-1"
           />
         </div>
-
-        <SocialLinksEditor
-          value={socialLinks}
-          onChange={setSocialLinks}
-          description="לחצו על הכפתור «+ הוסף רשת / קישור» כדי להוסיף שורה חדשה. בכל שורה בוחרים רשת ומדביקים קישור מלא."
-        />
 
         {showCatalogEditor && catalogTemplate ? (
           <ServiceCatalogEditor
@@ -413,11 +411,6 @@ export default function NewServicePage() {
             {error}
           </p>
         )}
-        {hasInvalidSocialLinks && (
-          <p className="text-xs text-red-700" role="alert">
-            יש קישורי רשת לא תקינים. תקן/י אותם לפני שמירה.
-          </p>
-        )}
 
         <div className="flex justify-end gap-3 pt-2">
           <button
@@ -429,7 +422,7 @@ export default function NewServicePage() {
           </button>
           <button
             type="submit"
-            disabled={creating || hasInvalidSocialLinks}
+            disabled={creating}
             className="rounded-full bg-amber-400 px-6 py-2 text-xs font-semibold text-neutral-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
           >
             {creating ? "שומר..." : "שמירת שירות"}

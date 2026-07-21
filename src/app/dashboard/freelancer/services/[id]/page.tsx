@@ -1,7 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
-import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -65,7 +64,6 @@ export default async function ServiceDetailsPage({
         experienceYears: service.experienceYears,
         languages: service.languages,
         responseTimeHint: service.responseTimeHint,
-        socialLinks: parseSocialLinksJson(service.socialLinksJson),
         includesTravel: service.includesTravel,
         includesEquipment: service.includesEquipment,
         customIncludes: includesBundle.included,

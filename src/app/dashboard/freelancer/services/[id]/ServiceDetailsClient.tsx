@@ -1,14 +1,12 @@
 "use client";
 
 import ServiceIncludeBadges from "@/components/ServiceIncludeBadges";
-import SocialLinksRow from "@/components/SocialLinksRow";
 import {
   hasAnyServiceIncludes,
   type ServiceCustomInclude,
   type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
-import type { SocialLink } from "@/lib/socialLinks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -22,7 +20,6 @@ type Service = {
   experienceYears: number | null;
   languages: string | null;
   responseTimeHint: string | null;
-  socialLinks: SocialLink[];
   includesTravel: boolean;
   includesEquipment: boolean;
   customIncludes: ServiceCustomInclude[];
@@ -183,12 +180,16 @@ export default function ServiceDetailsClient({
             )}
           </div>
         )}
-        {service.socialLinks.length > 0 && (
-          <div>
-            <p className="font-semibold text-emerald-950">קישורים</p>
-            <SocialLinksRow links={service.socialLinks} className="mt-2" />
-          </div>
-        )}
+        <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+          רשתות חברתיות וקישורים נערכים ב־
+          <a
+            href="/dashboard/freelancer/profile"
+            className="mx-1 font-semibold text-emerald-950 underline underline-offset-2"
+          >
+            הפרופיל העסקי
+          </a>
+          ומוצגים בעמוד הספק הציבורי.
+        </p>
         {hasAnyServiceIncludes(
           service.includesTravel,
           service.includesEquipment,

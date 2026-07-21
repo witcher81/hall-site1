@@ -116,6 +116,8 @@ export default async function PublicSingleServicePage({ params }: PageProps) {
           businessName: true,
           businessPhone: true,
           businessAddress: true,
+          businessBio: true,
+          profileImageUrl: true,
           socialLinksJson: true,
           role: true,
         },
@@ -197,6 +199,8 @@ export default async function PublicSingleServicePage({ params }: PageProps) {
           businessName: service.provider.businessName,
           businessPhone: service.provider.businessPhone,
           businessAddress: service.provider.businessAddress,
+          businessBio: service.provider.businessBio,
+          profileImageUrl: service.provider.profileImageUrl,
           socialLinks: parseSocialLinksJson(service.provider.socialLinksJson),
         }}
         service={{

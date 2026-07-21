@@ -41,6 +41,8 @@ type Provider = {
   businessName: string | null;
   businessPhone: string | null;
   businessAddress: string | null;
+  businessBio: string | null;
+  profileImageUrl: string | null;
   socialLinks: SocialLink[];
 };
 
@@ -110,6 +112,8 @@ export default function SingleServiceView({
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const providerName = provider.businessName || provider.name || "ספק";
   const serviceSocialLinks = parseSocialLinksJson(service.socialLinksJson);
+  const publicSocialLinks =
+    provider.socialLinks.length > 0 ? provider.socialLinks : serviceSocialLinks;
   const blurb = mergeFreelancerServiceDescriptionForForm(
     service.shortDescription,
     service.description
@@ -390,13 +394,35 @@ export default function SingleServiceView({
         )}
 
         <div className="px-4 py-5 sm:px-6 sm:py-6">
-          <a
-            href={`/providers/${provider.id}`}
-            className="inline-flex max-w-full items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-800 transition hover:border-amber-400/50 hover:text-emerald-950"
-          >
-            <span className="text-neutral-600">ספק:</span>
-            <span className="truncate font-semibold text-emerald-950">{providerName}</span>
-          </a>
+          <div className="flex flex-wrap items-center gap-3">
+            {provider.profileImageUrl ? (
+              <img
+                src={provider.profileImageUrl}
+                alt=""
+                className="h-12 w-12 rounded-full border border-neutral-200 object-cover"
+              />
+            ) : (
+              <span
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-950 text-sm font-bold text-white"
+                aria-hidden
+              >
+                {(providerName.trim()[0] || "ס").toUpperCase()}
+              </span>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-neutral-600">הספק</p>
+              <p className="truncate text-sm font-semibold text-emerald-950">
+                {providerName}
+              </p>
+            </div>
+            <a
+              href={`/providers/${provider.id}`}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-950/20 bg-emerald-950 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-900"
+            >
+              לפרופיל הספק
+              <span aria-hidden>→</span>
+            </a>
+          </div>
 
           <div className="mt-3 flex items-start justify-between gap-3">
             <h1 className="text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
@@ -529,10 +555,25 @@ export default function SingleServiceView({
       {/* תיאור השירות */}
       {blurb ? (
         <section className="site-card-padded text-right">
-          <SectionHeading title="קצת על עצמי" />
+          <SectionHeading title="על השירות" />
           <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-neutral-900">
             {blurb}
           </p>
+        </section>
+      ) : null}
+
+      {provider.businessBio?.trim() ? (
+        <section className="site-card-padded text-right">
+          <SectionHeading title="על הספק" />
+          <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-neutral-800">
+            {provider.businessBio.trim()}
+          </p>
+          <a
+            href={`/providers/${provider.id}`}
+            className="mt-3 inline-flex text-xs font-semibold text-emerald-950 underline-offset-4 hover:underline"
+          >
+            לפרופיל המלא של {providerName} →
+          </a>
         </section>
       ) : null}
 
@@ -668,15 +709,15 @@ export default function SingleServiceView({
         <ServiceMenuPublicSection menu={menu} template={catalogTemplate} />
       ) : null}
 
-      {/* קישורים לשירות */}
-      {serviceSocialLinks.length > 0 && (
+      {/* קישורים מהפרופיל */}
+      {publicSocialLinks.length > 0 && (
         <section className="site-card-padded text-right">
-          <h2 className="text-sm font-semibold text-emerald-950">קישורים לשירות</h2>
+          <h2 className="text-sm font-semibold text-emerald-950">רשתות וקישורים</h2>
           <p className="mt-1 text-xs text-neutral-600">
-            פורטפוליו, אתר ורשתות חברתיות של השירות
+            מתוך פרופיל הספק
           </p>
           <div className="mt-4">
-            <SocialLinksRow links={serviceSocialLinks} />
+            <SocialLinksRow links={publicSocialLinks} />
           </div>
         </section>
       )}
@@ -713,32 +754,27 @@ export default function SingleServiceView({
       )}
 
       {/* פס פעולות */}
-      {(seekerLoggedIn || siblingServicesCount > 1) && (
-        <section className="site-card flex flex-wrap items-center justify-between gap-3 p-4 text-right sm:p-5">
-          {siblingServicesCount > 1 ? (
-            <a
-              href={`/providers/${provider.id}`}
-              className="text-xs font-semibold text-emerald-950 underline-offset-4 hover:underline"
-            >
-              עוד {siblingServicesCount - 1}{" "}
-              {siblingServicesCount - 1 === 1 ? "שירות" : "שירותים"} של הספק →
-            </a>
-          ) : (
-            <span />
-          )}
-          {seekerLoggedIn && (
-            <a
-              href={`/messages?serviceId=${service.id}`}
-              className="inline-flex items-center gap-2 rounded-full bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              הודעה לספק
-            </a>
-          )}
-        </section>
-      )}
+      <section className="site-card flex flex-wrap items-center justify-between gap-3 p-4 text-right sm:p-5">
+        <a
+          href={`/providers/${provider.id}`}
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm transition hover:border-amber-400/60 hover:bg-[#FFFCF6]"
+        >
+          {siblingServicesCount > 1
+            ? `עוד ${siblingServicesCount - 1} ${siblingServicesCount - 1 === 1 ? "שירות" : "שירותים"} בפרופיל הספק →`
+            : "לפרופיל הספק →"}
+        </a>
+        {seekerLoggedIn && (
+          <a
+            href={`/messages?serviceId=${service.id}`}
+            className="inline-flex items-center gap-2 rounded-full bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            הודעה לספק
+          </a>
+        )}
+      </section>
 
       <section id="service-request" className="site-card-padded text-right">
         <div className="border-b border-neutral-200 pb-3">

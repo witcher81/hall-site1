@@ -1,7 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { prisma } from "@/lib/prisma";
-import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -48,7 +47,6 @@ export default async function ServiceEditPage({
           serviceArea: service.serviceArea ?? "",
           experienceYears: service.experienceYears ?? "",
           languages: service.languages ?? "",
-          socialLinks: parseSocialLinksJson(service.socialLinksJson),
           includesTravel: service.includesTravel,
           includesEquipment: service.includesEquipment,
           includesNote: service.includesNote ?? null,
