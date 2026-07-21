@@ -64,6 +64,12 @@ export type CatalogTemplate = {
   packageDescriptionPlaceholder?: string;
   /** placeholder לשם חבילה — מ-SECONDARY_CATALOG_HINTS */
   packageNamePlaceholder?: string;
+  /** תווית כרטיס חבילה — למשל «חבילה» → «חבילה 1» */
+  packageCardNoun?: string;
+  /** פירוט קצר ליד מספר החבילה */
+  packageCardDetail?: string;
+  /** כפתור הסרת חבילה */
+  packageRemoveLabel?: string;
   itemPricingModes: Array<
     "included" | "per_guest" | "per_guest_range" | "fixed" | "per_unit" | "per_hour"
   >;
@@ -73,23 +79,26 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
   food: {
     id: "food",
     editorTitle: "מחיר ותפריט קייטרינג",
-    editorHint: "לכל שורת מחיר: שם + מחיר + המנות של התפריט הזה. תוספות בתשלום — למטה (אופציונלי).",
+    editorHint: "לכל תפריט: שם + מחיר לאורח + המנות שכלולות. תוספות בתשלום — למטה (אופציונלי).",
     capacityTitle: "קיבולת אורחים",
     capacityHint: "טווח האורחים שאתם יכולים להכין ולשרת באירוע.",
     minCapacityLabel: "מינימום אורחים *",
     maxCapacityLabel: "מקסימום אורחים *",
     packagesTitle: "מחיר לאורח",
-    packagesHint: "לכל קבוצה (מבוגרים / ילדים…): שם, מחיר לאורח, ורשימת המנות שכלולות במחיר.",
+    packagesHint: "לכל תפריט (מבוגרים / ילדים…): שם, מחיר לאורח, והמנות שכלולות במחיר.",
     packagePriceLabel: "מחיר לאורח (₪)",
     packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח לאורח",
     packageNamePlaceholder: "למשל: תפריט מבוגרים",
     packagesStepLabel: "מחיר + מנות לכל קבוצה",
     catalogStepLabel: "תוספות בתשלום (אופציונלי)",
-    packageNameFieldLabel: "שם",
+    packageNameFieldLabel: "שם התפריט",
     packageDescriptionFieldLabel: "הערות (אופציונלי)",
     packageDescriptionPlaceholder: "למשל: הגשה כלולה",
+    packageCardNoun: "תפריט",
+    packageCardDetail: "שם, מחיר לאורח ומנות",
+    packageRemoveLabel: "הסר תפריט",
     catalogTitle: "תוספות בתשלום",
-    catalogHint: "רק מנות או שירותים בתוספת מחיר (לא הכלולים בחבילה למעלה). לדוגמה: סטייק +₪30 לאורח.",
+    catalogHint: "רק מנות או שירותים בתוספת מחיר (לא הכלולים בתפריט למעלה). לדוגמה: סטייק +₪30 לאורח.",
     catalogSectionPlaceholder: "למשל: שדרוגים, שתייה",
     catalogItemPlaceholder: "למשל: סטייק בתוספת",
     notesLabel: "הערות לתפריט (כשרות, אלרגנים)",
@@ -106,7 +115,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requireQuantityInquiry: false,
     showPackageIncludedItems: true,
     packageIncludedTitle: "מנות בתפריט הזה",
-    packageIncludedHint: "מה כלול במחיר של השורה הזו.",
+    packageIncludedHint: "מה כלול במחיר של התפריט הזה.",
     packageIncludedItemPlaceholder: "למשל: סלט ירוק",
     packageIncludedAddLabel: "+ הוסף מנה",
     itemPricingModes: ["included", "per_guest", "per_guest_range", "fixed", "per_unit"],
@@ -129,6 +138,9 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     packageNameFieldLabel: "שם החבילה / השירות",
     packageDescriptionFieldLabel: "הערות (אופציונלי)",
     packageDescriptionPlaceholder: "למשל: כולל ברמן וכוסות",
+    packageCardNoun: "חבילה",
+    packageCardDetail: "שם, מחיר ומשקאות",
+    packageRemoveLabel: "הסר חבילה",
     catalogTitle: "תוספות בתשלום",
     catalogHint: "רק משקאות או שירותים בתוספת מחיר מעבר לחבילה.",
     catalogSectionPlaceholder: "למשל: פרימיום, בקבוקים",
@@ -153,25 +165,29 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
   },
   food_station: {
     id: "food_station",
-    editorTitle: "עמדת מזון ומחירים",
-    editorHint: "לכל תחנה/עוגה: מחיר + הטעמים או המנות שכלולים. תוספות — למטה (אופציונלי).",
+    editorTitle: "עמדת מזון — חבילות ומחיר",
+    editorHint:
+      "לכל חבילת עמדה: שם ברור + מחיר לאירוע + מה כלול במחיר (טעמים, מנות או סוגי מוצר). תוספות בתשלום — למטה (אופציונלי).",
     capacityTitle: "קיבולת אורחים",
     capacityHint: "לאיזה גודל אירוע העמדה מתאימה — לא המחיר עצמו.",
     minCapacityLabel: "מינימום אורחים *",
     maxCapacityLabel: "מקסימום אורחים *",
-    packagesTitle: "מחיר השירות",
-    packagesHint: "לכל שורה: שם, מחיר, ורשימת טעמים/מנות שכלולים.",
-    packagePriceLabel: "מחיר לשירות (₪)",
+    packagesTitle: "חבילות העמדה",
+    packagesHint: "לכל חבילה: שם (למשל «עמדה 3 שעות»), מחיר לאירוע, ומה כלול במחיר.",
+    packagePriceLabel: "מחיר לחבילה (₪)",
     packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח",
     packageNamePlaceholder: "למשל: עמדה 3 שעות",
-    packagesStepLabel: "מחיר + טעמים/מנות",
+    packagesStepLabel: "מחיר + מה כלול בחבילה",
     catalogStepLabel: "תוספות בתשלום (אופציונלי)",
-    packageNameFieldLabel: "שם החבילה / השירות",
+    packageNameFieldLabel: "שם החבילה",
     packageDescriptionFieldLabel: "הערות (אופציונלי)",
     packageDescriptionPlaceholder: "למשל: כולל מפעיל וכלים",
+    packageCardNoun: "חבילה",
+    packageCardDetail: "שם, מחיר ומה כלול",
+    packageRemoveLabel: "הסר חבילה",
     catalogTitle: "תוספות בתשלום",
-    catalogHint: "רק תוספות בתשלום מעבר למה שרשמתם בחבילה.",
-    catalogSectionPlaceholder: "למשל: תוספות",
+    catalogHint: "רק תוספות בתשלום מעבר למה שרשמתם בחבילה למעלה.",
+    catalogSectionPlaceholder: "למשל: תוספות בתשלום",
     catalogItemPlaceholder: "למשל: תוספת Nutella",
     notesLabel: "הערות (כשרות, אלרגנים)",
     notesPlaceholder: "למשל: חלבי/בשרי, ללא גלוטן בתיאום",
@@ -185,10 +201,10 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requirePersonCountInquiry: false,
     requireQuantityInquiry: false,
     showPackageIncludedItems: true,
-    packageIncludedTitle: "טעמים / מנות",
-    packageIncludedHint: "מה כלול במחיר של השורה הזו.",
+    packageIncludedTitle: "מה כלול בחבילה",
+    packageIncludedHint: "טעמים, מנות או סוגי מוצר שכלולים במחיר החבילה הזו.",
     packageIncludedItemPlaceholder: "למשל: וניל",
-    packageIncludedAddLabel: "+ הוסף טעם / מנה",
+    packageIncludedAddLabel: "+ הוסף פריט כלול",
     itemPricingModes: ["included", "fixed", "per_unit", "per_guest"],
   },
   registration: {
@@ -222,7 +238,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requireQuantityInquiry: false,
     showPackageIncludedItems: true,
     packageIncludedTitle: "מה כלול בשירות",
-    packageIncludedHint: "מה כלול במחיר של השורה הזו.",
+    packageIncludedHint: "מה כלול במחיר של החבילה הזו.",
     packageIncludedItemPlaceholder: "למשל: מערכת RSVP",
     packageIncludedAddLabel: "+ הוסף פריט כלול",
     catalogOptional: true,
@@ -258,7 +274,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requireQuantityInquiry: false,
     showPackageIncludedItems: true,
     packageIncludedTitle: "מה כלול בצוות",
-    packageIncludedHint: "מה כלול במחיר של השורה הזו.",
+    packageIncludedHint: "מה כלול במחיר של החבילה הזו.",
     packageIncludedItemPlaceholder: "למשל: מדים, מינימום 4 שעות",
     packageIncludedAddLabel: "+ הוסף פריט כלול",
     catalogOptional: true,
@@ -273,7 +289,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     minCapacityLabel: "מינימום אנשים *",
     maxCapacityLabel: "מקסימום אנשים *",
     packagesTitle: "סוגי שירות ומחירים",
-    packagesHint: "שורה לכל סוג — שם, מחיר, ומה כלול בשירות.",
+    packagesHint: "חבילה לכל סוג שירות — שם, מחיר, ומה כלול.",
     packagePriceLabel: "מחיר (₪)",
     packagePriceExpandLabel: "אין מחיר קבוע — הציגו טווח",
     packagesStepLabel: "מחיר + מה כלול",
@@ -295,7 +311,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     catalogOptional: true,
     showPackageIncludedItems: true,
     packageIncludedTitle: "מה כלול בשירות",
-    packageIncludedHint: "מה כלול במחיר של השורה הזו.",
+    packageIncludedHint: "מה כלול במחיר של החבילה הזו.",
     packageIncludedItemPlaceholder: "למשל: ניסיון איפור",
     packageIncludedAddLabel: "+ הוסף פריט כלול",
     itemPricingModes: ["included", "per_unit", "fixed"],
@@ -692,7 +708,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requireQuantityInquiry: false,
     showPackageIncludedItems: true,
     packageIncludedTitle: "מה כלול בנסיעה",
-    packageIncludedHint: "מה כלול במחיר של השורה הזו.",
+    packageIncludedHint: "מה כלול במחיר של החבילה הזו.",
     packageIncludedItemPlaceholder: "למשל: נהג, הלוך-חזור",
     packageIncludedAddLabel: "+ הוסף פריט כלול",
     catalogOptional: true,
@@ -729,7 +745,7 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requireQuantityInquiry: false,
     showPackageIncludedItems: true,
     packageIncludedTitle: "מה כלול בשירות",
-    packageIncludedHint: "מה כלול במחיר של השורה הזו.",
+    packageIncludedHint: "מה כלול במחיר של החבילה הזו.",
     packageIncludedItemPlaceholder: "למשל: בימה, הקלטה",
     packageIncludedAddLabel: "+ הוסף פריט כלול",
     catalogOptional: true,
@@ -873,6 +889,13 @@ export function applySecondaryCatalogHints(
       : {}),
     ...(hints.packageIncludedAddLabel
       ? { packageIncludedAddLabel: hints.packageIncludedAddLabel }
+      : {}),
+    ...(hints.packageCardNoun ? { packageCardNoun: hints.packageCardNoun } : {}),
+    ...(hints.packageCardDetail
+      ? { packageCardDetail: hints.packageCardDetail }
+      : {}),
+    ...(hints.packageRemoveLabel
+      ? { packageRemoveLabel: hints.packageRemoveLabel }
       : {}),
     ...(typeof hints.showPackageDuration === "boolean"
       ? { showPackageDuration: hints.showPackageDuration }

@@ -305,10 +305,10 @@ export default function ServiceCatalogEditor({
               className="rounded-lg border border-amber-200/80 bg-white/85 p-3"
             >
               <p className="mb-2 text-[10px] font-medium text-neutral-500">
-                שורה {index + 1}
+                {template.packageCardNoun ?? "חבילה"} {index + 1}
                 {showPackageIncludedMenu
-                  ? " — שם, מחיר ומה כלול"
-                  : " — שם + מחיר"}
+                  ? ` — ${template.packageCardDetail ?? "שם, מחיר ומה כלול"}`
+                  : ` — ${template.packageCardDetail ?? "שם + מחיר"}`}
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <CatalogFieldHelp
@@ -434,7 +434,7 @@ export default function ServiceCatalogEditor({
                       updatePackage(index, { description: e.target.value })
                     }
                     placeholder={
-                      template.packageDescriptionPlaceholder ?? "מה כלול בשורה הזו?"
+                      template.packageDescriptionPlaceholder ?? "הערות לחבילה (אופציונלי)"
                     }
                     className={textarea}
                   />
@@ -457,7 +457,7 @@ export default function ServiceCatalogEditor({
                   </p>
                   <p className="mt-0.5 text-[10px] text-neutral-500">
                     {template.packageIncludedHint ??
-                      "רק מה שכלול במחיר השורה הזו"}
+                      "רק מה שכלול במחיר החבילה הזו"}
                   </p>
                   <ul className="mt-2 space-y-1.5">
                     {(pkg.includedItems ?? []).map((item, itemIndex) => (
@@ -509,7 +509,7 @@ export default function ServiceCatalogEditor({
                   }
                   className="rounded-full border border-red-200 bg-white px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
                 >
-                  הסר שורה
+                  {template.packageRemoveLabel ?? "הסר חבילה"}
                 </button>
               </div>
             </li>
@@ -530,7 +530,7 @@ export default function ServiceCatalogEditor({
           }}
           className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:opacity-50"
         >
-          + {fieldHelp.addPackageButton ?? "הוסף שורת מחיר"} ({value.packages.length})
+          + {fieldHelp.addPackageButton ?? "עוד חבילה"} ({value.packages.length})
         </button>
       </div>
 
