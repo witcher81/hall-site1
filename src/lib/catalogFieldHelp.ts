@@ -97,15 +97,16 @@ const BY_TEMPLATE: Record<CatalogTemplateId, CatalogFieldHelpSet> = {
   },
   food_station: {
     ...FIXED_SERVICE,
-    packagesSectionTitle: "מה זה «חבילות העמדה»?",
+    packagesSectionTitle: "מה זה «מה מוכרים, לכמה זמן, וכמה עולה»?",
     packagesSectionBody:
-      "כל חבילה = שם ברור + מחיר לאירוע + מה כלול במחיר (טעמים / מנות / סוגי מוצר). למשל: «עמדת קרפים 3 שעות».",
+      "שלושה שדות פשוטים: מה אתם מוכרים (למשל עמדת גלידה), לכמה שעות, ומה המחיר. אל תכתבו שעות בשם — יש שדה נפרד.",
     catalogSectionTitle: "מה זה «תוספות בתשלום»?",
     catalogSectionBody:
-      "רק דברים בתוספת מחיר מעבר לחבילה — למשל תוספת Nutella. מה שכלול במחיר נרשם בתוך החבילה למעלה.",
-    packageName: "שם החבילה — למשל: «עמדת קרפים 3 שעות», «עוגה 50 מנות».",
-    packagePrice: "מחיר קבוע לחבילה / לערב.",
-    addPackageButton: "עוד חבילה",
+      "רק דברים בתוספת מחיר. מה שכלול במחיר נרשם בתוך האפשרות למעלה.",
+    packageName: "מה אתם מוכרים — בלי לציין שעות. למשל: «עמדת גלידה».",
+    packagePrice: "כמה זה עולה לאירוע / לאפשרות הזו.",
+    packageDuration: "כמה שעות העמדה פועלת — נפרד מהשם.",
+    addPackageButton: "עוד אפשרות מחיר",
     sectionTitle: "קבוצת תוספות בתשלום.",
     itemName: "שם התוספת בתשלום.",
   },

@@ -400,7 +400,7 @@ export default function ServiceCatalogEditor({
               </div>
               {template.showPackageDuration ? (
                 <CatalogFieldHelp
-                  label="משך (שעות)"
+                  label={template.packageDurationLabel ?? "לכמה זמן (שעות)"}
                   help={fieldHelp.packageDuration}
                   className="mt-2"
                 >
@@ -414,7 +414,9 @@ export default function ServiceCatalogEditor({
                       })
                     }
                     className={`${input} max-w-[8rem]`}
-                    placeholder="אופציונלי"
+                    placeholder={
+                      template.packageDurationPlaceholder ?? "למשל: 3"
+                    }
                   />
                 </CatalogFieldHelp>
               ) : null}

@@ -64,6 +64,10 @@ export type CatalogTemplate = {
   packageDescriptionPlaceholder?: string;
   /** placeholder לשם חבילה — מ-SECONDARY_CATALOG_HINTS */
   packageNamePlaceholder?: string;
+  /** תווית שדה משך (שעות) */
+  packageDurationLabel?: string;
+  /** placeholder לשדה משך */
+  packageDurationPlaceholder?: string;
   /** תווית כרטיס חבילה — למשל «חבילה» → «חבילה 1» */
   packageCardNoun?: string;
   /** פירוט קצר ליד מספר החבילה */
@@ -165,28 +169,31 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
   },
   food_station: {
     id: "food_station",
-    editorTitle: "עמדת מזון — חבילות ומחיר",
+    editorTitle: "מחיר העמדה",
     editorHint:
-      "לכל חבילת עמדה: שם ברור + מחיר לאירוע + מה כלול במחיר (טעמים, מנות או סוגי מוצר). תוספות בתשלום — למטה (אופציונלי).",
-    capacityTitle: "קיבולת אורחים",
-    capacityHint: "לאיזה גודל אירוע העמדה מתאימה — לא המחיר עצמו.",
+      "בפשטות: מה אתם מוכרים, לכמה שעות, וכמה זה עולה. מתחת — מה כלול במחיר (טעמים / מנות). תוספות בתשלום — בסוף, אופציונלי.",
+    capacityTitle: "לכמה אורחים זה מתאים",
+    capacityHint: "טווח גודל האירוע שהעמדה מתאימה לו — לא המחיר.",
     minCapacityLabel: "מינימום אורחים *",
     maxCapacityLabel: "מקסימום אורחים *",
-    packagesTitle: "חבילות העמדה",
-    packagesHint: "לכל חבילה: שם (למשל «עמדה 3 שעות»), מחיר לאירוע, ומה כלול במחיר.",
-    packagePriceLabel: "מחיר לחבילה (₪)",
+    packagesTitle: "מה מוכרים, לכמה זמן, וכמה עולה",
+    packagesHint:
+      "מלאו שלושה דברים: מה מוכרים · לכמה שעות · מה המחיר. אל תכתבו את השעות בשם — יש שדה נפרד לזה.",
+    packagePriceLabel: "מחיר (₪)",
     packagePriceExpandLabel: "אין מחיר קבוע — אציג טווח",
-    packageNamePlaceholder: "למשל: עמדה 3 שעות",
-    packagesStepLabel: "מחיר + מה כלול בחבילה",
+    packageNamePlaceholder: "למשל: עמדת גלידה",
+    packagesStepLabel: "מה מוכרים + מחיר + משך",
     catalogStepLabel: "תוספות בתשלום (אופציונלי)",
-    packageNameFieldLabel: "שם החבילה",
+    packageNameFieldLabel: "מה אתם מוכרים",
     packageDescriptionFieldLabel: "הערות (אופציונלי)",
     packageDescriptionPlaceholder: "למשל: כולל מפעיל וכלים",
-    packageCardNoun: "חבילה",
-    packageCardDetail: "שם, מחיר ומה כלול",
-    packageRemoveLabel: "הסר חבילה",
+    packageDurationLabel: "לכמה זמן (שעות)",
+    packageDurationPlaceholder: "למשל: 3",
+    packageCardNoun: "אפשרות",
+    packageCardDetail: "מה מוכרים, מחיר ומשך",
+    packageRemoveLabel: "הסר אפשרות",
     catalogTitle: "תוספות בתשלום",
-    catalogHint: "רק תוספות בתשלום מעבר למה שרשמתם בחבילה למעלה.",
+    catalogHint: "רק דברים בתוספת מחיר — מעבר למה שכלול למעלה.",
     catalogSectionPlaceholder: "למשל: תוספות בתשלום",
     catalogItemPlaceholder: "למשל: תוספת Nutella",
     notesLabel: "הערות (כשרות, אלרגנים)",
@@ -201,8 +208,8 @@ const TEMPLATES: Record<CatalogTemplateId, CatalogTemplate> = {
     requirePersonCountInquiry: false,
     requireQuantityInquiry: false,
     showPackageIncludedItems: true,
-    packageIncludedTitle: "מה כלול בחבילה",
-    packageIncludedHint: "טעמים, מנות או סוגי מוצר שכלולים במחיר החבילה הזו.",
+    packageIncludedTitle: "מה כלול במחיר",
+    packageIncludedHint: "טעמים / מנות שכלולים במחיר — בלי תוספת תשלום.",
     packageIncludedItemPlaceholder: "למשל: וניל",
     packageIncludedAddLabel: "+ הוסף פריט כלול",
     itemPricingModes: ["included", "fixed", "per_unit", "per_guest"],
@@ -896,6 +903,12 @@ export function applySecondaryCatalogHints(
       : {}),
     ...(hints.packageRemoveLabel
       ? { packageRemoveLabel: hints.packageRemoveLabel }
+      : {}),
+    ...(hints.packageDurationLabel
+      ? { packageDurationLabel: hints.packageDurationLabel }
+      : {}),
+    ...(hints.packageDurationPlaceholder
+      ? { packageDurationPlaceholder: hints.packageDurationPlaceholder }
       : {}),
     ...(typeof hints.showPackageDuration === "boolean"
       ? { showPackageDuration: hints.showPackageDuration }
