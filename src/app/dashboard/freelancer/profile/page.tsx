@@ -25,6 +25,8 @@ export default async function FreelancerProfilePage() {
       businessName: true,
       businessPhone: true,
       businessAddress: true,
+      businessBio: true,
+      profileImageUrl: true,
       socialLinksJson: true,
     },
   });
@@ -53,6 +55,8 @@ export default async function FreelancerProfilePage() {
             businessName: dbUser.businessName ?? "",
             businessPhone: dbUser.businessPhone ?? "",
             businessAddress: dbUser.businessAddress ?? "",
+            businessBio: dbUser.businessBio ?? "",
+            profileImageUrl: dbUser.profileImageUrl ?? "",
             socialLinks: parseSocialLinksJson(dbUser.socialLinksJson),
           }}
         />

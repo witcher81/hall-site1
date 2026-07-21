@@ -27,10 +27,14 @@ export default function FreelancerProfileForm({ email, mode, initial }: Props) {
     businessName: initial.businessName,
     businessPhone: initial.businessPhone,
     businessAddress: initial.businessAddress,
+    businessBio: initial.businessBio,
+    profileImageUrl: initial.profileImageUrl,
   });
   const [socialRows, setSocialRows] = useState<SocialLink[]>(
     initial.socialLinks.length > 0 ? initial.socialLinks : []
   );
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [clearProfileImage, setClearProfileImage] = useState(false);
   const hasInvalidPhone =
     (form.phone.trim().length > 0 && !isValidIsraeliPhone(form.phone)) ||
     (form.businessPhone.trim().length > 0 &&
@@ -55,17 +59,20 @@ export default function FreelancerProfileForm({ email, mode, initial }: Props) {
     setError(null);
     try {
       const socialLinks = socialRows.filter((l) => l.url.trim());
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("phone", form.phone);
+      fd.append("businessName", form.businessName);
+      fd.append("businessPhone", form.businessPhone);
+      fd.append("businessAddress", form.businessAddress);
+      fd.append("businessBio", form.businessBio);
+      fd.append("socialLinks", JSON.stringify(socialLinks));
+      if (clearProfileImage) fd.append("clearProfileImage", "1");
+      if (profileImageFile) fd.append("profileImage", profileImageFile);
+
       const res = await fetch("/api/freelancer/profile", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name,
-          phone: form.phone || undefined,
-          businessName: form.businessName || undefined,
-          businessPhone: form.businessPhone || undefined,
-          businessAddress: form.businessAddress || undefined,
-          socialLinks,
-        }),
+        body: fd,
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -91,6 +98,10 @@ export default function FreelancerProfileForm({ email, mode, initial }: Props) {
         onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
         socialLinks={socialRows}
         onSocialLinksChange={setSocialRows}
+        profileImageFile={profileImageFile}
+        onProfileImageFileChange={setProfileImageFile}
+        clearProfileImage={clearProfileImage}
+        onClearProfileImageChange={setClearProfileImage}
       />
 
       {error ? (
@@ -119,7 +130,7 @@ export default function FreelancerProfileForm({ email, mode, initial }: Props) {
         </button>
         <a
           href="/dashboard/freelancer"
-          className="rounded-full border border-neutral-300 bg-white px-6 py-2.5 text-center text-sm font-semibold text-emerald-950 hover:bg-neutral-50"
+          className="inline-flex items-center justify-center rounded-full border border-neutral-200 bg-white px-6 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
         >
           {copy.cancelLabel}
         </a>

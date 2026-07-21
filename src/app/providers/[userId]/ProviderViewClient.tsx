@@ -16,6 +16,8 @@ type Provider = {
   businessName: string | null;
   businessPhone: string | null;
   businessAddress: string | null;
+  businessBio: string | null;
+  profileImageUrl: string | null;
   socialLinks: SocialLink[];
 };
 
@@ -43,14 +45,59 @@ export default function ProviderViewClient({
     recordProviderRecentlyViewed(provider.id);
   }, [provider.id]);
 
+  const displayName = provider.businessName || provider.name || "ספק";
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-end gap-2">
-        <ShareButton
-          sharePath={`/providers/${provider.id}`}
-          title={provider.businessName || provider.name || "ספק"}
-        />
+      <div className="site-card-padded text-right">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-1 items-start gap-4">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-neutral-50 sm:h-24 sm:w-24">
+              {provider.profileImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={provider.profileImageUrl}
+                  alt={displayName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl text-neutral-400" aria-hidden>
+                  ✦
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              {provider.businessBio ? (
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
+                  {provider.businessBio}
+                </p>
+              ) : (
+                <p className="text-sm text-neutral-600">
+                  ספק שירותים לאירועים ב־Halls Hub.
+                </p>
+              )}
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">
+                {provider.businessAddress ? (
+                  <span>אזור: {provider.businessAddress}</span>
+                ) : null}
+                {provider.businessPhone ? (
+                  <a
+                    href={`tel:${provider.businessPhone}`}
+                    className="font-semibold text-emerald-950 underline decoration-amber-400/50"
+                  >
+                    {provider.businessPhone}
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          <ShareButton
+            sharePath={`/providers/${provider.id}`}
+            title={displayName}
+          />
+        </div>
       </div>
+
       {provider.socialLinks.length > 0 && (
         <div className="site-card-padded">
           <p className="mb-2 text-right text-xs font-medium text-neutral-600">
@@ -84,13 +131,14 @@ export default function ProviderViewClient({
                     href={`/services/${s.id}`}
                     className="site-card flex h-full flex-col overflow-hidden transition hover:border-amber-400/50 hover:shadow-lg"
                   >
-                    {s.coverImageUrl && (
+                    {s.coverImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={s.coverImageUrl}
                         alt={s.name}
                         className="h-32 w-full object-cover"
                       />
-                    )}
+                    ) : null}
                     <div className="p-4 text-right">
                       <p className="font-semibold text-neutral-900">{s.name}</p>
                       {s.category && (

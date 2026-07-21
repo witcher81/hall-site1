@@ -22,6 +22,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       name: true,
       businessName: true,
       businessAddress: true,
+      businessBio: true,
+      profileImageUrl: true,
       services: {
         where: approvedListingWhere(),
         select: { category: true, coverImageUrl: true, name: true },
@@ -46,16 +48,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     : displayName;
   const description = truncateMeta(
     [
-      `ספק אירועים ב־Halls Hub`,
+      provider.businessBio,
       categories.length ? `שירותים: ${categories.slice(0, 3).join(", ")}.` : null,
       provider.businessAddress ? `אזור: ${provider.businessAddress}.` : null,
+      `ספק אירועים ב־Halls Hub`,
     ]
       .filter(Boolean)
       .join(" "),
     160
   );
   const ogUrl = absoluteImageUrl(
-    provider.services.find((s) => s.coverImageUrl)?.coverImageUrl
+    provider.profileImageUrl ||
+      provider.services.find((s) => s.coverImageUrl)?.coverImageUrl
   );
 
   return {
@@ -106,6 +110,8 @@ export default async function ProviderPage({ params }: PageProps) {
       businessName: true,
       businessPhone: true,
       businessAddress: true,
+      businessBio: true,
+      profileImageUrl: true,
       socialLinksJson: true,
     },
   });
@@ -151,6 +157,8 @@ export default async function ProviderPage({ params }: PageProps) {
           businessName: provider.businessName,
           businessPhone: provider.businessPhone,
           businessAddress: provider.businessAddress,
+          businessBio: provider.businessBio,
+          profileImageUrl: provider.profileImageUrl,
           socialLinks: parseSocialLinksJson(provider.socialLinksJson),
         }}
         services={services.map((s) => ({

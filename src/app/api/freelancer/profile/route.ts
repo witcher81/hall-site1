@@ -4,12 +4,49 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { isValidIsraeliPhone, normalizePhoneInput } from "@/lib/phone";
 import { assertPersonalPhoneAvailable } from "@/lib/phoneUnique";
+import { saveProfileImageFile } from "@/lib/profileImageUpload";
 import {
   parseSocialLinksJson,
   sanitizeSocialLinksFromClient,
   serializeSocialLinks,
 } from "@/lib/socialLinks";
-import { USER_INPUT_MAX, validateOptionalShortText } from "@/lib/userInputValidation";
+import {
+  USER_INPUT_MAX,
+  validateOptionalShortText,
+  validateUploadedImageFile,
+} from "@/lib/userInputValidation";
+
+const BIO_MAX = 800;
+
+const profileSelect = {
+  name: true,
+  email: true,
+  phone: true,
+  businessName: true,
+  businessPhone: true,
+  businessAddress: true,
+  businessBio: true,
+  profileImageUrl: true,
+  socialLinksJson: true,
+} as const;
+
+function jsonUser(dbUser: {
+  socialLinksJson: string | null;
+  name: string | null;
+  email: string;
+  phone: string | null;
+  businessName: string | null;
+  businessPhone: string | null;
+  businessAddress: string | null;
+  businessBio: string | null;
+  profileImageUrl: string | null;
+}) {
+  const { socialLinksJson, ...rest } = dbUser;
+  return {
+    ...rest,
+    socialLinks: parseSocialLinksJson(socialLinksJson),
+  };
+}
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -22,28 +59,67 @@ export async function GET() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: {
-      name: true,
-      email: true,
-      phone: true,
-      businessName: true,
-      businessPhone: true,
-      businessAddress: true,
-      socialLinksJson: true,
-    },
+    select: profileSelect,
   });
 
   if (!dbUser) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const { socialLinksJson, ...rest } = dbUser;
-  return NextResponse.json({
-    user: {
-      ...rest,
-      socialLinks: parseSocialLinksJson(socialLinksJson),
-    },
-  });
+  return NextResponse.json({ user: jsonUser(dbUser) });
+}
+
+async function parseProfileBody(req: NextRequest): Promise<{
+  name?: string;
+  phone?: string;
+  businessName?: string;
+  businessPhone?: string;
+  businessAddress?: string;
+  businessBio?: string;
+  socialLinks?: unknown;
+  profileImageFile: File | null;
+  clearProfileImage: boolean;
+}> {
+  const contentType = req.headers.get("content-type") || "";
+  if (contentType.includes("multipart/form-data")) {
+    const fd = await req.formData();
+    const socialRaw = fd.get("socialLinks");
+    let socialLinks: unknown = undefined;
+    if (typeof socialRaw === "string" && socialRaw.trim()) {
+      try {
+        socialLinks = JSON.parse(socialRaw);
+      } catch {
+        socialLinks = [];
+      }
+    }
+    const fileEntry = fd.get("profileImage");
+    const profileImageFile =
+      fileEntry instanceof File && fileEntry.size > 0 ? fileEntry : null;
+    return {
+      name: String(fd.get("name") ?? ""),
+      phone: String(fd.get("phone") ?? ""),
+      businessName: String(fd.get("businessName") ?? ""),
+      businessPhone: String(fd.get("businessPhone") ?? ""),
+      businessAddress: String(fd.get("businessAddress") ?? ""),
+      businessBio: String(fd.get("businessBio") ?? ""),
+      socialLinks,
+      profileImageFile,
+      clearProfileImage: fd.get("clearProfileImage") === "1",
+    };
+  }
+
+  const body = await req.json();
+  return {
+    name: body.name,
+    phone: body.phone,
+    businessName: body.businessName,
+    businessPhone: body.businessPhone,
+    businessAddress: body.businessAddress,
+    businessBio: body.businessBio,
+    socialLinks: body.socialLinks,
+    profileImageFile: null,
+    clearProfileImage: body.clearProfileImage === true,
+  };
 }
 
 export async function PUT(req: NextRequest) {
@@ -55,22 +131,17 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json();
   const {
     name,
     phone,
     businessName,
     businessPhone,
     businessAddress,
+    businessBio,
     socialLinks,
-  } = body as {
-    name?: string;
-    phone?: string;
-    businessName?: string;
-    businessPhone?: string;
-    businessAddress?: string;
-    socialLinks?: unknown;
-  };
+    profileImageFile,
+    clearProfileImage,
+  } = await parseProfileBody(req);
 
   const validateOptionalPhone = (
     val: string | undefined,
@@ -113,6 +184,17 @@ export async function PUT(req: NextRequest) {
   if (!addrRes.ok) {
     return NextResponse.json({ error: addrRes.error }, { status: 400 });
   }
+  const bioRes = validateOptionalShortText(businessBio, BIO_MAX, "תיאור העסק");
+  if (!bioRes.ok) {
+    return NextResponse.json({ error: bioRes.error }, { status: 400 });
+  }
+
+  if (profileImageFile) {
+    const imgErr = validateUploadedImageFile(profileImageFile);
+    if (imgErr) {
+      return NextResponse.json({ error: imgErr }, { status: 400 });
+    }
+  }
 
   const socialLinksProvided = socialLinks !== undefined;
   const cleanedSocial = socialLinksProvided
@@ -129,6 +211,23 @@ export async function PUT(req: NextRequest) {
     }
   }
 
+  let nextProfileImageUrl: string | null | undefined = undefined;
+  if (clearProfileImage && !profileImageFile) {
+    nextProfileImageUrl = null;
+  } else if (profileImageFile) {
+    const saved = await saveProfileImageFile(
+      profileImageFile,
+      `user-${user.id}`
+    );
+    if (!saved) {
+      return NextResponse.json(
+        { error: "העלאת התמונה נכשלה" },
+        { status: 500 }
+      );
+    }
+    nextProfileImageUrl = saved;
+  }
+
   let updated;
   try {
     updated = await prisma.user.update({
@@ -139,19 +238,15 @@ export async function PUT(req: NextRequest) {
         businessName: bizNameRes.value,
         businessPhone: businessPhoneResult.value,
         businessAddress: addrRes.value,
+        businessBio: bioRes.value,
+        ...(nextProfileImageUrl !== undefined
+          ? { profileImageUrl: nextProfileImageUrl }
+          : {}),
         ...(socialLinksProvided
           ? { socialLinksJson: serializeSocialLinks(cleanedSocial ?? []) }
           : {}),
       },
-      select: {
-        name: true,
-        email: true,
-        phone: true,
-        businessName: true,
-        businessPhone: true,
-        businessAddress: true,
-        socialLinksJson: true,
-      },
+      select: profileSelect,
     });
   } catch (e) {
     if (
@@ -169,11 +264,5 @@ export async function PUT(req: NextRequest) {
     throw e;
   }
 
-  const { socialLinksJson: sj, ...rest } = updated;
-  return NextResponse.json({
-    user: {
-      ...rest,
-      socialLinks: parseSocialLinksJson(sj),
-    },
-  });
+  return NextResponse.json({ user: jsonUser(updated) });
 }

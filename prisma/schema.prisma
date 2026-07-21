@@ -31,6 +31,10 @@ model User {
   businessName    String?
   businessPhone   String?
   businessAddress String?
+  /// תמונת פרופיל / לוגו (בעיקר לספקי שירותים)
+  profileImageUrl String?
+  /// תיאור קצר על העסק / הספק — מוצג בעמוד הציבורי
+  businessBio     String?
   /// JSON: מערך { platform, url } לרשתות חברתיות (פרילנסרים)
   socialLinksJson String?
   venues        Venue[]

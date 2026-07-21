@@ -6,6 +6,8 @@ export type BusinessProfileValues = {
   businessName: string;
   businessPhone: string;
   businessAddress: string;
+  businessBio: string;
+  profileImageUrl: string;
 };
 
 export function isVenueOwnerBusinessProfileIncomplete(user: {
@@ -76,7 +78,13 @@ export function getBusinessProfilePageCopy(
 
 export const BUSINESS_PROFILE_PUBLIC_HINTS: Record<
   BusinessProfileRole,
-  { businessName: string; businessPhone: string; businessAddress: string }
+  {
+    businessName: string;
+    businessPhone: string;
+    businessAddress: string;
+    businessBio: string;
+    profileImage: string;
+  }
 > = {
   "venue-owner": {
     businessName: "שם המותג / העסק — מזהה אתכם מול מחפשים (לכל אולם יש כתובת משלו).",
@@ -84,6 +92,8 @@ export const BUSINESS_PROFILE_PUBLIC_HINTS: Record<
       "מספר שיוצג בדף האולם ובפניות. אם לא מולא — יוצג הטלפון האישי.",
     businessAddress:
       "כתובת כללית של העסק (עיר/אזור). לא מחליפה את כתובת כל אולם.",
+    businessBio: "תיאור קצר על העסק — אופציונלי.",
+    profileImage: "לוגו או תמונה של העסק — אופציונלי.",
   },
   freelancer: {
     businessName:
@@ -92,5 +102,9 @@ export const BUSINESS_PROFILE_PUBLIC_HINTS: Record<
       "טלפון ליצירת קשר מעמוד השירות. מומלץ קו נפרד אם יש.",
     businessAddress:
       "אזור שירות או עיר — מופיע בראש עמוד הספק הציבורי.",
+    businessBio:
+      "2–4 משפטים על מי אתם, מה מציעים, ולמי מתאים — מופיע בראש עמוד הספק.",
+    profileImage:
+      "תמונת פרופיל או לוגו — מוצגת בעמוד הספק ובחיפוש. JPEG/PNG/WebP עד 5MB.",
   },
 };

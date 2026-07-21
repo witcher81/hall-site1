@@ -51,6 +51,8 @@ export default async function VenueOwnerProfilePage() {
             businessName: dbUser.businessName ?? "",
             businessPhone: dbUser.businessPhone ?? "",
             businessAddress: dbUser.businessAddress ?? "",
+            businessBio: "",
+            profileImageUrl: "",
           }}
         />
       </DashboardMain>

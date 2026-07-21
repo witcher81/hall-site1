@@ -9,6 +9,7 @@ import {
 } from "@/lib/businessProfile";
 import { isValidIsraeliPhone, normalizePhoneInput } from "@/lib/phone";
 import type { SocialLink } from "@/lib/socialLinks";
+import { useId, useRef, useState } from "react";
 
 type Props = {
   role: BusinessProfileRole;
@@ -18,6 +19,11 @@ type Props = {
   onChange: (patch: Partial<BusinessProfileValues>) => void;
   socialLinks?: SocialLink[];
   onSocialLinksChange?: (links: SocialLink[]) => void;
+  /** קובץ תמונת פרופיל שנבחר (עדיין לא הועלה) */
+  profileImageFile?: File | null;
+  onProfileImageFileChange?: (file: File | null) => void;
+  clearProfileImage?: boolean;
+  onClearProfileImageChange?: (clear: boolean) => void;
 };
 
 const input =
@@ -47,11 +53,35 @@ export default function BusinessProfileFields({
   onChange,
   socialLinks,
   onSocialLinksChange,
+  profileImageFile,
+  onProfileImageFileChange,
+  clearProfileImage,
+  onClearProfileImageChange,
 }: Props) {
   const hints = BUSINESS_PROFILE_PUBLIC_HINTS[role];
   const isOnboarding = mode === "onboarding";
   const businessNameLabel =
     role === "venue-owner" ? "שם העסק / המותג" : "שם העסק / המותג (שם הספק)";
+  const bioId = useId();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const displayImage =
+    previewUrl ||
+    (!clearProfileImage && values.profileImageUrl
+      ? values.profileImageUrl
+      : null);
+
+  function handleFilePick(file: File | null) {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (file) {
+      setPreviewUrl(URL.createObjectURL(file));
+      onClearProfileImageChange?.(false);
+    } else {
+      setPreviewUrl(null);
+    }
+    onProfileImageFileChange?.(file);
+  }
 
   return (
     <div className="space-y-5 text-right">
@@ -62,8 +92,11 @@ export default function BusinessProfileFields({
         </p>
 
         <div>
-          <label className={labelClass}>אימייל (התחברות)</label>
+          <label htmlFor="biz-email" className={labelClass}>
+            אימייל (התחברות)
+          </label>
           <input
+            id="biz-email"
             type="email"
             value={email}
             readOnly
@@ -73,8 +106,11 @@ export default function BusinessProfileFields({
         </div>
 
         <div>
-          <label className={labelClass}>שם איש קשר</label>
+          <label htmlFor="biz-contact-name" className={labelClass}>
+            שם איש קשר
+          </label>
           <input
+            id="biz-contact-name"
             type="text"
             value={values.name}
             onChange={(e) => onChange({ name: e.target.value })}
@@ -100,6 +136,9 @@ export default function BusinessProfileFields({
             בחרו קידומת והזינו 7 ספרות (סה״כ 10 ספרות כולל 0). משמש גיבוי ליצירת
             קשר אם לא הוזן טלפון עסקי.
           </p>
+          {values.phone.trim() && !isValidIsraeliPhone(values.phone) ? (
+            <p className="mt-1 text-xs text-red-700">מספר לא תקין</p>
+          ) : null}
         </div>
       </section>
 
@@ -113,18 +152,79 @@ export default function BusinessProfileFields({
             </>
           ) : (
             <>
-              שם המותג מופיע בחיפוש ובכרטיסי שירות. טלפון, כתובת ורשתות חברתיות
-              מוצגים בעמוד הספק ובשירותים.
+              שם המותג, תמונת פרופיל ותיאור קצר מופיעים בעמוד הספק. טלפון, כתובת
+              ורשתות חברתיות מוצגים גם שם ובשירותים.
             </>
           )}
         </div>
 
+        {role === "freelancer" && onProfileImageFileChange ? (
+          <div>
+            <p className={labelClass}>תמונת פרופיל / לוגו</p>
+            <div className="mt-2 flex flex-wrap items-center gap-4">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-neutral-50">
+                {displayImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={displayImage}
+                    alt="תצוגה מקדימה של תמונת הפרופיל"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl text-neutral-400" aria-hidden>
+                    ✦
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] ?? null;
+                    handleFilePick(f);
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 hover:bg-neutral-50"
+                >
+                  {displayImage ? "החלפת תמונה" : "העלאת תמונה"}
+                </button>
+                {displayImage || values.profileImageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleFilePick(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                      onClearProfileImageChange?.(true);
+                    }}
+                    className="mr-2 text-xs font-medium text-red-700 underline"
+                  >
+                    הסרת תמונה
+                  </button>
+                ) : null}
+                {profileImageFile ? (
+                  <p className="text-[11px] text-neutral-600">
+                    נבחר: {profileImageFile.name}
+                  </p>
+                ) : null}
+                <p className={hintClass}>{hints.profileImage}</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div>
-          <label className={labelClass}>
+          <label htmlFor="biz-name" className={labelClass}>
             <RequiredMark show={isOnboarding} />
             {businessNameLabel}
           </label>
           <input
+            id="biz-name"
             type="text"
             value={values.businessName}
             onChange={(e) => onChange({ businessName: e.target.value })}
@@ -138,12 +238,31 @@ export default function BusinessProfileFields({
           <p className={hintClass}>{hints.businessName}</p>
         </div>
 
+        {role === "freelancer" ? (
+          <div>
+            <label htmlFor={bioId} className={labelClass}>
+              על העסק / עליי (תיאור קצר)
+            </label>
+            <textarea
+              id={bioId}
+              value={values.businessBio}
+              onChange={(e) => onChange({ businessBio: e.target.value })}
+              rows={4}
+              maxLength={800}
+              className={input}
+              placeholder="למשל: צלמי חתונות עם ניסיון של 10 שנים באזור המרכז. מתמחים בצילום טבעי ורגעי."
+            />
+            <p className={hintClass}>{hints.businessBio}</p>
+          </div>
+        ) : null}
+
         <div>
-          <label className={labelClass}>
+          <label htmlFor="biz-phone" className={labelClass}>
             <RequiredMark show={isOnboarding && role === "venue-owner"} />
             טלפון עסקי
           </label>
           <input
+            id="biz-phone"
             type="tel"
             inputMode="numeric"
             maxLength={10}
@@ -158,8 +277,11 @@ export default function BusinessProfileFields({
         </div>
 
         <div>
-          <label className={labelClass}>כתובת / אזור (כללי)</label>
+          <label htmlFor="biz-address" className={labelClass}>
+            כתובת / אזור (כללי)
+          </label>
           <input
+            id="biz-address"
             type="text"
             value={values.businessAddress}
             onChange={(e) => onChange({ businessAddress: e.target.value })}
