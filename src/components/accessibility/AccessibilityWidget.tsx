@@ -110,13 +110,12 @@ export default function AccessibilityWidget() {
       return () => window.cancelAnimationFrame(raf);
     }
 
-    if (!mounted) return;
+    // סגירה — לא תלוי ב־mounted ב־deps (מונע איפוס אנימציה כפול)
+    setEntered(false);
     if (reduceMotion) {
-      setEntered(false);
       setMounted(false);
       return;
     }
-    setEntered(false);
     exitTimerRef.current = window.setTimeout(() => {
       setMounted(false);
       exitTimerRef.current = null;
@@ -127,7 +126,7 @@ export default function AccessibilityWidget() {
         exitTimerRef.current = null;
       }
     };
-  }, [open, prefs.stopAnimations, mounted]);
+  }, [open, prefs.stopAnimations]);
 
   function patch(partial: Partial<AccessibilityPrefs>) {
     setPrefs((prev) => ({ ...prev, ...partial }));

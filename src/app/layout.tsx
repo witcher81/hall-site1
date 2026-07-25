@@ -48,8 +48,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          <SkipToContentLink />
-          <CookieConsentProvider>{children}</CookieConsentProvider>
+          {/* מעטפת תוכן — filter של נגישות חל רק כאן כדי שלא ישבור position:fixed של כפתורי הנגישות/ערכת נושא */}
+          <div id="hh-app-shell" className="hh-app-shell">
+            <SkipToContentLink />
+            <CookieConsentProvider>{children}</CookieConsentProvider>
+          </div>
           <AccessibilityWidget />
           <GlobalThemeToggle />
         </ThemeProvider>
