@@ -1,5 +1,9 @@
 import { parseServiceCategorySelections } from "@/lib/freelancerServiceCategories";
 import {
+  parseFoodPricingMode,
+  type FoodPricingMode,
+} from "@/lib/foodPricingMode";
+import {
   resolveCatalogTemplateFromCategory,
   serviceUsesCatalogEditor,
   type CatalogTemplate,
@@ -28,6 +32,8 @@ export type ServiceDeliverable = {
   value: string;
 };
 
+export type ServiceMenuItemPortionUnit = "g" | "units" | "ml";
+
 export type ServiceMenuItem = {
   id: string;
   label: string;
@@ -37,6 +43,9 @@ export type ServiceMenuItem = {
   minPrice?: number | null;
   maxPrice?: number | null;
   usePriceRange?: boolean;
+  /** כמות למנה — למשל 250 גרם / 4 יחידות */
+  portionAmount?: number | null;
+  portionUnit?: ServiceMenuItemPortionUnit | null;
 };
 
 export type ServiceMenuSection = {
@@ -62,6 +71,8 @@ export type ServiceMenuPackage = {
 
 export type ServiceMenuConfig = {
   templateId?: CatalogTemplateId | null;
+  /** קייטרינג: פר־ראש או הצעה כללית — דורס תבנית ברירת מחדל */
+  foodPricingMode?: FoodPricingMode | null;
   minGuests: number | null;
   maxGuests: number | null;
   minPersons?: number | null;
@@ -164,6 +175,15 @@ function sanitizeMenuItem(raw: unknown): ServiceMenuItem | null {
       ? o.id.trim().slice(0, 64)
       : newId("item");
 
+  const portionAmount = toPriceIntOrNull(o.portionAmount);
+  const portionUnitRaw = sliceStr(o.portionUnit, 16);
+  const portionUnit: ServiceMenuItemPortionUnit | null =
+    portionUnitRaw === "g" ||
+    portionUnitRaw === "units" ||
+    portionUnitRaw === "ml"
+      ? portionUnitRaw
+      : null;
+
   return {
     id,
     label,
@@ -174,6 +194,9 @@ function sanitizeMenuItem(raw: unknown): ServiceMenuItem | null {
       : {}),
     ...(pricingMode !== "included" && !usePriceRange && exactPrice != null
       ? { exactPrice }
+      : {}),
+    ...(portionAmount != null && portionAmount > 0
+      ? { portionAmount, ...(portionUnit ? { portionUnit } : { portionUnit: "units" as const }) }
       : {}),
   };
 }
@@ -226,6 +249,14 @@ function sanitizePackage(raw: unknown): ServiceMenuPackage | null {
         label: parsed.label,
         ...(parsed.description ? { description: parsed.description } : {}),
         pricing: "included",
+        ...(parsed.portionAmount != null
+          ? {
+              portionAmount: parsed.portionAmount,
+              ...(parsed.portionUnit
+                ? { portionUnit: parsed.portionUnit }
+                : {}),
+            }
+          : {}),
       });
     }
   }
@@ -305,6 +336,7 @@ export function sanitizeServiceMenuFromClient(data: unknown): ServiceMenuConfig 
   const templateId = templateIdRaw
     ? normalizeCatalogTemplateId(templateIdRaw)
     : null;
+  const foodPricingMode = parseFoodPricingMode(o.foodPricingMode);
   const minGuests = toGuestIntOrNull(o.minGuests);
   const maxGuests = toGuestIntOrNull(o.maxGuests);
   const minPersons = toGuestIntOrNull(o.minPersons);
@@ -350,6 +382,7 @@ export function sanitizeServiceMenuFromClient(data: unknown): ServiceMenuConfig 
 
   return {
     ...(templateId ? { templateId } : {}),
+    ...(foodPricingMode ? { foodPricingMode } : {}),
     minGuests,
     maxGuests:
       maxGuests != null && minGuests != null && maxGuests < minGuests
@@ -504,9 +537,24 @@ export function ensureMenuTemplateId(
   menu: ServiceMenuConfig,
   category: string | null | undefined
 ): ServiceMenuConfig {
-  const t = resolveCatalogTemplateFromCategory(category);
+  const t = resolveCatalogTemplateFromCategory(category, {
+    foodPricingMode: menu.foodPricingMode ?? null,
+  });
   if (!t) return menu;
   return { ...menu, templateId: t.id };
+}
+
+export function formatItemPortion(
+  item: Pick<ServiceMenuItem, "portionAmount" | "portionUnit">
+): string | null {
+  if (item.portionAmount == null || item.portionAmount <= 0) return null;
+  const unit =
+    item.portionUnit === "g"
+      ? "גרם"
+      : item.portionUnit === "ml"
+        ? "מ״ל"
+        : "יח׳";
+  return `${item.portionAmount} ${unit}`;
 }
 
 export function validateMenuGuestCount(

@@ -157,6 +157,34 @@ describe("serviceMenu sanitize/validate", () => {
     });
   });
 
+  it("keeps foodPricingMode and portion amount/unit on included items", () => {
+    const m = sanitizeServiceMenuFromClient({
+      templateId: "food",
+      foodPricingMode: "per_person",
+      packages: [
+        {
+          name: "מבוגרים",
+          perGuestPrice: 200,
+          includedItems: [
+            { label: "אנטריקוט", pricing: "included", portionAmount: 250, portionUnit: "g" },
+            { label: "עראיס", pricing: "included", portionAmount: 4, portionUnit: "units" },
+          ],
+        },
+      ],
+    });
+    expect(m.foodPricingMode).toBe("per_person");
+    expect(m.packages[0]?.includedItems?.[0]).toMatchObject({
+      label: "אנטריקוט",
+      portionAmount: 250,
+      portionUnit: "g",
+    });
+    expect(m.packages[0]?.includedItems?.[1]).toMatchObject({
+      label: "עראיס",
+      portionAmount: 4,
+      portionUnit: "units",
+    });
+  });
+
   it("aliases activation templateId to attraction", () => {
     const m = sanitizeServiceMenuFromClient({ templateId: "activation" });
     expect(m.templateId).toBe("attraction");

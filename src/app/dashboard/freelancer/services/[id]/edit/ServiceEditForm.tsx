@@ -1,6 +1,7 @@
 "use client";
 
 import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
+import FoodPricingModeChooser from "@/components/FoodPricingModeChooser";
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
@@ -9,6 +10,10 @@ import {
   composeServiceCategoryValue,
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
+import {
+  needsFoodPricingModeChoice,
+  templateIdForFoodPricingMode,
+} from "@/lib/foodPricingMode";
 import { catalogReplacesIncludesEditor, resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import {
@@ -83,23 +88,47 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   const [paidExtras, setPaidExtras] = useState<ServicePaidExtraItem[]>(
     () => initialIncludes.paidExtras
   );
-  const [menu, setMenu] = useState<ServiceMenuConfig>(() =>
-    parseServiceMenuJson(initial.menuJson)
-  );
+  const [menu, setMenu] = useState<ServiceMenuConfig>(() => {
+    const parsed = parseServiceMenuJson(initial.menuJson);
+    if (parsed.foodPricingMode) return parsed;
+    // שירותים ישנים: נסיק מצב מתבנית שמורה
+    if (needsFoodPricingModeChoice(initial.category)) {
+      if (parsed.templateId === "food_station") {
+        return { ...parsed, foodPricingMode: "general" };
+      }
+      if (parsed.templateId === "food" || !parsed.templateId) {
+        return { ...parsed, foodPricingMode: "per_person" };
+      }
+    }
+    return parsed;
+  });
   const categoryValue = useMemo(
     () =>
       composeServiceCategoryValue(form.primaryCategory, form.secondaryCategories),
     [form.primaryCategory, form.secondaryCategories]
   );
+  const needsPricingChoice = needsFoodPricingModeChoice(categoryValue);
   const catalogTemplate = useMemo(
-    () => resolveCatalogTemplateFromCategory(categoryValue),
-    [categoryValue]
+    () =>
+      resolveCatalogTemplateFromCategory(categoryValue, {
+        foodPricingMode: menu.foodPricingMode ?? null,
+      }),
+    [categoryValue, menu.foodPricingMode]
   );
   const usesCatalog = form.primaryCategory.trim().length > 0;
-  const showCatalogEditor = usesCatalog && catalogTemplate != null;
+  const showCatalogEditor =
+    usesCatalog &&
+    catalogTemplate != null &&
+    (!needsPricingChoice || menu.foodPricingMode != null);
   const showIncludesEditor =
     !catalogTemplate || !catalogReplacesIncludesEditor(catalogTemplate.id);
-  const showSimplePrice = !showCatalogEditor;
+  const showSimplePrice = !showCatalogEditor && !needsPricingChoice;
+
+  useEffect(() => {
+    if (!needsPricingChoice && menu.foodPricingMode) {
+      setMenu((m) => ({ ...m, foodPricingMode: null }));
+    }
+  }, [needsPricingChoice, menu.foodPricingMode]);
   const coverPreview = useMemo(
     () => (coverImage ? URL.createObjectURL(coverImage) : initial.coverImageUrl),
     [coverImage, initial.coverImageUrl]
@@ -289,6 +318,19 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           className="mt-1"
         />
       </div>
+
+      {needsPricingChoice ? (
+        <FoodPricingModeChooser
+          value={menu.foodPricingMode ?? null}
+          onChange={(mode) =>
+            setMenu((m) => ({
+              ...m,
+              foodPricingMode: mode,
+              templateId: templateIdForFoodPricingMode(mode),
+            }))
+          }
+        />
+      ) : null}
 
       {showCatalogEditor && catalogTemplate ? (
         <ServiceCatalogEditor

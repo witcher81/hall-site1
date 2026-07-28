@@ -5,6 +5,7 @@ import type { CatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
   catalogPackageUsesPerGuestMultiplier,
   estimatePackageTotal,
+  formatItemPortion,
   formatMenuItemPrice,
   formatPackagePrice,
   type ServiceMenuConfig,
@@ -166,6 +167,9 @@ export default function ServiceMenuPublicSection({
                               </span>
                               <span>
                                 {item.label.trim()}
+                                {formatItemPortion(item)
+                                  ? ` (${formatItemPortion(item)})`
+                                  : ""}
                                 {item.description?.trim()
                                   ? ` — ${item.description.trim()}`
                                   : ""}

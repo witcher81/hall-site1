@@ -2,6 +2,11 @@ import {
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import {
+  needsFoodPricingModeChoice,
+  templateIdForFoodPricingMode,
+  type FoodPricingMode,
+} from "@/lib/foodPricingMode";
+import {
   buildSecondaryTemplateMap,
   getSecondaryCatalogHints,
   normalizeCatalogTemplateId,
@@ -920,26 +925,74 @@ export function applySecondaryCatalogHints(
 }
 
 export function resolveCatalogTemplateFromCategory(
-  category: string | null | undefined
+  category: string | null | undefined,
+  options?: { foodPricingMode?: FoodPricingMode | null }
 ): CatalogTemplate | null {
   if (!category?.trim()) return null;
   const { primary, secondaries } = parseServiceCategorySelections(category);
-  const id = resolveCatalogTemplateId(primary, secondaries);
+  const mode = options?.foodPricingMode ?? null;
+  const id =
+    mode && needsFoodPricingModeChoice(category)
+      ? templateIdForFoodPricingMode(mode)
+      : resolveCatalogTemplateId(primary, secondaries);
   if (!id) return null;
   const base = getCatalogTemplate(id);
   const hintSource =
     secondaries.length === 1 ? secondaries[0]! : secondaries[0] ?? null;
-  return applySecondaryCatalogHints(base, hintSource);
+  const withHints = applySecondaryCatalogHints(base, hintSource);
+
+  if (mode === "general" && needsFoodPricingModeChoice(category)) {
+    return {
+      ...withHints,
+      editorTitle: "הצעה כללית — מה מציעים ומחיר",
+      editorHint:
+        "רשמו מה אתם מוכרים (למשל שולחן אוכל), את המחיר, ואת רשימת המנות. לכל מנה אפשר לציין גרם או יחידות.",
+      packagesTitle: "מה מוכרים וכמה עולה",
+      packagesHint: "הצעה קבועה — לא לפי אדם. מלאו שם, מחיר, ומה מציעים.",
+      packageNameFieldLabel: "מה אתם מוכרים",
+      packageNamePlaceholder: "למשל: שולחן אוכל בשרי",
+      packagePriceLabel: "מחיר (₪)",
+      packageCardNoun: "הצעה",
+      packageCardDetail: "מה מוכרים, מחיר ומה מציעים",
+      packageRemoveLabel: "הסר הצעה",
+      showPackageDuration: false,
+      packageIncludedTitle: "מה מציעים",
+      packageIncludedHint: "מנות בהצעה — אפשר להוסיף כמות בגרם או ביחידות.",
+      packageIncludedItemPlaceholder: "למשל: אנטריקוט / עראיס",
+      packageIncludedAddLabel: "+ הוסף מנה",
+    };
+  }
+
+  if (mode === "per_person" && needsFoodPricingModeChoice(category)) {
+    return {
+      ...withHints,
+      packageIncludedHint:
+        "מנות בתפריט — אפשר להוסיף כמות בגרם או ביחידות (למשל 250 גרם / 4 יח׳).",
+    };
+  }
+
+  return withHints;
 }
 
 export function resolveStoredCatalogTemplate(
-  menu: { templateId?: CatalogTemplateId | null },
+  menu: { templateId?: CatalogTemplateId | null; foodPricingMode?: FoodPricingMode | null },
   category: string | null | undefined
 ): CatalogTemplate | null {
-  const fromCategory = resolveCatalogTemplateFromCategory(category);
+  if (menu.foodPricingMode && needsFoodPricingModeChoice(category)) {
+    return resolveCatalogTemplateFromCategory(category, {
+      foodPricingMode: menu.foodPricingMode,
+    });
+  }
+  const fromCategory = resolveCatalogTemplateFromCategory(category, {
+    foodPricingMode: menu.foodPricingMode ?? null,
+  });
   if (!menu.templateId) return fromCategory;
   const normalized = normalizeCatalogTemplateId(String(menu.templateId));
   if (!normalized) return fromCategory;
+  // אם יש מצב תמחור אוכל — התבנית מהמצב גוברת
+  if (menu.foodPricingMode && needsFoodPricingModeChoice(category)) {
+    return fromCategory;
+  }
   const base = getCatalogTemplate(normalized);
   const { secondaries } = parseServiceCategorySelections(category ?? "");
   return applySecondaryCatalogHints(base, secondaries[0] ?? null);

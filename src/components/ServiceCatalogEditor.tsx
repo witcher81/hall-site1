@@ -495,29 +495,73 @@ export default function ServiceCatalogEditor({
                   </p>
                   <ul className="mt-2 space-y-1.5">
                     {(pkg.includedItems ?? []).map((item, itemIndex) => (
-                      <li key={item.id} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          dir="rtl"
-                          value={item.label}
-                          onChange={(e) =>
-                            updateIncludedItem(index, itemIndex, {
-                              label: e.target.value,
-                            })
-                          }
-                          className={`${input} flex-1`}
-                          placeholder={
-                            template.packageIncludedItemPlaceholder ??
-                            "למשל: פריט כלול"
-                          }
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeIncludedItem(index, itemIndex)}
-                          className="shrink-0 text-[11px] text-red-600 hover:underline"
-                        >
-                          הסר
-                        </button>
+                      <li key={item.id} className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            dir="rtl"
+                            value={item.label}
+                            onChange={(e) =>
+                              updateIncludedItem(index, itemIndex, {
+                                label: e.target.value,
+                              })
+                            }
+                            className={`${input} flex-1`}
+                            placeholder={
+                              template.packageIncludedItemPlaceholder ??
+                              "למשל: פריט כלול"
+                            }
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeIncludedItem(index, itemIndex)}
+                            className="shrink-0 text-[11px] text-red-600 hover:underline"
+                          >
+                            הסר
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <input
+                            type="number"
+                            min={0}
+                            value={item.portionAmount ?? ""}
+                            onChange={(e) => {
+                              const n = parsePriceInput(e.target.value);
+                              updateIncludedItem(index, itemIndex, {
+                                portionAmount: n,
+                                portionUnit:
+                                  n != null
+                                    ? item.portionUnit ?? "units"
+                                    : null,
+                              });
+                            }}
+                            className={`${input} w-[5.5rem]`}
+                            placeholder="כמות"
+                            aria-label="כמות"
+                          />
+                          <select
+                            value={item.portionUnit ?? ""}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              updateIncludedItem(index, itemIndex, {
+                                portionUnit:
+                                  v === "g" || v === "units" || v === "ml"
+                                    ? v
+                                    : null,
+                              });
+                            }}
+                            className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
+                            aria-label="יחידת מידה"
+                          >
+                            <option value="">יחידה</option>
+                            <option value="g">גרם</option>
+                            <option value="units">יחידות</option>
+                            <option value="ml">מ״ל</option>
+                          </select>
+                          <span className="text-[10px] text-neutral-500">
+                            אופציונלי
+                          </span>
+                        </div>
                       </li>
                     ))}
                   </ul>

@@ -1,6 +1,7 @@
 "use client";
 
 import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
+import FoodPricingModeChooser from "@/components/FoodPricingModeChooser";
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -10,6 +11,10 @@ import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import {
   composeServiceCategoryValue,
 } from "@/lib/freelancerServiceCategories";
+import {
+  needsFoodPricingModeChoice,
+  templateIdForFoodPricingMode,
+} from "@/lib/foodPricingMode";
 import { catalogReplacesIncludesEditor, resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import { buildMinMaxStringsForSubmit } from "@/lib/freelancerServicePriceForm";
@@ -76,15 +81,28 @@ export default function NewServicePage() {
       composeServiceCategoryValue(form.primaryCategory, form.secondaryCategories),
     [form.primaryCategory, form.secondaryCategories]
   );
+  const needsPricingChoice = needsFoodPricingModeChoice(categoryValue);
   const catalogTemplate = useMemo(
-    () => resolveCatalogTemplateFromCategory(categoryValue),
-    [categoryValue]
+    () =>
+      resolveCatalogTemplateFromCategory(categoryValue, {
+        foodPricingMode: menu.foodPricingMode ?? null,
+      }),
+    [categoryValue, menu.foodPricingMode]
   );
   const usesCatalog = form.primaryCategory.trim().length > 0;
-  const showCatalogEditor = usesCatalog && catalogTemplate != null;
+  const showCatalogEditor =
+    usesCatalog &&
+    catalogTemplate != null &&
+    (!needsPricingChoice || menu.foodPricingMode != null);
   const showIncludesEditor =
     !catalogTemplate || !catalogReplacesIncludesEditor(catalogTemplate.id);
-  const showSimplePrice = !showCatalogEditor;
+  const showSimplePrice = !showCatalogEditor && !needsPricingChoice;
+
+  useEffect(() => {
+    if (!needsPricingChoice && menu.foodPricingMode) {
+      setMenu((m) => ({ ...m, foodPricingMode: null }));
+    }
+  }, [needsPricingChoice, menu.foodPricingMode]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -271,6 +289,19 @@ export default function NewServicePage() {
             className="mt-1"
           />
         </div>
+
+        {needsPricingChoice ? (
+          <FoodPricingModeChooser
+            value={menu.foodPricingMode ?? null}
+            onChange={(mode) =>
+              setMenu((m) => ({
+                ...m,
+                foodPricingMode: mode,
+                templateId: templateIdForFoodPricingMode(mode),
+              }))
+            }
+          />
+        ) : null}
 
         {showCatalogEditor && catalogTemplate ? (
           <ServiceCatalogEditor
