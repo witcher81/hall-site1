@@ -33,7 +33,7 @@ export type ServiceDeliverable = {
   value: string;
 };
 
-export type ServiceMenuItemPortionUnit = "g" | "units" | "ml";
+export type ServiceMenuItemPortionUnit = "g" | "units";
 
 export type ServiceMenuItem = {
   id: string;
@@ -182,8 +182,7 @@ function sanitizeMenuItem(raw: unknown): ServiceMenuItem | null {
   const portionUnitRaw = sliceStr(o.portionUnit, 16);
   const portionUnit: ServiceMenuItemPortionUnit | null =
     portionUnitRaw === "g" ||
-    portionUnitRaw === "units" ||
-    portionUnitRaw === "ml"
+    portionUnitRaw === "units"
       ? portionUnitRaw
       : null;
 
@@ -553,12 +552,7 @@ export function formatItemPortion(
   item: Pick<ServiceMenuItem, "portionAmount" | "portionUnit">
 ): string | null {
   if (item.portionAmount == null || item.portionAmount <= 0) return null;
-  const unit =
-    item.portionUnit === "g"
-      ? "גרם"
-      : item.portionUnit === "ml"
-        ? "מ״ל"
-        : "יח׳";
+  const unit = item.portionUnit === "g" ? "גרם" : "יח׳";
   return `${item.portionAmount} ${unit}`;
 }
 

@@ -534,6 +534,24 @@ export default function ServiceCatalogEditor({
                           </button>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
+                          <select
+                            value={item.portionUnit ?? ""}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              updateIncludedItem(index, itemIndex, {
+                                portionUnit:
+                                  v === "g" || v === "units"
+                                    ? v
+                                    : null,
+                              });
+                            }}
+                            className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
+                            aria-label="יחידת מידה"
+                          >
+                            <option value="">—</option>
+                            <option value="g">גרם</option>
+                            <option value="units">יחידות</option>
+                          </select>
                           <input
                             type="number"
                             min={0}
@@ -552,25 +570,6 @@ export default function ServiceCatalogEditor({
                             placeholder="כמות"
                             aria-label="כמות"
                           />
-                          <select
-                            value={item.portionUnit ?? ""}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              updateIncludedItem(index, itemIndex, {
-                                portionUnit:
-                                  v === "g" || v === "units" || v === "ml"
-                                    ? v
-                                    : null,
-                              });
-                            }}
-                            className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
-                            aria-label="יחידת מידה"
-                          >
-                            <option value="">יחידה</option>
-                            <option value="g">גרם</option>
-                            <option value="units">יחידות</option>
-                            <option value="ml">מ״ל</option>
-                          </select>
                           <span className="text-[10px] text-neutral-500">
                             אופציונלי
                           </span>
