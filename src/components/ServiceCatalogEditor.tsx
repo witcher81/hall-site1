@@ -459,6 +459,19 @@ export default function ServiceCatalogEditor({
                   }
                   help={fieldHelp.packageDescription}
                   className="mt-2"
+                  headerExtra={
+                    !pkg.description?.trim() ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPackageDescOpen((prev) => ({ ...prev, [pkg.id]: false }))
+                        }
+                        className="text-[11px] text-amber-900/60 hover:text-amber-950 underline decoration-amber-400/50 underline-offset-2"
+                      >
+                        הסתר
+                      </button>
+                    ) : undefined
+                  }
                 >
                   <textarea
                     dir="rtl"

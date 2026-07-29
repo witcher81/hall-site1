@@ -7,6 +7,8 @@ type Props = {
   help?: string;
   children: ReactNode;
   className?: string;
+  /** תוכן נוסף בצד ימין של הכותרת (לצד כפתור ?) */
+  headerExtra?: ReactNode;
 };
 
 /** תווית שדה; הסבר נפתח בלחיצה על ? כדי לא לעמוס את הטופס */
@@ -15,6 +17,7 @@ export default function CatalogFieldHelp({
   help,
   children,
   className = "",
+  headerExtra,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -22,6 +25,8 @@ export default function CatalogFieldHelp({
     <div className={className}>
       <div className="flex items-center justify-between gap-2">
         <span className="block text-[11px] font-medium text-neutral-700">{label}</span>
+        <div className="flex items-center gap-2">
+          {headerExtra}
         {help ? (
           <button
             type="button"
@@ -34,6 +39,7 @@ export default function CatalogFieldHelp({
             ?
           </button>
         ) : null}
+        </div>
       </div>
       {help && open ? (
         <p className="mt-1 rounded-md bg-neutral-50 px-2 py-1.5 text-[10px] leading-relaxed text-neutral-600">
