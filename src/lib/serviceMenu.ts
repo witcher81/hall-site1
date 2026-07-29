@@ -3,6 +3,7 @@ import {
   parseFoodPricingMode,
   type FoodPricingMode,
 } from "@/lib/foodPricingMode";
+import { sanitizeDietaryOptions } from "@/lib/foodDietaryOptions";
 import {
   resolveCatalogTemplateFromCategory,
   serviceUsesCatalogEditor,
@@ -73,6 +74,8 @@ export type ServiceMenuConfig = {
   templateId?: CatalogTemplateId | null;
   /** קייטרינג: פר־ראש או הצעה כללית — דורס תבנית ברירת מחדל */
   foodPricingMode?: FoodPricingMode | null;
+  /** אופציות כשרות/תזונה — למשל כשר למהדרין, ללא גלוטן */
+  dietaryOptions?: string[];
   minGuests: number | null;
   maxGuests: number | null;
   minPersons?: number | null;
@@ -337,6 +340,7 @@ export function sanitizeServiceMenuFromClient(data: unknown): ServiceMenuConfig 
     ? normalizeCatalogTemplateId(templateIdRaw)
     : null;
   const foodPricingMode = parseFoodPricingMode(o.foodPricingMode);
+  const dietaryOptions = sanitizeDietaryOptions(o.dietaryOptions);
   const minGuests = toGuestIntOrNull(o.minGuests);
   const maxGuests = toGuestIntOrNull(o.maxGuests);
   const minPersons = toGuestIntOrNull(o.minPersons);
@@ -383,6 +387,7 @@ export function sanitizeServiceMenuFromClient(data: unknown): ServiceMenuConfig 
   return {
     ...(templateId ? { templateId } : {}),
     ...(foodPricingMode ? { foodPricingMode } : {}),
+    ...(dietaryOptions.length > 0 ? { dietaryOptions } : {}),
     minGuests,
     maxGuests:
       maxGuests != null && minGuests != null && maxGuests < minGuests

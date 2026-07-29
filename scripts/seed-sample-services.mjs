@@ -452,8 +452,8 @@ const STANDALONE_ENTRIES = [
     businessName: "קייטרינג מיכל",
     businessPhone: "050-1111003",
     service: {
-      name: "קייטרינג כשר למהדרין",
-      category: category("אוכל ומשקאות", "קייטרינג כשר למהדרין"),
+      name: "קייטרינג בשרי כשר למהדרין",
+      category: category("אוכל ומשקאות", "קייטרינג בשרי"),
       serviceArea: "מרכז, ירושלים, שפלה",
       experienceYears: 15,
       languages: "עברית",

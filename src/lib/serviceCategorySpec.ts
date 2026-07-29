@@ -174,12 +174,6 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     catalogSectionPlaceholder: "למשל: מנות ראשונות, עיקריות, קינוחים",
     catalogItemPlaceholder: "למשל: טופו, קארי ירקות, עוגת שוקולד טבעונית",
   },
-  "קייטרינג כשר למהדרין": {
-    notesPlaceholder: "למשל: כשרות מהדרין, תעודת משגח, הפרדת בשר וחלב",
-  },
-  "קייטרינג ללא גלוטן": {
-    notesPlaceholder: "למשל: מטבח ללא גלוטן, הפרדת מוצרים",
-  },
   "שף פרטי לאירוע": {
     packagesHint: "למשל: ארוחה 3 מנות, ארוחה 5 מנות — מחיר לאורח.",
     packageNamePlaceholder: "למשל: ארוחה 4 מנות",
@@ -658,7 +652,7 @@ export function getSecondaryCatalogHints(
   return SECONDARY_CATALOG_HINTS[normalized] ?? null;
 }
 
-/** וידוא שכל 128 תתי־קטגוריות ממופות — נכשל ב-build אם חסר */
+/** וידוא שכל 126 תתי־קטגוריות ממופות — נכשל ב-build אם חסר */
 export function verifyServiceCategorySpec(): void {
   const map = buildSecondaryTemplateMap();
   let count = 0;
@@ -670,9 +664,9 @@ export function verifyServiceCategorySpec(): void {
       }
     }
   }
-  if (count !== 128) {
+  if (count !== 126) {
     throw new Error(
-      `serviceCategorySpec: צפויות 128 תתי־קטגוריות, נמצאו ${count}`
+      `serviceCategorySpec: צפויות 126 תתי־קטגוריות, נמצאו ${count}`
     );
   }
 }

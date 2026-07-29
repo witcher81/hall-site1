@@ -1,7 +1,8 @@
 "use client";
 
-import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
+import FoodDietaryOptionsEditor from "@/components/FoodDietaryOptionsEditor";
 import FoodPricingModeChooser from "@/components/FoodPricingModeChooser";
+import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import FreelancerCategoryTreePicker from "@/components/FreelancerCategoryTreePicker";
 import ServiceAreaTagsField from "@/components/ServiceAreaTagsField";
@@ -10,6 +11,10 @@ import {
   composeServiceCategoryValue,
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
+import {
+  showDietaryOptionsForCategory,
+  splitLegacyDietaryFromCategory,
+} from "@/lib/foodDietaryOptions";
 import {
   needsFoodPricingModeChoice,
   templateIdForFoodPricingMode,
@@ -62,7 +67,10 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     initial.minPrice,
     initial.maxPrice
   );
-  const initialCategory = parseServiceCategorySelections(initial.category);
+  const initialCategorySplit = splitLegacyDietaryFromCategory(initial.category);
+  const initialCategory = parseServiceCategorySelections(
+    initialCategorySplit.category
+  );
   const [form, setForm] = useState({
     name: initial.name,
     primaryCategory: initialCategory.primary,
@@ -90,17 +98,24 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   );
   const [menu, setMenu] = useState<ServiceMenuConfig>(() => {
     const parsed = parseServiceMenuJson(initial.menuJson);
-    if (parsed.foodPricingMode) return parsed;
-    // שירותים ישנים: נסיק מצב מתבנית שמורה
-    if (needsFoodPricingModeChoice(initial.category)) {
-      if (parsed.templateId === "food_station") {
-        return { ...parsed, foodPricingMode: "general" };
+    const dietaryMerged = [
+      ...(parsed.dietaryOptions ?? []),
+      ...initialCategorySplit.dietaryOptions,
+    ].filter((v, i, arr) => arr.indexOf(v) === i);
+    let next = {
+      ...parsed,
+      ...(dietaryMerged.length > 0 ? { dietaryOptions: dietaryMerged } : {}),
+    };
+    if (next.foodPricingMode) return next;
+    if (needsFoodPricingModeChoice(initialCategorySplit.category)) {
+      if (next.templateId === "food_station") {
+        return { ...next, foodPricingMode: "general" as const };
       }
-      if (parsed.templateId === "food" || !parsed.templateId) {
-        return { ...parsed, foodPricingMode: "per_person" };
+      if (next.templateId === "food" || !next.templateId) {
+        return { ...next, foodPricingMode: "per_person" as const };
       }
     }
-    return parsed;
+    return next;
   });
   const categoryValue = useMemo(
     () =>
@@ -108,6 +123,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     [form.primaryCategory, form.secondaryCategories]
   );
   const needsPricingChoice = needsFoodPricingModeChoice(categoryValue);
+  const showDietaryOptions = showDietaryOptionsForCategory(categoryValue);
   const catalogTemplate = useMemo(
     () =>
       resolveCatalogTemplateFromCategory(categoryValue, {
@@ -160,10 +176,16 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     try {
       const fd = new FormData();
       fd.append("name", form.name.trim());
-      fd.append(
-        "category",
-        composeServiceCategoryValue(form.primaryCategory, form.secondaryCategories)
+      const rawCategory = composeServiceCategoryValue(
+        form.primaryCategory,
+        form.secondaryCategories
       );
+      const split = splitLegacyDietaryFromCategory(rawCategory);
+      const dietaryMerged = [
+        ...(menu.dietaryOptions ?? []),
+        ...split.dietaryOptions,
+      ].filter((v, i, arr) => arr.indexOf(v) === i);
+      fd.append("category", split.category);
       fd.append("description", form.description.trim());
       fd.append("serviceArea", form.serviceArea.trim());
       fd.append("experienceYears", form.experienceYears.trim());
@@ -187,7 +209,15 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       if (showCatalogEditor && catalogTemplate) {
         fd.append(
           "menuJson",
-          JSON.stringify(ensureMenuTemplateId(menu, categoryValue))
+          JSON.stringify(
+            ensureMenuTemplateId(
+              {
+                ...menu,
+                dietaryOptions: showDietaryOptions ? dietaryMerged : [],
+              },
+              split.category
+            )
+          )
         );
       } else {
         const { minPrice: minP, maxPrice: maxP } = buildMinMaxStringsForSubmit({
@@ -318,6 +348,15 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
           className="mt-1"
         />
       </div>
+
+      {showDietaryOptions ? (
+        <FoodDietaryOptionsEditor
+          value={menu.dietaryOptions ?? []}
+          onChange={(dietaryOptions) =>
+            setMenu((m) => ({ ...m, dietaryOptions }))
+          }
+        />
+      ) : null}
 
       {needsPricingChoice ? (
         <FoodPricingModeChooser

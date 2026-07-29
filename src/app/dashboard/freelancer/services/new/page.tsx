@@ -1,7 +1,8 @@
 "use client";
 
-import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
+import FoodDietaryOptionsEditor from "@/components/FoodDietaryOptionsEditor";
 import FoodPricingModeChooser from "@/components/FoodPricingModeChooser";
+import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -11,6 +12,10 @@ import ServiceLanguagesTagsField from "@/components/ServiceLanguagesTagsField";
 import {
   composeServiceCategoryValue,
 } from "@/lib/freelancerServiceCategories";
+import {
+  showDietaryOptionsForCategory,
+  splitLegacyDietaryFromCategory,
+} from "@/lib/foodDietaryOptions";
 import {
   needsFoodPricingModeChoice,
   templateIdForFoodPricingMode,
@@ -82,6 +87,7 @@ export default function NewServicePage() {
     [form.primaryCategory, form.secondaryCategories]
   );
   const needsPricingChoice = needsFoodPricingModeChoice(categoryValue);
+  const showDietaryOptions = showDietaryOptionsForCategory(categoryValue);
   const catalogTemplate = useMemo(
     () =>
       resolveCatalogTemplateFromCategory(categoryValue, {
@@ -112,11 +118,16 @@ export default function NewServicePage() {
     try {
       const fd = new FormData();
       fd.append("name", form.name.trim());
-      const categoryValue = composeServiceCategoryValue(
+      const rawCategory = composeServiceCategoryValue(
         form.primaryCategory,
         form.secondaryCategories
       );
-      if (categoryValue) fd.append("category", categoryValue);
+      const split = splitLegacyDietaryFromCategory(rawCategory);
+      const dietaryMerged = [
+        ...(menu.dietaryOptions ?? []),
+        ...split.dietaryOptions,
+      ].filter((v, i, arr) => arr.indexOf(v) === i);
+      if (split.category) fd.append("category", split.category);
       if (form.description.trim()) fd.append("description", form.description.trim());
       if (form.serviceArea.trim()) fd.append("serviceArea", form.serviceArea.trim());
       if (form.experienceYears.trim()) fd.append("experienceYears", form.experienceYears.trim());
@@ -140,7 +151,15 @@ export default function NewServicePage() {
       if (showCatalogEditor && catalogTemplate) {
         fd.append(
           "menuJson",
-          JSON.stringify(ensureMenuTemplateId(menu, categoryValue))
+          JSON.stringify(
+            ensureMenuTemplateId(
+              {
+                ...menu,
+                dietaryOptions: showDietaryOptions ? dietaryMerged : [],
+              },
+              split.category
+            )
+          )
         );
       }
       if (showSimplePrice) {
@@ -289,6 +308,15 @@ export default function NewServicePage() {
             className="mt-1"
           />
         </div>
+
+        {showDietaryOptions ? (
+          <FoodDietaryOptionsEditor
+            value={menu.dietaryOptions ?? []}
+            onChange={(dietaryOptions) =>
+              setMenu((m) => ({ ...m, dietaryOptions }))
+            }
+          />
+        ) : null}
 
         {needsPricingChoice ? (
           <FoodPricingModeChooser

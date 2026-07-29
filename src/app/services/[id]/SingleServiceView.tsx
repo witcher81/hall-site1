@@ -11,6 +11,7 @@ import {
   getPrimaryCategoryDescription,
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
+import { splitLegacyDietaryFromCategory } from "@/lib/foodDietaryOptions";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import { resolveStoredCatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
@@ -353,7 +354,12 @@ export default function SingleServiceView({
       : null,
   ].filter(Boolean) as { label: string; value: string; icon: string }[];
 
-  const categoryParsed = parseServiceCategorySelections(service.category ?? "");
+  const categorySplit = splitLegacyDietaryFromCategory(service.category ?? "");
+  const categoryParsed = parseServiceCategorySelections(categorySplit.category);
+  const dietaryOptions = [
+    ...(menu?.dietaryOptions ?? []),
+    ...categorySplit.dietaryOptions,
+  ].filter((v, i, arr) => arr.indexOf(v) === i);
   const primaryCategoryDescription = categoryParsed.primary
     ? getPrimaryCategoryDescription(categoryParsed.primary)
     : null;
@@ -506,6 +512,14 @@ export default function SingleServiceView({
                     className="rounded-full border border-[#C9A227]/50 bg-white px-3 py-1 text-sm font-semibold text-emerald-950"
                   >
                     {sec}
+                  </span>
+                ))}
+                {dietaryOptions.map((opt) => (
+                  <span
+                    key={`diet-${opt}`}
+                    className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-950"
+                  >
+                    {opt}
                   </span>
                 ))}
               </div>
