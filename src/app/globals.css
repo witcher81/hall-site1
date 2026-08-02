@@ -1712,6 +1712,21 @@ html[data-theme="night"] .home-surface-panel {
   transform-style: preserve-3d;
 }
 
+.home-hero-float-swap {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(10px) scale(0.97);
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+}
+
+.home-hero-float-swap.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 .home-hero-float-card {
   position: absolute;
   width: min(220px, 70%);

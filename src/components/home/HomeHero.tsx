@@ -170,6 +170,25 @@ export default function HomeHero() {
     };
   }, [reduceMotion]);
 
+  useEffect(() => {
+    if (reduceMotion) {
+      setFloatVisible(true);
+      return;
+    }
+    let fadeTimer: number | null = null;
+    const rotateTimer = window.setInterval(() => {
+      setFloatVisible(false);
+      fadeTimer = window.setTimeout(() => {
+        setFloatSetIndex((i) => (i + 1) % FLOAT_CARD_SETS.length);
+        setFloatVisible(true);
+      }, 280);
+    }, FLOAT_ROTATE_MS);
+    return () => {
+      window.clearInterval(rotateTimer);
+      if (fadeTimer != null) window.clearTimeout(fadeTimer);
+    };
+  }, [reduceMotion]);
+
   function onPointerMove(e: PointerEvent<HTMLElement>) {
     if (reduceMotion) return;
     const el = stageRef.current;
