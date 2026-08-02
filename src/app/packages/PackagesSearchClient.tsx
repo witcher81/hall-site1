@@ -394,16 +394,16 @@ export default function PackagesSearchClient({
           }`}
         >
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold text-emerald-950">חיפוש חבילות</p>
+            <p className="text-lg font-bold text-emerald-950">סינון קטלוג</p>
             {filtersOpen ? (
               <p className="mt-1 text-sm text-neutral-600">
-                סינון לפי עיר, סוג אירוע, שכבת חבילה, אורחים ותקציב — לחצו «החל חיפוש» בסיום.
+                סינון לפי עיר, סוג אירוע, שכבה, אורחים ותקציב.
               </p>
             ) : filterSummary ? (
               <p className="mt-1 truncate text-sm text-neutral-600">{filterSummary}</p>
             ) : (
               <p className="mt-1 text-sm text-neutral-600">
-                לחצו לפתיחת חיפוש מפורט, או בחרו סינון מהיר למטה.
+                אופציונלי — לבניית חבילה חכמה השתמשו בכפתור למעלה.
               </p>
             )}
           </div>

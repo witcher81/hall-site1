@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
+import PackagesPageHero from "@/components/packages/PackagesPageHero";
 import { searchPublicPackages } from "@/lib/publicPackagesSearch";
 import PackagesSearchClient from "./PackagesSearchClient";
 
 export const metadata: Metadata = {
   title: "חבילות אירוע",
   description:
-    "חבילות מוכנות מאולמות וספקים – בסיס, משודרג ופרימיום. בחרו חבילה, התאימו אישית ושלחו בקשה ב־Halls Hub.",
+    "האתר בונה לכם חבילת אירוע לפי סוג, אזור ואורחים — אולם + ספקים מתאימים ב־Halls Hub.",
   alternates: { canonical: "/packages" },
 };
 
@@ -36,40 +36,43 @@ export default async function PackagesPage({ searchParams }: PageProps) {
 
   return (
     <SitePageShell mainWidth="wide">
-      <SitePageHeader
-        title="חבילות אירוע"
-        description='תבניות מוכנות מבעלי אולמות — בסיס / משודרג / פרימיום. בוחרים חבילה, מתאימים אישית, ושולחים בקשה לאולם.'
-      />
-      <p className="site-page-lead -mt-4 text-xs">
-        בעל אולם?{" "}
-        <a
-          href="/dashboard/venue-owner/packages"
-          className="font-semibold text-emerald-950 underline"
+      <div className="space-y-10 pb-8">
+        <PackagesPageHero />
+
+        <section
+          id="packages-catalog"
+          className="scroll-mt-24 space-y-4 text-right"
         >
-          צרו ופרסמו חבילות
-        </a>{" "}
-        מהדשבורד — הן יופיעו כאן ובעמוד האולם שלכם.
-      </p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-neutral-900 sm:text-2xl">
+                קטלוג חבילות מפורסמות
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm text-neutral-600">
+                חבילות שבעלי אולמות פרסמו — אפשר לעיין גם כאן. לבנייה חכמה לפי מה
+                שאתם צריכים, השתמשו בכפתור למעלה.
+              </p>
+            </div>
+            <a
+              href="/dashboard/venue-owner/packages"
+              className="text-xs font-semibold text-emerald-950 underline underline-offset-2"
+            >
+              בעל אולם? פרסמו חבילה
+            </a>
+          </div>
 
-      <div className="mt-4 rounded-2xl border border-amber-300/50 bg-amber-50/80 px-4 py-3 text-right text-sm text-neutral-800 backdrop-blur-sm">
-        <strong className="text-emerald-950">מסלול חדש (מומלץ):</strong> מתחילים מ־
-        <a href="/halls" className="font-semibold text-emerald-950 underline">
-          חיפוש אולם
-        </a>
-        , ובוחרים אולם — אז נפתח דף &quot;אחרי שבחרתם אולם&quot; עם השוואת תוספות מול
-        שירותי ספקים. החבילות למטה נשארות זמינות לעיון.
+          <Suspense
+            fallback={
+              <div
+                className="h-40 animate-pulse rounded-3xl border border-neutral-200 bg-white/80"
+                aria-hidden
+              />
+            }
+          >
+            <PackagesSearchClient initialPackages={initialPackages} />
+          </Suspense>
+        </section>
       </div>
-
-      <Suspense
-        fallback={
-          <div
-            className="mt-6 h-40 animate-pulse rounded-3xl border border-neutral-200 bg-white/80"
-            aria-hidden
-          />
-        }
-      >
-        <PackagesSearchClient initialPackages={initialPackages} />
-      </Suspense>
       <SiteFooter />
     </SitePageShell>
   );

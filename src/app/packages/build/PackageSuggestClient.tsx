@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { COMMON_INQUIRY_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
 
 type SuggestedItem = {
@@ -40,6 +41,9 @@ function formatPrice(from: number | null, to: number | null): string {
 }
 
 export default function PackageSuggestClient() {
+  const searchParams = useSearchParams();
+  const eventOptions = useMemo(() => [...COMMON_INQUIRY_EVENT_TYPE_OPTIONS], []);
+
   const [eventType, setEventType] = useState("יום הולדת");
   const [area, setArea] = useState("");
   const [guestCount, setGuestCount] = useState("50");
@@ -48,7 +52,15 @@ export default function PackageSuggestClient() {
   const [packages, setPackages] = useState<SuggestedPackage[] | null>(null);
   const [blurb, setBlurb] = useState<string | null>(null);
 
-  const eventOptions = useMemo(() => [...COMMON_INQUIRY_EVENT_TYPE_OPTIONS], []);
+  useEffect(() => {
+    const fromUrl = searchParams.get("eventType")?.trim();
+    if (fromUrl) setEventType(fromUrl);
+    const areaUrl =
+      searchParams.get("area")?.trim() || searchParams.get("city")?.trim();
+    if (areaUrl) setArea(areaUrl);
+    const guestsUrl = searchParams.get("guests")?.trim();
+    if (guestsUrl) setGuestCount(guestsUrl);
+  }, [searchParams]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -87,16 +99,20 @@ export default function PackageSuggestClient() {
     <div className="space-y-8">
       <form
         onSubmit={onSubmit}
-        className="site-card-padded space-y-4 text-right"
+        className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-gradient-to-br from-white via-[#FFFCF6] to-emerald-50/40 p-6 text-right shadow-md sm:p-8"
       >
-        <p className="text-sm leading-relaxed text-neutral-700">
-          אתם ממלאים מה צריך — <strong>האתר בונה את החבילה</strong>: אולם מתאים
-          + ספקים שקשורים לסוג האירוע.
+        <div
+          className="pointer-events-none absolute -left-16 top-0 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl"
+          aria-hidden
+        />
+        <p className="relative text-sm leading-relaxed text-neutral-700">
+          ממלאים 3 שדות — <strong className="text-emerald-950">האתר מרכיב</strong>{" "}
+          אולם + ספקים לפי סוג האירוע.
         </p>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="relative mt-5 grid gap-4 sm:grid-cols-3">
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-neutral-800">
+            <span className="mb-1.5 block font-semibold text-neutral-800">
               סוג אירוע
             </span>
             <select
@@ -114,7 +130,7 @@ export default function PackageSuggestClient() {
           </label>
 
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-neutral-800">
+            <span className="mb-1.5 block font-semibold text-neutral-800">
               אזור / עיר
             </span>
             <input
@@ -127,7 +143,7 @@ export default function PackageSuggestClient() {
           </label>
 
           <label className="block text-sm">
-            <span className="mb-1 block font-medium text-neutral-800">
+            <span className="mb-1.5 block font-semibold text-neutral-800">
               מספר אורחים
             </span>
             <input
@@ -142,7 +158,7 @@ export default function PackageSuggestClient() {
         </div>
 
         {error ? (
-          <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p className="relative mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
             {error}
           </p>
         ) : null}
@@ -150,7 +166,7 @@ export default function PackageSuggestClient() {
         <button
           type="submit"
           disabled={loading}
-          className="btn-primary w-full sm:w-auto"
+          className="relative mt-5 inline-flex w-full items-center justify-center rounded-full bg-emerald-950 px-8 py-3.5 text-sm font-bold text-amber-200 shadow-lg transition hover:bg-emerald-900 disabled:opacity-60 sm:w-auto"
         >
           {loading ? "בונים חבילות..." : "בנו לי חבילות"}
         </button>
@@ -159,7 +175,7 @@ export default function PackageSuggestClient() {
       {packages ? (
         <section className="space-y-4 text-right">
           <div>
-            <h2 className="text-xl font-bold text-neutral-900">
+            <h2 className="text-xl font-bold text-neutral-900 sm:text-2xl">
               החבילות שבנינו בשבילכם
             </h2>
             {blurb ? (
@@ -168,42 +184,44 @@ export default function PackageSuggestClient() {
           </div>
 
           {packages.length === 0 ? (
-            <p className="rounded-2xl border border-neutral-200 bg-white p-5 text-sm text-neutral-700">
+            <p className="rounded-2xl border border-neutral-200 bg-white p-5 text-sm text-neutral-700 shadow-sm">
               עדיין אין מספיק אולמות/ספקים באזור הזה. נסו אזור אחר, או חפשו ידנית
               ב־
-              <Link href="/halls" className="underline">
+              <Link href="/halls" className="font-semibold underline">
                 אולמות
               </Link>
               .
             </p>
           ) : (
             <ul className="grid gap-4 lg:grid-cols-3">
-              {packages.map((pkg) => (
+              {packages.map((pkg, idx) => (
                 <li
                   key={pkg.id}
-                  className="flex flex-col rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
+                  className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-base font-bold text-neutral-900">
-                      {pkg.title}
-                    </h3>
-                    <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
-                      {Math.round(pkg.completeness * 100)}% מלא
-                    </span>
+                  <div className="border-b border-neutral-100 bg-gradient-to-l from-emerald-950 to-neutral-900 px-5 py-4 text-white">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-base font-bold leading-snug">
+                        {pkg.title}
+                      </h3>
+                      <span className="shrink-0 rounded-full bg-amber-400/95 px-2 py-0.5 text-[10px] font-bold text-neutral-950">
+                        #{idx + 1}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-white/70">{pkg.subtitle}</p>
+                    <p className="mt-3 text-sm font-bold text-amber-300">
+                      {formatPrice(pkg.priceFrom, pkg.priceTo)}
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs text-neutral-600">{pkg.subtitle}</p>
-                  <p className="mt-3 text-sm font-bold text-amber-900">
-                    {formatPrice(pkg.priceFrom, pkg.priceTo)}
-                  </p>
 
-                  <ul className="mt-4 flex-1 space-y-2">
+                  <ul className="flex-1 space-y-2 p-4">
                     {pkg.items.map((item) => (
                       <li
                         key={`${pkg.id}-${item.key}`}
                         className={`rounded-xl border px-3 py-2 text-sm ${
                           item.missing
                             ? "border-dashed border-neutral-300 bg-neutral-50 text-neutral-500"
-                            : "border-neutral-200 bg-[#FFFCF6] text-neutral-900"
+                            : "border-emerald-100 bg-emerald-50/40 text-neutral-900"
                         }`}
                       >
                         <span className="block text-[10px] font-semibold text-neutral-500">
@@ -235,21 +253,23 @@ export default function PackageSuggestClient() {
                     ))}
                   </ul>
 
-                  {pkg.venueId ? (
-                    <Link
-                      href={`/halls/${pkg.venueId}`}
-                      className="mt-4 inline-flex justify-center rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-amber-200 transition hover:bg-emerald-950"
-                    >
-                      לפנות דרך האולם
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/halls"
-                      className="mt-4 inline-flex justify-center rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-800"
-                    >
-                      חיפוש אולמות
-                    </Link>
-                  )}
+                  <div className="px-4 pb-4">
+                    {pkg.venueId ? (
+                      <Link
+                        href={`/halls/${pkg.venueId}`}
+                        className="inline-flex w-full justify-center rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-amber-200 transition hover:bg-emerald-950"
+                      >
+                        לפנות דרך האולם
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/halls"
+                        className="inline-flex w-full justify-center rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-800"
+                      >
+                        חיפוש אולמות
+                      </Link>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
