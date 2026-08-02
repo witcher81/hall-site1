@@ -1,7 +1,7 @@
 import type { HomeFeaturedVenue, HomeTopService } from "@/lib/homePageData";
 import HomeBenefits from "./HomeBenefits";
-import HomeCategoryGrid from "./HomeCategoryGrid";
 import HomeFeaturedVenues from "./HomeFeaturedVenues";
+import HomeHallScrollCinema from "./HomeHallScrollCinema";
 import HomeHero from "./HomeHero";
 import HomeHowItWorks from "./HomeHowItWorks";
 import HomePackagesCta from "./HomePackagesCta";
@@ -19,8 +19,9 @@ export default function HomePage({
     <div className="home-page site-page">
       <HomeHero />
 
+      <HomeHallScrollCinema />
+
       <div className="space-y-20 py-16 sm:py-20">
-        <HomeCategoryGrid />
         <HomeFeaturedVenues venues={featuredVenues} />
         <HomeTopProviders services={topServices} />
         <HomeHowItWorks />
