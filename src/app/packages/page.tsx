@@ -43,22 +43,23 @@ export default async function PackagesPage({ searchParams }: PageProps) {
           id="packages-catalog"
           className="scroll-mt-24 space-y-4 text-right"
         >
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-bold text-neutral-900 sm:text-2xl">
-                קטלוג חבילות מפורסמות
-              </h2>
-              <p className="mt-1 max-w-2xl text-sm text-neutral-600">
-                חבילות שבעלי אולמות פרסמו — אפשר לעיין גם כאן. לבנייה חכמה לפי מה
-                שאתם צריכים, השתמשו בכפתור למעלה.
-              </p>
+          <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-sm sm:px-6">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-neutral-900 sm:text-2xl">
+                  קטלוג חבילות מפורסמות
+                </h2>
+                <p className="mt-1 max-w-2xl text-sm text-neutral-600">
+                  חבילות שבעלי אולמות פרסמו. לסינון — לחצו «פתח חיפוש».
+                </p>
+              </div>
+              <a
+                href="/dashboard/venue-owner/packages"
+                className="text-xs font-semibold text-emerald-950 underline underline-offset-2"
+              >
+                בעל אולם? פרסמו חבילה
+              </a>
             </div>
-            <a
-              href="/dashboard/venue-owner/packages"
-              className="text-xs font-semibold text-emerald-950 underline underline-offset-2"
-            >
-              בעל אולם? פרסמו חבילה
-            </a>
           </div>
 
           <Suspense

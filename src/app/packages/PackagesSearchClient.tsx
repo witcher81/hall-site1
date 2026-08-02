@@ -29,19 +29,6 @@ import { PACKAGE_SEARCH_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
 
 const EVENT_TYPE_OPTIONS = PACKAGE_SEARCH_EVENT_TYPE_OPTIONS;
 
-const QUICK_CITIES = [
-  "תל אביב",
-  "חיפה",
-  "ירושלים",
-  "הרצליה",
-  "רמת גן",
-  "פתח תקווה",
-  "ראשון לציון",
-  "נתניה",
-  "באר שבע",
-  "אשדוד",
-];
-
 const EMPTY_SEARCH_FORM = {
   q: "",
   city: "",
@@ -347,16 +334,6 @@ export default function PackagesSearchClient({
     router.replace("/packages", { scroll: false });
   }
 
-  function patchUrlParam(key: string, value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set(key, value);
-    else params.delete(key);
-    const next = params.toString();
-    lastPushedQsRef.current = next;
-    setLoading(true);
-    router.replace(next ? `/packages?${next}` : "/packages", { scroll: false });
-  }
-
   useEffect(() => {
     setPackages(initialPackages);
     setLoading(false);
@@ -376,9 +353,6 @@ export default function PackagesSearchClient({
   const active = hasActiveFilters(searchParams);
   const activeFilterCount = countActiveFilters(form);
   const filterSummary = buildFilterSummary(form);
-  const currentTier = searchParams.get("tier") ?? "";
-  const currentCity = searchParams.get("city") ?? "";
-  const currentEventType = searchParams.get("eventType") ?? "";
 
   return (
     <div className="mt-6 space-y-6">
@@ -588,84 +562,6 @@ export default function PackagesSearchClient({
         ) : null}
         <CityDatalist />
       </form>
-
-      <section className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4 text-right shadow-sm">
-        <p className="text-xs font-semibold text-emerald-950">סינון מהיר</p>
-        <div className="mt-3 space-y-3">
-          <div>
-            <p className="mb-1.5 text-[11px] text-neutral-500">שכבה</p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => patchUrlParam("tier", "")}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  !currentTier
-                    ? "bg-emerald-950 text-white"
-                    : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-                }`}
-              >
-                הכל
-              </button>
-              {PACKAGE_TIERS.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => patchUrlParam("tier", currentTier === t ? "" : t)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    currentTier === t
-                      ? "bg-emerald-950 text-white"
-                      : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-                  }`}
-                >
-                  {PACKAGE_TIER_LABELS[t]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="mb-1.5 text-[11px] text-neutral-500">עיר</p>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_CITIES.map((city) => (
-                <button
-                  key={city}
-                  type="button"
-                  onClick={() =>
-                    patchUrlParam("city", currentCity === city ? "" : city)
-                  }
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    currentCity === city
-                      ? "bg-amber-400 text-neutral-950"
-                      : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-                  }`}
-                >
-                  {city}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="mb-1.5 text-[11px] text-neutral-500">סוג אירוע</p>
-            <div className="flex flex-wrap gap-2">
-              {EVENT_TYPE_OPTIONS.map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() =>
-                    patchUrlParam("eventType", currentEventType === type ? "" : type)
-                  }
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    currentEventType === type
-                      ? "bg-emerald-800 text-white"
-                      : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {loading ? (
         <PackagesResultsSkeleton />

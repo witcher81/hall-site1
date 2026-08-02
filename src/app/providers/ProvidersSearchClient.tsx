@@ -44,19 +44,6 @@ type Service = {
   };
 };
 
-const QUICK_CATEGORIES = [
-  "צילום ותיעוד",
-  "מוזיקה ובמה",
-  "אוכל ומשקאות",
-  "תכנון וניהול אירוע",
-  "יופי ואיפור",
-  "עיצוב ומיתוג",
-  "אטרקציות ובידור",
-  "צוותים ותפעול לאירוע",
-  "טקסים",
-  "הזמנות ודפוס",
-];
-
 const EMPTY_SEARCH_FORM = {
   category: "",
   secondary: "",
@@ -187,17 +174,6 @@ export default function ProvidersSearchClient({
     lastPushedQsRef.current = "";
     setLoading(true);
     router.replace("/providers", { scroll: false });
-  }
-
-  function patchUrlParam(key: "category" | "secondary", value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set(key, value);
-    else params.delete(key);
-    if (key === "category" && !value) params.delete("secondary");
-    const next = params.toString();
-    lastPushedQsRef.current = next;
-    setLoading(true);
-    router.replace(next ? `/providers?${next}` : "/providers", { scroll: false });
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -384,54 +360,6 @@ export default function ProvidersSearchClient({
           </>
         ) : null}
       </form>
-
-      <section className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4 text-right shadow-sm">
-        <p className="text-xs font-semibold text-emerald-950">סינון מהיר</p>
-        <div className="mt-3">
-          <p className="mb-1.5 text-[11px] text-neutral-500">קטגוריה</p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => patchUrlParam("category", "")}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                !currentCategory
-                  ? "bg-emerald-950 text-white"
-                  : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-              }`}
-            >
-              הכל
-            </button>
-            {QUICK_CATEGORIES.map((cat) => {
-              const ok = isPrimaryAvailable(categoryAvailability, cat);
-              const selected = currentCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  disabled={!ok}
-                  title={ok ? undefined : "אין עדיין ספקים בקטגוריה זו"}
-                  onClick={() => {
-                    if (!ok) return;
-                    patchUrlParam(
-                      "category",
-                      currentCategory === cat ? "" : cat
-                    );
-                  }}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    !ok
-                      ? "cursor-not-allowed border border-neutral-200 bg-neutral-50 text-neutral-400"
-                      : selected
-                        ? "bg-emerald-950 text-white"
-                        : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-                  }`}
-                >
-                  {ok ? cat : `${cat} · אין עדיין`}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       {activeFilterCount === 0 ? (
         <RecentlyViewedBar variant="providers" layout="section" />
