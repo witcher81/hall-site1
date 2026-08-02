@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   useEffect,
@@ -9,6 +10,34 @@ import {
   type CSSProperties,
 } from "react";
 
+/** תמונות HD של אולמות / קבלות פנים — נעות עם הגלילה כמו סיור */
+const HALL_FRAMES = [
+  {
+    src: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80",
+    alt: "אולם אירועים מעוצב",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1920&q=80",
+    alt: "שולחנות ערוכים באולם",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=1920&q=80",
+    alt: "קבלת פנים באולם",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1511285560929-80b456fe0c7f?auto=format&fit=crop&w=1920&q=80",
+    alt: "עיצוב שולחן לאירוע",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1920&q=80",
+    alt: "סידור כסאות באולם",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1520854221259-1862dad10a21?auto=format&fit=crop&w=1920&q=80",
+    alt: "אווירת אירוע באולם",
+  },
+] as const;
+
 const STAGES = [
   {
     at: 0,
@@ -16,17 +45,22 @@ const STAGES = [
     text: "גוללים ומגלים את האווירה — כאילו אתם בסיור אמיתי.",
   },
   {
-    at: 0.28,
+    at: 0.22,
     title: "החלל מתגלה",
-    text: "תאורה, במה, שולחנות — כל פרט שחשוב לבחירה.",
+    text: "תאורה, שולחנות ועיצוב — כל מה שחשוב לבחירה.",
   },
   {
-    at: 0.55,
+    at: 0.45,
     title: "מרגישים את האירוע",
-    text: "ככה נראה רגע לפני שהאורחים נכנסים.",
+    text: "ככה נראה הרגע לפני שהאורחים נכנסים.",
   },
   {
-    at: 0.78,
+    at: 0.68,
+    title: "פרטים שעושים הבדל",
+    text: "מסידור הכסאות ועד האווירה הכללית.",
+  },
+  {
+    at: 0.85,
     title: "מוכנים לבחור?",
     text: "עברו לחיפוש אולמות והתחילו להשוות.",
   },
@@ -56,17 +90,22 @@ function usePrefersReducedMotion(): boolean {
   return reduce;
 }
 
+function frameOpacity(progress: number, index: number, total: number): number {
+  if (total <= 1) return 1;
+  const pos = progress * (total - 1);
+  const dist = Math.abs(pos - index);
+  if (dist >= 1) return 0;
+  return 1 - dist;
+}
+
 export default function HomeHallScrollCinema() {
   const pinRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const reduceMotion = usePrefersReducedMotion();
   const [progress, setProgress] = useState(0);
-  const [ready, setReady] = useState(false);
   const rafRef = useRef<number | null>(null);
 
   const syncFromScroll = useEffectEvent(() => {
     const pin = pinRef.current;
-    const video = videoRef.current;
     if (!pin) return;
 
     const rect = pin.getBoundingClientRect();
@@ -75,18 +114,6 @@ export default function HomeHallScrollCinema() {
     const raw = -rect.top / total;
     const p = Math.max(0, Math.min(1, raw));
     setProgress(p);
-
-    if (!reduceMotion && video && video.duration && Number.isFinite(video.duration)) {
-      const t = p * video.duration;
-      if (Math.abs(video.currentTime - t) > 0.04) {
-        try {
-          video.currentTime = t;
-        } catch {
-          /* ignore seek race while loading */
-        }
-      }
-    }
-
     pin.style.setProperty("--scroll-p", p.toFixed(4));
   });
 
@@ -110,30 +137,49 @@ export default function HomeHallScrollCinema() {
 
   const activeStage =
     [...STAGES].reverse().find((s) => progress >= s.at) ?? STAGES[0];
+  const activeFrame = Math.min(
+    HALL_FRAMES.length - 1,
+    Math.round(progress * (HALL_FRAMES.length - 1))
+  );
 
   return (
     <section
       ref={pinRef}
       className="home-hall-cinema"
-      aria-label="סיור וידאו באולם — נע עם הגלילה"
+      aria-label="סיור באולם — נע עם הגלילה"
       style={{ "--scroll-p": 0 } as CSSProperties}
     >
       <div className="home-hall-cinema__sticky">
         <div className="home-hall-cinema__stage">
           <div className="home-hall-cinema__frame">
-            <video
-              ref={videoRef}
-              className="home-hall-cinema__video"
-              src="/videos/hall-cinematic.mp4"
-              muted
-              playsInline
-              preload="auto"
-              aria-hidden
-              onLoadedMetadata={() => {
-                setReady(true);
-                syncFromScroll();
-              }}
-            />
+            {HALL_FRAMES.map((frame, i) => {
+              const opacity = reduceMotion
+                ? i === 0
+                  ? 1
+                  : 0
+                : frameOpacity(progress, i, HALL_FRAMES.length);
+              return (
+                <div
+                  key={frame.src}
+                  className="home-hall-cinema__shot"
+                  style={{
+                    opacity,
+                    transform: `scale(${1.04 + progress * 0.08 + i * 0.01})`,
+                  }}
+                  aria-hidden={i !== activeFrame}
+                >
+                  <Image
+                    src={frame.src}
+                    alt={frame.alt}
+                    fill
+                    sizes="100vw"
+                    quality={85}
+                    priority={i === 0}
+                    className="object-cover"
+                  />
+                </div>
+              );
+            })}
             <div className="home-hall-cinema__vignette" aria-hidden />
             <div className="home-hall-cinema__depth" aria-hidden />
           </div>
@@ -148,7 +194,7 @@ export default function HomeHallScrollCinema() {
             <p className="mt-3 max-w-md text-sm leading-relaxed text-white/80 sm:text-base">
               {activeStage.text}
             </p>
-            {progress > 0.72 ? (
+            {progress > 0.78 ? (
               <Link
                 href="/halls"
                 className="mt-6 inline-flex rounded-full bg-amber-400 px-7 py-3 text-sm font-bold text-neutral-950 shadow-lg shadow-amber-500/25 transition hover:bg-amber-300"
@@ -157,17 +203,12 @@ export default function HomeHallScrollCinema() {
               </Link>
             ) : (
               <p className="mt-6 text-xs text-white/55">
-                {ready
-                  ? "גללו למטה — הסרטון זז איתכם"
-                  : "טוען את הסיור..."}
+                גללו למטה — הסיור זז איתכם
               </p>
             )}
           </div>
 
-          <div
-            className="home-hall-cinema__progress"
-            aria-hidden
-          >
+          <div className="home-hall-cinema__progress" aria-hidden>
             <span
               className="home-hall-cinema__progress-bar"
               style={{ transform: `scaleX(${progress})` }}
