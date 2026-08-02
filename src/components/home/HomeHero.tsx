@@ -3,11 +3,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import {
+  FormEvent,
+  PointerEvent,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 
 /** תמונת hero — רוחב סביר למובייל/דסקטופ, לא 2400px */
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=75";
+
+const FLOAT_CARDS = [
+  { label: "אולמות", hint: "חללים לאירוע", depth: 1.15 },
+  { label: "DJ", hint: "מוזיקה חיה", depth: 0.85 },
+  { label: "צלמים", hint: "תיעוד מקצועי", depth: 1.35 },
+] as const;
 
 function providersHref(category: string, secondary?: string): string {
   const params = new URLSearchParams({ category });
@@ -76,9 +90,79 @@ function routeQuickSearch(raw: string): string {
   return `/halls?city=${encodeURIComponent(q)}`;
 }
 
+function usePrefersReducedMotion(): boolean {
+  const [reduce, setReduce] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () =>
+      setReduce(
+        mq.matches || document.documentElement.classList.contains("a11y-stop-animations")
+      );
+    sync();
+    mq.addEventListener("change", sync);
+    const obs = new MutationObserver(sync);
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => {
+      mq.removeEventListener("change", sync);
+      obs.disconnect();
+    };
+  }, []);
+  return reduce;
+}
+
 export default function HomeHero() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const stageRef = useRef<HTMLElement>(null);
+  const reduceMotion = usePrefersReducedMotion();
+  const target = useRef({ x: 0, y: 0 });
+  const current = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
+
+  const applyScene = useEffectEvent((x: number, y: number) => {
+    const el = stageRef.current;
+    if (!el) return;
+    el.style.setProperty("--hx", x.toFixed(4));
+    el.style.setProperty("--hy", y.toFixed(4));
+  });
+
+  useEffect(() => {
+    if (reduceMotion) {
+      applyScene(0, 0);
+      return;
+    }
+
+    const tick = () => {
+      current.current.x += (target.current.x - current.current.x) * 0.08;
+      current.current.y += (target.current.y - current.current.y) * 0.08;
+      applyScene(current.current.x, current.current.y);
+      rafRef.current = window.requestAnimationFrame(tick);
+    };
+    rafRef.current = window.requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current != null) window.cancelAnimationFrame(rafRef.current);
+    };
+  }, [reduceMotion]);
+
+  function onPointerMove(e: PointerEvent<HTMLElement>) {
+    if (reduceMotion) return;
+    const el = stageRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    target.current = {
+      x: Math.max(-1, Math.min(1, nx)),
+      y: Math.max(-1, Math.min(1, ny)),
+    };
+  }
+
+  function onPointerLeave() {
+    target.current = { x: 0, y: 0 };
+  }
 
   function onSearch(e: FormEvent) {
     e.preventDefault();
@@ -86,74 +170,104 @@ export default function HomeHero() {
   }
 
   return (
-    <section className="relative min-h-[min(88vh,720px)] w-full overflow-hidden">
-      <Image
-        src={HERO_IMAGE}
-        alt=""
-        fill
-        priority
-        fetchPriority="high"
-        sizes="100vw"
-        className="object-cover home-hero-kenburns"
-        aria-hidden
-      />
+    <section
+      ref={stageRef}
+      className="home-hero-stage relative min-h-[min(88vh,720px)] w-full overflow-hidden"
+      onPointerMove={onPointerMove}
+      onPointerLeave={onPointerLeave}
+      style={{ "--hx": 0, "--hy": 0 } as CSSProperties}
+    >
+      <div className="home-hero-media absolute inset-0" aria-hidden>
+        <Image
+          src={HERO_IMAGE}
+          alt=""
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          className="object-cover home-hero-kenburns"
+        />
+      </div>
       <div
         className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-neutral-950/90"
         aria-hidden
       />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(251,191,36,0.14),transparent_55%)]"
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(251,191,36,0.14),transparent_55%)]"
         aria-hidden
       />
-      <div className="relative mx-auto flex min-h-[min(88vh,720px)] max-w-6xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
-        <div className="home-animate-in max-w-2xl text-right">
-          <p className="text-xs font-semibold tracking-[0.35em] text-amber-300/90">
-            HALLS HUB
-          </p>
-          <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
-            בונים אירוע?
-            <br />
-            <span className="text-amber-200/95">
-              מוצאים אולם, DJ, צלם, מעצב ועוד — במקום אחד
-            </span>
-          </h1>
-          <p className="mt-5 max-w-lg text-base leading-relaxed text-white/80">
-            מרקטפלייס לאירועים: חיפוש, השוואה ובקשות — בלי לקפוץ בין עשרות אתרים.
-          </p>
+      <div className="home-hero-grid pointer-events-none absolute inset-0" aria-hidden />
+      <div className="home-hero-orb home-hero-orb--a" aria-hidden />
+      <div className="home-hero-orb home-hero-orb--b" aria-hidden />
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/halls"
-              className="home-animate-in home-stagger-1 rounded-full bg-amber-400 px-8 py-3.5 text-sm font-bold text-neutral-950 shadow-lg shadow-amber-500/25 transition hover:bg-amber-300 hover:scale-[1.02] active:scale-[0.98]"
+      <div className="relative mx-auto flex min-h-[min(88vh,720px)] max-w-6xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(260px,0.85fr)]">
+          <div className="home-animate-in home-hero-copy max-w-2xl text-right">
+            <p className="text-xs font-semibold tracking-[0.35em] text-amber-300/90">
+              HALLS HUB
+            </p>
+            <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
+              בונים אירוע?
+              <br />
+              <span className="text-amber-200/95">
+                מוצאים אולם, DJ, צלם, מעצב ועוד — במקום אחד
+              </span>
+            </h1>
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-white/80">
+              מרקטפלייס לאירועים: חיפוש, השוואה ובקשות — בלי לקפוץ בין עשרות אתרים.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/halls"
+                className="home-animate-in home-stagger-1 home-hero-cta rounded-full bg-amber-400 px-8 py-3.5 text-sm font-bold text-neutral-950 shadow-lg shadow-amber-500/25 transition hover:bg-amber-300"
+              >
+                חפש אולמות
+              </Link>
+              <Link
+                href="/providers"
+                className="home-animate-in home-stagger-2 home-hero-cta rounded-full border border-white/40 bg-white/10 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/20"
+              >
+                חפש ספקים
+              </Link>
+            </div>
+
+            <form
+              onSubmit={onSearch}
+              className="home-animate-in home-stagger-3 home-search-glow mt-8 flex max-w-xl overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl"
             >
-              חפש אולמות
-            </Link>
-            <Link
-              href="/providers"
-              className="home-animate-in home-stagger-2 rounded-full border border-white/40 bg-white/10 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              חפש ספקים
-            </Link>
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="מה אתם מחפשים? עיר, DJ, צילום..."
+                className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/50 focus:outline-none"
+                aria-label="חיפוש מהיר"
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-amber-50"
+              >
+                חיפוש
+              </button>
+            </form>
           </div>
 
-          <form
-            onSubmit={onSearch}
-            className="home-animate-in home-stagger-3 home-search-glow mt-8 flex max-w-xl overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl"
+          <div
+            className="home-hero-float-stage home-animate-in home-stagger-2 relative mx-auto hidden h-[320px] w-full max-w-md lg:block"
+            aria-hidden
           >
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="מה אתם מחפשים? עיר, DJ, צילום..."
-              className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/50 focus:outline-none"
-              aria-label="חיפוש מהיר"
-            />
-            <button
-              type="submit"
-              className="shrink-0 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-amber-50"
-            >
-              חיפוש
-            </button>
-          </form>
+            {FLOAT_CARDS.map((card, i) => (
+              <div
+                key={card.label}
+                className={`home-hero-float-card home-hero-float-card--${i + 1}`}
+                style={{ "--depth": card.depth } as CSSProperties}
+              >
+                <span className="text-sm font-bold text-white">{card.label}</span>
+                <span className="mt-1 block text-[11px] text-white/65">{card.hint}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

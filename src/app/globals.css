@@ -1500,12 +1500,24 @@ html[data-theme="night"] .home-surface-panel {
   .a11y-widget-fab--pulse,
   .ui-dock-rise,
   .ui-sticky-rise,
-  .home-search-glow {
+  .home-search-glow,
+  .home-hero-orb,
+  .home-hero-float-card {
     animation: none !important;
   }
 
+  .home-hero-media,
+  .home-hero-grid,
+  .home-hero-orb,
+  .home-hero-copy,
+  .home-hero-float-card {
+    transform: none !important;
+  }
+
   .site-card:hover,
-  .btn-primary:hover:not(:disabled) {
+  .btn-primary:hover:not(:disabled),
+  .home-hero-cta:hover,
+  .home-hero-cta:active {
     transform: none;
   }
 }
@@ -1594,12 +1606,212 @@ html[data-theme="night"] .home-surface-panel {
   animation: home-search-glow 4.5s ease-in-out infinite;
 }
 
+/* —— דף הבית: במה תלת־ממדית ב־hero —— */
+.home-hero-stage {
+  --hx: 0;
+  --hy: 0;
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+.home-hero-media {
+  transform: translate3d(
+      calc(var(--hx) * -18px),
+      calc(var(--hy) * -12px),
+      0
+    )
+    scale(1.08);
+  transition: transform 0.05s linear;
+  will-change: transform;
+}
+
+.home-hero-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 40%, black 20%, transparent 72%);
+  transform: translate3d(
+      calc(var(--hx) * 10px),
+      calc(var(--hy) * 8px),
+      0
+    )
+    perspective(800px) rotateX(58deg) scale(1.45);
+  transform-origin: center 30%;
+  opacity: 0.45;
+}
+
+.home-hero-orb {
+  pointer-events: none;
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  opacity: 0.55;
+  will-change: transform;
+}
+
+.home-hero-orb--a {
+  top: 12%;
+  left: 8%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgb(251 191 36 / 0.35), transparent 70%);
+  transform: translate3d(
+    calc(var(--hx) * 28px),
+    calc(var(--hy) * 18px),
+    0
+  );
+  animation: home-orb-drift 9s ease-in-out infinite alternate;
+}
+
+.home-hero-orb--b {
+  right: 6%;
+  bottom: 18%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgb(56 189 248 / 0.22), transparent 70%);
+  transform: translate3d(
+    calc(var(--hx) * -22px),
+    calc(var(--hy) * -16px),
+    0
+  );
+  animation: home-orb-drift 11s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes home-orb-drift {
+  from {
+    filter: blur(40px);
+  }
+  to {
+    filter: blur(52px);
+    opacity: 0.7;
+  }
+}
+
+.home-hero-copy {
+  transform: translate3d(
+      calc(var(--hx) * -8px),
+      calc(var(--hy) * -6px),
+      0
+    )
+    rotateY(calc(var(--hx) * -3deg))
+    rotateX(calc(var(--hy) * 2.5deg));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.home-hero-cta:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+.home-hero-cta:active {
+  transform: scale(0.98);
+}
+
+.home-hero-float-stage {
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.home-hero-float-card {
+  position: absolute;
+  width: min(220px, 70%);
+  border-radius: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  background: linear-gradient(
+    145deg,
+    rgb(255 255 255 / 0.16),
+    rgb(255 255 255 / 0.05)
+  );
+  padding: 1.1rem 1.25rem;
+  box-shadow:
+    0 18px 40px rgb(0 0 0 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.2);
+  backdrop-filter: blur(14px);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.home-hero-float-card--1 {
+  top: 8%;
+  right: 8%;
+  animation: home-float-bob 5.5s ease-in-out infinite;
+  transform: translate3d(
+      calc(var(--hx) * 26px * var(--depth, 1)),
+      calc(var(--hy) * 18px * var(--depth, 1)),
+      40px
+    )
+    rotateY(calc(var(--hx) * -8deg * var(--depth, 1)))
+    rotateX(calc(var(--hy) * 6deg * var(--depth, 1)));
+}
+
+.home-hero-float-card--2 {
+  top: 38%;
+  left: 4%;
+  animation: home-float-bob 6.5s ease-in-out infinite 0.4s;
+  transform: translate3d(
+      calc(var(--hx) * 34px * var(--depth, 1)),
+      calc(var(--hy) * 22px * var(--depth, 1)),
+      70px
+    )
+    rotateY(calc(var(--hx) * -10deg * var(--depth, 1)))
+    rotateX(calc(var(--hy) * 7deg * var(--depth, 1)));
+}
+
+.home-hero-float-card--3 {
+  bottom: 6%;
+  right: 18%;
+  animation: home-float-bob 7s ease-in-out infinite 0.8s;
+  transform: translate3d(
+      calc(var(--hx) * 20px * var(--depth, 1)),
+      calc(var(--hy) * 14px * var(--depth, 1)),
+      24px
+    )
+    rotateY(calc(var(--hx) * -6deg * var(--depth, 1)))
+    rotateX(calc(var(--hy) * 5deg * var(--depth, 1)));
+}
+
+@keyframes home-float-bob {
+  0%,
+  100% {
+    margin-top: 0;
+  }
+  50% {
+    margin-top: -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-media,
+  .home-hero-grid,
+  .home-hero-orb,
+  .home-hero-copy,
+  .home-hero-float-card {
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .home-hero-cta:hover,
+  .home-hero-cta:active {
+    transform: none;
+  }
+}
+
 html.a11y-stop-animations .home-hero-kenburns,
 html.a11y-stop-animations .a11y-widget-fab--pulse,
 html.a11y-stop-animations .ui-dock-rise,
 html.a11y-stop-animations .ui-sticky-rise,
-html.a11y-stop-animations .home-search-glow {
+html.a11y-stop-animations .home-search-glow,
+html.a11y-stop-animations .home-hero-orb,
+html.a11y-stop-animations .home-hero-float-card {
   animation: none !important;
+}
+
+html.a11y-stop-animations .home-hero-media,
+html.a11y-stop-animations .home-hero-grid,
+html.a11y-stop-animations .home-hero-orb,
+html.a11y-stop-animations .home-hero-copy,
+html.a11y-stop-animations .home-hero-float-card {
+  transform: none !important;
 }
 
 /* —— נגישות: קישור דילוג + מצבי תצוגה —— */
