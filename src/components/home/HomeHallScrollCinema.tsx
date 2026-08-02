@@ -202,16 +202,16 @@ export default function HomeHallScrollCinema() {
             {progress > 0.8 ? (
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
-                  href="/halls"
+                  href="/packages/build"
                   className="inline-flex rounded-full bg-amber-400 px-7 py-3 text-sm font-bold text-neutral-950 shadow-lg shadow-amber-500/25 transition hover:bg-amber-300"
                 >
-                  חפש אולמות
+                  בנו לי חבילה
                 </Link>
                 <Link
-                  href="/providers"
+                  href="/halls"
                   className="inline-flex rounded-full border border-white/40 bg-white/10 px-7 py-3 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/20"
                 >
-                  חפש ספקים
+                  חפש אולמות
                 </Link>
               </div>
             ) : (
