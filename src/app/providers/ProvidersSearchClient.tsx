@@ -189,7 +189,6 @@ export default function ProvidersSearchClient({
   const active = hasActiveFilters(searchParams);
   const activeFilterCount = useMemo(() => countActiveFilters(form), [form]);
   const filterSummary = useMemo(() => buildFilterSummary(form), [form]);
-  const currentCategory = searchParams.get("category") ?? "";
 
   return (
     <div className="mt-6 space-y-6">

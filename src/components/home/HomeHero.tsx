@@ -17,11 +17,32 @@ import {
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=75";
 
-const FLOAT_CARDS = [
-  { label: "אולמות", hint: "חללים לאירוע", depth: 1.15 },
-  { label: "DJ", hint: "מוזיקה חיה", depth: 0.85 },
-  { label: "צלמים", hint: "תיעוד מקצועי", depth: 1.35 },
-] as const;
+const FLOAT_CARD_SETS: ReadonlyArray<
+  ReadonlyArray<{ label: string; hint: string; depth: number }>
+> = [
+  [
+    { label: "אולמות", hint: "חללים לאירוע", depth: 1.15 },
+    { label: "DJ", hint: "מוזיקה חיה", depth: 0.85 },
+    { label: "צלמים", hint: "תיעוד מקצועי", depth: 1.35 },
+  ],
+  [
+    { label: "קייטרינג", hint: "אוכל לאירוע", depth: 1.1 },
+    { label: "ברמנים", hint: "בר ומשקאות", depth: 0.9 },
+    { label: "עיצוב", hint: "פרחים וקישוט", depth: 1.3 },
+  ],
+  [
+    { label: "יום הולדת", hint: "מפעיל ואטרקציות", depth: 1.2 },
+    { label: "בר מצווה", hint: "אולם + מוזיקה", depth: 0.95 },
+    { label: "חינה", hint: "אווירה ועיצוב", depth: 1.25 },
+  ],
+  [
+    { label: "חבילות", hint: "האתר בונה בשבילכם", depth: 1.15 },
+    { label: "מגנטים", hint: "צילום לאורחים", depth: 0.88 },
+    { label: "זמרים", hint: "במה חיה", depth: 1.32 },
+  ],
+];
+
+const FLOAT_ROTATE_MS = 3800;
 
 function providersHref(category: string, secondary?: string): string {
   const params = new URLSearchParams({ category });
@@ -116,6 +137,8 @@ function usePrefersReducedMotion(): boolean {
 export default function HomeHero() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [floatSetIndex, setFloatSetIndex] = useState(0);
+  const [floatVisible, setFloatVisible] = useState(true);
   const stageRef = useRef<HTMLElement>(null);
   const reduceMotion = usePrefersReducedMotion();
   const target = useRef({ x: 0, y: 0 });
@@ -257,16 +280,22 @@ export default function HomeHero() {
             className="home-hero-float-stage home-animate-in home-stagger-2 relative mx-auto hidden h-[320px] w-full max-w-md lg:block"
             aria-hidden
           >
-            {FLOAT_CARDS.map((card, i) => (
-              <div
-                key={card.label}
-                className={`home-hero-float-card home-hero-float-card--${i + 1}`}
-                style={{ "--depth": card.depth } as CSSProperties}
-              >
-                <span className="text-sm font-bold text-white">{card.label}</span>
-                <span className="mt-1 block text-[11px] text-white/65">{card.hint}</span>
-              </div>
-            ))}
+            <div
+              className={`home-hero-float-swap ${floatVisible ? "is-visible" : ""}`}
+            >
+              {FLOAT_CARD_SETS[floatSetIndex].map((card, i) => (
+                <div
+                  key={`${floatSetIndex}-${card.label}`}
+                  className={`home-hero-float-card home-hero-float-card--${i + 1}`}
+                  style={{ "--depth": card.depth } as CSSProperties}
+                >
+                  <span className="text-sm font-bold text-white">{card.label}</span>
+                  <span className="mt-1 block text-[11px] text-white/65">
+                    {card.hint}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
