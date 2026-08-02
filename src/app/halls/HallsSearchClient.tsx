@@ -16,7 +16,7 @@ import VenueKashrutSelect from "@/components/VenueKashrutSelect";
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
-import SavedHallSearchesPanel from "@/components/SavedHallSearchesPanel";
+import RecentHallSearchesPanel from "@/components/RecentHallSearchesPanel";
 import TrendingSection from "@/components/trending/TrendingSection";
 import { parseNaturalHallSearchQuery } from "@/lib/naturalHallSearch";
 import {
@@ -752,7 +752,7 @@ export default function HallsSearchClient({
       .catch(() => setPopularVenueOrder([]));
   }, []);
 
-  const savedSearchQuery = useMemo(() => {
+  const recentSearchQuery = useMemo(() => {
     const p = new URLSearchParams(searchParams.toString());
     p.delete(MAP_VIEW_PARAM);
     return p.toString();
@@ -1401,7 +1401,7 @@ export default function HallsSearchClient({
         ) : null}
       </form>
 
-      <SavedHallSearchesPanel currentQuery={savedSearchQuery} />
+      <RecentHallSearchesPanel currentQuery={recentSearchQuery} />
 
       {activeFilterCount === 0 ? (
         <>
