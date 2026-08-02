@@ -963,15 +963,24 @@ html[data-theme="night"] .bg-slate-200\/95 {
 
 html[data-theme="night"] [class*="from-[#E8F0EC]"],
 html[data-theme="night"] [class*="from-[#F8F4EC]"],
+html[data-theme="night"] [class*="from-[#FFFCF6]"],
+html[data-theme="night"] [class*="from-[#FFFCF7]"],
 html[data-theme="night"] [class*="from-slate-50"],
 html[data-theme="night"] [class*="from-neutral-100"],
 html[data-theme="night"] [class*="from-white"][class*="bg-gradient"],
-html[data-theme="night"] [class*="from-amber-50"][class*="bg-gradient"] {
+html[data-theme="night"] [class*="from-amber-50"][class*="bg-gradient"],
+html[data-theme="night"] [class*="to-[#FAF8F4]"] {
   background-image: linear-gradient(
     to bottom right,
     rgb(24 34 52 / 0.96),
     rgb(14 22 36 / 0.98)
   ) !important;
+}
+
+/* קופסאות שמנת קשיחות — במצב לילה הופכות לכרטיס כהה כדי שהטקסט יישאר קריא */
+html[data-theme="night"] .bg-\[\#FAF8F4\],
+html[data-theme="night"] .bg-\[\#FFFCF6\] {
+  background-color: var(--card) !important;
 }
 
 html[data-theme="night"] [class*="from-amber-50"][class*="to-amber-50"] {
