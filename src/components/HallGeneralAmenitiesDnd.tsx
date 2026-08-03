@@ -795,7 +795,7 @@ export default function HallGeneralAmenitiesDnd({
       <div className="mb-3">
         <AmenityDropColumn
           title="לא פעיל (לא בחיפוש)"
-          hint="פריטים שעדיין לא מוצגים למחפשים"
+          hint="שירותי המקום שעדיין לא מוצגים למחפשים"
           zone="inactive"
           dragOver={dragOver}
           onDragOverZone={onDragOverZone}
