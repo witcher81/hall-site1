@@ -17,6 +17,7 @@ import {
   splitLegacyDietaryFromCategory,
 } from "@/lib/foodDietaryOptions";
 import {
+  createDefaultPyramidGuestTiers,
   needsFoodPricingModeChoice,
   templateIdForFoodPricingMode,
 } from "@/lib/foodPricingMode";
@@ -326,6 +327,10 @@ export default function NewServicePage() {
                 ...m,
                 foodPricingMode: mode,
                 templateId: templateIdForFoodPricingMode(mode),
+                ...(mode === "pyramid_per_head" &&
+                !(m.quantityTiers && m.quantityTiers.length > 0)
+                  ? { quantityTiers: createDefaultPyramidGuestTiers() }
+                  : {}),
               }))
             }
           />

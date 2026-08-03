@@ -30,6 +30,7 @@ function formatTotalRange(min: number | null, max: number | null): string | null
 }
 
 function formatPackagePriceLabel(pkg: ServiceMenuPackage, template: CatalogTemplate): string | null {
+  if (template.hidePackagePrice) return "לפי מדרגות אורחים";
   return formatPackagePrice(pkg, {
     perGuestSuffix: catalogPackageUsesPerGuestMultiplier(template),
   });
@@ -61,8 +62,13 @@ export default function ServiceMenuPublicSection({
 
   const estimate = useMemo(() => {
     if (!countNum || !selectedPackage) return null;
-    return estimatePackageTotal(selectedPackage, countNum, multiply);
-  }, [countNum, selectedPackage, multiply]);
+    return estimatePackageTotal(
+      selectedPackage,
+      countNum,
+      multiply,
+      menu.quantityTiers
+    );
+  }, [countNum, selectedPackage, multiply, menu.quantityTiers]);
 
   const capacityText = useMemo(() => {
     if (template.showPersonCapacity) {
@@ -97,7 +103,9 @@ export default function ServiceMenuPublicSection({
       : "מספר אורחים";
 
   const showCalculator =
-    interactive && menu.packages.length > 0 && multiply;
+    interactive &&
+    (menu.packages.length > 0 || (menu.quantityTiers?.length ?? 0) > 0) &&
+    (multiply || (menu.quantityTiers?.length ?? 0) > 0);
 
   return (
     <section className="site-card-padded border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 to-white text-right">
@@ -252,7 +260,9 @@ export default function ServiceMenuPublicSection({
 
       {(menu.quantityTiers?.length ?? 0) > 0 ? (
         <div className="mt-4">
-          <p className="text-xs font-semibold text-emerald-950">מדרגות כמות</p>
+          <p className="text-xs font-semibold text-emerald-950">
+            {template.quantityTiersTitle ?? "מדרגות כמות"}
+          </p>
           <ul className="mt-2 space-y-1">
             {menu.quantityTiers!.map((tier) => (
               <li
@@ -261,10 +271,14 @@ export default function ServiceMenuPublicSection({
               >
                 <span>
                   {tier.minQty}
-                  {tier.maxQty != null ? `–${tier.maxQty}` : "+"} יחידות
+                  {tier.maxQty != null ? `–${tier.maxQty}` : "+"}{" "}
+                  {template.quantityTierUnitLabel ?? "יחידות"}
                 </span>
                 {tier.pricePerUnit != null ? (
-                  <span className="font-semibold">₪{tier.pricePerUnit} ליחידה</span>
+                  <span className="font-semibold">
+                    ₪{tier.pricePerUnit}{" "}
+                    {template.quantityTierUnitLabel === "אורחים" ? "לראש" : "ליחידה"}
+                  </span>
                 ) : null}
               </li>
             ))}

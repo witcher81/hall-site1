@@ -16,6 +16,7 @@ import {
   splitLegacyDietaryFromCategory,
 } from "@/lib/foodDietaryOptions";
 import {
+  createDefaultPyramidGuestTiers,
   needsFoodPricingModeChoice,
   templateIdForFoodPricingMode,
 } from "@/lib/foodPricingMode";
@@ -112,7 +113,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         return { ...next, foodPricingMode: "general" as const };
       }
       if (next.templateId === "food" || !next.templateId) {
-        return { ...next, foodPricingMode: "per_person" as const };
+        return { ...next, foodPricingMode: "fixed_per_head" as const };
       }
     }
     return next;
@@ -366,6 +367,10 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
               ...m,
               foodPricingMode: mode,
               templateId: templateIdForFoodPricingMode(mode),
+              ...(mode === "pyramid_per_head" &&
+              !(m.quantityTiers && m.quantityTiers.length > 0)
+                ? { quantityTiers: createDefaultPyramidGuestTiers() }
+                : {}),
             }))
           }
         />

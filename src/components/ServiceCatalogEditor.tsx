@@ -311,6 +311,81 @@ export default function ServiceCatalogEditor({
         </div>
       ) : null}
 
+      {template.showQuantityTiers ? (
+        <div className="rounded-xl border border-violet-200/80 bg-violet-50/40 p-4">
+          <h3 className="text-sm font-semibold text-violet-950">
+            {template.quantityTiersTitle ?? "מדרגות כמות"}
+          </h3>
+          <p className="mt-1 text-[11px] text-neutral-600">
+            {template.quantityTiersHint ??
+              "מחיר ליחידה לפי כמות הזמנה — למשל 50–100 יחידות במחיר אחד."}
+          </p>
+          <ul className="mt-3 space-y-2">
+            {(value.quantityTiers ?? []).map((tier, index) => (
+              <li
+                key={tier.id}
+                className="grid gap-2 rounded-lg border border-violet-200/70 bg-white p-2 sm:grid-cols-4"
+              >
+                <input
+                  type="number"
+                  min={1}
+                  value={tier.minQty}
+                  onChange={(e) =>
+                    updateTier(index, { minQty: parsePriceInput(e.target.value) ?? 1 })
+                  }
+                  className={input}
+                  placeholder={template.quantityTierMinPlaceholder ?? "מינימום"}
+                />
+                <input
+                  type="number"
+                  min={1}
+                  value={tier.maxQty ?? ""}
+                  onChange={(e) =>
+                    updateTier(index, { maxQty: parsePriceInput(e.target.value) })
+                  }
+                  className={input}
+                  placeholder={template.quantityTierMaxPlaceholder ?? "מקסימום"}
+                />
+                <input
+                  type="number"
+                  min={0}
+                  value={tier.pricePerUnit ?? ""}
+                  onChange={(e) =>
+                    updateTier(index, { pricePerUnit: parsePriceInput(e.target.value) })
+                  }
+                  className={input}
+                  placeholder={template.quantityTierPricePlaceholder ?? "₪ ליחידה"}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    patchMenu({
+                      quantityTiers: (value.quantityTiers ?? []).filter(
+                        (_, i) => i !== index
+                      ),
+                    })
+                  }
+                  className="text-[11px] text-red-600 hover:underline"
+                >
+                  הסר
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() =>
+              patchMenu({
+                quantityTiers: [...(value.quantityTiers ?? []), createEmptyQuantityTier()],
+              })
+            }
+            className="mt-2 text-[11px] font-medium text-violet-950 hover:underline"
+          >
+            {template.quantityTiersAddLabel ?? "+ הוסף מדרגה"}
+          </button>
+        </div>
+      ) : null}
+
       <div className="rounded-xl border border-amber-200/90 bg-amber-50/45 p-4">
         <h3 className="text-sm font-semibold text-amber-900">
           {showCapacity ? "② " : "① "}
@@ -342,7 +417,7 @@ export default function ServiceCatalogEditor({
                   ? ` — ${template.packageCardDetail ?? "שם, מחיר ומה כלול"}`
                   : ` — ${template.packageCardDetail ?? "שם + מחיר"}`}
               </p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className={`grid gap-3 ${template.hidePackagePrice ? "" : "sm:grid-cols-2"}`}>
                 <CatalogFieldHelp
                   label={template.packageNameFieldLabel ?? "שם הרמה / סוג"}
                   help={fieldHelp.packageName}
@@ -358,6 +433,7 @@ export default function ServiceCatalogEditor({
                     }
                   />
                 </CatalogFieldHelp>
+                {!template.hidePackagePrice ? (
                 <CatalogFieldHelp
                   label={template.packagePriceLabel}
                   help={fieldHelp.packagePrice}
@@ -429,6 +505,7 @@ export default function ServiceCatalogEditor({
                   inputClassName={input}
                 />
                 </CatalogFieldHelp>
+                ) : null}
               </div>
               {template.showPackageDuration ? (
                 <CatalogFieldHelp
@@ -740,78 +817,6 @@ export default function ServiceCatalogEditor({
           + {fieldHelp.addPackageButton ?? "עוד חבילה"} ({value.packages.length})
         </button>
       </div>
-
-      {template.showQuantityTiers ? (
-        <div className="rounded-xl border border-violet-200/80 bg-violet-50/40 p-4">
-          <h3 className="text-sm font-semibold text-violet-950">מדרגות כמות</h3>
-          <p className="mt-1 text-[11px] text-neutral-600">
-            מחיר ליחידה לפי כמות הזמנה — למשל 50–100 יחידות במחיר אחד.
-          </p>
-          <ul className="mt-3 space-y-2">
-            {(value.quantityTiers ?? []).map((tier, index) => (
-              <li
-                key={tier.id}
-                className="grid gap-2 rounded-lg border border-violet-200/70 bg-white p-2 sm:grid-cols-4"
-              >
-                <input
-                  type="number"
-                  min={1}
-                  value={tier.minQty}
-                  onChange={(e) =>
-                    updateTier(index, { minQty: parsePriceInput(e.target.value) ?? 1 })
-                  }
-                  className={input}
-                  placeholder="מינימום"
-                />
-                <input
-                  type="number"
-                  min={1}
-                  value={tier.maxQty ?? ""}
-                  onChange={(e) =>
-                    updateTier(index, { maxQty: parsePriceInput(e.target.value) })
-                  }
-                  className={input}
-                  placeholder="מקסימום"
-                />
-                <input
-                  type="number"
-                  min={0}
-                  value={tier.pricePerUnit ?? ""}
-                  onChange={(e) =>
-                    updateTier(index, { pricePerUnit: parsePriceInput(e.target.value) })
-                  }
-                  className={input}
-                  placeholder="₪ ליחידה"
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    patchMenu({
-                      quantityTiers: (value.quantityTiers ?? []).filter(
-                        (_, i) => i !== index
-                      ),
-                    })
-                  }
-                  className="text-[11px] text-red-600 hover:underline"
-                >
-                  הסר
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            onClick={() =>
-              patchMenu({
-                quantityTiers: [...(value.quantityTiers ?? []), createEmptyQuantityTier()],
-              })
-            }
-            className="mt-2 text-[11px] font-medium text-violet-950 hover:underline"
-          >
-            + הוסף מדרגה
-          </button>
-        </div>
-      ) : null}
 
       {hasLegacyGlobalCatalog ? (
         catalogOptional && !catalogOpen ? (

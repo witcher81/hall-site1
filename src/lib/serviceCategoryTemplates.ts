@@ -2,6 +2,9 @@ import {
   parseServiceCategorySelections,
 } from "@/lib/freelancerServiceCategories";
 import {
+  isFixedPerHeadMode,
+  isLegacyGeneralFoodMode,
+  isPyramidPerHeadMode,
   needsFoodPricingModeChoice,
   templateIdForFoodPricingMode,
   type FoodPricingMode,
@@ -40,6 +43,16 @@ export type CatalogTemplate = {
   showGuestCapacity: boolean;
   showPersonCapacity: boolean;
   showQuantityTiers: boolean;
+  /** הסתר מחיר על חבילה — המחיר ממדרגות כמות/אורחים */
+  hidePackagePrice?: boolean;
+  quantityTiersTitle?: string;
+  quantityTiersHint?: string;
+  quantityTierMinPlaceholder?: string;
+  quantityTierMaxPlaceholder?: string;
+  quantityTierPricePlaceholder?: string;
+  quantityTierAddLabel?: string;
+  /** יחידת כמות בהצגה ציבורית — למשל «אורחים» במקום «יחידות» */
+  quantityTierUnitLabel?: string;
   showDeliverables: boolean;
   showPackageDuration: boolean;
   requireGuestCountInquiry: boolean;
@@ -941,7 +954,7 @@ export function resolveCatalogTemplateFromCategory(
     secondaries.length === 1 ? secondaries[0]! : secondaries[0] ?? null;
   const withHints = applySecondaryCatalogHints(base, hintSource);
 
-  if (mode === "general" && needsFoodPricingModeChoice(category)) {
+  if (isLegacyGeneralFoodMode(mode) && needsFoodPricingModeChoice(category)) {
     return {
       ...withHints,
       editorTitle: "הצעה כללית — מה מציעים ומחיר",
@@ -963,7 +976,32 @@ export function resolveCatalogTemplateFromCategory(
     };
   }
 
-  if (mode === "per_person" && needsFoodPricingModeChoice(category)) {
+  if (isPyramidPerHeadMode(mode) && needsFoodPricingModeChoice(category)) {
+    return {
+      ...withHints,
+      editorTitle: "מחיר ותפריט — פירמידה יורדת",
+      editorHint:
+        "קודם מגדירים מדרגות מחיר לראש לפי מספר אורחים, ואז תפריטים ומנות לכל קבוצה.",
+      packagesTitle: "תפריטים (מנות לפי קבוצה)",
+      packagesHint:
+        "המחיר לראש נקבע במדרגות למעלה. כאן רק שם התפריט (מבוגרים / ילדים…) והמנות שכלולות.",
+      packageCardDetail: "שם ומנות — בלי מחיר נפרד",
+      showQuantityTiers: true,
+      hidePackagePrice: true,
+      quantityTiersTitle: "פירמידה יורדת — מחיר לראש לפי כמות אורחים",
+      quantityTiersHint:
+        "ככל שיש יותר אורחים, המחיר לראש יורד. לדוגמה: עד 40 אורחים ₪80 לראש, ומעל 40 — ₪70 לראש.",
+      quantityTierMinPlaceholder: "מ־ (אורחים)",
+      quantityTierMaxPlaceholder: "עד (ריק = ומעלה)",
+      quantityTierPricePlaceholder: "₪ לראש",
+      quantityTiersAddLabel: "+ הוסף מדרגת אורחים",
+      quantityTierUnitLabel: "אורחים",
+      packageIncludedHint:
+        "מנות בתפריט — אפשר להוסיף כמות בגרם או יחידות (למשל 250 גרם / 4 יח׳).",
+    };
+  }
+
+  if (isFixedPerHeadMode(mode) && needsFoodPricingModeChoice(category)) {
     return {
       ...withHints,
       packageIncludedHint:

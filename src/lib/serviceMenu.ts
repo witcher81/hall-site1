@@ -484,6 +484,25 @@ export function validateServiceMenuForSubmit(
     return "הוסיפו לפחות חבילה אחת, פריט בקטלוג או מדרגת כמות";
   }
 
+  if (t?.hidePackagePrice || t?.showQuantityTiers) {
+    if (t.hidePackagePrice) {
+      if (!hasTiers) {
+        return "הוסיפו לפחות מדרגת מחיר אחת לפי כמות אורחים";
+      }
+      const missingTierPrice = m.quantityTiers!.find((tier) => tier.pricePerUnit == null);
+      if (missingTierPrice) {
+        return "בכל מדרגת אורחים חובה להזין מחיר לראש";
+      }
+      if (!hasPackages) {
+        return "הוסיפו לפחות תפריט אחד עם מנות";
+      }
+      for (const pkg of m.packages) {
+        if (!pkg.name.trim()) return "נא לתת שם לכל תפריט";
+      }
+      return null;
+    }
+  }
+
   for (const pkg of m.packages) {
     if (pkg.usePerGuestRange) {
       if (pkg.perGuestMin == null && pkg.perGuestMax == null) {
@@ -618,15 +637,49 @@ export function catalogPackageUsesPerGuestMultiplier(
   template: CatalogTemplate | null | undefined
 ): boolean {
   if (!template) return false;
+  if (template.hidePackagePrice) return true;
   return /לאורח|לאדם|למשתתף/.test(template.packagePriceLabel);
+}
+
+/** מחיר ליחידה/לראש לפי מדרגות כמות עבור כמות נתונה */
+export function pricePerUnitFromQuantityTiers(
+  tiers: ServiceQuantityTier[] | null | undefined,
+  count: number
+): number | null {
+  if (!tiers?.length) return null;
+  const g = Math.max(1, Math.trunc(count));
+  const sorted = [...tiers].sort((a, b) => a.minQty - b.minQty);
+  let match: ServiceQuantityTier | null = null;
+  for (const tier of sorted) {
+    if (g < tier.minQty) break;
+    if (tier.maxQty != null && g > tier.maxQty) continue;
+    match = tier;
+  }
+  // אם מעל המדרגה האחרונה בלי מקסימום — השתמשו באחרונה שהתחילה
+  if (!match) {
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const tier = sorted[i]!;
+      if (g >= tier.minQty && (tier.maxQty == null || g <= tier.maxQty)) {
+        match = tier;
+        break;
+      }
+    }
+  }
+  return match?.pricePerUnit ?? null;
 }
 
 export function estimatePackageTotal(
   pkg: ServiceMenuPackage,
   count: number,
-  multiplyByCount = true
+  multiplyByCount = true,
+  tiers?: ServiceQuantityTier[] | null
 ): { min: number | null; max: number | null } {
   const g = Math.max(1, Math.trunc(count));
+  const tierPrice = pricePerUnitFromQuantityTiers(tiers, g);
+  if (tierPrice != null) {
+    const t = tierPrice * (multiplyByCount ? g : 1);
+    return { min: t, max: t };
+  }
   if (pkg.usePerGuestRange) {
     const min = pkg.perGuestMin != null ? pkg.perGuestMin * (multiplyByCount ? g : 1) : null;
     const max =
@@ -648,6 +701,9 @@ export function deriveServicePricesFromMenu(menu: ServiceMenuConfig): {
   maxPrice: number | null;
 } {
   const perGuest: number[] = [];
+  for (const tier of menu.quantityTiers ?? []) {
+    if (tier.pricePerUnit != null) perGuest.push(tier.pricePerUnit);
+  }
   for (const pkg of menu.packages) {
     if (pkg.usePerGuestRange) {
       if (pkg.perGuestMin != null) perGuest.push(pkg.perGuestMin);

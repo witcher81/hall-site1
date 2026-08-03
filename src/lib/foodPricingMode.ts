@@ -2,8 +2,25 @@ import { parseServiceCategorySelections } from "@/lib/freelancerServiceCategorie
 import { normalizeSecondaryName } from "@/lib/serviceCategorySpec";
 import type { CatalogTemplateId } from "@/lib/serviceCategoryTemplates";
 
-/** איך מוכרים אוכל בקייטרינג / מזנון — לא חל על עמדות */
-export type FoodPricingMode = "per_person" | "general";
+/**
+ * איך מתמחרים אוכל פר־ראש בקייטרינג.
+ * `per_person` / `general` — ערכים ישנים בלבד (תאימות לאחור).
+ */
+export type FoodPricingMode =
+  | "fixed_per_head"
+  | "pyramid_per_head"
+  | "per_person"
+  | "general";
+
+/** אפשרויות בחירה חדשות במסך */
+export type FoodPricingModeChoice = "fixed_per_head" | "pyramid_per_head";
+
+type PyramidTierSeed = {
+  id: string;
+  minQty: number;
+  maxQty: number | null;
+  pricePerUnit: number | null;
+};
 
 /** תת־קטגוריות שהן עמדה/עוגה — תפריט עמדה בלבד, בלי שאלת מודל */
 const STATION_ONLY_SECONDARIES = new Set(
@@ -18,7 +35,7 @@ const STATION_ONLY_SECONDARIES = new Set(
   ].map(normalizeSecondaryName)
 );
 
-/** תת־קטגוריות שבהן שואלים: פר־ראש או כללי */
+/** תת־קטגוריות שבהן שואלים: מחיר קבוע לראש או פירמידה יורדת */
 const FOOD_PRICING_CHOICE_SECONDARIES = new Set(
   [
     "קייטרינג חלבי",
@@ -45,37 +62,78 @@ export function needsFoodPricingModeChoice(
   if (!category?.trim()) return false;
   const { secondaries } = parseServiceCategorySelections(category);
   if (secondaries.length === 0) return false;
-  // אם יש עמדה ברורה ברשימה — לא שואלים
   if (secondaries.some((s) => isStationOnlySecondary(s))) return false;
   return secondaries.some((s) =>
     FOOD_PRICING_CHOICE_SECONDARIES.has(normalizeSecondaryName(s.trim()))
   );
 }
 
-export function templateIdForFoodPricingMode(
-  mode: FoodPricingMode
-): CatalogTemplateId {
-  return mode === "per_person" ? "food" : "food_station";
+export function isFixedPerHeadMode(mode: FoodPricingMode | null | undefined): boolean {
+  return mode === "fixed_per_head" || mode === "per_person";
 }
 
-export function parseFoodPricingMode(raw: unknown): FoodPricingMode | null {
-  if (raw === "per_person" || raw === "general") return raw;
+export function isPyramidPerHeadMode(mode: FoodPricingMode | null | undefined): boolean {
+  return mode === "pyramid_per_head";
+}
+
+export function isLegacyGeneralFoodMode(
+  mode: FoodPricingMode | null | undefined
+): boolean {
+  return mode === "general";
+}
+
+/** ערך לבחירה בממשק (ישן → חדש) */
+export function foodPricingModeForChooser(
+  mode: FoodPricingMode | null | undefined
+): FoodPricingModeChoice | null {
+  if (mode === "fixed_per_head" || mode === "per_person") return "fixed_per_head";
+  if (mode === "pyramid_per_head") return "pyramid_per_head";
   return null;
 }
 
+export function templateIdForFoodPricingMode(
+  mode: FoodPricingMode
+): CatalogTemplateId {
+  return mode === "general" ? "food_station" : "food";
+}
+
+export function parseFoodPricingMode(raw: unknown): FoodPricingMode | null {
+  if (
+    raw === "fixed_per_head" ||
+    raw === "pyramid_per_head" ||
+    raw === "per_person" ||
+    raw === "general"
+  ) {
+    return raw;
+  }
+  return null;
+}
+
+function newTierId(): string {
+  return `tier_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** מדרגות דוגמה לפירמידה יורדת — המחיר ממולא ע״י הספק */
+export function createDefaultPyramidGuestTiers(): PyramidTierSeed[] {
+  return [
+    { id: newTierId(), minQty: 1, maxQty: 40, pricePerUnit: null },
+    { id: newTierId(), minQty: 41, maxQty: null, pricePerUnit: null },
+  ];
+}
+
 export const FOOD_PRICING_MODE_OPTIONS: Array<{
-  value: FoodPricingMode;
+  value: FoodPricingModeChoice;
   title: string;
   hint: string;
 }> = [
   {
-    value: "per_person",
-    title: "לפי אדם (פר ראש)",
-    hint: "מחיר לאורח + תפריט מנות לכל קבוצה (מבוגרים / ילדים…).",
+    value: "fixed_per_head",
+    title: "מחיר קבוע לראש",
+    hint: "אותו מחיר לאורח — לא משנה כמה מוזמנים. + תפריט מנות לכל קבוצה (מבוגרים / ילדים…).",
   },
   {
-    value: "general",
-    title: "כללי — שולחן / הצעה קבועה",
-    hint: "מחיר קבוע להצעה (למשל שולחן אוכל) + רשימה של מה מציעים.",
+    value: "pyramid_per_head",
+    title: "פירמידה יורדת",
+    hint: "ככל שיש יותר אורחים — המחיר לראש יורד. למשל עד 40 אורחים ₪80 לראש, ומעל 40 — ₪70 לראש.",
   },
 ];
