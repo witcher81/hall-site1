@@ -190,6 +190,12 @@ export default function VenueEditForm({
     }
     return out;
   });
+  const [noUniformMealPrice, setNoUniformMealPrice] = useState(
+    () =>
+      Boolean(initial.productHasFood) &&
+      !String(initial.minPrice ?? "").trim() &&
+      !String(initial.maxPrice ?? "").trim()
+  );
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryHallImages, setGalleryHallImages] = useState<File[]>([]);
   const [galleryChuppaImages, setGalleryChuppaImages] = useState<File[]>([]);
@@ -378,6 +384,7 @@ export default function VenueEditForm({
       if (enabled) {
         setBuiltinAmenityPriceModes((prev) => ({ ...prev, hasFood: "included" }));
       } else {
+        setNoUniformMealPrice(false);
         setEventTypeProfiles((prev) => {
           const next = { ...prev };
           for (const et of Object.keys(next)) {
@@ -389,6 +396,20 @@ export default function VenueEditForm({
     },
     [setBuiltinAmenityPriceModes]
   );
+
+  const setNoUniformMealPriceMode = useCallback((next: boolean) => {
+    setNoUniformMealPrice(next);
+    if (next) {
+      setForm((f) => ({ ...f, minPrice: "", maxPrice: "" }));
+      setEventTypeProfiles((prev) => {
+        const out = { ...prev };
+        for (const et of Object.keys(out)) {
+          out[et] = { ...out[et], overrideMealPrice: true };
+        }
+        return out;
+      });
+    }
+  }, []);
 
   const validateSeekerExternalEventTypes = useCallback(() => {
     if (
@@ -448,7 +469,7 @@ export default function VenueEditForm({
             minPrice: "",
             maxPrice: "",
             mealAlternatives: [],
-            overrideMealPrice: false,
+            overrideMealPrice: noUniformMealPrice,
             publicNotes: "",
             customHallRows: [],
           };
@@ -470,7 +491,7 @@ export default function VenueEditForm({
       }
       return next;
     });
-  }, [eventTypes]);
+  }, [eventTypes, noUniformMealPrice]);
 
   useEffect(() => {
     if (!parkingKindNeedsMap(parkingKind)) {
@@ -1164,6 +1185,8 @@ export default function VenueEditForm({
               onMealPriceChange={(min, max) =>
                 setForm((f) => ({ ...f, minPrice: min, maxPrice: max }))
               }
+              noUniformMealPrice={noUniformMealPrice}
+              onNoUniformMealPriceChange={setNoUniformMealPriceMode}
               allowsSeekerExternal={builtinAmenityAllowsSeekerExternal.hasFood}
               onAllowsSeekerExternalChange={(next) =>
                 setBuiltinAmenityAllowsSeekerExternal((prev) => ({
@@ -1237,10 +1260,11 @@ export default function VenueEditForm({
                     isWeddingEt ||
                     profile.hasFoodAtEvent === true;
                   const showMealPriceFields = form.productHasFood
-                    ? profile.overrideMealPrice
+                    ? noUniformMealPrice || profile.overrideMealPrice
                     : isWeddingEt || profile.hasFoodAtEvent === true;
                   const generalMealHint =
                     form.productHasFood &&
+                    !noUniformMealPrice &&
                     (form.minPrice.trim() || form.maxPrice.trim())
                       ? `מחיר כללי: ₪${form.minPrice.trim() || "?"}–${form.maxPrice.trim() || "?"}`
                       : null;
@@ -1319,6 +1343,11 @@ export default function VenueEditForm({
                           </p>
                         )}
                         {form.productHasFood ? (
+                          noUniformMealPrice ? (
+                            <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
+                              אין מחיר כללי — הזינו כאן מחיר מנה רק ל«{et}».
+                            </p>
+                          ) : (
                           <>
                             <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
                               אין מחיר אחיד למנה? כאן אפשר לרשום סכום שונה רק ל«{et}»
@@ -1346,6 +1375,7 @@ export default function VenueEditForm({
                               שינוי מחיר מנה לאירוע זה
                             </label>
                           </>
+                          )
                         ) : null}
                         {showMealPriceFields ? (
                           <OptionalPriceRangeFields
@@ -1358,7 +1388,9 @@ export default function VenueEditForm({
                             maxPrice={profile.maxPrice}
                             singleLabel={
                               form.productHasFood
-                                ? "שינוי מחיר מנה לאירוע הזה (₪) — ריק = מחיר כללי"
+                                ? noUniformMealPrice
+                                  ? `מחיר למנה ל«${et}» (₪)`
+                                  : "שינוי מחיר מנה לאירוע הזה (₪) — ריק = מחיר כללי"
                                 : "מחיר למנה לסוג זה (₪) — ריק = מחיר כללי"
                             }
                             collapseRangeLabel="יש לי מחיר קבוע למנה"

@@ -16,6 +16,9 @@ type Props = {
   mealMinPrice: string;
   mealMaxPrice: string;
   onMealPriceChange: (min: string, max: string) => void;
+  /** אין מחיר אחיד — מחיר למנה רק לפי סוג אירוע למטה */
+  noUniformMealPrice: boolean;
+  onNoUniformMealPriceChange: (next: boolean) => void;
   allowsSeekerExternal: boolean;
   onAllowsSeekerExternalChange: (next: boolean) => void;
   seekerExternalEventTypes: string[];
@@ -30,6 +33,8 @@ export default function HallGeneralFoodSection({
   mealMinPrice,
   mealMaxPrice,
   onMealPriceChange,
+  noUniformMealPrice,
+  onNoUniformMealPriceChange,
   allowsSeekerExternal,
   onAllowsSeekerExternalChange,
   seekerExternalEventTypes,
@@ -52,8 +57,8 @@ export default function HallGeneralFoodSection({
       <p className="text-xs font-semibold text-emerald-950">אוכל</p>
       <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
         סמנו אם האולם מציע אוכל לכל סוגי האירועים. אם יש לכם מחיר אחד למנה — הזינו אותו כאן
-        (מחיר כללי). אם אין מחיר אחיד — בכל סוג אירוע למטה תוכלו לרשום סכום אחר למנה
-        (למשל מחיר שונה לחתונה ולבר מצווה).
+        (מחיר כללי). אם אין מחיר אחיד — סמנו «אין מחיר אחד להכל» ואז בכל סוג אירוע למטה
+        תרשמו סכום אחר (למשל חתונה מול בר מצווה).
       </p>
 
       <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-neutral-800">
@@ -68,37 +73,60 @@ export default function HallGeneralFoodSection({
 
       {enabled ? (
         <div className="mt-3 space-y-3 border-t border-amber-200/60 pt-3">
-          <OptionalPriceRangeFields
-            minPrice={mealMinPrice}
-            maxPrice={mealMaxPrice}
-            onChange={onMealPriceChange}
-            useRange={isMealRange(mealMinPrice, mealMaxPrice)}
-            onUseRangeChange={(next) => {
-              setMealRangeKeys((prev) => {
-                const copy = new Set(prev);
-                if (next) copy.add(mealRangeKey);
-                else copy.delete(mealRangeKey);
-                return copy;
-              });
-              if (!next) {
-                const ep =
-                  mealMinPrice.trim() && mealMinPrice.trim() === mealMaxPrice.trim()
-                    ? mealMinPrice.trim()
-                    : mealMinPrice.trim() || mealMaxPrice.trim();
-                onMealPriceChange(ep, ep);
-              }
-            }}
-            grouped
-            expandAsButton
-            singleLabel="מחיר למנה כללי (₪)"
-            singlePlaceholder="למשל 250"
-            minLabel="מינימום למנה (₪)"
-            maxLabel="מקסימום למנה (₪)"
-            expandRangeLabel={EXPAND_EXTRA_PRICE_RANGE_LABEL}
-            collapseRangeLabel="מחיר קבוע למנה"
-            inputClassName={compactPriceInputClass}
-            className="!p-2"
-          />
+          <label className="flex cursor-pointer items-start gap-2 text-xs text-neutral-800">
+            <input
+              type="checkbox"
+              checked={noUniformMealPrice}
+              onChange={(e) => onNoUniformMealPriceChange(e.target.checked)}
+              className="checkbox-hall mt-0.5 shrink-0"
+            />
+            <span>
+              <span className="font-medium">אין מחיר אחד להכל</span>
+              <span className="mt-0.5 block text-[11px] font-normal leading-relaxed text-neutral-600">
+                מסתיר את המחיר הכללי — בכל סוג אירוע למטה תגדירו מחיר מנה נפרד.
+              </span>
+            </span>
+          </label>
+
+          {noUniformMealPrice ? (
+            <p className="rounded-lg border border-amber-300/80 bg-amber-100/50 px-2.5 py-2 text-[11px] leading-relaxed text-amber-950">
+              {hasEventTypeSection
+                ? "המחיר הכללי סגור. גללו למטה לכל מסגרת סוג אירוע והזינו שם מחיר למנה."
+                : "בחרו לפחות סוג אירוע אחד למטה — ואז תוכלו להזין מחיר מנה לכל סוג בנפרד."}
+            </p>
+          ) : (
+            <OptionalPriceRangeFields
+              minPrice={mealMinPrice}
+              maxPrice={mealMaxPrice}
+              onChange={onMealPriceChange}
+              useRange={isMealRange(mealMinPrice, mealMaxPrice)}
+              onUseRangeChange={(next) => {
+                setMealRangeKeys((prev) => {
+                  const copy = new Set(prev);
+                  if (next) copy.add(mealRangeKey);
+                  else copy.delete(mealRangeKey);
+                  return copy;
+                });
+                if (!next) {
+                  const ep =
+                    mealMinPrice.trim() && mealMinPrice.trim() === mealMaxPrice.trim()
+                      ? mealMinPrice.trim()
+                      : mealMinPrice.trim() || mealMaxPrice.trim();
+                  onMealPriceChange(ep, ep);
+                }
+              }}
+              grouped
+              expandAsButton
+              singleLabel="מחיר למנה כללי (₪)"
+              singlePlaceholder="למשל 250"
+              minLabel="מינימום למנה (₪)"
+              maxLabel="מקסימום למנה (₪)"
+              expandRangeLabel={EXPAND_EXTRA_PRICE_RANGE_LABEL}
+              collapseRangeLabel="מחיר קבוע למנה"
+              inputClassName={compactPriceInputClass}
+              className="!p-2"
+            />
+          )}
 
           <div className="border-t border-amber-200/60 pt-2">
             <SeekerExternalWithEventTypes
