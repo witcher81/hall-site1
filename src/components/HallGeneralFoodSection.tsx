@@ -51,8 +51,9 @@ export default function HallGeneralFoodSection({
     <div className="mb-4 rounded-xl border border-amber-200/70 bg-amber-50/40 p-3">
       <p className="text-xs font-semibold text-emerald-950">אוכל</p>
       <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
-        סמנו אם האולם מציע אוכל לכל סוגי האירועים. מחיר למנה כללי יוצג למחפשים; אפשר לעדכן מחיר
-        נפרד לסוג אירוע ספציפי למטה.
+        סמנו אם האולם מציע אוכל לכל סוגי האירועים. אם יש לכם מחיר אחד למנה — הזינו אותו כאן
+        (מחיר כללי). אם אין מחיר אחיד — בכל סוג אירוע למטה תוכלו לרשום סכום אחר למנה
+        (למשל מחיר שונה לחתונה ולבר מצווה).
       </p>
 
       <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-neutral-800">
