@@ -49,6 +49,7 @@ export default function RecentlyViewedBar({
   const [providers, setProviders] = useState<ProviderRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [consentOk, setConsentOk] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const load = useCallback(() => {
     setConsentOk(hasFunctionalConsent());
