@@ -731,24 +731,32 @@ export default function HallGeneralAmenitiesDnd({
       ) : null}
 
       <div className="mb-4 rounded-xl border border-emerald-950/15 bg-white p-3 text-right">
-        <p className="text-xs font-semibold text-emerald-950">איך מסדרים פריטים?</p>
+        <p className="text-xs font-semibold text-emerald-950">
+          מה הפריטים האלה?
+        </p>
+        <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-700">
+          אלה <strong>שירותים וציוד שהמקום מציע</strong> לאירוע — למשל סידור שולחנות,
+          הגברה, אוכל, ריקודים. מסדרים אותם לפי איך שהמחפש רואה אותם:
+        </p>
         <ol className="mt-2 list-inside list-decimal space-y-1.5 text-[11px] leading-relaxed text-neutral-700">
           <li>
             <strong>גררו</strong> שורה לעמודה המתאימה — או סמנו וי ואז גררו.
           </li>
           <li>
-            <strong>כלול במחיר</strong> — המחפש רואה שהשירות כלול; אין תשלום נוסף מעבר למחיר
-            האולם.
+            <strong>כלול במחיר</strong> — דברים שהמקום נותן{" "}
+            <strong>בחינם</strong> כחלק ממחיר האולם (בלי תוספת).
           </li>
           <li>
-            <strong>בתוספת תשלום</strong> — המחפש רואה מחיר נפרד; חובה להזין סכום (או טווח).
+            <strong>בתוספת תשלום</strong> — דברים שהמקום מציע{" "}
+            <strong>בתשלום נוסף</strong>; חובה להזין מחיר (או טווח).
           </li>
           <li>
-            <strong>לא פעיל</strong> — הפריט לא יופיע בחיפוש ולא בפנייה (טיוטה / לא מציעים כרגע).
+            <strong>לא פעיל</strong> — לא מוצג למחפשים כרגע (טיוטה / לא מציעים).
           </li>
         </ol>
         <p className="mt-2 text-[10px] text-neutral-500">
-          בכל פריט פעיל אפשר לסמן אם מותר למחפש להביא ספק חיצוני במקום דרך האולם (כשזה רלוונטי).
+          בכל פריט פעיל אפשר לסמן אם מותר למחפש להביא ספק חיצוני במקום דרך האולם
+          (כשזה רלוונטי).
         </p>
       </div>
 
@@ -808,8 +816,8 @@ export default function HallGeneralAmenitiesDnd({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <AmenityDropColumn
-          title="כלול במחיר"
-          hint="המחפש רואה: כלול — בלי תשלום נוסף"
+          title="כלול במחיר (בחינם)"
+          hint="מה שהמקום מציע בלי תשלום נוסף — כלול במחיר האולם"
           zone="included"
           dragOver={dragOver}
           onDragOverZone={onDragOverZone}
@@ -818,12 +826,14 @@ export default function HallGeneralAmenitiesDnd({
           {includedBuiltins.map(({ key, label }) => renderBuiltinCard(key, label, "included"))}
           {includedCustoms.map((row) => renderCustomCard(row, "included"))}
           {includedBuiltins.length === 0 && includedCustoms.length === 0 ? (
-            <p className="py-3 text-center text-[11px] text-[#9A928A]">גררו לכאן פריטים כלולים</p>
+            <p className="py-3 text-center text-[11px] text-[#9A928A]">
+              גררו לכאן דברים שהמקום נותן בחינם
+            </p>
           ) : null}
         </AmenityDropColumn>
         <AmenityDropColumn
           title="בתוספת תשלום"
-          hint="המחפש רואה מחיר נפרד — הזינו סכום"
+          hint="מה שהמקום מציע בתוספת מחיר — הזינו סכום לכל פריט"
           zone="extra"
           dragOver={dragOver}
           onDragOverZone={onDragOverZone}
@@ -833,7 +843,7 @@ export default function HallGeneralAmenitiesDnd({
           {extraCustoms.map((row) => renderCustomCard(row, "extra"))}
           {extraBuiltins.length === 0 && extraCustoms.length === 0 ? (
             <p className="py-3 text-center text-[11px] text-[#9A928A]">
-              שחררו כאן פריטים בתשלום נפרד
+              גררו לכאן דברים שהמקום מוכר בתוספת
             </p>
           ) : null}
         </AmenityDropColumn>
