@@ -664,7 +664,7 @@ export function getSecondaryCatalogHints(
   return SECONDARY_CATALOG_HINTS[normalized] ?? null;
 }
 
-/** וידוא שכל 126 תתי־קטגוריות ממופות — נכשל ב-build אם חסר */
+/** וידוא שכל תתי־הקטגוריות ממופות — נכשל ב-build אם חסר / ספירה לא תואמת */
 export function verifyServiceCategorySpec(): void {
   const map = buildSecondaryTemplateMap();
   let count = 0;
@@ -676,9 +676,9 @@ export function verifyServiceCategorySpec(): void {
       }
     }
   }
-  if (count !== 126) {
+  if (count !== 127) {
     throw new Error(
-      `serviceCategorySpec: צפויות 126 תתי־קטגוריות, נמצאו ${count}`
+      `serviceCategorySpec: צפויות 127 תתי־קטגוריות, נמצאו ${count}`
     );
   }
 }
