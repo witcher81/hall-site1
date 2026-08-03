@@ -381,7 +381,7 @@ export default function ServiceCatalogEditor({
             }
             className="mt-2 text-[11px] font-medium text-violet-950 hover:underline"
           >
-            {template.quantityTiersAddLabel ?? "+ הוסף מדרגה"}
+            {template.quantityTierAddLabel ?? "+ הוסף מדרגה"}
           </button>
         </div>
       ) : null}

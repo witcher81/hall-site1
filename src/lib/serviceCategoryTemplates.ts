@@ -994,7 +994,7 @@ export function resolveCatalogTemplateFromCategory(
       quantityTierMinPlaceholder: "מ־ (אורחים)",
       quantityTierMaxPlaceholder: "עד (ריק = ומעלה)",
       quantityTierPricePlaceholder: "₪ לראש",
-      quantityTiersAddLabel: "+ הוסף מדרגת אורחים",
+      quantityTierAddLabel: "+ הוסף מדרגת אורחים",
       quantityTierUnitLabel: "אורחים",
       packageIncludedHint:
         "מנות בתפריט — אפשר להוסיף כמות בגרם או יחידות (למשל 250 גרם / 4 יח׳).",
