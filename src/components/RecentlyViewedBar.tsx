@@ -129,95 +129,127 @@ export default function RecentlyViewedBar({
   if (!loading && items.length === 0) return null;
 
   if (layout === "section") {
+    const countLabel =
+      !loading && items.length > 0 ? ` (${items.length})` : "";
+
     return (
-      <section className="space-y-3 rounded-2xl border border-neutral-200/80 bg-white/90 p-5 text-right shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
+      <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white text-right shadow-sm">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-right transition hover:bg-neutral-50"
+          aria-expanded={open}
+        >
+          <div className="min-w-0">
             <p className="text-[11px] font-semibold tracking-wide text-neutral-500">
               המשך מאיפה שהפסקתם
             </p>
-            <h2 className="mt-0.5 text-lg font-bold text-emerald-950">{label}</h2>
+            <h2 className="mt-0.5 text-base font-bold text-emerald-950 sm:text-lg">
+              {label}
+              {countLabel}
+            </h2>
           </div>
-          {!loading && items.length > 0 ? (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="text-xs font-medium text-neutral-500 underline-offset-2 hover:text-red-700 hover:underline"
-            >
-              נקה היסטוריה
-            </button>
-          ) : null}
-        </div>
-        {loading && items.length === 0 ? (
-          <p className="text-sm text-neutral-600">טוען…</p>
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {variant === "venues"
-              ? venues.map((v) => (
-                  <li key={v.id}>
-                    <Link
-                      href={`/halls/${v.id}`}
-                      className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-amber-400 hover:shadow-md"
-                    >
-                      <div className="aspect-[16/10] bg-[#F5EFE3]">
-                        {v.coverImageUrl ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={v.coverImageUrl}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center text-2xl text-neutral-400">
-                            🏛
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 text-sm font-bold text-emerald-950 transition ${
+              open ? "rotate-180" : ""
+            }`}
+            aria-hidden
+          >
+            ▼
+          </span>
+        </button>
+
+        {open ? (
+          <div className="border-t border-neutral-100 px-5 pb-5 pt-4">
+            <div className="mb-3 flex justify-end">
+              {!loading && items.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="text-xs font-medium text-neutral-500 underline-offset-2 hover:text-red-700 hover:underline"
+                >
+                  נקה היסטוריה
+                </button>
+              ) : null}
+            </div>
+            {loading && items.length === 0 ? (
+              <p className="text-sm text-neutral-600">טוען…</p>
+            ) : (
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {variant === "venues"
+                  ? venues.map((v) => (
+                      <li key={v.id}>
+                        <Link
+                          href={`/halls/${v.id}`}
+                          className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-amber-400 hover:shadow-md"
+                        >
+                          <div className="aspect-[16/10] bg-[#F5EFE3]">
+                            {v.coverImageUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={v.coverImageUrl}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center text-2xl text-neutral-400">
+                                🏛
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <p className="font-semibold text-emerald-950">{v.name}</p>
-                        <p className="text-xs text-neutral-600">{v.city}</p>
-                      </div>
-                    </Link>
-                  </li>
-                ))
-              : providers.map((p) => {
-                  const title =
-                    p.businessName?.trim() || p.name?.trim() || `ספק #${p.id}`;
-                  const img = p.services[0]?.coverImageUrl;
-                  return (
-                    <li key={p.id}>
-                      <Link
-                        href={`/providers/${p.id}`}
-                        className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-amber-400 hover:shadow-md"
-                      >
-                        <div className="aspect-[16/10] bg-[#F5EFE3]">
-                          {img ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={img}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center text-2xl text-neutral-400">
-                              ★
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-3">
-                          <p className="font-semibold text-emerald-950">{title}</p>
-                          {p.services[0]?.category ? (
-                            <p className="text-xs text-neutral-600">
-                              {p.services[0].category}
+                          <div className="p-3">
+                            <p className="font-semibold text-emerald-950">
+                              {v.name}
                             </p>
-                          ) : null}
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-          </ul>
-        )}
+                            <p className="text-xs text-neutral-600">{v.city}</p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))
+                  : providers.map((p) => {
+                      const title =
+                        p.businessName?.trim() ||
+                        p.name?.trim() ||
+                        `ספק #${p.id}`;
+                      const img = p.services[0]?.coverImageUrl;
+                      return (
+                        <li key={p.id}>
+                          <Link
+                            href={`/providers/${p.id}`}
+                            className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-amber-400 hover:shadow-md"
+                          >
+                            <div className="aspect-[16/10] bg-[#F5EFE3]">
+                              {img ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img
+                                  src={img}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full items-center justify-center text-2xl text-neutral-400">
+                                  ★
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-3">
+                              <p className="font-semibold text-emerald-950">
+                                {title}
+                              </p>
+                              {p.services[0]?.category ? (
+                                <p className="text-xs text-neutral-600">
+                                  {p.services[0].category}
+                                </p>
+                              ) : null}
+                            </div>
+                          </Link>
+                        </li>
+                      );
+                    })}
+              </ul>
+            )}
+          </div>
+        ) : null}
       </section>
     );
   }
