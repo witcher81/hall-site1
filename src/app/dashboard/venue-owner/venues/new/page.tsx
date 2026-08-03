@@ -66,6 +66,7 @@ import {
   VENUE_PRESET_EVENT_TYPES,
   eventTypesListIncludes,
 } from "@/lib/eventTypeOptions";
+import { getEventTypeCardTheme } from "@/lib/eventTypeCardTheme";
 
 const PRESET_EVENT_TYPES: readonly string[] = VENUE_PRESET_EVENT_TYPES;
 
@@ -1157,12 +1158,16 @@ export default function NewVenuePage() {
           </div>
 
           {eventTypes.length > 0 && (
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-              <p className="mb-2 text-xs font-semibold text-neutral-600">
-                טווחים לפי סוג אירוע (נפרד לכל סוג)
+            <div className="rounded-2xl border-2 border-emerald-900/15 bg-gradient-to-b from-neutral-100/80 to-neutral-50 p-3 sm:p-4">
+              <p className="mb-1 text-sm font-bold text-emerald-950">
+                הגדרות נפרדות לכל סוג אירוע
               </p>
-              <div className="space-y-3">
-                {eventTypes.map((et) => {
+              <p className="mb-3 text-[11px] leading-relaxed text-neutral-600">
+                כל מסגרת צבעונית היא סוג אירוע אחר — אורחים, אוכל והערות רק לאירוע הזה.
+              </p>
+              <div className="space-y-4">
+                {eventTypes.map((et, etIndex) => {
+                  const cardTheme = getEventTypeCardTheme(et, etIndex);
                   const isWeddingEt = et === "חתונה";
                   const profile = eventTypeProfiles[et] ?? {
                     minGuests: "",
@@ -1188,9 +1193,25 @@ export default function NewVenuePage() {
                       ? `מחיר כללי: ₪${form.minPrice.trim() || "?"}–${form.maxPrice.trim() || "?"}`
                       : null;
                   return (
-                    <div key={`profile-${et}`} className="rounded-lg border border-neutral-200 bg-white p-3">
-                      <p className="mb-2 text-xs font-semibold text-emerald-950">{et}</p>
-                      <div className="grid gap-2 sm:grid-cols-2">
+                    <div
+                      key={`profile-${et}`}
+                      className={`overflow-hidden rounded-xl ${cardTheme.card}`}
+                    >
+                      <div
+                        className={`flex items-center gap-2 px-3 py-2.5 ${cardTheme.header}`}
+                      >
+                        <span
+                          className={`h-2.5 w-2.5 shrink-0 rounded-full ${cardTheme.accentDot}`}
+                          aria-hidden
+                        />
+                        <span
+                          className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${cardTheme.badge}`}
+                        >
+                          סוג אירוע
+                        </span>
+                        <p className={`text-sm font-bold ${cardTheme.title}`}>{et}</p>
+                      </div>
+                      <div className="grid gap-2 bg-white/80 p-3 sm:grid-cols-2">
                         <input
                           type="number"
                           min={0}
@@ -1248,9 +1269,9 @@ export default function NewVenuePage() {
                         {form.productHasFood ? (
                           <>
                             <p className="text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
-                              הוגדר אוכל לכל סוגי האירועים
-                              {generalMealHint ? ` (${generalMealHint})` : ""}. רוצים מחיר מנה שונה
-                              לאירוע «{et}»? סמנו את האפשרות למטה.
+                              אין מחיר אחיד למנה? כאן אפשר לרשום סכום שונה רק ל«{et}»
+                              {generalMealHint ? ` (ברירת מחדל ${generalMealHint})` : ""}.
+                              סמנו למטה והזינו מחיר לאירוע הזה בלבד.
                             </p>
                             <label className="flex items-center gap-2 text-xs text-neutral-800 sm:col-span-2">
                               <input
@@ -1333,12 +1354,14 @@ export default function NewVenuePage() {
                         />
                         {isWeddingEt && (
                           <>
-                            <p className="mb-1 text-xs font-semibold text-emerald-950 sm:col-span-2">
-                              פרטי חתונה
-                            </p>
-                            <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C] sm:col-span-2">
-                              בטופס פנייה לחתונה יופיעו כאן סוגי החופה. חובה לסמן לפחות אחד: חופה בחוץ או חופה מקורה.
-                            </p>
+                            <div className="mt-1 rounded-lg border border-rose-300/70 bg-rose-50/80 px-3 py-2 sm:col-span-2">
+                              <p className="mb-1 text-xs font-bold text-rose-950">
+                                פרטי חתונה בלבד
+                              </p>
+                              <p className="mb-2 text-[11px] leading-relaxed text-rose-900/80">
+                                בטופס פנייה לחתונה יופיעו כאן סוגי החופה. חובה לסמן לפחות אחד: חופה בחוץ או חופה מקורה.
+                              </p>
+                              <div className="grid gap-2 sm:grid-cols-2">
                             {(
                               [
                                 {
@@ -1355,7 +1378,7 @@ export default function NewVenuePage() {
                               return (
                                 <div
                                   key={opt.key}
-                                  className="flex items-center justify-between rounded-full bg-neutral-50 px-3 py-1 text-xs text-emerald-950"
+                                  className="flex items-center justify-between rounded-full bg-white px-3 py-1 text-xs text-rose-950"
                                 >
                                   <span>{opt.label}</span>
                                   <button
@@ -1368,8 +1391,8 @@ export default function NewVenuePage() {
                                     }
                                     className={`rounded-full border px-2 py-0.5 text-[11px] transition ${
                                       checked
-                                        ? "border-emerald-950 bg-emerald-950 text-white"
-                                        : "border-[#D4C9BC] bg-white text-neutral-800"
+                                        ? "border-rose-800 bg-rose-800 text-white"
+                                        : "border-rose-200 bg-white text-neutral-800"
                                     }`}
                                   >
                                     {checked ? "מסומן" : "לא מסומן"}
@@ -1387,6 +1410,8 @@ export default function NewVenuePage() {
                                 }
                                 className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 outline-none focus:border-amber-400"
                               />
+                            </div>
+                              </div>
                             </div>
                           </>
                         )}
