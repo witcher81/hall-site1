@@ -44,6 +44,7 @@ const FOOD_PRICING_CHOICE_SECONDARIES = new Set(
     "קייטרינג טבעוני",
     "שף פרטי לאירוע",
     "שף על האש",
+    "סדנאות אוכל",
     "מזנונים ודוכני אוכל",
     "קינוחים ושולחנות מתוקים",
   ].map(normalizeSecondaryName)

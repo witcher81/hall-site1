@@ -182,6 +182,18 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     catalogSectionPlaceholder: "למשל: בשרים, תוספות, סלטים",
     catalogItemPlaceholder: "למשל: אנטריקוט, כנפיים, תפוחי אדמה",
   },
+  "סדנאות אוכל": {
+    packagesHint:
+      "למשל: סדנת פיצה / סושי / אפייה — מחיר למשתתף (לראש).",
+    packageNamePlaceholder: "למשל: סדנת פיצה לאורחים",
+    packageIncludedTitle: "מה כלול בסדנה",
+    packageIncludedHint: "חומרים, הדרכה, טעימות — מה כלול במחיר לראש.",
+    packageIncludedItemPlaceholder: "למשל: בצק, רוטב, הדרכת שף",
+    packageIncludedAddLabel: "+ הוסף פריט",
+    catalogSectionPlaceholder: "למשל: שדרוגים בתשלום",
+    catalogItemPlaceholder: "למשל: סינר ממותג, קופסת לקחת הביתה",
+    notesPlaceholder: "למשל: כשר, אלרגנים, ציוד שצריך במקום",
+  },
   "בר משקאות ואלכוהול": {
     packagesHint:
       "למשל: בר בסיסי 4 שעות ₪3,500, open bar ₪6,000 — מחיר לשירות, לא לאורח.",
