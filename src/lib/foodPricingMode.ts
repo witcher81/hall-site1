@@ -13,10 +13,7 @@ export type FoodPricingMode =
   | "general";
 
 /** אפשרויות בחירה במסך */
-export type FoodPricingModeChoice =
-  | "fixed_per_head"
-  | "pyramid_per_head"
-  | "general";
+export type FoodPricingModeChoice = "fixed_per_head" | "pyramid_per_head";
 
 type PyramidTierSeed = {
   id: string;
@@ -97,7 +94,7 @@ export function isLegacyGeneralFoodMode(
   return mode === "general";
 }
 
-/** מצב מחיר לתת־קטגוריה — עם נפילה למצב הכללי הישן */
+/** מצב מחיר לתת־קטגוריה — עם נפילה למצב הכללי הישן (רק אם אין מפה לפי תת־קטגוריה) */
 export function resolveFoodPricingModeForSecondary(
   menu: {
     foodPricingMode?: FoodPricingMode | null;
@@ -106,9 +103,40 @@ export function resolveFoodPricingModeForSecondary(
   secondary: string
 ): FoodPricingMode | null {
   const key = secondary.trim();
-  const by = menu.foodPricingModesBySecondary?.[key];
+  const map = menu.foodPricingModesBySecondary;
+  const by = map?.[key];
   if (by) return by;
+  // אחרי בחירה/ביטול פר־תת־קטגוריה — אין נפילה לגלובלי (אחרת אי־אפשר לבטל אחת)
+  if (map && Object.keys(map).length > 0) return null;
   return menu.foodPricingMode ?? null;
+}
+
+/**
+ * כשיש כמה תת־קטגוריות ומודל גלובלי ישן בלבד — מעתיקים למפה כדי שביטול בחירה
+ * באחת לא ישפיע על האחרות דרך ה־fallback.
+ */
+export function expandGlobalFoodPricingToSecondaries(
+  menu: {
+    foodPricingMode?: FoodPricingMode | null;
+    foodPricingModesBySecondary?: Record<string, FoodPricingMode> | null;
+  },
+  secondaries: string[]
+): {
+  foodPricingMode: null;
+  foodPricingModesBySecondary: Record<string, FoodPricingMode>;
+} | null {
+  const needing = secondariesNeedingFoodPricingChoice(secondaries);
+  if (needing.length <= 1) return null;
+  const map = menu.foodPricingModesBySecondary;
+  if (map && Object.keys(map).length > 0) return null;
+  const global = menu.foodPricingMode;
+  if (!global) return null;
+  return {
+    foodPricingMode: null,
+    foodPricingModesBySecondary: Object.fromEntries(
+      needing.map((s) => [s, global])
+    ),
+  };
 }
 
 export function hasAllFoodPricingModesChosen(
@@ -120,9 +148,29 @@ export function hasAllFoodPricingModesChosen(
 ): boolean {
   const needing = secondariesNeedingFoodPricingChoice(secondaries);
   if (needing.length === 0) return true;
-  return needing.every(
-    (s) => resolveFoodPricingModeForSecondary(menu, s) != null
+  return needing.every((s) => isActiveFoodPricingMode(resolveFoodPricingModeForSecondary(menu, s)));
+}
+
+/** מספיק תת־קטגוריה אחת עם מודל — התפריט נפתח בנפרד לכל אחת שנבחרה */
+export function hasAnyFoodPricingModeChosen(
+  menu: {
+    foodPricingMode?: FoodPricingMode | null;
+    foodPricingModesBySecondary?: Record<string, FoodPricingMode> | null;
+  },
+  secondaries: string[]
+): boolean {
+  const needing = secondariesNeedingFoodPricingChoice(secondaries);
+  if (needing.length === 0) return true;
+  return needing.some((s) =>
+    isActiveFoodPricingMode(resolveFoodPricingModeForSecondary(menu, s))
   );
+}
+
+/** מודל פעיל לבחירה בממשק (לא כולל «הצעה כללית» ישנה) */
+export function isActiveFoodPricingMode(
+  mode: FoodPricingMode | null | undefined
+): boolean {
+  return isFixedPerHeadMode(mode) || isPyramidPerHeadMode(mode);
 }
 
 /** ערך לבחירה בממשק (ישן → חדש) */
@@ -131,7 +179,6 @@ export function foodPricingModeForChooser(
 ): FoodPricingModeChoice | null {
   if (mode === "fixed_per_head" || mode === "per_person") return "fixed_per_head";
   if (mode === "pyramid_per_head") return "pyramid_per_head";
-  if (mode === "general") return "general";
   return null;
 }
 
@@ -194,10 +241,5 @@ export const FOOD_PRICING_MODE_OPTIONS: Array<{
     value: "pyramid_per_head",
     title: "פירמידה יורדת",
     hint: "ככל שיש יותר אורחים — המחיר לראש יורד. למשל עד 40 אורחים ₪80 לראש, ומעל 40 — ₪70 לראש.",
-  },
-  {
-    value: "general",
-    title: "שולחן / הצעה קבועה",
-    hint: "מחיר קבוע לשולחן או להצעה (למשל שולחן שוק ₪2,400) + רשימת מנות — לא לפי ראש.",
   },
 ];

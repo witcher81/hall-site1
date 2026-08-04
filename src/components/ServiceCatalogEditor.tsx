@@ -25,9 +25,11 @@ import {
   type ServiceQuantityTier,
 } from "@/lib/serviceMenu";
 import {
+  isActiveFoodPricingMode,
   isLegacyGeneralFoodMode,
   isPyramidPerHeadMode,
   resolveFoodPricingModeForSecondary,
+  secondariesNeedingFoodPricingChoice,
 } from "@/lib/foodPricingMode";
 
 const SECONDARY_SECTION_STYLES = [
@@ -98,11 +100,23 @@ export default function ServiceCatalogEditor({
   )
     .map((s) => s.trim())
     .filter(Boolean);
-  const splitBySecondary = menuSecondaries.length > 1;
   const modeFor = (sec: string | null | undefined) =>
     sec
       ? resolveFoodPricingModeForSecondary(value, sec)
       : value.foodPricingMode ?? null;
+  /** רק תת־קטגוריות עם מודל פעיל (או שלא דורשות בחירה) — לא תלויות זו בזו */
+  const activeMenuSecondaries = menuSecondaries.filter((sec) => {
+    const needsChoice =
+      secondariesNeedingFoodPricingChoice([sec]).length > 0;
+    if (!needsChoice) return true;
+    return isActiveFoodPricingMode(modeFor(sec));
+  });
+  const splitBySecondary = menuSecondaries.length > 1;
+  const editorSecondaries = splitBySecondary
+    ? activeMenuSecondaries
+    : activeMenuSecondaries.length > 0
+      ? activeMenuSecondaries
+      : menuSecondaries;
   const pricingModes = template.itemPricingModes;
   const paidPricingModes = pricingModes.filter((m) => m !== "included");
   const catalogEssential =
@@ -124,8 +138,12 @@ export default function ServiceCatalogEditor({
   >({});
 
   useEffect(() => {
+    if (editorSecondaries.length === 0) return;
     if (value.packages.length === 0) {
-      const targets = splitBySecondary ? menuSecondaries : [null as string | null];
+      const targets =
+        splitBySecondary || editorSecondaries.length > 1
+          ? editorSecondaries
+          : ([null] as Array<string | null>);
       const packages = targets.map((sec) => {
         const pkg = createEmptyMenuPackage("", sec);
         if (template.showPackageIncludedItems) {
@@ -136,14 +154,16 @@ export default function ServiceCatalogEditor({
       onChange({ ...value, templateId: template.id, packages });
       return;
     }
-    if (!splitBySecondary) return;
+    if (!splitBySecondary && editorSecondaries.length <= 1) return;
+    const seedSecs =
+      editorSecondaries.length > 0 ? editorSecondaries : menuSecondaries;
     let packages = value.packages.map((p) =>
-      p.secondary?.trim() ? p : { ...p, secondary: menuSecondaries[0]! }
+      p.secondary?.trim() ? p : { ...p, secondary: seedSecs[0]! }
     );
     let changed = packages.some(
       (p, i) => p.secondary !== value.packages[i]?.secondary
     );
-    for (const sec of menuSecondaries) {
+    for (const sec of seedSecs) {
       if (!packages.some((p) => (p.secondary?.trim() || "") === sec)) {
         const pkg = createEmptyMenuPackage("", sec);
         if (template.showPackageIncludedItems) {
@@ -156,7 +176,7 @@ export default function ServiceCatalogEditor({
     if (changed) {
       onChange({ ...value, templateId: template.id, packages });
     }
-  }, [template.id, menuSecondaries.join("|"), splitBySecondary]); // eslint-disable-line react-hooks/exhaustive-deps -- seed per secondary set
+  }, [template.id, editorSecondaries.join("|"), splitBySecondary]); // eslint-disable-line react-hooks/exhaustive-deps -- seed per active secondary set
 
   function patchMenu(patch: Partial<ServiceMenuConfig>) {
     onChange({ ...value, templateId: template.id, ...patch });
@@ -368,9 +388,9 @@ export default function ServiceCatalogEditor({
 
       {template.showQuantityTiers ? (
         <div className="space-y-3">
-          {(splitBySecondary ? menuSecondaries : [null as string | null]).map(
+          {(splitBySecondary ? editorSecondaries : [null as string | null]).map(
             (secKey, secIdx) => {
-              const secMode = modeFor(secKey ?? menuSecondaries[0] ?? null);
+              const secMode = modeFor(secKey ?? editorSecondaries[0] ?? null);
               const showTiersForSec =
                 !splitBySecondary
                   ? template.hidePackagePrice || isPyramidPerHeadMode(secMode)
@@ -501,8 +521,8 @@ export default function ServiceCatalogEditor({
         </p>
         {splitBySecondary ? (
           <p className="mt-2 rounded-lg border border-amber-300/80 bg-amber-100/50 px-2.5 py-2 text-[11px] leading-relaxed text-amber-950">
-            נבחרו כמה תת־קטגוריות — לכל אחת יש תפריט ומחירים נפרדים (למשל בשרי
-            לחוד וחלבי לחוד).
+            לכל תת־קטגוריה עם מודל מכירה שנבחר יש תפריט ומחירים נפרדים. תת־קטגוריה
+            בלי בחירה לא מוצגת כאן.
           </p>
         ) : null}
         {fieldHelp.packagesSectionBody ? (
@@ -514,7 +534,7 @@ export default function ServiceCatalogEditor({
           </CatalogSectionExplainer>
         ) : null}
         <div className={`mt-3 space-y-4`}>
-          {(splitBySecondary ? menuSecondaries : [null as string | null]).map(
+          {(splitBySecondary ? editorSecondaries : [null as string | null]).map(
             (secKey, secIdx) => {
               const sectionPackages = (
                 splitBySecondary && secKey

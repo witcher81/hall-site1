@@ -17,7 +17,8 @@ import {
 } from "@/lib/foodDietaryOptions";
 import {
   createDefaultPyramidGuestTiers,
-  hasAllFoodPricingModesChosen,
+  expandGlobalFoodPricingToSecondaries,
+  hasAnyFoodPricingModeChosen,
   needsFoodPricingModeChoice,
   resolveFoodPricingModeForSecondary,
   secondariesNeedingFoodPricingChoice,
@@ -144,7 +145,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     usesCatalog &&
     catalogTemplate != null &&
     (!needsPricingChoice ||
-      hasAllFoodPricingModesChosen(menu, form.secondaryCategories));
+      hasAnyFoodPricingModeChosen(menu, form.secondaryCategories));
   const showIncludesEditor =
     !catalogTemplate || !catalogReplacesIncludesEditor(catalogTemplate.id);
   const showSimplePrice = !showCatalogEditor && !needsPricingChoice;
@@ -156,8 +157,21 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         foodPricingMode: null,
         foodPricingModesBySecondary: undefined,
       }));
+      return;
     }
-  }, [needsPricingChoice, menu.foodPricingMode, menu.foodPricingModesBySecondary]);
+    const expanded = expandGlobalFoodPricingToSecondaries(
+      menu,
+      form.secondaryCategories
+    );
+    if (expanded) {
+      setMenu((m) => ({ ...m, ...expanded }));
+    }
+  }, [
+    needsPricingChoice,
+    menu.foodPricingMode,
+    menu.foodPricingModesBySecondary,
+    form.secondaryCategories,
+  ]);
   const coverPreview = useMemo(
     () => (coverImage ? URL.createObjectURL(coverImage) : initial.coverImageUrl),
     [coverImage, initial.coverImageUrl]
@@ -375,8 +389,8 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
         <div className="space-y-3">
           {pricingSecondaries.length > 1 ? (
             <p className="rounded-lg border border-amber-300/80 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-950">
-              בחרו מודל מכירה <strong>בנפרד לכל תת־קטגוריה</strong> — אפשר מחיר
-              קבוע באחת ופירמידה באחרת.
+              לכל תת־קטגוריה בחירה נפרדת — אפשר לבחור רק באחת, והתפריט שלה
+              ייפתח. לא חובה לבחור בשתיהן.
             </p>
           ) : null}
           {pricingSecondaries.map((sec) => (
@@ -386,10 +400,20 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
               value={resolveFoodPricingModeForSecondary(menu, sec)}
               onChange={(mode) =>
                 setMenu((m) => {
-                  const nextBy = {
-                    ...(m.foodPricingModesBySecondary ?? {}),
-                    [sec]: mode,
-                  };
+                  const nextBy = { ...(m.foodPricingModesBySecondary ?? {}) };
+                  if (mode == null) {
+                    delete nextBy[sec];
+                    return {
+                      ...m,
+                      foodPricingModesBySecondary:
+                        Object.keys(nextBy).length > 0 ? nextBy : undefined,
+                      foodPricingMode: null,
+                      quantityTiers: (m.quantityTiers ?? []).filter(
+                        (t) => (t.secondary?.trim() || "") !== sec
+                      ),
+                    };
+                  }
+                  nextBy[sec] = mode;
                   const existingTiers = m.quantityTiers ?? [];
                   const hasTiersForSec = existingTiers.some(
                     (t) => (t.secondary?.trim() || "") === sec
@@ -400,9 +424,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
                     ...m,
                     foodPricingModesBySecondary: nextBy,
                     foodPricingMode:
-                      pricingSecondaries.length === 1
-                        ? mode
-                        : m.foodPricingMode ?? null,
+                      pricingSecondaries.length === 1 ? mode : null,
                     templateId: templateIdForFoodPricingMode(mode),
                     ...(needTiers
                       ? {
@@ -411,7 +433,13 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
                             ...createDefaultPyramidGuestTiers(sec),
                           ],
                         }
-                      : {}),
+                      : mode === "fixed_per_head"
+                        ? {
+                            quantityTiers: existingTiers.filter(
+                              (t) => (t.secondary?.trim() || "") !== sec
+                            ),
+                          }
+                        : {}),
                   };
                 })
               }

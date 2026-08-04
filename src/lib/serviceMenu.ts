@@ -1,8 +1,10 @@
 import { parseServiceCategorySelections } from "@/lib/freelancerServiceCategories";
 import {
   parseFoodPricingMode,
+  isActiveFoodPricingMode,
   isPyramidPerHeadMode,
   resolveFoodPricingModeForSecondary,
+  secondariesNeedingFoodPricingChoice,
   type FoodPricingMode,
 } from "@/lib/foodPricingMode";
 import { sanitizeDietaryOptions } from "@/lib/foodDietaryOptions";
@@ -516,11 +518,22 @@ export function validateServiceMenuForSubmit(
     return "הוסיפו לפחות חבילה אחת, פריט בקטלוג או מדרגת כמות";
   }
 
+  /** רק תת־קטגוריות עם מודל פעיל (או שלא דורשות בחירה) */
+  const secsToValidate = secondaries.filter((sec) => {
+    const needsChoice =
+      secondariesNeedingFoodPricingChoice([sec]).length > 0;
+    if (!needsChoice) return true;
+    return isActiveFoodPricingMode(resolveFoodPricingModeForSecondary(m, sec));
+  });
+
   if (secondaries.length > 1) {
-    for (const sec of secondaries) {
+    if (secsToValidate.length === 0) {
+      return "בחרו מודל מכירה לפחות לתת־קטגוריה אחת";
+    }
+    for (const sec of secsToValidate) {
       const pkgs = filterItemsForSecondary(m.packages, sec, secondaries);
       if (pkgs.length === 0) {
-        return `חסר תפריט ל«${sec}» — לכל תת־קטגוריה צריך תפריט משלה`;
+        return `חסר תפריט ל«${sec}» — לכל תת־קטגוריה שנבחרה צריך תפריט משלה`;
       }
       const mode = resolveFoodPricingModeForSecondary(m, sec);
       if (isPyramidPerHeadMode(mode)) {
@@ -548,14 +561,22 @@ export function validateServiceMenuForSubmit(
       }
     }
     for (const pkg of m.packages) {
+      const sec = pkg.secondary?.trim() || "";
+      if (
+        sec &&
+        secondariesNeedingFoodPricingChoice([sec]).length > 0 &&
+        !isActiveFoodPricingMode(resolveFoodPricingModeForSecondary(m, sec))
+      ) {
+        continue;
+      }
       if (!pkg.name.trim()) return "נא לתת שם לכל תפריט";
     }
     // אם חלק פירמידה וחלק קבוע — כבר נבדק למעלה; דלגו על בדיקת hidePackagePrice הגלובלית
     if (
-      secondaries.some((sec) =>
+      secsToValidate.some((sec) =>
         isPyramidPerHeadMode(resolveFoodPricingModeForSecondary(m, sec))
       ) &&
-      secondaries.some(
+      secsToValidate.some(
         (sec) => !isPyramidPerHeadMode(resolveFoodPricingModeForSecondary(m, sec))
       )
     ) {
@@ -565,7 +586,7 @@ export function validateServiceMenuForSubmit(
 
   if (t?.hidePackagePrice) {
     if (secondaries.length > 1) {
-      for (const sec of secondaries) {
+      for (const sec of secsToValidate) {
         if (!isPyramidPerHeadMode(resolveFoodPricingModeForSecondary(m, sec))) {
           continue;
         }
@@ -593,6 +614,15 @@ export function validateServiceMenuForSubmit(
       }
     }
     for (const pkg of m.packages) {
+      const sec = pkg.secondary?.trim() || "";
+      if (
+        secondaries.length > 1 &&
+        sec &&
+        secondariesNeedingFoodPricingChoice([sec]).length > 0 &&
+        !isActiveFoodPricingMode(resolveFoodPricingModeForSecondary(m, sec))
+      ) {
+        continue;
+      }
       if (!pkg.name.trim()) return "נא לתת שם לכל תפריט";
     }
     return null;
@@ -601,6 +631,12 @@ export function validateServiceMenuForSubmit(
   for (const pkg of m.packages) {
     if (secondaries.length > 1) {
       const sec = pkg.secondary?.trim() || secondaries[0]!;
+      if (
+        secondariesNeedingFoodPricingChoice([sec]).length > 0 &&
+        !isActiveFoodPricingMode(resolveFoodPricingModeForSecondary(m, sec))
+      ) {
+        continue;
+      }
       if (isPyramidPerHeadMode(resolveFoodPricingModeForSecondary(m, sec))) {
         continue;
       }
