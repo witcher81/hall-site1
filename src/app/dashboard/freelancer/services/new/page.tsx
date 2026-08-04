@@ -18,7 +18,10 @@ import {
 } from "@/lib/foodDietaryOptions";
 import {
   createDefaultPyramidGuestTiers,
+  hasAllFoodPricingModesChosen,
   needsFoodPricingModeChoice,
+  resolveFoodPricingModeForSecondary,
+  secondariesNeedingFoodPricingChoice,
   templateIdForFoodPricingMode,
 } from "@/lib/foodPricingMode";
 import { catalogReplacesIncludesEditor, resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
@@ -93,23 +96,32 @@ export default function NewServicePage() {
     () =>
       resolveCatalogTemplateFromCategory(categoryValue, {
         foodPricingMode: menu.foodPricingMode ?? null,
+        foodPricingModesBySecondary: menu.foodPricingModesBySecondary ?? null,
       }),
-    [categoryValue, menu.foodPricingMode]
+    [categoryValue, menu.foodPricingMode, menu.foodPricingModesBySecondary]
   );
   const usesCatalog = form.primaryCategory.trim().length > 0;
+  const pricingSecondaries = secondariesNeedingFoodPricingChoice(
+    form.secondaryCategories
+  );
   const showCatalogEditor =
     usesCatalog &&
     catalogTemplate != null &&
-    (!needsPricingChoice || menu.foodPricingMode != null);
+    (!needsPricingChoice ||
+      hasAllFoodPricingModesChosen(menu, form.secondaryCategories));
   const showIncludesEditor =
     !catalogTemplate || !catalogReplacesIncludesEditor(catalogTemplate.id);
   const showSimplePrice = !showCatalogEditor && !needsPricingChoice;
 
   useEffect(() => {
-    if (!needsPricingChoice && menu.foodPricingMode) {
-      setMenu((m) => ({ ...m, foodPricingMode: null }));
+    if (!needsPricingChoice && (menu.foodPricingMode || menu.foodPricingModesBySecondary)) {
+      setMenu((m) => ({
+        ...m,
+        foodPricingMode: null,
+        foodPricingModesBySecondary: undefined,
+      }));
     }
-  }, [needsPricingChoice, menu.foodPricingMode]);
+  }, [needsPricingChoice, menu.foodPricingMode, menu.foodPricingModesBySecondary]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -320,30 +332,54 @@ export default function NewServicePage() {
         ) : null}
 
         {needsPricingChoice ? (
-          <FoodPricingModeChooser
-            value={menu.foodPricingMode ?? null}
-            onChange={(mode) =>
-              setMenu((m) => {
-                const secs = form.secondaryCategories.map((s) => s.trim()).filter(Boolean);
-                const needTiers =
-                  mode === "pyramid_per_head" &&
-                  !(m.quantityTiers && m.quantityTiers.length > 0);
-                return {
-                  ...m,
-                  foodPricingMode: mode,
-                  templateId: templateIdForFoodPricingMode(mode),
-                  ...(needTiers
-                    ? {
-                        quantityTiers:
-                          secs.length > 1
-                            ? secs.flatMap((sec) => createDefaultPyramidGuestTiers(sec))
-                            : createDefaultPyramidGuestTiers(),
-                      }
-                    : {}),
-                };
-              })
-            }
-          />
+          <div className="space-y-3">
+            {pricingSecondaries.length > 1 ? (
+              <p className="rounded-lg border border-amber-300/80 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-950">
+                בחרו מודל מכירה <strong>בנפרד לכל תת־קטגוריה</strong> — אפשר
+                מחיר קבוע באחת ופירמידה באחרת.
+              </p>
+            ) : null}
+            {pricingSecondaries.map((sec) => (
+              <FoodPricingModeChooser
+                key={sec}
+                secondaryLabel={
+                  pricingSecondaries.length > 1 ? sec : null
+                }
+                value={resolveFoodPricingModeForSecondary(menu, sec)}
+                onChange={(mode) =>
+                  setMenu((m) => {
+                    const nextBy = {
+                      ...(m.foodPricingModesBySecondary ?? {}),
+                      [sec]: mode,
+                    };
+                    const existingTiers = m.quantityTiers ?? [];
+                    const hasTiersForSec = existingTiers.some(
+                      (t) => (t.secondary?.trim() || "") === sec
+                    );
+                    const needTiers =
+                      mode === "pyramid_per_head" && !hasTiersForSec;
+                    return {
+                      ...m,
+                      foodPricingModesBySecondary: nextBy,
+                      foodPricingMode:
+                        pricingSecondaries.length === 1
+                          ? mode
+                          : m.foodPricingMode ?? null,
+                      templateId: templateIdForFoodPricingMode(mode),
+                      ...(needTiers
+                        ? {
+                            quantityTiers: [
+                              ...existingTiers,
+                              ...createDefaultPyramidGuestTiers(sec),
+                            ],
+                          }
+                        : {}),
+                    };
+                  })
+                }
+              />
+            ))}
+          </div>
         ) : null}
 
         {showCatalogEditor && catalogTemplate ? (

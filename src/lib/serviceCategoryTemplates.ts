@@ -939,20 +939,56 @@ export function applySecondaryCatalogHints(
 
 export function resolveCatalogTemplateFromCategory(
   category: string | null | undefined,
-  options?: { foodPricingMode?: FoodPricingMode | null }
+  options?: {
+    foodPricingMode?: FoodPricingMode | null;
+    foodPricingModesBySecondary?: Record<string, FoodPricingMode> | null;
+  }
 ): CatalogTemplate | null {
   if (!category?.trim()) return null;
   const { primary, secondaries } = parseServiceCategorySelections(category);
   const mode = options?.foodPricingMode ?? null;
+  const bySecondary = options?.foodPricingModesBySecondary ?? null;
+  const multiModes =
+    secondaries.length > 1 &&
+    needsFoodPricingModeChoice(category) &&
+    (Boolean(mode) ||
+      Object.keys(bySecondary ?? {}).some((k) =>
+        secondaries.includes(k)
+      ));
+
   const id =
-    mode && needsFoodPricingModeChoice(category)
-      ? templateIdForFoodPricingMode(mode)
+    (mode || multiModes) && needsFoodPricingModeChoice(category)
+      ? templateIdForFoodPricingMode(mode ?? "fixed_per_head")
       : resolveCatalogTemplateId(primary, secondaries);
   if (!id) return null;
   const base = getCatalogTemplate(id);
   const hintSource =
     secondaries.length === 1 ? secondaries[0]! : secondaries[0] ?? null;
   const withHints = applySecondaryCatalogHints(base, hintSource);
+
+  if (multiModes) {
+    return {
+      ...withHints,
+      editorTitle: "מחיר ותפריט לפי סוג",
+      editorHint:
+        "לכל תת־קטגוריה (למשל בשרי / חלבי) יש מודל מחיר ותפריט משלה — לפי מה שבחרתם למעלה.",
+      packagesTitle: "תפריטים לפי סוג",
+      packagesHint:
+        "מלאו תפריט נפרד לכל תת־קטגוריה. מחיר קבוע לראש = שדה מחיר בכל תפריט; פירמידה = מדרגות אורחים מעל התפריט.",
+      showQuantityTiers: true,
+      hidePackagePrice: false,
+      quantityTiersTitle: "פירמידה יורדת — מחיר לראש לפי כמות אורחים",
+      quantityTiersHint:
+        "רק לתת־קטגוריות שבחרתם בהן «פירמידה יורדת». לדוגמה: עד 40 אורחים ₪80 לראש, ומעל 40 — ₪70.",
+      quantityTierMinPlaceholder: "מ־ (אורחים)",
+      quantityTierMaxPlaceholder: "עד (ריק = ומעלה)",
+      quantityTierPricePlaceholder: "₪ לראש",
+      quantityTierAddLabel: "+ הוסף מדרגת אורחים",
+      quantityTierUnitLabel: "אורחים",
+      packageIncludedHint:
+        "מנות בתפריט — אפשר להוסיף כמות בגרם או יחידות (למשל 250 גרם / 4 יח׳).",
+    };
+  }
 
   if (isLegacyGeneralFoodMode(mode) && needsFoodPricingModeChoice(category)) {
     return {
@@ -1013,22 +1049,34 @@ export function resolveCatalogTemplateFromCategory(
 }
 
 export function resolveStoredCatalogTemplate(
-  menu: { templateId?: CatalogTemplateId | null; foodPricingMode?: FoodPricingMode | null },
+  menu: {
+    templateId?: CatalogTemplateId | null;
+    foodPricingMode?: FoodPricingMode | null;
+    foodPricingModesBySecondary?: Record<string, FoodPricingMode> | null;
+  },
   category: string | null | undefined
 ): CatalogTemplate | null {
-  if (menu.foodPricingMode && needsFoodPricingModeChoice(category)) {
+  if (
+    (menu.foodPricingMode || menu.foodPricingModesBySecondary) &&
+    needsFoodPricingModeChoice(category)
+  ) {
     return resolveCatalogTemplateFromCategory(category, {
       foodPricingMode: menu.foodPricingMode,
+      foodPricingModesBySecondary: menu.foodPricingModesBySecondary,
     });
   }
   const fromCategory = resolveCatalogTemplateFromCategory(category, {
     foodPricingMode: menu.foodPricingMode ?? null,
+    foodPricingModesBySecondary: menu.foodPricingModesBySecondary ?? null,
   });
   if (!menu.templateId) return fromCategory;
   const normalized = normalizeCatalogTemplateId(String(menu.templateId));
   if (!normalized) return fromCategory;
   // אם יש מצב תמחור אוכל — התבנית מהמצב גוברת
-  if (menu.foodPricingMode && needsFoodPricingModeChoice(category)) {
+  if (
+    (menu.foodPricingMode || menu.foodPricingModesBySecondary) &&
+    needsFoodPricingModeChoice(category)
+  ) {
     return fromCategory;
   }
   const base = getCatalogTemplate(normalized);

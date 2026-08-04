@@ -217,7 +217,12 @@ export async function POST(req: NextRequest) {
   );
   if (!catCheck.ok) return badRequest(catCheck.error);
   const menuJson = parseMenuFormField(formData.get("menuJson"), catCheck.value);
-  const catalogTemplate = resolveCatalogTemplateFromCategory(catCheck.value);
+  const parsedMenuForTemplate = menuJson ? parseServiceMenuJson(menuJson) : null;
+  const catalogTemplate = resolveCatalogTemplateFromCategory(catCheck.value, {
+    foodPricingMode: parsedMenuForTemplate?.foodPricingMode ?? null,
+    foodPricingModesBySecondary:
+      parsedMenuForTemplate?.foodPricingModesBySecondary ?? null,
+  });
   const descCheck = validateOptionalLongText(
     description,
     USER_INPUT_MAX.DESCRIPTION_LONG,
@@ -437,7 +442,12 @@ export async function PUT(req: NextRequest) {
   const menuJson = formData.has("menuJson")
     ? parseMenuFormField(formData.get("menuJson"), catCheckPut.value)
     : existing.menuJson;
-  const catalogTemplatePut = resolveCatalogTemplateFromCategory(catCheckPut.value);
+  const parsedMenuPut = menuJson ? parseServiceMenuJson(menuJson) : null;
+  const catalogTemplatePut = resolveCatalogTemplateFromCategory(catCheckPut.value, {
+    foodPricingMode: parsedMenuPut?.foodPricingMode ?? null,
+    foodPricingModesBySecondary:
+      parsedMenuPut?.foodPricingModesBySecondary ?? null,
+  });
   const descCheckPut = validateOptionalLongText(
     description,
     USER_INPUT_MAX.DESCRIPTION_LONG,

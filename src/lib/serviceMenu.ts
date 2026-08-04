@@ -1,6 +1,8 @@
 import { parseServiceCategorySelections } from "@/lib/freelancerServiceCategories";
 import {
   parseFoodPricingMode,
+  isPyramidPerHeadMode,
+  resolveFoodPricingModeForSecondary,
   type FoodPricingMode,
 } from "@/lib/foodPricingMode";
 import { sanitizeDietaryOptions } from "@/lib/foodDietaryOptions";
@@ -76,8 +78,10 @@ export type ServiceMenuPackage = {
 
 export type ServiceMenuConfig = {
   templateId?: CatalogTemplateId | null;
-  /** קייטרינג: פר־ראש או הצעה כללית — דורס תבנית ברירת מחדל */
+  /** קייטרינג: פר־ראש או הצעה כללית — דורס תבנית ברירת מחדל (ישן / תת־קטגוריה יחידה) */
   foodPricingMode?: FoodPricingMode | null;
+  /** מודל מחיר לכל תת־קטגוריה בנפרד (בשרי ≠ חלבי) */
+  foodPricingModesBySecondary?: Record<string, FoodPricingMode>;
   /** אופציות כשרות/תזונה — למשל כשר למהדרין, ללא גלוטן */
   dietaryOptions?: string[];
   minGuests: number | null;
@@ -349,6 +353,17 @@ export function sanitizeServiceMenuFromClient(data: unknown): ServiceMenuConfig 
     ? normalizeCatalogTemplateId(templateIdRaw)
     : null;
   const foodPricingMode = parseFoodPricingMode(o.foodPricingMode);
+  const foodPricingModesBySecondary: Record<string, FoodPricingMode> = {};
+  if (o.foodPricingModesBySecondary && typeof o.foodPricingModesBySecondary === "object") {
+    for (const [k, v] of Object.entries(
+      o.foodPricingModesBySecondary as Record<string, unknown>
+    )) {
+      const key = sliceStr(k, MAX_LABEL);
+      const mode = parseFoodPricingMode(v);
+      if (key && mode) foodPricingModesBySecondary[key] = mode;
+      if (Object.keys(foodPricingModesBySecondary).length >= 20) break;
+    }
+  }
   const dietaryOptions = sanitizeDietaryOptions(o.dietaryOptions);
   const minGuests = toGuestIntOrNull(o.minGuests);
   const maxGuests = toGuestIntOrNull(o.maxGuests);
@@ -396,6 +411,9 @@ export function sanitizeServiceMenuFromClient(data: unknown): ServiceMenuConfig 
   return {
     ...(templateId ? { templateId } : {}),
     ...(foodPricingMode ? { foodPricingMode } : {}),
+    ...(Object.keys(foodPricingModesBySecondary).length > 0
+      ? { foodPricingModesBySecondary }
+      : {}),
     ...(dietaryOptions.length > 0 ? { dietaryOptions } : {}),
     minGuests,
     maxGuests:
@@ -504,12 +522,53 @@ export function validateServiceMenuForSubmit(
       if (pkgs.length === 0) {
         return `חסר תפריט ל«${sec}» — לכל תת־קטגוריה צריך תפריט משלה`;
       }
+      const mode = resolveFoodPricingModeForSecondary(m, sec);
+      if (isPyramidPerHeadMode(mode)) {
+        const tiers = filterItemsForSecondary(
+          m.quantityTiers ?? [],
+          sec,
+          secondaries
+        );
+        if (tiers.length === 0) {
+          return `חסרות מדרגות מחיר ל«${sec}»`;
+        }
+        if (tiers.some((tier) => tier.pricePerUnit == null)) {
+          return `ב«${sec}»: בכל מדרגת אורחים חובה להזין מחיר לראש`;
+        }
+      } else if (!t?.hidePackagePrice) {
+        for (const pkg of pkgs) {
+          if (pkg.usePerGuestRange) {
+            if (pkg.perGuestMin == null && pkg.perGuestMax == null) {
+              return `ב«${sec}»: לחבילה «${pkg.name}» חסר מחיר`;
+            }
+          } else if (pkg.perGuestPrice == null) {
+            return `ב«${sec}»: לחבילה «${pkg.name}» חסר מחיר`;
+          }
+        }
+      }
+    }
+    for (const pkg of m.packages) {
+      if (!pkg.name.trim()) return "נא לתת שם לכל תפריט";
+    }
+    // אם חלק פירמידה וחלק קבוע — כבר נבדק למעלה; דלגו על בדיקת hidePackagePrice הגלובלית
+    if (
+      secondaries.some((sec) =>
+        isPyramidPerHeadMode(resolveFoodPricingModeForSecondary(m, sec))
+      ) &&
+      secondaries.some(
+        (sec) => !isPyramidPerHeadMode(resolveFoodPricingModeForSecondary(m, sec))
+      )
+    ) {
+      return null;
     }
   }
 
   if (t?.hidePackagePrice) {
     if (secondaries.length > 1) {
       for (const sec of secondaries) {
+        if (!isPyramidPerHeadMode(resolveFoodPricingModeForSecondary(m, sec))) {
+          continue;
+        }
         const tiers = filterItemsForSecondary(
           m.quantityTiers ?? [],
           sec,
@@ -540,6 +599,12 @@ export function validateServiceMenuForSubmit(
   }
 
   for (const pkg of m.packages) {
+    if (secondaries.length > 1) {
+      const sec = pkg.secondary?.trim() || secondaries[0]!;
+      if (isPyramidPerHeadMode(resolveFoodPricingModeForSecondary(m, sec))) {
+        continue;
+      }
+    }
     if (pkg.usePerGuestRange) {
       if (pkg.perGuestMin == null && pkg.perGuestMax == null) {
         return `לחבילה «${pkg.name}» חסר מחיר`;
@@ -598,6 +663,7 @@ export function ensureMenuTemplateId(
 ): ServiceMenuConfig {
   const t = resolveCatalogTemplateFromCategory(category, {
     foodPricingMode: menu.foodPricingMode ?? null,
+    foodPricingModesBySecondary: menu.foodPricingModesBySecondary ?? null,
   });
   if (!t) return menu;
   return { ...menu, templateId: t.id };

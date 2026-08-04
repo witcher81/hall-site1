@@ -63,10 +63,18 @@ export function needsFoodPricingModeChoice(
 ): boolean {
   if (!category?.trim()) return false;
   const { secondaries } = parseServiceCategorySelections(category);
-  if (secondaries.length === 0) return false;
-  if (secondaries.some((s) => isStationOnlySecondary(s))) return false;
-  return secondaries.some((s) =>
-    FOOD_PRICING_CHOICE_SECONDARIES.has(normalizeSecondaryName(s.trim()))
+  return secondariesNeedingFoodPricingChoice(secondaries).length > 0;
+}
+
+/** תת־קטגוריות בשירות שצריכות בחירת מודל מחיר (קבוע / פירמידה) */
+export function secondariesNeedingFoodPricingChoice(
+  secondaries: string[]
+): string[] {
+  const list = secondaries.map((s) => s.trim()).filter(Boolean);
+  if (list.length === 0) return [];
+  if (list.some((s) => isStationOnlySecondary(s))) return [];
+  return list.filter((s) =>
+    FOOD_PRICING_CHOICE_SECONDARIES.has(normalizeSecondaryName(s))
   );
 }
 
@@ -82,6 +90,34 @@ export function isLegacyGeneralFoodMode(
   mode: FoodPricingMode | null | undefined
 ): boolean {
   return mode === "general";
+}
+
+/** מצב מחיר לתת־קטגוריה — עם נפילה למצב הכללי הישן */
+export function resolveFoodPricingModeForSecondary(
+  menu: {
+    foodPricingMode?: FoodPricingMode | null;
+    foodPricingModesBySecondary?: Record<string, FoodPricingMode> | null;
+  },
+  secondary: string
+): FoodPricingMode | null {
+  const key = secondary.trim();
+  const by = menu.foodPricingModesBySecondary?.[key];
+  if (by) return by;
+  return menu.foodPricingMode ?? null;
+}
+
+export function hasAllFoodPricingModesChosen(
+  menu: {
+    foodPricingMode?: FoodPricingMode | null;
+    foodPricingModesBySecondary?: Record<string, FoodPricingMode> | null;
+  },
+  secondaries: string[]
+): boolean {
+  const needing = secondariesNeedingFoodPricingChoice(secondaries);
+  if (needing.length === 0) return true;
+  return needing.every(
+    (s) => resolveFoodPricingModeForSecondary(menu, s) != null
+  );
 }
 
 /** ערך לבחירה בממשק (ישן → חדש) */

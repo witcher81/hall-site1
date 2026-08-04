@@ -10,19 +10,27 @@ import {
 type Props = {
   value: FoodPricingMode | null;
   onChange: (mode: FoodPricingModeChoice) => void;
+  /** כשיש כמה תת־קטגוריות — כותרת ספציפית לכל אחת */
+  secondaryLabel?: string | null;
 };
 
-export default function FoodPricingModeChooser({ value, onChange }: Props) {
+export default function FoodPricingModeChooser({
+  value,
+  onChange,
+  secondaryLabel,
+}: Props) {
   const selected = foodPricingModeForChooser(value);
+  const title = secondaryLabel?.trim()
+    ? `איך מוכרים את «${secondaryLabel.trim()}»?`
+    : "איך אתם מוכרים את האוכל?";
 
   return (
     <div className="rounded-xl border border-amber-200/90 bg-amber-50/50 p-4 text-right">
-      <h3 className="text-sm font-semibold text-amber-950">
-        איך אתם מוכרים את האוכל?
-      </h3>
+      <h3 className="text-sm font-semibold text-amber-950">{title}</h3>
       <p className="mt-1 text-[11px] leading-relaxed text-amber-900/85">
-        תמיד לפי ראש (לאורח). בחרו אם המחיר קבוע, או פירמידה יורדת לפי כמות
-        האורחים — ואז ייפתח התפריט למילוי.
+        {secondaryLabel?.trim()
+          ? "בחירה רק לתת־הקטגוריה הזו — אפשר מודל אחר לתת־קטגוריה אחרת באותו שירות."
+          : "תמיד לפי ראש (לאורח). בחרו אם המחיר קבוע, או פירמידה יורדת לפי כמות האורחים."}
       </p>
       {value === "general" ? (
         <p className="mt-2 rounded-lg border border-amber-300/80 bg-amber-100/60 px-2.5 py-2 text-[11px] leading-relaxed text-amber-950">

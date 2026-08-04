@@ -24,6 +24,10 @@ import {
   type ServiceMenuSection,
   type ServiceQuantityTier,
 } from "@/lib/serviceMenu";
+import {
+  isPyramidPerHeadMode,
+  resolveFoodPricingModeForSecondary,
+} from "@/lib/foodPricingMode";
 
 const SECONDARY_SECTION_STYLES = [
   "border-2 border-rose-400/80 bg-rose-50/40",
@@ -94,6 +98,10 @@ export default function ServiceCatalogEditor({
     .map((s) => s.trim())
     .filter(Boolean);
   const splitBySecondary = menuSecondaries.length > 1;
+  const modeFor = (sec: string | null | undefined) =>
+    sec
+      ? resolveFoodPricingModeForSecondary(value, sec)
+      : value.foodPricingMode ?? null;
   const pricingModes = template.itemPricingModes;
   const paidPricingModes = pricingModes.filter((m) => m !== "included");
   const catalogEssential =
@@ -361,6 +369,12 @@ export default function ServiceCatalogEditor({
         <div className="space-y-3">
           {(splitBySecondary ? menuSecondaries : [null as string | null]).map(
             (secKey, secIdx) => {
+              const secMode = modeFor(secKey ?? menuSecondaries[0] ?? null);
+              const showTiersForSec =
+                !splitBySecondary
+                  ? template.hidePackagePrice || isPyramidPerHeadMode(secMode)
+                  : isPyramidPerHeadMode(secMode);
+              if (!showTiersForSec) return null;
               const tierRows = (
                 splitBySecondary && secKey
                   ? value.quantityTiers
@@ -514,6 +528,9 @@ export default function ServiceCatalogEditor({
                       )
                   : value.packages.map((pkg, index) => ({ pkg, index }))
               );
+              const hidePriceForSec = splitBySecondary
+                ? isPyramidPerHeadMode(modeFor(secKey))
+                : Boolean(template.hidePackagePrice);
               return (
                 <div
                   key={secKey ?? "packages-all"}
@@ -526,6 +543,11 @@ export default function ServiceCatalogEditor({
                   {secKey ? (
                     <p className="mb-2 text-sm font-bold text-emerald-950">
                       תפריט: {secKey}
+                      {isPyramidPerHeadMode(modeFor(secKey))
+                        ? " (פירמידה יורדת)"
+                        : modeFor(secKey)
+                          ? " (מחיר קבוע לראש)"
+                          : ""}
                     </p>
                   ) : null}
         <ul className="space-y-3">
@@ -543,7 +565,7 @@ export default function ServiceCatalogEditor({
                   ? ` — ${template.packageCardDetail ?? "שם, מחיר ומה כלול"}`
                   : ` — ${template.packageCardDetail ?? "שם + מחיר"}`}
               </p>
-              <div className={`grid gap-3 ${template.hidePackagePrice ? "" : "sm:grid-cols-2"}`}>
+              <div className={`grid gap-3 ${hidePriceForSec ? "" : "sm:grid-cols-2"}`}>
                 <CatalogFieldHelp
                   label={template.packageNameFieldLabel ?? "שם הרמה / סוג"}
                   help={fieldHelp.packageName}
@@ -559,7 +581,7 @@ export default function ServiceCatalogEditor({
                     }
                   />
                 </CatalogFieldHelp>
-                {!template.hidePackagePrice ? (
+                {!hidePriceForSec ? (
                 <CatalogFieldHelp
                   label={template.packagePriceLabel}
                   help={fieldHelp.packagePrice}
