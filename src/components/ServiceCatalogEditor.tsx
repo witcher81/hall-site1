@@ -12,6 +12,7 @@ import {
   createEmptyMenuSection,
   createEmptyPaidExtraItem,
   createEmptyQuantityTier,
+  itemBelongsToSecondary,
   MAX_MENU_ITEMS_PER_SECTION,
   MAX_MENU_PACKAGES,
   MAX_MENU_SECTIONS,
@@ -24,12 +25,21 @@ import {
   type ServiceQuantityTier,
 } from "@/lib/serviceMenu";
 
+const SECONDARY_SECTION_STYLES = [
+  "border-2 border-rose-400/80 bg-rose-50/40",
+  "border-2 border-teal-400/80 bg-teal-50/40",
+  "border-2 border-amber-400/80 bg-amber-50/40",
+  "border-2 border-sky-400/80 bg-sky-50/40",
+] as const;
+
 type Props = {
   template: CatalogTemplate;
   value: ServiceMenuConfig;
   onChange: (next: ServiceMenuConfig) => void;
   /** תת־קטגוריה — לעזרת שדות מותאמת (למשל הצעות נישואין) */
   secondary?: string | null;
+  /** כל תת־הקטגוריות שנבחרו — אם יותר מאחת, נפרדים תפריטים/מדרגות */
+  secondaries?: string[];
 };
 
 const PRICING_LABELS: Record<ServiceMenuItemPricing, string> = {
@@ -71,8 +81,19 @@ export default function ServiceCatalogEditor({
   value,
   onChange,
   secondary,
+  secondaries: secondariesProp,
 }: Props) {
   const fieldHelp = getCatalogFieldHelp(template.id, secondary);
+  const menuSecondaries = (
+    secondariesProp?.length
+      ? secondariesProp
+      : secondary
+        ? [secondary]
+        : []
+  )
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const splitBySecondary = menuSecondaries.length > 1;
   const pricingModes = template.itemPricingModes;
   const paidPricingModes = pricingModes.filter((m) => m !== "included");
   const catalogEssential =
@@ -95,13 +116,38 @@ export default function ServiceCatalogEditor({
 
   useEffect(() => {
     if (value.packages.length === 0) {
-      const pkg = createEmptyMenuPackage();
-      if (template.showPackageIncludedItems) {
-        pkg.includedItems = [createEmptyMenuItem()];
-      }
-      onChange({ ...value, templateId: template.id, packages: [pkg] });
+      const targets = splitBySecondary ? menuSecondaries : [null as string | null];
+      const packages = targets.map((sec) => {
+        const pkg = createEmptyMenuPackage("", sec);
+        if (template.showPackageIncludedItems) {
+          pkg.includedItems = [createEmptyMenuItem()];
+        }
+        return pkg;
+      });
+      onChange({ ...value, templateId: template.id, packages });
+      return;
     }
-  }, [template.id]); // eslint-disable-line react-hooks/exhaustive-deps -- seed once per template
+    if (!splitBySecondary) return;
+    let packages = value.packages.map((p) =>
+      p.secondary?.trim() ? p : { ...p, secondary: menuSecondaries[0]! }
+    );
+    let changed = packages.some(
+      (p, i) => p.secondary !== value.packages[i]?.secondary
+    );
+    for (const sec of menuSecondaries) {
+      if (!packages.some((p) => (p.secondary?.trim() || "") === sec)) {
+        const pkg = createEmptyMenuPackage("", sec);
+        if (template.showPackageIncludedItems) {
+          pkg.includedItems = [createEmptyMenuItem()];
+        }
+        packages = [...packages, pkg];
+        changed = true;
+      }
+    }
+    if (changed) {
+      onChange({ ...value, templateId: template.id, packages });
+    }
+  }, [template.id, menuSecondaries.join("|"), splitBySecondary]); // eslint-disable-line react-hooks/exhaustive-deps -- seed per secondary set
 
   function patchMenu(patch: Partial<ServiceMenuConfig>) {
     onChange({ ...value, templateId: template.id, ...patch });
@@ -312,77 +358,121 @@ export default function ServiceCatalogEditor({
       ) : null}
 
       {template.showQuantityTiers ? (
-        <div className="rounded-xl border border-violet-200/80 bg-violet-50/40 p-4">
-          <h3 className="text-sm font-semibold text-violet-950">
-            {template.quantityTiersTitle ?? "מדרגות כמות"}
-          </h3>
-          <p className="mt-1 text-[11px] text-neutral-600">
-            {template.quantityTiersHint ??
-              "מחיר ליחידה לפי כמות הזמנה — למשל 50–100 יחידות במחיר אחד."}
-          </p>
-          <ul className="mt-3 space-y-2">
-            {(value.quantityTiers ?? []).map((tier, index) => (
-              <li
-                key={tier.id}
-                className="grid gap-2 rounded-lg border border-violet-200/70 bg-white p-2 sm:grid-cols-4"
-              >
-                <input
-                  type="number"
-                  min={1}
-                  value={tier.minQty}
-                  onChange={(e) =>
-                    updateTier(index, { minQty: parsePriceInput(e.target.value) ?? 1 })
-                  }
-                  className={input}
-                  placeholder={template.quantityTierMinPlaceholder ?? "מינימום"}
-                />
-                <input
-                  type="number"
-                  min={1}
-                  value={tier.maxQty ?? ""}
-                  onChange={(e) =>
-                    updateTier(index, { maxQty: parsePriceInput(e.target.value) })
-                  }
-                  className={input}
-                  placeholder={template.quantityTierMaxPlaceholder ?? "מקסימום"}
-                />
-                <input
-                  type="number"
-                  min={0}
-                  value={tier.pricePerUnit ?? ""}
-                  onChange={(e) =>
-                    updateTier(index, { pricePerUnit: parsePriceInput(e.target.value) })
-                  }
-                  className={input}
-                  placeholder={template.quantityTierPricePlaceholder ?? "₪ ליחידה"}
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    patchMenu({
-                      quantityTiers: (value.quantityTiers ?? []).filter(
-                        (_, i) => i !== index
-                      ),
-                    })
-                  }
-                  className="text-[11px] text-red-600 hover:underline"
+        <div className="space-y-3">
+          {(splitBySecondary ? menuSecondaries : [null as string | null]).map(
+            (secKey, secIdx) => {
+              const tierRows = (
+                splitBySecondary && secKey
+                  ? value.quantityTiers
+                      ?.map((tier, index) => ({ tier, index }))
+                      .filter(({ tier }) =>
+                        itemBelongsToSecondary(
+                          tier.secondary,
+                          secKey,
+                          menuSecondaries
+                        )
+                      )
+                  : value.quantityTiers?.map((tier, index) => ({ tier, index }))
+              ) ?? [];
+              return (
+                <div
+                  key={secKey ?? "tiers-all"}
+                  className={`rounded-xl border border-violet-200/80 bg-violet-50/40 p-4 ${
+                    splitBySecondary
+                      ? SECONDARY_SECTION_STYLES[secIdx % SECONDARY_SECTION_STYLES.length]
+                      : ""
+                  }`}
                 >
-                  הסר
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            onClick={() =>
-              patchMenu({
-                quantityTiers: [...(value.quantityTiers ?? []), createEmptyQuantityTier()],
-              })
+                  <h3 className="text-sm font-semibold text-violet-950">
+                    {template.quantityTiersTitle ?? "מדרגות כמות"}
+                    {secKey ? ` — ${secKey}` : ""}
+                  </h3>
+                  <p className="mt-1 text-[11px] text-neutral-600">
+                    {template.quantityTiersHint ??
+                      "מחיר ליחידה לפי כמות הזמנה — למשל 50–100 יחידות במחיר אחד."}
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {tierRows.map(({ tier, index }) => (
+                      <li
+                        key={tier.id}
+                        className="grid gap-2 rounded-lg border border-violet-200/70 bg-white p-2 sm:grid-cols-4"
+                      >
+                        <input
+                          type="number"
+                          min={1}
+                          value={tier.minQty}
+                          onChange={(e) =>
+                            updateTier(index, {
+                              minQty: parsePriceInput(e.target.value) ?? 1,
+                            })
+                          }
+                          className={input}
+                          placeholder={
+                            template.quantityTierMinPlaceholder ?? "מינימום"
+                          }
+                        />
+                        <input
+                          type="number"
+                          min={1}
+                          value={tier.maxQty ?? ""}
+                          onChange={(e) =>
+                            updateTier(index, {
+                              maxQty: parsePriceInput(e.target.value),
+                            })
+                          }
+                          className={input}
+                          placeholder={
+                            template.quantityTierMaxPlaceholder ?? "מקסימום"
+                          }
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          value={tier.pricePerUnit ?? ""}
+                          onChange={(e) =>
+                            updateTier(index, {
+                              pricePerUnit: parsePriceInput(e.target.value),
+                            })
+                          }
+                          className={input}
+                          placeholder={
+                            template.quantityTierPricePlaceholder ?? "₪ ליחידה"
+                          }
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            patchMenu({
+                              quantityTiers: (value.quantityTiers ?? []).filter(
+                                (_, i) => i !== index
+                              ),
+                            })
+                          }
+                          className="text-[11px] text-red-600 hover:underline"
+                        >
+                          הסר
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      patchMenu({
+                        quantityTiers: [
+                          ...(value.quantityTiers ?? []),
+                          createEmptyQuantityTier(secKey),
+                        ],
+                      })
+                    }
+                    className="mt-2 text-[11px] font-medium text-violet-950 hover:underline"
+                  >
+                    {template.quantityTierAddLabel ?? "+ הוסף מדרגה"}
+                  </button>
+                </div>
+              );
             }
-            className="mt-2 text-[11px] font-medium text-violet-950 hover:underline"
-          >
-            {template.quantityTierAddLabel ?? "+ הוסף מדרגה"}
-          </button>
+          )}
         </div>
       ) : null}
 
@@ -394,6 +484,12 @@ export default function ServiceCatalogEditor({
         <p className="mt-1 text-[11px] leading-relaxed text-amber-900/80">
           {template.packagesHint}
         </p>
+        {splitBySecondary ? (
+          <p className="mt-2 rounded-lg border border-amber-300/80 bg-amber-100/50 px-2.5 py-2 text-[11px] leading-relaxed text-amber-950">
+            נבחרו כמה תת־קטגוריות — לכל אחת יש תפריט ומחירים נפרדים (למשל בשרי
+            לחוד וחלבי לחוד).
+          </p>
+        ) : null}
         {fieldHelp.packagesSectionBody ? (
           <CatalogSectionExplainer
             title={fieldHelp.packagesSectionTitle ?? "צריך עוד הסבר?"}
@@ -402,8 +498,38 @@ export default function ServiceCatalogEditor({
             {fieldHelp.packagesSectionBody}
           </CatalogSectionExplainer>
         ) : null}
-        <ul className="mt-3 space-y-3">
-          {value.packages.map((pkg, index) => {
+        <div className={`mt-3 space-y-4`}>
+          {(splitBySecondary ? menuSecondaries : [null as string | null]).map(
+            (secKey, secIdx) => {
+              const sectionPackages = (
+                splitBySecondary && secKey
+                  ? value.packages
+                      .map((pkg, index) => ({ pkg, index }))
+                      .filter(({ pkg }) =>
+                        itemBelongsToSecondary(
+                          pkg.secondary,
+                          secKey,
+                          menuSecondaries
+                        )
+                      )
+                  : value.packages.map((pkg, index) => ({ pkg, index }))
+              );
+              return (
+                <div
+                  key={secKey ?? "packages-all"}
+                  className={
+                    splitBySecondary
+                      ? `rounded-xl p-3 ${SECONDARY_SECTION_STYLES[secIdx % SECONDARY_SECTION_STYLES.length]}`
+                      : ""
+                  }
+                >
+                  {secKey ? (
+                    <p className="mb-2 text-sm font-bold text-emerald-950">
+                      תפריט: {secKey}
+                    </p>
+                  ) : null}
+        <ul className="space-y-3">
+          {sectionPackages.map(({ pkg, index }, localIdx) => {
             const descVisible =
               Boolean(pkg.description?.trim()) || packageDescOpen[pkg.id] === true;
             return (
@@ -412,7 +538,7 @@ export default function ServiceCatalogEditor({
               className="rounded-lg border border-amber-200/80 bg-white/85 p-3"
             >
               <p className="mb-2 text-[10px] font-medium text-neutral-500">
-                {template.packageCardNoun ?? "חבילה"} {index + 1}
+                {template.packageCardNoun ?? "חבילה"} {localIdx + 1}
                 {showPackageIncludedMenu
                   ? ` — ${template.packageCardDetail ?? "שם, מחיר ומה כלול"}`
                   : ` — ${template.packageCardDetail ?? "שם + מחיר"}`}
@@ -804,7 +930,7 @@ export default function ServiceCatalogEditor({
           type="button"
           disabled={value.packages.length >= MAX_MENU_PACKAGES}
           onClick={() => {
-            const pkg = createEmptyMenuPackage();
+            const pkg = createEmptyMenuPackage("", secKey);
             if (showPackageIncludedMenu) {
               pkg.includedItems = [createEmptyMenuItem()];
             }
@@ -814,8 +940,14 @@ export default function ServiceCatalogEditor({
           }}
           className="mt-2 rounded-full border border-dashed border-amber-700/35 bg-white px-3 py-1.5 text-[11px] font-medium text-amber-900/90 hover:bg-amber-50 disabled:opacity-50"
         >
-          + {fieldHelp.addPackageButton ?? "עוד חבילה"} ({value.packages.length})
+          + {fieldHelp.addPackageButton ?? "עוד חבילה"}
+          {secKey ? ` ל«${secKey}»` : ""} ({sectionPackages.length})
         </button>
+                </div>
+              );
+            }
+          )}
+        </div>
       </div>
 
       {hasLegacyGlobalCatalog ? (

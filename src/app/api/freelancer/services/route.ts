@@ -21,6 +21,7 @@ import {
   validateServiceMenuForSubmit,
 } from "@/lib/serviceMenu";
 import { resolveCatalogTemplateFromCategory } from "@/lib/serviceCategoryTemplates";
+import { parseServiceCategorySelections } from "@/lib/freelancerServiceCategories";
 import { saveServiceImageFile } from "@/lib/serviceImageUpload";
 import {
   logListingSubmittedForReview,
@@ -251,7 +252,10 @@ export async function POST(req: NextRequest) {
   if (catalogTemplate) {
     const menuErr = validateServiceMenuForSubmit(
       parseServiceMenuJson(menuJson),
-      catalogTemplate
+      catalogTemplate,
+      {
+        secondaries: parseServiceCategorySelections(catCheck.value ?? "").secondaries,
+      }
     );
     if (menuErr) return badRequest(menuErr);
   }
@@ -468,7 +472,10 @@ export async function PUT(req: NextRequest) {
   if (catalogTemplatePut) {
     const menuErr = validateServiceMenuForSubmit(
       parseServiceMenuJson(menuJson),
-      catalogTemplatePut
+      catalogTemplatePut,
+      {
+        secondaries: parseServiceCategorySelections(catCheckPut.value ?? "").secondaries,
+      }
     );
     if (menuErr) return badRequest(menuErr);
   }

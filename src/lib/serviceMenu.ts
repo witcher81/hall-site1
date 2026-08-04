@@ -25,6 +25,8 @@ export type ServiceQuantityTier = {
   minQty: number;
   maxQty?: number | null;
   pricePerUnit: number | null;
+  /** תת־קטגוריה — כשיש כמה (למשל בשרי/חלבי) */
+  secondary?: string | null;
 };
 
 export type ServiceDeliverable = {
@@ -64,6 +66,8 @@ export type ServiceMenuPackage = {
   perGuestMin?: number | null;
   perGuestMax?: number | null;
   durationHours?: number | null;
+  /** תת־קטגוריה — כשיש כמה (למשל קייטרינג בשרי מול חלבי) */
+  secondary?: string | null;
   /** מנות / פריטים כלולים במחיר החבילה (לפי קבוצת מחיר) */
   includedItems?: ServiceMenuItem[];
   /** תוספות בתשלום לאפשרות הזו */
@@ -291,6 +295,9 @@ function sanitizePackage(raw: unknown): ServiceMenuPackage | null {
       : { perGuestPrice }),
     ...(includedItems.length > 0 ? { includedItems } : {}),
     ...(extraItems.length > 0 ? { extraItems } : {}),
+    ...(sliceStr(o.secondary, MAX_LABEL)
+      ? { secondary: sliceStr(o.secondary, MAX_LABEL) }
+      : {}),
   };
 }
 
@@ -310,6 +317,9 @@ function sanitizeQuantityTier(raw: unknown): ServiceQuantityTier | null {
     minQty,
     ...(maxQty != null ? { maxQty } : {}),
     pricePerUnit,
+    ...(sliceStr(o.secondary, MAX_LABEL)
+      ? { secondary: sliceStr(o.secondary, MAX_LABEL) }
+      : {}),
   };
 }
 
@@ -456,10 +466,14 @@ function catalogCapacityRequired(template: CatalogTemplate): boolean {
 
 export function validateServiceMenuForSubmit(
   menu: ServiceMenuConfig,
-  template?: CatalogTemplate | null
+  template?: CatalogTemplate | null,
+  options?: { secondaries?: string[] }
 ): string | null {
   const m = sanitizeServiceMenuFromClient(menu);
   const t = template ?? null;
+  const secondaries = (options?.secondaries ?? [])
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   if (t && catalogCapacityRequired(t)) {
     if (t.showPersonCapacity) {
@@ -484,23 +498,45 @@ export function validateServiceMenuForSubmit(
     return "הוסיפו לפחות חבילה אחת, פריט בקטלוג או מדרגת כמות";
   }
 
-  if (t?.hidePackagePrice || t?.showQuantityTiers) {
-    if (t.hidePackagePrice) {
+  if (secondaries.length > 1) {
+    for (const sec of secondaries) {
+      const pkgs = filterItemsForSecondary(m.packages, sec, secondaries);
+      if (pkgs.length === 0) {
+        return `חסר תפריט ל«${sec}» — לכל תת־קטגוריה צריך תפריט משלה`;
+      }
+    }
+  }
+
+  if (t?.hidePackagePrice) {
+    if (secondaries.length > 1) {
+      for (const sec of secondaries) {
+        const tiers = filterItemsForSecondary(
+          m.quantityTiers ?? [],
+          sec,
+          secondaries
+        );
+        if (tiers.length === 0) {
+          return `חסרות מדרגות מחיר ל«${sec}»`;
+        }
+        if (tiers.some((tier) => tier.pricePerUnit == null)) {
+          return `ב«${sec}»: בכל מדרגת אורחים חובה להזין מחיר לראש`;
+        }
+      }
+    } else {
       if (!hasTiers) {
         return "הוסיפו לפחות מדרגת מחיר אחת לפי כמות אורחים";
       }
-      const missingTierPrice = m.quantityTiers!.find((tier) => tier.pricePerUnit == null);
-      if (missingTierPrice) {
+      if (m.quantityTiers!.some((tier) => tier.pricePerUnit == null)) {
         return "בכל מדרגת אורחים חובה להזין מחיר לראש";
       }
       if (!hasPackages) {
         return "הוסיפו לפחות תפריט אחד עם מנות";
       }
-      for (const pkg of m.packages) {
-        if (!pkg.name.trim()) return "נא לתת שם לכל תפריט";
-      }
-      return null;
     }
+    for (const pkg of m.packages) {
+      if (!pkg.name.trim()) return "נא לתת שם לכל תפריט";
+    }
+    return null;
   }
 
   for (const pkg of m.packages) {
@@ -723,13 +759,17 @@ export function createEmptyMenuSection(title = ""): ServiceMenuSection {
   return { id: newId("sec"), title, items: [] };
 }
 
-export function createEmptyMenuPackage(name = ""): ServiceMenuPackage {
+export function createEmptyMenuPackage(
+  name = "",
+  secondary?: string | null
+): ServiceMenuPackage {
   return {
     id: newId("pkg"),
     name,
     perGuestPrice: null,
     includedItems: [],
     extraItems: [],
+    ...(secondary?.trim() ? { secondary: secondary.trim() } : {}),
   };
 }
 
@@ -750,8 +790,38 @@ export function createEmptyPaidExtraItem(label = ""): ServiceMenuItem {
   };
 }
 
-export function createEmptyQuantityTier(): ServiceQuantityTier {
-  return { id: newId("tier"), minQty: 1, pricePerUnit: null };
+export function createEmptyQuantityTier(
+  secondary?: string | null
+): ServiceQuantityTier {
+  return {
+    id: newId("tier"),
+    minQty: 1,
+    pricePerUnit: null,
+    ...(secondary?.trim() ? { secondary: secondary.trim() } : {}),
+  };
+}
+
+/** שייכות פריט לתת־קטגוריה — בלי תג = שייך לראשונה (תאימות לאחור) */
+export function itemBelongsToSecondary(
+  itemSecondary: string | null | undefined,
+  targetSecondary: string,
+  allSecondaries: string[]
+): boolean {
+  const target = targetSecondary.trim();
+  if (!target) return true;
+  if (allSecondaries.length <= 1) return true;
+  const tagged = itemSecondary?.trim() ?? "";
+  if (!tagged) return target === allSecondaries[0];
+  return tagged === target;
+}
+
+export function filterItemsForSecondary<
+  T extends { secondary?: string | null },
+>(items: T[], targetSecondary: string, allSecondaries: string[]): T[] {
+  if (allSecondaries.length <= 1) return items;
+  return items.filter((item) =>
+    itemBelongsToSecondary(item.secondary, targetSecondary, allSecondaries)
+  );
 }
 
 export function createEmptyDeliverable(): ServiceDeliverable {

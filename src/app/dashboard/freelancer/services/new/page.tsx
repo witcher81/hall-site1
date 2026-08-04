@@ -323,15 +323,25 @@ export default function NewServicePage() {
           <FoodPricingModeChooser
             value={menu.foodPricingMode ?? null}
             onChange={(mode) =>
-              setMenu((m) => ({
-                ...m,
-                foodPricingMode: mode,
-                templateId: templateIdForFoodPricingMode(mode),
-                ...(mode === "pyramid_per_head" &&
-                !(m.quantityTiers && m.quantityTiers.length > 0)
-                  ? { quantityTiers: createDefaultPyramidGuestTiers() }
-                  : {}),
-              }))
+              setMenu((m) => {
+                const secs = form.secondaryCategories.map((s) => s.trim()).filter(Boolean);
+                const needTiers =
+                  mode === "pyramid_per_head" &&
+                  !(m.quantityTiers && m.quantityTiers.length > 0);
+                return {
+                  ...m,
+                  foodPricingMode: mode,
+                  templateId: templateIdForFoodPricingMode(mode),
+                  ...(needTiers
+                    ? {
+                        quantityTiers:
+                          secs.length > 1
+                            ? secs.flatMap((sec) => createDefaultPyramidGuestTiers(sec))
+                            : createDefaultPyramidGuestTiers(),
+                      }
+                    : {}),
+                };
+              })
             }
           />
         ) : null}
@@ -342,6 +352,7 @@ export default function NewServicePage() {
             value={menu}
             onChange={setMenu}
             secondary={form.secondaryCategories[0] ?? null}
+            secondaries={form.secondaryCategories}
           />
         ) : null}
 

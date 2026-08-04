@@ -5,6 +5,7 @@ import type { CatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
   catalogPackageUsesPerGuestMultiplier,
   estimatePackageTotal,
+  filterItemsForSecondary,
   formatItemPortion,
   formatMenuItemPrice,
   formatPackagePrice,
@@ -60,15 +61,38 @@ export default function ServiceMenuPublicSection({
     return menu.packages.find((p) => p.id === selectedPackageId) ?? null;
   }, [menu.packages, selectedPackageId]);
 
+  const packageSecondaries = useMemo(() => {
+    const set = new Set<string>();
+    for (const pkg of menu.packages) {
+      if (pkg.secondary?.trim()) set.add(pkg.secondary.trim());
+    }
+    return [...set];
+  }, [menu.packages]);
+
   const estimate = useMemo(() => {
     if (!countNum || !selectedPackage) return null;
+    const sec = selectedPackage.secondary?.trim() || packageSecondaries[0] || "";
+    const tiersForPkg =
+      packageSecondaries.length > 1 && sec
+        ? filterItemsForSecondary(
+            menu.quantityTiers ?? [],
+            sec,
+            packageSecondaries
+          )
+        : menu.quantityTiers;
     return estimatePackageTotal(
       selectedPackage,
       countNum,
       multiply,
-      menu.quantityTiers
+      tiersForPkg
     );
-  }, [countNum, selectedPackage, multiply, menu.quantityTiers]);
+  }, [
+    countNum,
+    selectedPackage,
+    multiply,
+    menu.quantityTiers,
+    packageSecondaries,
+  ]);
 
   const capacityText = useMemo(() => {
     if (template.showPersonCapacity) {
@@ -128,10 +152,30 @@ export default function ServiceMenuPublicSection({
       </div>
 
       {menu.packages.length > 0 ? (
-        <div className="mt-4">
+        <div className="mt-4 space-y-4">
           <p className="text-xs font-semibold text-emerald-950">{template.packagesTitle}</p>
-          <ul className="mt-2 space-y-2">
-            {menu.packages.map((pkg) => {
+          {(packageSecondaries.length > 1
+            ? packageSecondaries
+            : [null as string | null]
+          ).map((secKey) => {
+            const pkgs =
+              secKey && packageSecondaries.length > 1
+                ? filterItemsForSecondary(
+                    menu.packages,
+                    secKey,
+                    packageSecondaries
+                  )
+                : menu.packages;
+            if (pkgs.length === 0) return null;
+            return (
+              <div key={secKey ?? "all-packages"}>
+                {secKey ? (
+                  <p className="mb-2 text-[11px] font-bold text-emerald-900">
+                    {secKey}
+                  </p>
+                ) : null}
+          <ul className="space-y-2">
+            {pkgs.map((pkg) => {
               const priceLabel = formatPackagePriceLabel(pkg, template);
               const active = selectedPackage?.id === pkg.id;
               return (
@@ -224,6 +268,9 @@ export default function ServiceMenuPublicSection({
               );
             })}
           </ul>
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
@@ -259,12 +306,32 @@ export default function ServiceMenuPublicSection({
       ) : null}
 
       {(menu.quantityTiers?.length ?? 0) > 0 ? (
-        <div className="mt-4">
+        <div className="mt-4 space-y-3">
           <p className="text-xs font-semibold text-emerald-950">
             {template.quantityTiersTitle ?? "מדרגות כמות"}
           </p>
-          <ul className="mt-2 space-y-1">
-            {menu.quantityTiers!.map((tier) => (
+          {(packageSecondaries.length > 1
+            ? packageSecondaries
+            : [null as string | null]
+          ).map((secKey) => {
+            const tiers =
+              secKey && packageSecondaries.length > 1
+                ? filterItemsForSecondary(
+                    menu.quantityTiers ?? [],
+                    secKey,
+                    packageSecondaries
+                  )
+                : menu.quantityTiers ?? [];
+            if (tiers.length === 0) return null;
+            return (
+              <div key={secKey ?? "tiers-all"}>
+                {secKey ? (
+                  <p className="mb-1 text-[11px] font-bold text-emerald-900">
+                    {secKey}
+                  </p>
+                ) : null}
+          <ul className="space-y-1">
+            {tiers.map((tier) => (
               <li
                 key={tier.id}
                 className="flex flex-wrap justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs"
@@ -283,6 +350,9 @@ export default function ServiceMenuPublicSection({
               </li>
             ))}
           </ul>
+              </div>
+            );
+          })}
         </div>
       ) : null}
 

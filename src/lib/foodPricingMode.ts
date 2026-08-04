@@ -20,6 +20,7 @@ type PyramidTierSeed = {
   minQty: number;
   maxQty: number | null;
   pricePerUnit: number | null;
+  secondary?: string;
 };
 
 /** תת־קטגוריות שהן עמדה/עוגה — תפריט עמדה בלבד, בלי שאלת מודל */
@@ -115,10 +116,25 @@ function newTierId(): string {
 }
 
 /** מדרגות דוגמה לפירמידה יורדת — המחיר ממולא ע״י הספק */
-export function createDefaultPyramidGuestTiers(): PyramidTierSeed[] {
+export function createDefaultPyramidGuestTiers(
+  secondary?: string | null
+): PyramidTierSeed[] {
+  const sec = secondary?.trim() || null;
   return [
-    { id: newTierId(), minQty: 1, maxQty: 40, pricePerUnit: null },
-    { id: newTierId(), minQty: 41, maxQty: null, pricePerUnit: null },
+    {
+      id: newTierId(),
+      minQty: 1,
+      maxQty: 40,
+      pricePerUnit: null,
+      ...(sec ? { secondary: sec } : {}),
+    },
+    {
+      id: newTierId(),
+      minQty: 41,
+      maxQty: null,
+      pricePerUnit: null,
+      ...(sec ? { secondary: sec } : {}),
+    },
   ];
 }
 
