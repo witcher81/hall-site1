@@ -8,14 +8,14 @@ import {
 import { FREELANCER_CATEGORY_GROUPS } from "@/lib/freelancerServiceCategories";
 
 describe("serviceCategorySpec", () => {
-  it("maps all secondaries (127)", () => {
+  it("maps all secondaries (128)", () => {
     const map = buildSecondaryTemplateMap();
     const count = FREELANCER_CATEGORY_GROUPS.reduce(
       (sum, g) => sum + g.services.length,
       0
     );
-    expect(count).toBe(127);
-    expect(Object.keys(map)).toHaveLength(127);
+    expect(count).toBe(128);
+    expect(Object.keys(map)).toHaveLength(128);
   });
 
   it("maps marriage proposals to planning template", () => {
@@ -46,6 +46,7 @@ describe("serviceCategorySpec", () => {
   it("maps bars to beverage and stations to food_station", () => {
     expect(SECONDARY_TEMPLATE_OVERRIDE["בר קוקטיילים"]).toBe("beverage");
     expect(SECONDARY_TEMPLATE_OVERRIDE["עמדת גלידה"]).toBe("food_station");
+    expect(SECONDARY_TEMPLATE_OVERRIDE["שולחן שוק"]).toBe("food_station");
     expect(SECONDARY_TEMPLATE_OVERRIDE["שירות אישורי הגעה והושבה"]).toBe(
       "registration"
     );

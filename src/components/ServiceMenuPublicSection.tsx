@@ -12,6 +12,11 @@ import {
   type ServiceMenuConfig,
   type ServiceMenuPackage,
 } from "@/lib/serviceMenu";
+import {
+  isLegacyGeneralFoodMode,
+  isPyramidPerHeadMode,
+  resolveFoodPricingModeForSecondary,
+} from "@/lib/foodPricingMode";
 
 type Props = {
   menu: ServiceMenuConfig;
@@ -30,8 +35,21 @@ function formatTotalRange(min: number | null, max: number | null): string | null
   return `₪${v.toLocaleString("he-IL")}`;
 }
 
-function formatPackagePriceLabel(pkg: ServiceMenuPackage, template: CatalogTemplate): string | null {
+function formatPackagePriceLabel(
+  pkg: ServiceMenuPackage,
+  template: CatalogTemplate,
+  menu: ServiceMenuConfig
+): string | null {
   if (template.hidePackagePrice) return "לפי מדרגות אורחים";
+  const mode = resolveFoodPricingModeForSecondary(
+    menu,
+    pkg.secondary?.trim() || ""
+  );
+  if (isPyramidPerHeadMode(mode)) return "לפי מדרגות אורחים";
+  if (isLegacyGeneralFoodMode(mode) || template.id === "food_station") {
+    const base = formatPackagePrice(pkg, { perGuestSuffix: false });
+    return base ? `${base} לשולחן/הצעה` : null;
+  }
   return formatPackagePrice(pkg, {
     perGuestSuffix: catalogPackageUsesPerGuestMultiplier(template),
   });
@@ -176,7 +194,7 @@ export default function ServiceMenuPublicSection({
                 ) : null}
           <ul className="space-y-2">
             {pkgs.map((pkg) => {
-              const priceLabel = formatPackagePriceLabel(pkg, template);
+              const priceLabel = formatPackagePriceLabel(pkg, template, menu);
               const active = selectedPackage?.id === pkg.id;
               return (
                 <li key={pkg.id}>

@@ -95,6 +95,7 @@ export const SECONDARY_TEMPLATE_OVERRIDE: Partial<
   "מופעי ריקוד ובמה": "attraction",
   // אוכל — עוגות (מחיר שירות קבוע, לא לאורח)
   "עוגות לאירועים": "food_station",
+  "שולחן שוק": "food_station",
   // טקסים — אטרקציה
   "הפרחת יונים או פרפרים": "attraction",
   // הלבשה — יופי
@@ -234,6 +235,25 @@ export const SECONDARY_CATALOG_HINTS: Partial<
   "מזנונים ודוכני אוכל": {
     catalogSectionPlaceholder: "למשל: מנות עיקריות, תוספות, קינוחים",
     catalogItemPlaceholder: "למשל: בשר צלוי, פסטה, סלט",
+  },
+  "שולחן שוק": {
+    packagesHint:
+      "למשל: שולחן שוק לחולון/בת ים ₪2,400 — מחיר קבוע לשולחן (לא לראש). רשמו מה כלול: מנות עיקריות, תוספות, ירקות וסידור.",
+    packageNamePlaceholder: "למשל: שולחן שוק — אזור חולון / בת ים / ראשל״צ",
+    packagePriceLabel: "מחיר לשולחן (₪)",
+    packageCardNoun: "שולחן",
+    packageCardDetail: "שם, מחיר לשולחן ומה כלול",
+    packageRemoveLabel: "הסר שולחן",
+    packageIncludedTitle: "מה כלול בשולחן",
+    packageIncludedHint:
+      "מנות עיקריות, תוספות, סלטים, ירקות לפיזור, רטבים — אפשר לציין כמויות (למשל 30 מנות / 15 המבורגרים).",
+    packageIncludedItemPlaceholder: "למשל: עראיס / שניצל בחלה / צ׳יפס",
+    packageIncludedAddLabel: "+ הוסף פריט לשולחן",
+    catalogSectionPlaceholder: "למשל: שדרוגים בתשלום",
+    catalogItemPlaceholder: "למשל: מנה צמחונית נוספת",
+    notesPlaceholder:
+      "למשל: כולל סידור שולחן; אפשרות צמחוני / ללא גלוטן / טבעוני בתיאום; אזורי הגשה",
+    showPackageDuration: false,
   },
   "קינוחים ושולחנות מתוקים": {
     catalogSectionPlaceholder: "למשל: עוגות, פטיפורים, פירות",
@@ -676,9 +696,9 @@ export function verifyServiceCategorySpec(): void {
       }
     }
   }
-  if (count !== 127) {
+  if (count !== 128) {
     throw new Error(
-      `serviceCategorySpec: צפויות 127 תתי־קטגוריות, נמצאו ${count}`
+      `serviceCategorySpec: צפויות 128 תתי־קטגוריות, נמצאו ${count}`
     );
   }
 }

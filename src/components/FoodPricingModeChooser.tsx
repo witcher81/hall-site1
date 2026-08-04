@@ -30,7 +30,7 @@ export default function FoodPricingModeChooser({
       <p className="mt-1 text-[11px] leading-relaxed text-amber-900/85">
         {secondaryLabel?.trim()
           ? "בחירה רק לתת־הקטגוריה הזו — אפשר מודל אחר לתת־קטגוריה אחרת באותו שירות."
-          : "תמיד לפי ראש (לאורח). בחרו אם המחיר קבוע, או פירמידה יורדת לפי כמות האורחים."}
+          : "בחרו: מחיר לראש (קבוע או פירמידה), או שולחן/הצעה במחיר קבוע — כמו שולחן שוק."}
       </p>
       {value === "general" ? (
         <p className="mt-2 rounded-lg border border-amber-300/80 bg-amber-100/60 px-2.5 py-2 text-[11px] leading-relaxed text-amber-950">
@@ -38,7 +38,7 @@ export default function FoodPricingModeChooser({
           יורדת כדי לעדכן.
         </p>
       ) : null}
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
         {FOOD_PRICING_MODE_OPTIONS.map((opt) => {
           const active = selected === opt.value;
           return (

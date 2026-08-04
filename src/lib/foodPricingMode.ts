@@ -3,8 +3,8 @@ import { normalizeSecondaryName } from "@/lib/serviceCategorySpec";
 import type { CatalogTemplateId } from "@/lib/serviceCategoryTemplates";
 
 /**
- * איך מתמחרים אוכל פר־ראש בקייטרינג.
- * `per_person` / `general` — ערכים ישנים בלבד (תאימות לאחור).
+ * איך מתמחרים אוכל בקייטרינג / שולחן.
+ * `per_person` — ערך ישן (≈ מחיר קבוע לראש).
  */
 export type FoodPricingMode =
   | "fixed_per_head"
@@ -12,8 +12,11 @@ export type FoodPricingMode =
   | "per_person"
   | "general";
 
-/** אפשרויות בחירה חדשות במסך */
-export type FoodPricingModeChoice = "fixed_per_head" | "pyramid_per_head";
+/** אפשרויות בחירה במסך */
+export type FoodPricingModeChoice =
+  | "fixed_per_head"
+  | "pyramid_per_head"
+  | "general";
 
 type PyramidTierSeed = {
   id: string;
@@ -23,7 +26,7 @@ type PyramidTierSeed = {
   secondary?: string;
 };
 
-/** תת־קטגוריות שהן עמדה/עוגה — תפריט עמדה בלבד, בלי שאלת מודל */
+/** תת־קטגוריות שהן עמדה/שולחן קבוע — בלי שאלת פר־ראש */
 const STATION_ONLY_SECONDARIES = new Set(
   [
     "בר מתוקים",
@@ -33,6 +36,7 @@ const STATION_ONLY_SECONDARIES = new Set(
     "עמדת פופקורן",
     "עמדת סושי",
     "עוגות לאירועים",
+    "שולחן שוק",
   ].map(normalizeSecondaryName)
 );
 
@@ -66,16 +70,17 @@ export function needsFoodPricingModeChoice(
   return secondariesNeedingFoodPricingChoice(secondaries).length > 0;
 }
 
-/** תת־קטגוריות בשירות שצריכות בחירת מודל מחיר (קבוע / פירמידה) */
+/** תת־קטגוריות בשירות שצריכות בחירת מודל מחיר */
 export function secondariesNeedingFoodPricingChoice(
   secondaries: string[]
 ): string[] {
   const list = secondaries.map((s) => s.trim()).filter(Boolean);
   if (list.length === 0) return [];
-  if (list.some((s) => isStationOnlySecondary(s))) return [];
-  return list.filter((s) =>
-    FOOD_PRICING_CHOICE_SECONDARIES.has(normalizeSecondaryName(s))
-  );
+  return list.filter((s) => {
+    const n = normalizeSecondaryName(s);
+    if (STATION_ONLY_SECONDARIES.has(n)) return false;
+    return FOOD_PRICING_CHOICE_SECONDARIES.has(n);
+  });
 }
 
 export function isFixedPerHeadMode(mode: FoodPricingMode | null | undefined): boolean {
@@ -126,6 +131,7 @@ export function foodPricingModeForChooser(
 ): FoodPricingModeChoice | null {
   if (mode === "fixed_per_head" || mode === "per_person") return "fixed_per_head";
   if (mode === "pyramid_per_head") return "pyramid_per_head";
+  if (mode === "general") return "general";
   return null;
 }
 
@@ -188,5 +194,10 @@ export const FOOD_PRICING_MODE_OPTIONS: Array<{
     value: "pyramid_per_head",
     title: "פירמידה יורדת",
     hint: "ככל שיש יותר אורחים — המחיר לראש יורד. למשל עד 40 אורחים ₪80 לראש, ומעל 40 — ₪70 לראש.",
+  },
+  {
+    value: "general",
+    title: "שולחן / הצעה קבועה",
+    hint: "מחיר קבוע לשולחן או להצעה (למשל שולחן שוק ₪2,400) + רשימת מנות — לא לפי ראש.",
   },
 ];

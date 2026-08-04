@@ -25,6 +25,7 @@ import {
   type ServiceQuantityTier,
 } from "@/lib/serviceMenu";
 import {
+  isLegacyGeneralFoodMode,
   isPyramidPerHeadMode,
   resolveFoodPricingModeForSecondary,
 } from "@/lib/foodPricingMode";
@@ -545,9 +546,11 @@ export default function ServiceCatalogEditor({
                       תפריט: {secKey}
                       {isPyramidPerHeadMode(modeFor(secKey))
                         ? " (פירמידה יורדת)"
-                        : modeFor(secKey)
-                          ? " (מחיר קבוע לראש)"
-                          : ""}
+                        : isLegacyGeneralFoodMode(modeFor(secKey))
+                          ? " (שולחן / הצעה קבועה)"
+                          : modeFor(secKey)
+                            ? " (מחיר קבוע לראש)"
+                            : ""}
                     </p>
                   ) : null}
         <ul className="space-y-3">
@@ -583,7 +586,11 @@ export default function ServiceCatalogEditor({
                 </CatalogFieldHelp>
                 {!hidePriceForSec ? (
                 <CatalogFieldHelp
-                  label={template.packagePriceLabel}
+                  label={
+                    isLegacyGeneralFoodMode(modeFor(secKey))
+                      ? "מחיר לשולחן / להצעה (₪)"
+                      : template.packagePriceLabel
+                  }
                   help={fieldHelp.packagePrice}
                 >
                   <OptionalPriceRangeFields
