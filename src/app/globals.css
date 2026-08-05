@@ -1903,38 +1903,27 @@ html.a11y-stop-animations .home-hero-float-card {
       rgb(251 191 36 / 0.08) 52%,
       transparent 65%
     );
-  opacity: calc(0.35 + var(--scroll-p) * 0.45);
-  mix-blend-mode: screen;
   pointer-events: none;
+  mix-blend-mode: soft-light;
 }
 
 .home-hall-cinema__copy {
   position: relative;
   z-index: 2;
-  width: min(36rem, calc(100% - 2rem));
-  margin-inline: auto;
+  max-width: 36rem;
   padding: 1.5rem;
-  border-radius: 1.5rem;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  background: rgb(8 12 20 / 0.42);
-  box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
-  backdrop-filter: blur(14px);
-  transform: translate3d(
-    0,
-    calc((1 - var(--scroll-p)) * 18px),
-    40px
-  );
+  margin-inline: 1rem;
 }
 
 .home-hall-cinema__progress {
   position: absolute;
-  inset-inline: 1.25rem;
+  inset-inline: 1.5rem;
   bottom: 1.25rem;
   z-index: 3;
-  height: 3px;
+  height: 2px;
   overflow: hidden;
-  border-radius: 9999px;
-  background: rgb(255 255 255 / 0.15);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.18);
 }
 
 .home-hall-cinema__progress-bar {
@@ -1942,15 +1931,181 @@ html.a11y-stop-animations .home-hero-float-card {
   height: 100%;
   width: 100%;
   transform-origin: right center;
-  background: linear-gradient(90deg, #fbbf24, #fde68a);
-  transition: transform 0.05s linear;
+  background: linear-gradient(90deg, #fbbf24, #fff7dd);
 }
 
-@media (min-width: 768px) {
-  .home-hall-cinema__copy {
-    margin-inline-end: max(2rem, calc((100% - 72rem) / 2 + 2rem));
-    margin-inline-start: auto;
+/* —— Velune-inspired home —— */
+.home-velune {
+  --home-ink: #0b0c10;
+  --home-sheet: #eef0f3;
+  --home-accent: #e2e5ea;
+  background: var(--home-ink);
+  font-family: var(--font-home-sans), var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.home-velune .home-velune-display {
+  font-family: var(--font-home-display), var(--font-home-sans), serif;
+  letter-spacing: -0.02em;
+}
+
+.home-velune-eyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.home-velune-eyebrow--lite {
+  color: rgb(255 255 255 / 0.62);
+  letter-spacing: 0.28em;
+}
+
+.home-velune-hero__veil {
+  background:
+    linear-gradient(to top, rgb(8 9 12 / 0.92) 0%, rgb(8 9 12 / 0.35) 42%, rgb(8 9 12 / 0.55) 100%),
+    radial-gradient(ellipse at 70% 30%, rgb(255 255 255 / 0.08), transparent 50%);
+}
+
+.home-velune-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 999px;
+  background: #fff;
+  padding: 0.85rem 1.35rem 0.85rem 1.55rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0b0c10;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.28);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.home-velune-cta:hover {
+  background: #f3f1ec;
+  transform: translateY(-1px);
+}
+
+.home-velune-cta__icon {
+  display: inline-flex;
+  height: 1.55rem;
+  width: 1.55rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #0b0c10;
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.home-velune-scroll-hint {
+  position: absolute;
+  z-index: 2;
+  inset-inline-start: 1.25rem;
+  bottom: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.55);
+  cursor: pointer;
+  writing-mode: horizontal-tb;
+}
+
+.home-velune-scroll-hint__line {
+  display: block;
+  width: 2.75rem;
+  height: 1px;
+  background: linear-gradient(to left, transparent, rgb(255 255 255 / 0.65));
+}
+
+@media (min-width: 640px) {
+  .home-velune-scroll-hint {
+    inset-inline-start: auto;
+    inset-inline-end: 1.75rem;
+    bottom: 2rem;
+    flex-direction: row;
   }
+}
+
+.home-velune-cinema .home-hall-cinema__frame {
+  transform: scale(calc(1.03 + (var(--scroll-p) * 0.08)));
+}
+
+.home-velune-cinema__copy {
+  margin-inline: clamp(1rem, 4vw, 3rem);
+  margin-inline-end: auto;
+  max-width: 34rem;
+  padding: 1.25rem 0;
+}
+
+.home-velune-cinema__progress {
+  position: absolute;
+  z-index: 3;
+  inset-inline: clamp(1rem, 4vw, 2.5rem);
+  bottom: 1.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.home-velune-cinema__progress-num {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.home-velune-cinema__progress-track {
+  position: relative;
+  height: 1px;
+  flex: 1;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.22);
+}
+
+.home-velune-cinema__progress-bar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: right center;
+  background: #fff;
+}
+
+.home-velune-sheet {
+  position: relative;
+  z-index: 2;
+  margin-top: -2.5rem;
+  border-radius: 2rem 2rem 0 0;
+  background: var(--home-sheet);
+  box-shadow: 0 -24px 60px rgb(0 0 0 / 0.35);
+}
+
+.home-velune-sheet .home-surface-panel,
+.home-velune-sheet .home-surface-card {
+  background: rgb(255 255 255 / 0.92);
+  border-color: rgb(0 0 0 / 0.06);
+}
+
+@media (max-width: 640px) {
+  .home-velune-sheet {
+    margin-top: -1.5rem;
+    border-radius: 1.5rem 1.5rem 0 0;
+  }
+}
+
+html.a11y-stop-animations .home-velune-cta:hover {
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
