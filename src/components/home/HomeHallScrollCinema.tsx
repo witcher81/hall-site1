@@ -10,53 +10,64 @@ import {
   type CSSProperties,
 } from "react";
 
+/** סיור לכל סוגי אירועים — לא רק חתונות */
 const EVENT_FRAMES = [
   {
     src: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=80",
     alt: "אולם אירועים עם תאורה",
   },
   {
-    src: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80",
-    alt: "חתונה ואווירה",
-  },
-  {
     src: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1920&q=80",
     alt: "קייטרינג ואוכל לאירוע",
   },
   {
+    src: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1920&q=80",
+    alt: "בר משקאות באירוע",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1920&q=80",
+    alt: "מסיבת יום הולדת",
+  },
+  {
     src: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1920&q=80",
     alt: "DJ ומסיבה",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=80",
+    alt: "חגיגה ואירוע שמח",
   },
 ] as const;
 
 const STAGES = [
   {
     at: 0,
-    code: "01",
-    label: "התחלה",
-    title: "העיר מחכה מתחת לעננים.",
-    text: "חתונה, בר מצווה, חינה או יום הולדת — הכל מתחיל בבחירה אחת ברורה.",
+    title: "כל אירוע — במקום אחד",
+    text: "חתונה, בר מצווה, חינה, יום הולדת, ברית או מסיבת רווקים.",
   },
   {
-    at: 0.28,
-    code: "02",
-    label: "החלל",
-    title: "אולם שמרגיש כמו שלכם.",
-    text: "חלל, תאורה ואווירה — לפי סוג האירוע, הכמות והתקציב.",
+    at: 0.18,
+    title: "אולם שמתאים לכם",
+    text: "חלל, תאורה ואווירה — לפי סוג האירוע והכמות.",
   },
   {
-    at: 0.55,
-    code: "03",
-    label: "האנשים",
-    title: "ספקים שכבר מבינים אירוע.",
-    text: "צילום, מוזיקה, אוכל ועיצוב — משווים ומזמינים בלי להתפזר.",
+    at: 0.36,
+    title: "אוכל שמשאיר טעם",
+    text: "קייטרינג, עמדות אוכל ותפריטים לכל סגנון.",
   },
   {
-    at: 0.8,
-    code: "04",
-    label: "הגעה",
-    title: "מגיעים מעבר לרגיל.",
-    text: "בונים חבילה או מתחילים בחיפוש — והשאר כבר מסודר במקום אחד.",
+    at: 0.52,
+    title: "בר ומשקאות",
+    text: "ברמנים, קוקטיילים וברים שמרים את האנרגיה.",
+  },
+  {
+    at: 0.68,
+    title: "ימי הולדת ומסיבות",
+    text: "מפעילים, אטרקציות ואווירה שגורמת לאנשים להישאר עד הסוף.",
+  },
+  {
+    at: 0.84,
+    title: "מוכנים להתחיל?",
+    text: "חפשו אולם או ספק — והשוו הצעות בקלות.",
   },
 ] as const;
 
@@ -101,6 +112,7 @@ export default function HomeHallScrollCinema() {
   const syncFromScroll = useEffectEvent(() => {
     const pin = pinRef.current;
     if (!pin) return;
+
     const rect = pin.getBoundingClientRect();
     const total = pin.offsetHeight - window.innerHeight;
     if (total <= 0) return;
@@ -134,13 +146,11 @@ export default function HomeHallScrollCinema() {
     EVENT_FRAMES.length - 1,
     Math.round(progress * (EVENT_FRAMES.length - 1))
   );
-  const stageIndex = STAGES.findIndex((s) => s.code === activeStage.code);
 
   return (
     <section
-      id="home-descend"
       ref={pinRef}
-      className="home-hall-cinema home-velune-cinema"
+      className="home-hall-cinema"
       aria-label="סיור לאירועים — נע עם הגלילה"
       style={{ "--scroll-p": 0 } as CSSProperties}
     >
@@ -159,7 +169,7 @@ export default function HomeHallScrollCinema() {
                   className="home-hall-cinema__shot"
                   style={{
                     opacity,
-                    transform: `scale(${1.04 + progress * 0.06 + i * 0.008})`,
+                    transform: `scale(${1.04 + progress * 0.08 + i * 0.01})`,
                   }}
                   aria-hidden={i !== activeFrame}
                 >
@@ -176,53 +186,46 @@ export default function HomeHallScrollCinema() {
               );
             })}
             <div className="home-hall-cinema__vignette" aria-hidden />
+            <div className="home-hall-cinema__depth" aria-hidden />
           </div>
 
-          <div className="home-hall-cinema__copy home-velune-cinema__copy text-right">
-            <p className="home-velune-eyebrow home-velune-eyebrow--lite">
-              {activeStage.code} — {activeStage.label}
+          <div className="home-hall-cinema__copy text-right">
+            <p className="text-xs font-semibold tracking-[0.28em] text-amber-300/90">
+              לכל אירוע
             </p>
-            <h2 className="home-velune-display mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
               {activeStage.title}
             </h2>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-white/78 sm:text-base">
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-white/80 sm:text-base">
               {activeStage.text}
             </p>
-            {progress > 0.82 ? (
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link href="/packages/build" className="home-velune-cta">
+            {progress > 0.8 ? (
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/packages/build"
+                  className="inline-flex rounded-full bg-amber-400 px-7 py-3 text-sm font-bold text-neutral-950 shadow-lg shadow-amber-500/25 transition hover:bg-amber-300"
+                >
                   בנו לי חבילה
-                  <span className="home-velune-cta__icon" aria-hidden>
-                    →
-                  </span>
                 </Link>
                 <Link
                   href="/halls"
-                  className="rounded-full border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/18"
+                  className="inline-flex rounded-full border border-white/40 bg-white/10 px-7 py-3 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/20"
                 >
                   חפש אולמות
                 </Link>
               </div>
             ) : (
-              <p className="mt-7 text-[11px] uppercase tracking-[0.22em] text-white/45">
-                גללו כדי לרדת
+              <p className="mt-6 text-xs text-white/55">
+                גללו למטה — הסיור זז איתכם
               </p>
             )}
           </div>
 
-          <div className="home-velune-cinema__progress" aria-hidden>
-            <span className="home-velune-cinema__progress-num">
-              {String(stageIndex).padStart(2, "0")}
-            </span>
-            <div className="home-velune-cinema__progress-track">
-              <span
-                className="home-velune-cinema__progress-bar"
-                style={{ transform: `scaleX(${progress})` }}
-              />
-            </div>
-            <span className="home-velune-cinema__progress-num">
-              {String(STAGES.length - 1).padStart(2, "0")}
-            </span>
+          <div className="home-hall-cinema__progress" aria-hidden>
+            <span
+              className="home-hall-cinema__progress-bar"
+              style={{ transform: `scaleX(${progress})` }}
+            />
           </div>
         </div>
       </div>
