@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -32,9 +31,6 @@ type SuggestedPackage = {
   priceTo: number | null;
   completeness: number;
 };
-
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80";
 
 function formatPrice(from: number | null, to: number | null): string {
   if (from == null) return "מחיר בהצעה";
@@ -92,11 +88,6 @@ export default function PackageSuggestClient() {
       }
       setPackages(json.packages ?? []);
       setBlurb(json.recipeBlurb ?? null);
-      requestAnimationFrame(() => {
-        document
-          .getElementById("package-build-results")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
     } catch {
       setError("שגיאת רשת — נסו שוב");
     } finally {
@@ -105,112 +96,107 @@ export default function PackageSuggestClient() {
   }
 
   return (
-    <div className="pkg-build">
-      <section className="pkg-build-hero" aria-label="בניית חבילה">
-        <div className="pkg-build-hero__media" aria-hidden>
-          <Image
-            src={HERO_IMAGE}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
+    <div className="space-y-8">
+      <form
+        onSubmit={onSubmit}
+        className="rounded-3xl border border-neutral-200 bg-white p-5 text-right shadow-sm sm:p-6"
+      >
+        <div className="mb-5 border-b border-neutral-100 pb-4">
+          <p className="text-lg font-bold text-emerald-950">סינון חבילה</p>
+          <p className="mt-1 text-sm text-neutral-600">
+            בחרו סוג אירוע, אזור ומספר אורחים — האתר ירכיב אולם + ספקים מתאימים.
+          </p>
         </div>
-        <div className="pkg-build-hero__veil" aria-hidden />
 
-        <div className="pkg-build-hero__inner">
-          <div className="pkg-build-hero__copy text-right">
-            <p className="pkg-build-eyebrow">Halls Hub · Package builder</p>
-            <h1 className="pkg-build-title">
-              האתר בונה לכם
-              <br />
-              <span>את החבילה.</span>
-            </h1>
-            <p className="pkg-build-lead">
-              שלושה שדות — סוג אירוע, אזור ומספר אורחים. אנחנו מרכיבים אולם +
-              ספקים שמתאימים.
-            </p>
-          </div>
-
-          <form onSubmit={onSubmit} className="pkg-build-form text-right">
-            <p className="pkg-build-form__hint">
-              ממלאים 3 שדות — <strong>האתר מרכיב</strong> אולם + ספקים לפי סוג
-              האירוע.
-            </p>
-
-            <div className="pkg-build-form__grid">
-              <label className="pkg-build-field">
-                <span>סוג אירוע</span>
-                <select
-                  value={eventType}
-                  onChange={(e) => setEventType(e.target.value)}
-                  required
-                >
-                  {eventOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="pkg-build-field">
-                <span>אזור / עיר</span>
-                <input
-                  type="text"
-                  value={area}
-                  onChange={(e) => setArea(e.target.value)}
-                  placeholder="למשל: תל אביב, מרכז..."
-                />
-              </label>
-
-              <label className="pkg-build-field">
-                <span>מספר אורחים</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={5000}
-                  value={guestCount}
-                  onChange={(e) => setGuestCount(e.target.value)}
-                />
-              </label>
-            </div>
-
-            {error ? (
-              <p className="pkg-build-error" role="alert">
-                {error}
-              </p>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="pkg-build-submit"
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block text-sm">
+            <span className="mb-1.5 block font-semibold text-neutral-800">
+              סוג אירוע
+            </span>
+            <select
+              value={eventType}
+              onChange={(e) => setEventType(e.target.value)}
+              className="site-input"
+              required
             >
-              {loading ? "בונים חבילות..." : "בנו לי חבילה"}
-            </button>
-          </form>
+              {eventOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm">
+            <span className="mb-1.5 block font-semibold text-neutral-800">
+              אזור / עיר
+            </span>
+            <input
+              type="text"
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              placeholder="למשל: תל אביב, מרכז..."
+              className="site-input"
+            />
+          </label>
+
+          <label className="block text-sm">
+            <span className="mb-1.5 block font-semibold text-neutral-800">
+              מספר אורחים
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={5000}
+              value={guestCount}
+              onChange={(e) => setGuestCount(e.target.value)}
+              className="site-input"
+            />
+          </label>
         </div>
-      </section>
+
+        {error ? (
+          <p
+            className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-full bg-emerald-950 px-8 py-3 text-sm font-bold text-amber-200 shadow-sm transition hover:bg-emerald-900 disabled:opacity-60"
+          >
+            {loading ? "בונים חבילות..." : "החל סינון"}
+          </button>
+          <Link
+            href="/packages"
+            className="text-sm font-medium text-neutral-600 underline-offset-2 hover:underline"
+          >
+            חזרה לקטלוג חבילות
+          </Link>
+        </div>
+      </form>
 
       {packages ? (
         <section
           id="package-build-results"
-          className="pkg-build-results space-y-5 text-right"
+          className="space-y-4 text-right"
         >
           <div>
-            <p className="pkg-build-eyebrow pkg-build-eyebrow--dark">התוצאות</p>
-            <h2 className="mt-2 text-2xl font-bold text-neutral-900 sm:text-3xl">
+            <h2 className="text-xl font-bold text-neutral-900 sm:text-2xl">
               החבילות שבנינו בשבילכם
             </h2>
             {blurb ? (
-              <p className="mt-2 max-w-2xl text-sm text-neutral-600">{blurb}</p>
+              <p className="mt-1 text-sm text-neutral-600">{blurb}</p>
             ) : null}
           </div>
 
           {packages.length === 0 ? (
-            <p className="rounded-2xl border border-neutral-200 bg-white p-6 text-sm text-neutral-700 shadow-sm">
+            <p className="rounded-2xl border border-neutral-200 bg-white p-5 text-sm text-neutral-700 shadow-sm">
               עדיין אין מספיק אולמות/ספקים באזור הזה. נסו אזור אחר, או חפשו ידנית
               ב־
               <Link href="/halls" className="font-semibold underline">
@@ -221,13 +207,18 @@ export default function PackageSuggestClient() {
           ) : (
             <ul className="grid gap-4 lg:grid-cols-3">
               {packages.map((pkg, idx) => (
-                <li key={pkg.id} className="pkg-build-card">
-                  <div className="pkg-build-card__head">
+                <li
+                  key={pkg.id}
+                  className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="border-b border-neutral-100 bg-gradient-to-l from-emerald-950 to-neutral-900 px-5 py-4 text-white">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="text-base font-bold leading-snug">
                         {pkg.title}
                       </h3>
-                      <span className="pkg-build-card__badge">#{idx + 1}</span>
+                      <span className="shrink-0 rounded-full bg-amber-400/95 px-2 py-0.5 text-[10px] font-bold text-neutral-950">
+                        #{idx + 1}
+                      </span>
                     </div>
                     <p className="mt-1 text-xs text-white/70">{pkg.subtitle}</p>
                     <p className="mt-3 text-sm font-bold text-amber-300">
