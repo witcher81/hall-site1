@@ -1625,6 +1625,19 @@ html[data-theme="night"] .home-surface-panel {
   will-change: transform;
 }
 
+.home-hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.1s ease-in-out;
+  will-change: opacity;
+}
+
+.home-hero-slide.is-active {
+  opacity: 1;
+  z-index: 1;
+}
+
 .home-hero-grid {
   background-image:
     linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
@@ -1803,6 +1816,10 @@ html[data-theme="night"] .home-surface-panel {
   .home-hero-float-card {
     transform: none !important;
     animation: none !important;
+  }
+
+  .home-hero-slide {
+    transition: none;
   }
 
   .home-hero-cta:hover,

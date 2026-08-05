@@ -13,9 +13,35 @@ import {
   type CSSProperties,
 } from "react";
 
-/** תמונת hero — רוחב סביר למובייל/דסקטופ, לא 2400px */
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80";
+/** Hero backgrounds — cinematic carousel */
+const HERO_IMAGES = [
+  {
+    src: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80",
+    alt: "groom flowers",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80",
+    alt: "wedding",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=80",
+    alt: "venue",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1920&q=80",
+    alt: "dj",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1920&q=80",
+    alt: "catering",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1920&q=80",
+    alt: "celebration",
+  },
+] as const;
+
+const HERO_ROTATE_MS = 5000;
 
 const FLOAT_CARD_SETS: ReadonlyArray<
   ReadonlyArray<{ label: string; hint: string; depth: number }>
@@ -137,6 +163,7 @@ function usePrefersReducedMotion(): boolean {
 export default function HomeHero() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [bgIndex, setBgIndex] = useState(0);
   const [floatSetIndex, setFloatSetIndex] = useState(0);
   const [floatVisible, setFloatVisible] = useState(true);
   const stageRef = useRef<HTMLElement>(null);
@@ -189,6 +216,15 @@ export default function HomeHero() {
     };
   }, [reduceMotion]);
 
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const t = window.setInterval(() => {
+      setBgIndex((i) => (i + 1) % HERO_IMAGES.length);
+    }, HERO_ROTATE_MS);
+    return () => window.clearInterval(t);
+  }, [reduceMotion]);
+
   function onPointerMove(e: PointerEvent<HTMLElement>) {
     if (reduceMotion) return;
     const el = stageRef.current;
@@ -220,15 +256,22 @@ export default function HomeHero() {
       style={{ "--hx": 0, "--hy": 0 } as CSSProperties}
     >
       <div className="home-hero-media absolute inset-0" aria-hidden>
-        <Image
-          src={HERO_IMAGE}
-          alt=""
-          fill
-          priority
-          fetchPriority="high"
-          sizes="100vw"
-          className="object-cover home-hero-kenburns"
-        />
+        {HERO_IMAGES.map((img, i) => (
+          <div
+            key={img.src}
+            className={`home-hero-slide ${i === bgIndex ? "is-active" : ""}`}
+          >
+            <Image
+              src={img.src}
+              alt=""
+              fill
+              priority={i === 0}
+              fetchPriority={i === 0 ? "high" : "auto"}
+              sizes="100vw"
+              className={`object-cover ${reduceMotion ? "" : "home-hero-kenburns"}`}
+            />
+          </div>
+        ))}
       </div>
       <div
         className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-neutral-950/90"
