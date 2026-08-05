@@ -318,6 +318,20 @@ export default function HomeHero() {
           </div>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          const el = document.getElementById("home-descend");
+          el?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+        }}
+        className="home-journey-scroll-hint"
+        aria-label="גללו להמשך הסיור"
+      >
+        <span>SCROLL TO DESCEND</span>
+        <span className="home-journey-scroll-hint__line" aria-hidden />
+      </button>
+
     </section>
   );
 }

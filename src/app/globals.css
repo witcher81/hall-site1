@@ -1829,12 +1829,16 @@ html.a11y-stop-animations .home-hero-float-card {
   transform: none !important;
 }
 
-/* —— סיור אולם בגלילה (וידאו) —— */
+/* —— סיור אולם בגלילה (מסע ירידה) —— */
 .home-hall-cinema {
   --scroll-p: 0;
   position: relative;
   height: 280vh;
   background: #05070c;
+}
+
+.home-hall-cinema--journey {
+  height: 360vh;
 }
 
 .home-hall-cinema__sticky {
@@ -1863,6 +1867,11 @@ html.a11y-stop-animations .home-hero-float-card {
     rotateX(calc((0.5 - var(--scroll-p)) * 3deg));
   transform-origin: center center;
   will-change: transform;
+}
+
+.home-hall-cinema__frame--descend {
+  transform: scale(calc(1.02 + (var(--scroll-p) * 0.1)))
+    translateY(calc((1 - var(--scroll-p)) * -2vh));
 }
 
 .home-hall-cinema__video {
@@ -1926,6 +1935,157 @@ html.a11y-stop-animations .home-hero-float-card {
   );
 }
 
+.home-hall-cinema__copy--journey {
+  position: relative;
+  z-index: 2;
+  width: min(34rem, calc(100% - 2rem));
+  margin-inline: clamp(1rem, 4vw, 3rem);
+  margin-inline-end: auto;
+  padding: 1.25rem 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  transform: none;
+  min-height: 14rem;
+}
+
+.home-hall-cinema__chapter {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  transition:
+    opacity 0.05s linear,
+    transform 0.05s linear;
+}
+
+.home-hall-cinema__cta {
+  position: relative;
+  z-index: 1;
+  padding-top: 12rem;
+}
+
+.home-hall-cinema__copy--journey > .home-hall-cinema__scroll-cue {
+  position: relative;
+  z-index: 1;
+  padding-top: 12rem;
+  margin: 0;
+}
+
+.home-journey-eyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgb(251 191 36 / 0.9);
+}
+
+.home-journey-progress {
+  position: absolute;
+  z-index: 3;
+  inset-inline: clamp(1rem, 4vw, 2.5rem);
+  bottom: 1.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.home-journey-progress__num {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.home-journey-progress__track {
+  position: relative;
+  height: 1px;
+  flex: 1;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.22);
+}
+
+.home-journey-progress__bar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: right center;
+  background: linear-gradient(90deg, #fbbf24, #fff7dd);
+}
+
+.home-journey-scroll-hint {
+  position: absolute;
+  z-index: 2;
+  inset-inline-end: 1.25rem;
+  bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.55);
+  cursor: pointer;
+}
+
+.home-journey-scroll-hint__line {
+  display: block;
+  width: 2.75rem;
+  height: 1px;
+  background: linear-gradient(to left, transparent, rgb(255 255 255 / 0.65));
+}
+
+.home-journey-sheet {
+  position: relative;
+  z-index: 2;
+  margin-top: -2rem;
+  border-radius: 2rem 2rem 0 0;
+  background: var(--background, #f8fafc);
+  box-shadow: 0 -24px 60px rgb(0 0 0 / 0.28);
+}
+
+.home-hall-cinema--static {
+  height: auto;
+  min-height: 0;
+  padding: 3rem 1.25rem 4rem;
+}
+
+.home-hall-cinema__static-list {
+  margin-inline: auto;
+  max-width: 56rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.home-hall-cinema__static-card {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  border-radius: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(8 12 20 / 0.55);
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .home-hall-cinema__static-card {
+    grid-template-columns: 220px 1fr;
+  }
+}
+
+.home-hall-cinema__static-media {
+  position: relative;
+  height: 10rem;
+  overflow: hidden;
+  border-radius: 0.85rem;
+}
+
 .home-hall-cinema__progress {
   position: absolute;
   inset-inline: 1.25rem;
@@ -1954,9 +2114,10 @@ html.a11y-stop-animations .home-hero-float-card {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-hall-cinema {
+  .home-hall-cinema,
+  .home-hall-cinema--journey {
     height: auto;
-    min-height: 70vh;
+    min-height: 0;
   }
 
   .home-hall-cinema__sticky {
@@ -1968,10 +2129,27 @@ html.a11y-stop-animations .home-hero-float-card {
   .home-hall-cinema__frame {
     transform: none !important;
   }
+
+  .home-journey-scroll-hint {
+    display: none;
+  }
 }
 
 html.a11y-stop-animations .home-hall-cinema__frame {
   transform: none !important;
+}
+
+@media (max-width: 640px) {
+  .home-journey-sheet {
+    margin-top: -1.25rem;
+    border-radius: 1.5rem 1.5rem 0 0;
+  }
+
+  .home-journey-scroll-hint {
+    inset-inline-end: 1rem;
+    bottom: 1rem;
+    font-size: 0.55rem;
+  }
 }
 
 /* —— נגישות: קישור דילוג + מצבי תצוגה —— */

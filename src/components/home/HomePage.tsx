@@ -18,18 +18,18 @@ export default function HomePage({
   return (
     <div className="home-page site-page">
       <HomeHero />
-
       <HomeHallScrollCinema />
 
-      <div className="space-y-20 py-16 sm:py-20">
-        <HomeFeaturedVenues venues={featuredVenues} />
-        <HomeTopProviders services={topServices} />
-        <HomeHowItWorks />
-        <HomeBenefits />
-        <HomePackagesCta />
+      <div className="home-journey-sheet">
+        <div className="space-y-20 px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+          <HomeFeaturedVenues venues={featuredVenues} />
+          <HomeTopProviders services={topServices} />
+          <HomeHowItWorks />
+          <HomeBenefits />
+          <HomePackagesCta />
+        </div>
+        <HomeSiteFooter />
       </div>
-
-      <HomeSiteFooter />
     </div>
   );
 }
