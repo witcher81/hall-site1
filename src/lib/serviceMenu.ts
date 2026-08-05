@@ -53,6 +53,8 @@ export type ServiceMenuItem = {
   /** כמות למנה — למשל 250 גרם / 4 יחידות */
   portionAmount?: number | null;
   portionUnit?: ServiceMenuItemPortionUnit | null;
+  /** קבוצה בתפריט — למשל «מנות עיקריות» / «תוספות» (שולחן שוק) */
+  group?: string | null;
 };
 
 export type ServiceMenuSection = {
@@ -100,6 +102,8 @@ export type ServiceMenuConfig = {
 
 export const MAX_MENU_SECTIONS = 20;
 export const MAX_MENU_ITEMS_PER_SECTION = 50;
+/** מנות כלולות בשולחן/חבילה — יכול להיות ארוך (30 עיקריות + תוספות…) */
+export const MAX_PACKAGE_INCLUDED_ITEMS = 80;
 export const MAX_MENU_PACKAGES = 12;
 const MAX_LABEL = 80;
 const MAX_DESC = 280;
@@ -210,6 +214,7 @@ function sanitizeMenuItem(raw: unknown): ServiceMenuItem | null {
     ...(portionAmount != null && portionAmount > 0
       ? { portionAmount, ...(portionUnit ? { portionUnit } : { portionUnit: "units" as const }) }
       : {}),
+    ...(sliceStr(o.group, MAX_LABEL) ? { group: sliceStr(o.group, MAX_LABEL) } : {}),
   };
 }
 
@@ -252,7 +257,7 @@ function sanitizePackage(raw: unknown): ServiceMenuPackage | null {
   const includedItems: ServiceMenuItem[] = [];
   if (Array.isArray(o.includedItems)) {
     for (const item of o.includedItems) {
-      if (includedItems.length >= MAX_MENU_ITEMS_PER_SECTION) break;
+      if (includedItems.length >= MAX_PACKAGE_INCLUDED_ITEMS) break;
       const parsed = sanitizeMenuItem(item);
       if (!parsed) continue;
       // מנות בחבילה = כלולות במחיר — בלי תמחור נפרד
@@ -269,6 +274,7 @@ function sanitizePackage(raw: unknown): ServiceMenuPackage | null {
                 : {}),
             }
           : {}),
+        ...(parsed.group ? { group: parsed.group } : {}),
       });
     }
   }
@@ -875,12 +881,61 @@ export function createEmptyMenuPackage(
   };
 }
 
-export function createEmptyMenuItem(label = ""): ServiceMenuItem {
+export function createEmptyMenuItem(
+  label = "",
+  group?: string | null
+): ServiceMenuItem {
   return {
     id: newId("item"),
     label,
     pricing: "included",
+    ...(group?.trim() ? { group: group.trim() } : {}),
   };
+}
+
+/** קיבוץ מנות כלולות לפי כותרת קבוצה (למשל שולחן שוק) */
+export function groupPackageIncludedItems(
+  items: ServiceMenuItem[],
+  groupOrder?: string[] | null
+): Array<{ title: string | null; items: Array<{ item: ServiceMenuItem; index: number }> }> {
+  const indexed = items.map((item, index) => ({ item, index }));
+  const order = (groupOrder ?? []).map((g) => g.trim()).filter(Boolean);
+  if (order.length === 0) {
+    return [{ title: null, items: indexed }];
+  }
+  const used = new Set<number>();
+  const groups: Array<{
+    title: string | null;
+    items: Array<{ item: ServiceMenuItem; index: number }>;
+  }> = order.map((title) => {
+    const rows = indexed.filter(({ item }) => (item.group?.trim() || "") === title);
+    rows.forEach(({ index }) => used.add(index));
+    return { title, items: rows };
+  });
+  const ungrouped = indexed.filter(({ index }) => !used.has(index));
+  if (ungrouped.length > 0) {
+    // פריטים בלי קבוצה / קבוצה לא מוכרת — נשמרים בסוף
+    const known = new Set(order);
+    const otherTitled = new Map<string, Array<{ item: ServiceMenuItem; index: number }>>();
+    const plain: Array<{ item: ServiceMenuItem; index: number }> = [];
+    for (const row of ungrouped) {
+      const g = row.item.group?.trim() || "";
+      if (g && !known.has(g)) {
+        const list = otherTitled.get(g) ?? [];
+        list.push(row);
+        otherTitled.set(g, list);
+      } else {
+        plain.push(row);
+      }
+    }
+    for (const [title, rows] of otherTitled) {
+      groups.push({ title, items: rows });
+    }
+    if (plain.length > 0) {
+      groups.push({ title: null, items: plain });
+    }
+  }
+  return groups;
 }
 
 export function createEmptyPaidExtraItem(label = ""): ServiceMenuItem {

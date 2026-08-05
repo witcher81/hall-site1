@@ -9,6 +9,7 @@ import {
   formatItemPortion,
   formatMenuItemPrice,
   formatPackagePrice,
+  groupPackageIncludedItems,
   type ServiceMenuConfig,
   type ServiceMenuPackage,
 } from "@/lib/serviceMenu";
@@ -227,26 +228,38 @@ export default function ServiceMenuPublicSection({
                     ) : null}
                     {(pkg.includedItems?.filter((i) => i.label.trim()).length ?? 0) >
                     0 ? (
-                      <ul className="mt-2 space-y-0.5 border-t border-neutral-100 pt-2 text-[11px] text-neutral-700">
-                        {pkg.includedItems!
-                          .filter((i) => i.label.trim())
-                          .map((item) => (
-                            <li key={item.id} className="flex gap-1.5">
-                              <span className="text-emerald-700" aria-hidden>
-                                ·
-                              </span>
-                              <span>
-                                {item.label.trim()}
-                                {formatItemPortion(item)
-                                  ? ` (${formatItemPortion(item)})`
-                                  : ""}
-                                {item.description?.trim()
-                                  ? ` — ${item.description.trim()}`
-                                  : ""}
-                              </span>
-                            </li>
-                          ))}
-                      </ul>
+                      <div className="mt-2 space-y-2 border-t border-neutral-100 pt-2 text-[11px] text-neutral-700">
+                        {groupPackageIncludedItems(
+                          pkg.includedItems!.filter((i) => i.label.trim()),
+                          template.packageIncludedGroups
+                        ).map((block) => (
+                          <div key={block.title ?? "all"}>
+                            {block.title ? (
+                              <p className="mb-0.5 text-[10px] font-semibold text-emerald-900">
+                                {block.title}
+                              </p>
+                            ) : null}
+                            <ul className="space-y-0.5">
+                              {block.items.map(({ item }) => (
+                                <li key={item.id} className="flex gap-1.5">
+                                  <span className="text-emerald-700" aria-hidden>
+                                    ·
+                                  </span>
+                                  <span>
+                                    {item.label.trim()}
+                                    {formatItemPortion(item)
+                                      ? ` (${formatItemPortion(item)})`
+                                      : ""}
+                                    {item.description?.trim()
+                                      ? ` — ${item.description.trim()}`
+                                      : ""}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
                     ) : null}
                     {(pkg.extraItems?.filter((i) => i.label.trim()).length ?? 0) >
                     0 ? (

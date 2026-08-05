@@ -64,6 +64,8 @@ export type CatalogTemplate = {
   packageIncludedHint?: string;
   packageIncludedItemPlaceholder?: string;
   packageIncludedAddLabel?: string;
+  /** קבוצות בתפריט הכלול — למשל מנות עיקריות / תוספות (שולחן שוק) */
+  packageIncludedGroups?: string[];
   /** בלוק תוספות/פירוט מוסתר בהתחלה — רק למי שצריך */
   catalogOptional?: boolean;
   /** רשימת פריטים חלק מרכזי (תפריט / משקאות / דפוס) — לא מקופל */
@@ -914,6 +916,9 @@ export function applySecondaryCatalogHints(
       : {}),
     ...(hints.packageIncludedAddLabel
       ? { packageIncludedAddLabel: hints.packageIncludedAddLabel }
+      : {}),
+    ...(hints.packageIncludedGroups && hints.packageIncludedGroups.length > 0
+      ? { packageIncludedGroups: hints.packageIncludedGroups }
       : {}),
     ...(hints.packageCardNoun ? { packageCardNoun: hints.packageCardNoun } : {}),
     ...(hints.packageCardDetail

@@ -185,6 +185,42 @@ describe("serviceMenu sanitize/validate", () => {
     });
   });
 
+  it("keeps menu item group for market-table style packages", () => {
+    const m = sanitizeServiceMenuFromClient({
+      templateId: "food_station",
+      packages: [
+        {
+          name: "שולחן שוק — חולון",
+          perGuestPrice: 2400,
+          includedItems: [
+            {
+              label: "עראיס",
+              pricing: "included",
+              group: "מנות עיקריות",
+              portionAmount: 30,
+              portionUnit: "units",
+            },
+            {
+              label: "צ׳יפס",
+              pricing: "included",
+              group: "תוספות",
+            },
+          ],
+        },
+      ],
+    });
+    expect(m.packages[0]?.includedItems?.[0]).toMatchObject({
+      label: "עראיס",
+      group: "מנות עיקריות",
+      portionAmount: 30,
+      portionUnit: "units",
+    });
+    expect(m.packages[0]?.includedItems?.[1]).toMatchObject({
+      label: "צ׳יפס",
+      group: "תוספות",
+    });
+  });
+
   it("aliases activation templateId to attraction", () => {
     const m = sanitizeServiceMenuFromClient({ templateId: "activation" });
     expect(m.templateId).toBe("attraction");

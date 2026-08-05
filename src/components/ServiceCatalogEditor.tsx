@@ -12,10 +12,12 @@ import {
   createEmptyMenuSection,
   createEmptyPaidExtraItem,
   createEmptyQuantityTier,
+  groupPackageIncludedItems,
   itemBelongsToSecondary,
   MAX_MENU_ITEMS_PER_SECTION,
   MAX_MENU_PACKAGES,
   MAX_MENU_SECTIONS,
+  MAX_PACKAGE_INCLUDED_ITEMS,
   type ServiceDeliverable,
   type ServiceMenuConfig,
   type ServiceMenuItem,
@@ -147,7 +149,11 @@ export default function ServiceCatalogEditor({
       const packages = targets.map((sec) => {
         const pkg = createEmptyMenuPackage("", sec);
         if (template.showPackageIncludedItems) {
-          pkg.includedItems = [createEmptyMenuItem()];
+          const groups = template.packageIncludedGroups?.filter((g) => g.trim());
+          pkg.includedItems =
+            groups && groups.length > 0
+              ? []
+              : [createEmptyMenuItem()];
         }
         return pkg;
       });
@@ -167,7 +173,11 @@ export default function ServiceCatalogEditor({
       if (!packages.some((p) => (p.secondary?.trim() || "") === sec)) {
         const pkg = createEmptyMenuPackage("", sec);
         if (template.showPackageIncludedItems) {
-          pkg.includedItems = [createEmptyMenuItem()];
+          const groups = template.packageIncludedGroups?.filter((g) => g.trim());
+          pkg.includedItems =
+            groups && groups.length > 0
+              ? []
+              : [createEmptyMenuItem()];
         }
         packages = [...packages, pkg];
         changed = true;
@@ -225,12 +235,12 @@ export default function ServiceCatalogEditor({
     updatePackage(packageIndex, { includedItems: items });
   }
 
-  function addIncludedItem(packageIndex: number) {
+  function addIncludedItem(packageIndex: number, group?: string | null) {
     const pkg = value.packages[packageIndex];
     if (!pkg) return;
     const items = [...(pkg.includedItems ?? [])];
-    if (items.length >= MAX_MENU_ITEMS_PER_SECTION) return;
-    items.push(createEmptyMenuItem());
+    if (items.length >= MAX_PACKAGE_INCLUDED_ITEMS) return;
+    items.push(createEmptyMenuItem("", group));
     updatePackage(packageIndex, { includedItems: items });
   }
 
@@ -758,8 +768,18 @@ export default function ServiceCatalogEditor({
                     {template.packageIncludedHint ??
                       "רק מה שכלול במחיר החבילה הזו"}
                   </p>
-                  <ul className="mt-2 space-y-1.5">
-                    {(pkg.includedItems ?? []).map((item, itemIndex) => (
+                  {(() => {
+                    const includedGroups =
+                      template.packageIncludedGroups?.filter((g) => g.trim()) ??
+                      [];
+                    const grouped = groupPackageIncludedItems(
+                      pkg.includedItems ?? [],
+                      includedGroups
+                    );
+                    const renderIncludedRow = (
+                      item: (typeof grouped)[0]["items"][0]["item"],
+                      itemIndex: number
+                    ) => (
                       <li key={item.id} className="space-y-1.5">
                         <div className="flex items-center gap-2">
                           <input
@@ -792,9 +812,7 @@ export default function ServiceCatalogEditor({
                               const v = e.target.value;
                               updateIncludedItem(index, itemIndex, {
                                 portionUnit:
-                                  v === "g" || v === "units"
-                                    ? v
-                                    : null,
+                                  v === "g" || v === "units" ? v : null,
                               });
                             }}
                             className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
@@ -827,18 +845,101 @@ export default function ServiceCatalogEditor({
                           </span>
                         </div>
                       </li>
-                    ))}
-                  </ul>
-                  <button
-                    type="button"
-                    disabled={
-                      (pkg.includedItems?.length ?? 0) >= MAX_MENU_ITEMS_PER_SECTION
+                    );
+
+                    if (includedGroups.length === 0) {
+                      return (
+                        <>
+                          <ul className="mt-2 space-y-1.5">
+                            {(pkg.includedItems ?? []).map((item, itemIndex) =>
+                              renderIncludedRow(item, itemIndex)
+                            )}
+                          </ul>
+                          <button
+                            type="button"
+                            disabled={
+                              (pkg.includedItems?.length ?? 0) >=
+                              MAX_PACKAGE_INCLUDED_ITEMS
+                            }
+                            onClick={() => addIncludedItem(index)}
+                            className="mt-2 text-[11px] font-medium text-emerald-900 hover:underline disabled:opacity-50"
+                          >
+                            {template.packageIncludedAddLabel ??
+                              "+ הוסף פריט כלול"}
+                          </button>
+                        </>
+                      );
                     }
-                    onClick={() => addIncludedItem(index)}
-                    className="mt-2 text-[11px] font-medium text-emerald-900 hover:underline disabled:opacity-50"
-                  >
-                    {template.packageIncludedAddLabel ?? "+ הוסף פריט כלול"}
-                  </button>
+
+                    return (
+                      <div className="mt-2 space-y-3">
+                        {includedGroups.map((groupTitle) => {
+                          const block =
+                            grouped.find((g) => g.title === groupTitle) ?? {
+                              title: groupTitle,
+                              items: [] as (typeof grouped)[0]["items"],
+                            };
+                          return (
+                            <div
+                              key={groupTitle}
+                              className="rounded-lg border border-emerald-200/70 bg-white/80 p-2"
+                            >
+                              <p className="text-[11px] font-bold text-emerald-950">
+                                {groupTitle}
+                              </p>
+                              {block.items.length === 0 ? (
+                                <p className="mt-0.5 text-[10px] text-neutral-500">
+                                  עדיין אין מנות בקבוצה הזו
+                                </p>
+                              ) : null}
+                              <ul className="mt-1.5 space-y-1.5">
+                                {block.items.map(({ item, index: itemIndex }) =>
+                                  renderIncludedRow(item, itemIndex)
+                                )}
+                              </ul>
+                              <button
+                                type="button"
+                                disabled={
+                                  (pkg.includedItems?.length ?? 0) >=
+                                  MAX_PACKAGE_INCLUDED_ITEMS
+                                }
+                                onClick={() =>
+                                  addIncludedItem(index, groupTitle)
+                                }
+                                className="mt-1.5 text-[11px] font-medium text-emerald-900 hover:underline disabled:opacity-50"
+                              >
+                                {template.packageIncludedAddLabel ??
+                                  "+ הוסף מנה"}{" "}
+                                ל«{groupTitle}»
+                              </button>
+                            </div>
+                          );
+                        })}
+                        {grouped
+                          .filter(
+                            (block) =>
+                              block.items.length > 0 &&
+                              (!block.title ||
+                                !includedGroups.includes(block.title))
+                          )
+                          .map((block) => (
+                            <div
+                              key={block.title ?? "ungrouped"}
+                              className="rounded-lg border border-emerald-200/70 bg-white/80 p-2"
+                            >
+                              <p className="text-[11px] font-bold text-emerald-950">
+                                {block.title?.trim() || "עוד פריטים"}
+                              </p>
+                              <ul className="mt-1.5 space-y-1.5">
+                                {block.items.map(({ item, index: itemIndex }) =>
+                                  renderIncludedRow(item, itemIndex)
+                                )}
+                              </ul>
+                            </div>
+                          ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               ) : null}
 

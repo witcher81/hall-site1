@@ -145,6 +145,8 @@ export type SecondaryCatalogHints = {
   packageIncludedHint?: string;
   packageIncludedItemPlaceholder?: string;
   packageIncludedAddLabel?: string;
+  /** קבוצות בתפריט הכלול (שולחן שוק וכו') */
+  packageIncludedGroups?: string[];
   packageCardNoun?: string;
   packageCardDetail?: string;
   packageRemoveLabel?: string;
@@ -238,22 +240,37 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     catalogItemPlaceholder: "למשל: בשר צלוי, פסטה, סלט",
   },
   "שולחן שוק": {
+    editorTitle: "שולחן שוק — מחיר ותפריט",
+    editorHint:
+      "כל שולחן = חבילה עם מחיר קבוע (לא לראש). מפרטים את התפריט בקבוצות: מנות עיקריות, תוספות, סלטים/ירקות ורטבים — כמו בתפריט שאתם שולחים ללקוח.",
+    packagesTitle: "שולחנות שוק",
     packagesHint:
-      "למשל: שולחן שוק לחולון/בת ים ₪2,400 — מחיר קבוע לשולחן (לא לראש). רשמו מה כלול: מנות עיקריות, תוספות, ירקות וסידור.",
-    packageNamePlaceholder: "למשל: שולחן שוק — אזור חולון / בת ים / ראשל״צ",
+      "למשל: שולחן באזור חולון / בת ים / ראשל״צ ב־₪2,400. שם השולחן + מחיר, ומתחת התפריט לפי קבוצות.",
+    packagesStepLabel: "שולחן + מחיר + תפריט",
+    packageNameFieldLabel: "שם השולחן / אזור",
+    packageNamePlaceholder: "למשל: שולחן שוק — חולון / בת ים / ראשל״צ",
     packagePriceLabel: "מחיר לשולחן (₪)",
     packageCardNoun: "שולחן",
-    packageCardDetail: "שם, מחיר לשולחן ומה כלול",
+    packageCardDetail: "שם, מחיר לשולחן ותפריט לפי קבוצות",
     packageRemoveLabel: "הסר שולחן",
-    packageIncludedTitle: "מה כלול בשולחן",
+    packageDescriptionFieldLabel: "הערות לשולחן (אופציונלי)",
+    packageDescriptionPlaceholder:
+      "למשל: כולל סידור שולחן; אפשרות למנות צמחוניות / ללא גלוטן / טבעוניות בתיאום",
+    packageIncludedTitle: "תפריט השולחן",
     packageIncludedHint:
-      "מנות עיקריות, תוספות, סלטים, ירקות לפיזור, רטבים — אפשר לציין כמויות (למשל 30 מנות / 15 המבורגרים).",
+      "רשמו מנות לפי קבוצות. אפשר לציין כמות ביחידות (למשל 30 מנות עיקריות, 15 המבורגרים).",
     packageIncludedItemPlaceholder: "למשל: עראיס / שניצל בחלה / צ׳יפס",
-    packageIncludedAddLabel: "+ הוסף פריט לשולחן",
+    packageIncludedAddLabel: "+ הוסף מנה",
+    packageIncludedGroups: [
+      "מנות עיקריות",
+      "תוספות",
+      "סלטים וירקות",
+      "רטבים",
+    ],
     catalogSectionPlaceholder: "למשל: שדרוגים בתשלום",
     catalogItemPlaceholder: "למשל: מנה צמחונית נוספת",
     notesPlaceholder:
-      "למשל: כולל סידור שולחן; אפשרות צמחוני / ללא גלוטן / טבעוני בתיאום; אזורי הגשה",
+      "למשל: כולל סידור שולחן; אזורי הגשה; אלרגנים",
     showPackageDuration: false,
   },
   "קינוחים ושולחנות מתוקים": {
