@@ -2152,6 +2152,265 @@ html.a11y-stop-animations .home-hall-cinema__frame {
   }
 }
 
+/* —— בונה חבילות (/packages/build) —— */
+.site-main-wide:has(.pkg-build) {
+  max-width: none;
+  padding-inline: 0;
+  padding-top: 0;
+  padding-bottom: 2.5rem;
+}
+
+.pkg-build-hero {
+  position: relative;
+  min-height: min(88vh, 780px);
+  overflow: hidden;
+  background: #0b0c10;
+}
+
+.pkg-build-hero__media {
+  position: absolute;
+  inset: 0;
+}
+
+.pkg-build-hero__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgb(8 9 12 / 0.94) 0%, rgb(8 9 12 / 0.45) 45%, rgb(8 9 12 / 0.62) 100%),
+    radial-gradient(ellipse at 70% 20%, rgb(251 191 36 / 0.16), transparent 55%);
+  pointer-events: none;
+}
+
+.pkg-build-hero__inner {
+  position: relative;
+  z-index: 1;
+  margin-inline: auto;
+  display: grid;
+  gap: 1.75rem;
+  max-width: 72rem;
+  min-height: min(88vh, 780px);
+  align-content: end;
+  padding: 5.5rem 1.25rem 2.5rem;
+}
+
+@media (min-width: 900px) {
+  .pkg-build-hero__inner {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: end;
+    gap: 2.5rem;
+    padding: 6rem 2rem 3rem;
+  }
+}
+
+.pkg-build-eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgb(251 191 36 / 0.92);
+}
+
+.pkg-build-eyebrow--dark {
+  color: #065f46;
+  letter-spacing: 0.22em;
+}
+
+.pkg-build-title {
+  margin: 0.85rem 0 0;
+  font-size: clamp(2rem, 4.5vw, 3.35rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.pkg-build-title span {
+  color: rgb(253 230 138 / 0.95);
+}
+
+.pkg-build-lead {
+  margin: 1rem 0 0;
+  max-width: 28rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: rgb(255 255 255 / 0.78);
+}
+
+.pkg-build-form {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: rgb(8 12 20 / 0.55);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.4);
+  backdrop-filter: blur(16px);
+  padding: 1.35rem 1.25rem 1.45rem;
+}
+
+@media (min-width: 640px) {
+  .pkg-build-form {
+    padding: 1.6rem 1.5rem 1.7rem;
+  }
+}
+
+.pkg-build-form__hint {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.78);
+}
+
+.pkg-build-form__hint strong {
+  color: #fde68a;
+  font-weight: 700;
+}
+
+.pkg-build-form__grid {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.15rem;
+}
+
+@media (min-width: 640px) {
+  .pkg-build-form__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.pkg-build-field {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.pkg-build-field > span {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.88);
+}
+
+.pkg-build-field input,
+.pkg-build-field select {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  background: rgb(0 0 0 / 0.35);
+  color: #fff;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.9rem;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.pkg-build-field input::placeholder {
+  color: rgb(255 255 255 / 0.42);
+}
+
+.pkg-build-field select option {
+  color: #111;
+  background: #fff;
+}
+
+.pkg-build-field input:focus,
+.pkg-build-field select:focus {
+  border-color: rgb(251 191 36 / 0.75);
+  box-shadow: 0 0 0 3px rgb(251 191 36 / 0.22);
+}
+
+.pkg-build-error {
+  margin: 1rem 0 0;
+  border-radius: 0.85rem;
+  border: 1px solid rgb(252 165 165 / 0.55);
+  background: rgb(127 29 29 / 0.45);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  color: #fecaca;
+}
+
+.pkg-build-submit {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.15rem;
+  border: 0;
+  border-radius: 999px;
+  background: #fbbf24;
+  padding: 0.9rem 1.75rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0b0c10;
+  box-shadow: 0 12px 30px rgb(251 191 36 / 0.28);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.pkg-build-submit:hover:not(:disabled) {
+  background: #fcd34d;
+  transform: translateY(-1px);
+}
+
+.pkg-build-submit:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+@media (min-width: 640px) {
+  .pkg-build-submit {
+    width: auto;
+  }
+}
+
+.pkg-build-results {
+  margin-inline: auto;
+  max-width: 72rem;
+  padding: 2rem 1.25rem 0;
+}
+
+@media (min-width: 640px) {
+  .pkg-build-results {
+    padding-inline: 2rem;
+  }
+}
+
+.pkg-build-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid rgb(229 229 229 / 0.9);
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pkg-build-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgb(0 0 0 / 0.1);
+}
+
+.pkg-build-card__head {
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  background: linear-gradient(to left, #022c22, #171717);
+  padding: 1.1rem 1.25rem;
+  color: #fff;
+}
+
+.pkg-build-card__badge {
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: rgb(251 191 36 / 0.95);
+  padding: 0.15rem 0.55rem;
+  font-size: 10px;
+  font-weight: 800;
+  color: #0b0c10;
+}
+
 /* —— נגישות: קישור דילוג + מצבי תצוגה —— */
 .skip-to-content {
   position: absolute;
