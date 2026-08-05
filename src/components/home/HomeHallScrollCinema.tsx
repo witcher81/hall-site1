@@ -171,10 +171,10 @@ export default function HomeHallScrollCinema() {
           ))}
           <div className="mt-8 flex flex-wrap justify-end gap-3">
             <Link
-              href="/packages/build"
+              href="/providers"
               className="inline-flex rounded-full bg-amber-400 px-7 py-3 text-sm font-bold text-neutral-950 shadow-lg shadow-amber-500/25 transition hover:bg-amber-300"
             >
-              בנו לי חבילה
+              חפש ספקים
             </Link>
             <Link
               href="/halls"
@@ -258,10 +258,10 @@ export default function HomeHallScrollCinema() {
             {progress > 0.82 ? (
               <div className="home-hall-cinema__cta mt-7 flex flex-wrap gap-3">
                 <Link
-                  href="/packages/build"
+                  href="/providers"
                   className="inline-flex rounded-full bg-amber-400 px-7 py-3 text-sm font-bold text-neutral-950 shadow-lg shadow-amber-500/25 transition hover:bg-amber-300"
                 >
-                  בנו לי חבילה
+                  חפש ספקים
                 </Link>
                 <Link
                   href="/halls"
