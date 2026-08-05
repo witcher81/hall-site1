@@ -15,9 +15,12 @@ import { splitLegacyDietaryFromCategory } from "@/lib/foodDietaryOptions";
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import { resolveStoredCatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
+  buildMenuInquirySelection,
+  formatMenuSelectionForMessage,
   menuHasContent,
   parseServiceMenuJson,
   validateCatalogInquiry,
+  validateMenuInquiryChoices,
   type ServiceMenuConfig,
 } from "@/lib/serviceMenu";
 import { recordProviderRecentlyViewed } from "@/lib/recentlyViewedProviders";
@@ -109,6 +112,10 @@ export default function SingleServiceView({
   );
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(
+    null
+  );
+  const [menuChoices, setMenuChoices] = useState<Record<string, string[]>>({});
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const providerName = provider.businessName || provider.name || "ספק";
@@ -139,6 +146,14 @@ export default function SingleServiceView({
     : catalogTemplate?.requireQuantityInquiry
       ? "כמות"
       : "מספר אורחים";
+
+  useEffect(() => {
+    if (!menu?.packages.length) return;
+    setSelectedPackageId((prev) => {
+      if (prev && menu.packages.some((p) => p.id === prev)) return prev;
+      return menu.packages[0]?.id ?? null;
+    });
+  }, [menu]);
   const gallery: string[] = useMemo(() => {
     if (!service.galleryImageUrls) return [];
     try {
@@ -286,12 +301,34 @@ export default function SingleServiceView({
       guestCountNum = Math.trunc(n);
     }
 
+    let message = form.message.trim();
+    if (showCatalog && menu && menu.packages.length > 0) {
+      const pkg =
+        menu.packages.find((p) => p.id === selectedPackageId) ?? null;
+      const choiceErr = validateMenuInquiryChoices(pkg, menuChoices);
+      if (choiceErr) {
+        setError(choiceErr);
+        return;
+      }
+      if (pkg) {
+        const selection = buildMenuInquirySelection(
+          pkg,
+          menuChoices,
+          guestCountNum ?? null
+        );
+        message = `${message}\n\n${formatMenuSelectionForMessage(
+          selection,
+          guestCountNum ?? null
+        )}`;
+      }
+    }
+
     const payload = {
       serviceId: service.id,
       preferredDate: form.preferredDate.trim(),
       eventType: form.eventType.trim() || undefined,
       guestCount: guestCountNum,
-      message: form.message.trim(),
+      message,
     };
 
     if (!seekerLoggedIn) {
@@ -720,7 +757,19 @@ export default function SingleServiceView({
       )}
 
       {showCatalog && menu && catalogTemplate ? (
-        <ServiceMenuPublicSection menu={menu} template={catalogTemplate} />
+        <ServiceMenuPublicSection
+          menu={menu}
+          template={catalogTemplate}
+          selectedPackageId={selectedPackageId}
+          onSelectedPackageIdChange={setSelectedPackageId}
+          choicesByItemId={menuChoices}
+          onChoicesChange={setMenuChoices}
+          guestCount={
+            form.guestCount.trim()
+              ? Number(form.guestCount) || null
+              : null
+          }
+        />
       ) : null}
 
       {/* קישורים מהפרופיל */}

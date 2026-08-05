@@ -258,7 +258,7 @@ export const SECONDARY_CATALOG_HINTS: Partial<
       "למשל: כולל סידור שולחן; אפשרות למנות צמחוניות / ללא גלוטן / טבעוניות בתיאום",
     packageIncludedTitle: "תפריט השולחן",
     packageIncludedHint:
-      "רשמו מנות לפי קבוצות. אפשר לציין כמות ביחידות (למשל 30 מנות עיקריות, 15 המבורגרים).",
+      "רשמו מנות לפי קבוצות. כמות: קבועה או לפי מספר אורחים. אפשר לסמן «בחירה ללקוח» כשיש כמה אפשרויות (או / או).",
     packageIncludedItemPlaceholder: "למשל: עראיס / שניצל בחלה / צ׳יפס",
     packageIncludedAddLabel: "+ הוסף מנה",
     packageIncludedGroups: [

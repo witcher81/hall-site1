@@ -18,6 +18,7 @@ import {
   MAX_MENU_PACKAGES,
   MAX_MENU_SECTIONS,
   MAX_PACKAGE_INCLUDED_ITEMS,
+  MAX_CHOICE_OPTIONS,
   type ServiceDeliverable,
   type ServiceMenuConfig,
   type ServiceMenuItem,
@@ -779,8 +780,14 @@ export default function ServiceCatalogEditor({
                     const renderIncludedRow = (
                       item: (typeof grouped)[0]["items"][0]["item"],
                       itemIndex: number
-                    ) => (
-                      <li key={item.id} className="space-y-1.5">
+                    ) => {
+                      const isChoice = (item.choiceOptions?.length ?? 0) >= 2;
+                      const options = item.choiceOptions ?? [];
+                      return (
+                      <li
+                        key={item.id}
+                        className="space-y-1.5 rounded-lg border border-emerald-100 bg-white p-2"
+                      >
                         <div className="flex items-center gap-2">
                           <input
                             type="text"
@@ -793,8 +800,10 @@ export default function ServiceCatalogEditor({
                             }
                             className={`${input} flex-1`}
                             placeholder={
-                              template.packageIncludedItemPlaceholder ??
-                              "למשל: פריט כלול"
+                              isChoice
+                                ? "כותרת הבחירה — למשל: מנה עיקרית"
+                                : template.packageIncludedItemPlaceholder ??
+                                  "למשל: פריט כלול"
                             }
                           />
                           <button
@@ -805,47 +814,201 @@ export default function ServiceCatalogEditor({
                             הסר
                           </button>
                         </div>
+
                         <div className="flex flex-wrap items-center gap-2">
-                          <select
-                            value={item.portionUnit ?? ""}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              updateIncludedItem(index, itemIndex, {
-                                portionUnit:
-                                  v === "g" || v === "units" ? v : null,
-                              });
-                            }}
-                            className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
-                            aria-label="יחידת מידה"
-                          >
-                            <option value="">—</option>
-                            <option value="g">גרם</option>
-                            <option value="units">יחידות</option>
-                          </select>
-                          <input
-                            type="number"
-                            min={0}
-                            value={item.portionAmount ?? ""}
-                            onChange={(e) => {
-                              const n = parsePriceInput(e.target.value);
-                              updateIncludedItem(index, itemIndex, {
-                                portionAmount: n,
-                                portionUnit:
-                                  n != null
-                                    ? item.portionUnit ?? "units"
-                                    : null,
-                              });
-                            }}
-                            className={`${input} w-[5.5rem]`}
-                            placeholder="כמות"
-                            aria-label="כמות"
-                          />
-                          <span className="text-[10px] text-neutral-500">
-                            אופציונלי
-                          </span>
+                          <label className="flex items-center gap-1.5 text-[11px] text-neutral-700">
+                            <span className="shrink-0">כמות:</span>
+                            <select
+                              value={item.quantityMode ?? ""}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                if (v === "per_person") {
+                                  updateIncludedItem(index, itemIndex, {
+                                    quantityMode: "per_person",
+                                    portionAmount: item.portionAmount ?? 1,
+                                    portionUnit: "units",
+                                  });
+                                  return;
+                                }
+                                if (v === "fixed") {
+                                  updateIncludedItem(index, itemIndex, {
+                                    quantityMode: "fixed",
+                                    portionUnit: item.portionUnit ?? "units",
+                                  });
+                                  return;
+                                }
+                                updateIncludedItem(index, itemIndex, {
+                                  quantityMode: null,
+                                });
+                              }}
+                              className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
+                            >
+                              <option value="">לא צוין</option>
+                              <option value="per_person">לפי מספר אורחים</option>
+                              <option value="fixed">כמות קבועה</option>
+                            </select>
+                          </label>
+                          {item.quantityMode === "per_person" ||
+                          item.quantityMode === "fixed" ||
+                          item.portionAmount != null ? (
+                            <>
+                              <input
+                                type="number"
+                                min={0}
+                                value={item.portionAmount ?? ""}
+                                onChange={(e) => {
+                                  const n = parsePriceInput(e.target.value);
+                                  updateIncludedItem(index, itemIndex, {
+                                    portionAmount: n,
+                                    portionUnit:
+                                      item.quantityMode === "per_person"
+                                        ? "units"
+                                        : n != null
+                                          ? item.portionUnit ?? "units"
+                                          : item.portionUnit ?? null,
+                                  });
+                                }}
+                                className={`${input} w-[5.5rem]`}
+                                placeholder={
+                                  item.quantityMode === "per_person"
+                                    ? "לכל אורח"
+                                    : "כמות"
+                                }
+                                aria-label="כמות"
+                              />
+                              {item.quantityMode !== "per_person" ? (
+                                <select
+                                  value={item.portionUnit ?? "units"}
+                                  onChange={(e) => {
+                                    const v = e.target.value;
+                                    updateIncludedItem(index, itemIndex, {
+                                      portionUnit:
+                                        v === "g" || v === "units" ? v : null,
+                                    });
+                                  }}
+                                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] text-neutral-900"
+                                  aria-label="יחידת מידה"
+                                >
+                                  <option value="units">יחידות</option>
+                                  <option value="g">גרם</option>
+                                </select>
+                              ) : (
+                                <span className="text-[10px] text-neutral-500">
+                                  לכל אורח
+                                </span>
+                              )}
+                            </>
+                          ) : null}
+                        </div>
+
+                        <div className="rounded-lg border border-dashed border-emerald-200/80 bg-emerald-50/30 p-2">
+                          <label className="flex items-start gap-2 text-[11px] text-emerald-950">
+                            <input
+                              type="checkbox"
+                              className="mt-0.5"
+                              checked={isChoice}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  updateIncludedItem(index, itemIndex, {
+                                    choiceOptions:
+                                      options.length >= 2
+                                        ? options
+                                        : ["", ""],
+                                    choiceSelectCount: 1,
+                                  });
+                                  return;
+                                }
+                                updateIncludedItem(index, itemIndex, {
+                                  choiceOptions: [],
+                                  choiceSelectCount: null,
+                                });
+                              }}
+                            />
+                            <span>
+                              בחירה ללקוח (או / או) — הלקוח יבחר מבין
+                              האפשרויות בהזמנה
+                            </span>
+                          </label>
+                          {isChoice ? (
+                            <div className="mt-2 space-y-1.5">
+                              <p className="text-[10px] text-neutral-500">
+                                למשל: כריך חזה עוף · אנטריקוט · בגט חזה עוף
+                              </p>
+                              {options.map((opt, optIdx) => (
+                                <div
+                                  key={`${item.id}-opt-${optIdx}`}
+                                  className="flex items-center gap-2"
+                                >
+                                  <span className="shrink-0 text-[10px] text-neutral-400">
+                                    או
+                                  </span>
+                                  <input
+                                    type="text"
+                                    dir="rtl"
+                                    value={opt}
+                                    onChange={(e) => {
+                                      const next = [...options];
+                                      next[optIdx] = e.target.value;
+                                      updateIncludedItem(index, itemIndex, {
+                                        choiceOptions: next,
+                                      });
+                                    }}
+                                    className={`${input} flex-1`}
+                                    placeholder={`אפשרות ${optIdx + 1}`}
+                                  />
+                                  <button
+                                    type="button"
+                                    disabled={options.length <= 2}
+                                    onClick={() => {
+                                      const next = options.filter(
+                                        (_, i) => i !== optIdx
+                                      );
+                                      updateIncludedItem(index, itemIndex, {
+                                        choiceOptions: next,
+                                      });
+                                    }}
+                                    className="shrink-0 text-[11px] text-red-600 hover:underline disabled:opacity-40"
+                                  >
+                                    הסר
+                                  </button>
+                                </div>
+                              ))}
+                              <div className="flex flex-wrap items-center gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  disabled={options.length >= MAX_CHOICE_OPTIONS}
+                                  onClick={() =>
+                                    updateIncludedItem(index, itemIndex, {
+                                      choiceOptions: [...options, ""],
+                                    })
+                                  }
+                                  className="text-[11px] font-medium text-emerald-900 hover:underline disabled:opacity-50"
+                                >
+                                  + עוד אפשרות
+                                </button>
+                                <label className="flex items-center gap-1 text-[10px] text-neutral-600">
+                                  כמה לבחור:
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={Math.max(1, options.length)}
+                                    value={item.choiceSelectCount ?? 1}
+                                    onChange={(e) =>
+                                      updateIncludedItem(index, itemIndex, {
+                                        choiceSelectCount:
+                                          parsePriceInput(e.target.value) ?? 1,
+                                      })
+                                    }
+                                    className={`${input} w-14`}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
                       </li>
-                    );
+                      );
+                    };
 
                     if (includedGroups.length === 0) {
                       return (

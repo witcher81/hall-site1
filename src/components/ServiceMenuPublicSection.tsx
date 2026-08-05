@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CatalogTemplate } from "@/lib/serviceCategoryTemplates";
 import {
   catalogPackageUsesPerGuestMultiplier,
@@ -10,7 +10,10 @@ import {
   formatMenuItemPrice,
   formatPackagePrice,
   groupPackageIncludedItems,
+  itemChoiceSelectCount,
+  itemHasCustomerChoice,
   type ServiceMenuConfig,
+  type ServiceMenuItem,
   type ServiceMenuPackage,
 } from "@/lib/serviceMenu";
 import {
@@ -24,6 +27,14 @@ type Props = {
   template: CatalogTemplate;
   /** הצגת מחשבון מחיר אינטראקטיבי */
   interactive?: boolean;
+  /** חבילה שנבחרה (לחיבור לטופס הזמנה) */
+  selectedPackageId?: string | null;
+  onSelectedPackageIdChange?: (id: string) => void;
+  /** בחירות או/או לפי מזהה פריט */
+  choicesByItemId?: Record<string, string[]>;
+  onChoicesChange?: (next: Record<string, string[]>) => void;
+  /** מספר אורחים מהטופס — לתצוגת כמות לפי אדם */
+  guestCount?: number | null;
 };
 
 function formatTotalRange(min: number | null, max: number | null): string | null {
@@ -56,24 +67,74 @@ function formatPackagePriceLabel(
   });
 }
 
+function quantityHint(
+  item: ServiceMenuItem,
+  guestCount: number | null | undefined
+): string | null {
+  const base = formatItemPortion(item);
+  if (
+    item.quantityMode === "per_person" &&
+    guestCount != null &&
+    guestCount > 0
+  ) {
+    const per =
+      item.portionAmount != null && item.portionAmount > 0
+        ? item.portionAmount
+        : 1;
+    return `${per} לכל אורח × ${guestCount.toLocaleString("he-IL")} (= ${(per * guestCount).toLocaleString("he-IL")})`;
+  }
+  return base;
+}
+
 export default function ServiceMenuPublicSection({
   menu,
   template,
   interactive = true,
+  selectedPackageId: selectedPackageIdProp,
+  onSelectedPackageIdChange,
+  choicesByItemId: choicesProp,
+  onChoicesChange,
+  guestCount,
 }: Props) {
   const multiply = catalogPackageUsesPerGuestMultiplier(template);
   const defaultCount =
     menu.minGuests ?? menu.minPersons ?? menu.quantityTiers?.[0]?.minQty ?? 100;
   const [countInput, setCountInput] = useState(String(defaultCount));
-  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(
+  const [internalPackageId, setInternalPackageId] = useState<string | null>(
     menu.packages[0]?.id ?? null
   );
+  const [internalChoices, setInternalChoices] = useState<
+    Record<string, string[]>
+  >({});
+
+  const selectedPackageId =
+    selectedPackageIdProp !== undefined
+      ? selectedPackageIdProp
+      : internalPackageId;
+  const choicesByItemId = choicesProp ?? internalChoices;
+
+  function setSelectedPackageId(id: string) {
+    if (onSelectedPackageIdChange) onSelectedPackageIdChange(id);
+    else setInternalPackageId(id);
+  }
+
+  function setChoices(next: Record<string, string[]>) {
+    if (onChoicesChange) onChoicesChange(next);
+    else setInternalChoices(next);
+  }
+
+  useEffect(() => {
+    if (guestCount != null && guestCount > 0) {
+      setCountInput(String(guestCount));
+    }
+  }, [guestCount]);
 
   const countNum = useMemo(() => {
+    if (guestCount != null && guestCount > 0) return guestCount;
     const n = Number(countInput);
     if (!Number.isFinite(n) || n < 1) return null;
     return Math.trunc(n);
-  }, [countInput]);
+  }, [countInput, guestCount]);
 
   const selectedPackage: ServiceMenuPackage | null = useMemo(() => {
     if (!selectedPackageId) return menu.packages[0] ?? null;
@@ -124,59 +185,175 @@ export default function ServiceMenuPublicSection({
       if (menu.maxPersons != null) {
         return `עד ${menu.maxPersons.toLocaleString("he-IL")} אנשים`;
       }
-      return null;
     }
     if (menu.minGuests != null && menu.maxGuests != null) {
-      const unit = template.requireQuantityInquiry ? "יחידות" : "אורחים";
-      return `${menu.minGuests.toLocaleString("he-IL")}–${menu.maxGuests.toLocaleString("he-IL")} ${unit}`;
+      return `${menu.minGuests.toLocaleString("he-IL")}–${menu.maxGuests.toLocaleString("he-IL")} אורחים`;
     }
     if (menu.minGuests != null) {
-      return `מ-${menu.minGuests.toLocaleString("he-IL")}`;
+      return `מ-${menu.minGuests.toLocaleString("he-IL")} אורחים`;
     }
     if (menu.maxGuests != null) {
-      return `עד ${menu.maxGuests.toLocaleString("he-IL")}`;
+      return `עד ${menu.maxGuests.toLocaleString("he-IL")} אורחים`;
     }
     return null;
-  }, [menu, template]);
+  }, [menu, template.showPersonCapacity]);
 
-  const calculatorLabel = template.requirePersonCountInquiry
+  const showCalculator =
+    interactive &&
+    (multiply ||
+      (menu.quantityTiers?.length ?? 0) > 0 ||
+      Object.values(menu.foodPricingModesBySecondary ?? {}).some((m) =>
+        isPyramidPerHeadMode(m)
+      ) ||
+      isPyramidPerHeadMode(menu.foodPricingMode));
+
+  const calculatorLabel = template.showPersonCapacity
     ? "מספר אנשים"
     : template.requireQuantityInquiry
       ? "כמות"
       : "מספר אורחים";
 
-  const showCalculator =
-    interactive &&
-    (menu.packages.length > 0 || (menu.quantityTiers?.length ?? 0) > 0) &&
-    (multiply || (menu.quantityTiers?.length ?? 0) > 0);
+  const packageBlocks =
+    packageSecondaries.length > 1
+      ? packageSecondaries.map((s) => s as string | null)
+      : [null as string | null];
+
+  function toggleChoice(item: ServiceMenuItem, option: string) {
+    const need = itemChoiceSelectCount(item);
+    const current = choicesByItemId[item.id] ?? [];
+    if (need <= 1) {
+      setChoices({ ...choicesByItemId, [item.id]: [option] });
+      return;
+    }
+    if (current.includes(option)) {
+      setChoices({
+        ...choicesByItemId,
+        [item.id]: current.filter((x) => x !== option),
+      });
+      return;
+    }
+    if (current.length >= need) {
+      setChoices({
+        ...choicesByItemId,
+        [item.id]: [...current.slice(1), option],
+      });
+      return;
+    }
+    setChoices({
+      ...choicesByItemId,
+      [item.id]: [...current, option],
+    });
+  }
+
+  function renderIncludedItem(
+    item: ServiceMenuItem,
+    pkgActive: boolean
+  ) {
+    const qty = quantityHint(item, countNum);
+    if (itemHasCustomerChoice(item)) {
+      const need = itemChoiceSelectCount(item);
+      const selected = choicesByItemId[item.id] ?? [];
+      const canPick = interactive && pkgActive;
+      return (
+        <li key={item.id} className="space-y-1">
+          <div className="flex flex-wrap items-baseline gap-1.5">
+            <span className="font-semibold text-emerald-950">
+              {item.label.trim() || "בחירה"}
+            </span>
+            {qty ? (
+              <span className="text-[10px] text-neutral-500">({qty})</span>
+            ) : null}
+            {canPick ? (
+              <span className="text-[10px] font-medium text-amber-800">
+                {need === 1 ? "בחרו אחת:" : `בחרו ${need}:`}
+              </span>
+            ) : (
+              <span className="text-[10px] text-neutral-500">
+                לבחירה: {(item.choiceOptions ?? []).join(" / ")}
+              </span>
+            )}
+          </div>
+          {canPick ? (
+            <ul className="space-y-1 pr-1">
+              {(item.choiceOptions ?? []).map((opt) => {
+                const checked = selected.includes(opt);
+                return (
+                  <li key={opt}>
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] hover:border-amber-400/60">
+                      <input
+                        type={need <= 1 ? "radio" : "checkbox"}
+                        name={`choice-${item.id}`}
+                        checked={checked}
+                        onChange={() => toggleChoice(item, opt)}
+                        className="accent-emerald-800"
+                      />
+                      <span>{opt}</span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </li>
+      );
+    }
+
+    return (
+      <li key={item.id} className="flex gap-1.5">
+        <span className="text-emerald-700" aria-hidden>
+          ·
+        </span>
+        <span>
+          {item.label.trim()}
+          {qty ? ` (${qty})` : ""}
+          {item.description?.trim() ? ` — ${item.description.trim()}` : ""}
+        </span>
+      </li>
+    );
+  }
 
   return (
-    <section className="site-card-padded border-emerald-200/50 bg-gradient-to-br from-emerald-50/40 to-white text-right">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h2 className="text-base font-semibold text-emerald-950">
-            {template.editorTitle}
-          </h2>
-          {capacityText ? (
-            <p className="mt-1 text-xs text-neutral-600">
-              מתאים ל־<strong className="text-emerald-950">{capacityText}</strong>
-            </p>
-          ) : null}
+    <section className="site-card-padded text-right">
+      <h2 className="text-sm font-semibold text-emerald-950">
+        {template.packagesTitle || "תפריט ומחירים"}
+      </h2>
+      {template.packagesHint ? (
+        <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+          {template.packagesHint}
+        </p>
+      ) : null}
+      {capacityText ? (
+        <p className="mt-2 text-[11px] text-neutral-500">
+          מתאים ל־{capacityText}
+        </p>
+      ) : null}
+      {menu.dietaryOptions && menu.dietaryOptions.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {menu.dietaryOptions.map((d) => (
+            <span
+              key={d}
+              className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-900"
+            >
+              {d}
+            </span>
+          ))}
         </div>
-        {menu.minOrderAmountNis != null ? (
-          <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-900">
-            מינימום הזמנה ₪{menu.minOrderAmountNis.toLocaleString("he-IL")}
-          </span>
-        ) : null}
-      </div>
+      ) : null}
 
       {menu.packages.length > 0 ? (
         <div className="mt-4 space-y-4">
-          <p className="text-xs font-semibold text-emerald-950">{template.packagesTitle}</p>
-          {(packageSecondaries.length > 1
-            ? packageSecondaries
-            : [null as string | null]
-          ).map((secKey) => {
+          {interactive ? (
+            <p className="text-[11px] text-amber-900/90">
+              בחרו חבילה / שולחן
+              {menu.packages.some((p) =>
+                (p.includedItems ?? []).some(itemHasCustomerChoice)
+              )
+                ? " — ואז סמנו את האפשרויות בתפריט"
+                : ""}
+              .
+            </p>
+          ) : null}
+          {packageBlocks.map((secKey) => {
             const pkgs =
               secKey && packageSecondaries.length > 1
                 ? filterItemsForSecondary(
@@ -193,112 +370,122 @@ export default function ServiceMenuPublicSection({
                     {secKey}
                   </p>
                 ) : null}
-          <ul className="space-y-2">
-            {pkgs.map((pkg) => {
-              const priceLabel = formatPackagePriceLabel(pkg, template, menu);
-              const active = selectedPackage?.id === pkg.id;
-              return (
-                <li key={pkg.id}>
-                  <button
-                    type="button"
-                    onClick={() => interactive && setSelectedPackageId(pkg.id)}
-                    className={`w-full rounded-xl border p-3 text-right transition ${
-                      active
-                        ? "border-[#C9A227] bg-[#FFF7DD] ring-1 ring-amber-400/40"
-                        : "border-neutral-200 bg-white hover:border-amber-400/50"
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold text-emerald-950">{pkg.name}</span>
-                      {priceLabel ? (
-                        <span className="shrink-0 rounded-full bg-emerald-950 px-2.5 py-0.5 text-xs font-bold text-white">
-                          {priceLabel}
-                        </span>
-                      ) : null}
-                    </div>
-                    {pkg.durationHours != null ? (
-                      <p className="mt-1 text-[10px] text-neutral-500">
-                        משך: {pkg.durationHours} שעות
-                      </p>
-                    ) : null}
-                    {pkg.description?.trim() ? (
-                      <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
-                        {pkg.description.trim()}
-                      </p>
-                    ) : null}
-                    {(pkg.includedItems?.filter((i) => i.label.trim()).length ?? 0) >
-                    0 ? (
-                      <div className="mt-2 space-y-2 border-t border-neutral-100 pt-2 text-[11px] text-neutral-700">
-                        {groupPackageIncludedItems(
-                          pkg.includedItems!.filter((i) => i.label.trim()),
-                          template.packageIncludedGroups
-                        ).map((block) => (
-                          <div key={block.title ?? "all"}>
-                            {block.title ? (
-                              <p className="mb-0.5 text-[10px] font-semibold text-emerald-900">
-                                {block.title}
+                <ul className="space-y-2">
+                  {pkgs.map((pkg) => {
+                    const priceLabel = formatPackagePriceLabel(
+                      pkg,
+                      template,
+                      menu
+                    );
+                    const active = selectedPackage?.id === pkg.id;
+                    return (
+                      <li key={pkg.id}>
+                        <div
+                          className={`w-full rounded-xl border p-3 text-right transition ${
+                            active
+                              ? "border-[#C9A227] bg-[#FFF7DD] ring-1 ring-amber-400/40"
+                              : "border-neutral-200 bg-white hover:border-amber-400/50"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              interactive && setSelectedPackageId(pkg.id)
+                            }
+                            className="w-full text-right"
+                            disabled={!interactive}
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="font-semibold text-emerald-950">
+                                {pkg.name}
+                              </span>
+                              {priceLabel ? (
+                                <span className="shrink-0 rounded-full bg-emerald-950 px-2.5 py-0.5 text-xs font-bold text-white">
+                                  {priceLabel}
+                                </span>
+                              ) : null}
+                            </div>
+                            {pkg.durationHours != null ? (
+                              <p className="mt-1 text-[10px] text-neutral-500">
+                                משך: {pkg.durationHours} שעות
                               </p>
                             ) : null}
-                            <ul className="space-y-0.5">
-                              {block.items.map(({ item }) => (
-                                <li key={item.id} className="flex gap-1.5">
-                                  <span className="text-emerald-700" aria-hidden>
-                                    ·
-                                  </span>
-                                  <span>
-                                    {item.label.trim()}
-                                    {formatItemPortion(item)
-                                      ? ` (${formatItemPortion(item)})`
-                                      : ""}
-                                    {item.description?.trim()
-                                      ? ` — ${item.description.trim()}`
-                                      : ""}
-                                  </span>
-                                </li>
+                            {pkg.description?.trim() ? (
+                              <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
+                                {pkg.description.trim()}
+                              </p>
+                            ) : null}
+                          </button>
+
+                          {(pkg.includedItems?.filter((i) => i.label.trim())
+                            .length ?? 0) > 0 ? (
+                            <div className="mt-2 space-y-2 border-t border-neutral-100 pt-2 text-[11px] text-neutral-700">
+                              {groupPackageIncludedItems(
+                                pkg.includedItems!.filter((i) =>
+                                  i.label.trim()
+                                ),
+                                template.packageIncludedGroups
+                              ).map((block) => (
+                                <div key={block.title ?? "all"}>
+                                  {block.title ? (
+                                    <p className="mb-0.5 text-[10px] font-semibold text-emerald-900">
+                                      {block.title}
+                                    </p>
+                                  ) : null}
+                                  <ul className="space-y-1.5">
+                                    {block.items.map(({ item }) =>
+                                      renderIncludedItem(item, active)
+                                    )}
+                                  </ul>
+                                </div>
                               ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                    {(pkg.extraItems?.filter((i) => i.label.trim()).length ?? 0) >
-                    0 ? (
-                      <ul className="mt-2 space-y-0.5 border-t border-amber-100 pt-2 text-[11px] text-neutral-700">
-                        <li className="mb-0.5 text-[10px] font-semibold text-amber-900">
-                          תוספות בתשלום
-                        </li>
-                        {pkg.extraItems!
-                          .filter((i) => i.label.trim())
-                          .map((item) => {
-                            const price = formatMenuItemPrice(item);
-                            return (
-                              <li key={item.id} className="flex flex-wrap justify-between gap-2">
-                                <span className="flex gap-1.5">
-                                  <span className="text-amber-700" aria-hidden>
-                                    ·
-                                  </span>
-                                  <span>
-                                    {item.label.trim()}
-                                    {item.description?.trim()
-                                      ? ` — ${item.description.trim()}`
-                                      : ""}
-                                  </span>
-                                </span>
-                                {price ? (
-                                  <span className="shrink-0 font-semibold text-neutral-800">
-                                    {price}
-                                  </span>
-                                ) : null}
+                            </div>
+                          ) : null}
+
+                          {(pkg.extraItems?.filter((i) => i.label.trim())
+                            .length ?? 0) > 0 ? (
+                            <ul className="mt-2 space-y-0.5 border-t border-amber-100 pt-2 text-[11px] text-neutral-700">
+                              <li className="mb-0.5 text-[10px] font-semibold text-amber-900">
+                                תוספות בתשלום
                               </li>
-                            );
-                          })}
-                      </ul>
-                    ) : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+                              {pkg.extraItems!
+                                .filter((i) => i.label.trim())
+                                .map((item) => {
+                                  const price = formatMenuItemPrice(item);
+                                  return (
+                                    <li
+                                      key={item.id}
+                                      className="flex flex-wrap justify-between gap-2"
+                                    >
+                                      <span className="flex gap-1.5">
+                                        <span
+                                          className="text-amber-700"
+                                          aria-hidden
+                                        >
+                                          ·
+                                        </span>
+                                        <span>
+                                          {item.label.trim()}
+                                          {item.description?.trim()
+                                            ? ` — ${item.description.trim()}`
+                                            : ""}
+                                        </span>
+                                      </span>
+                                      {price ? (
+                                        <span className="shrink-0 font-semibold text-neutral-800">
+                                          {price}
+                                        </span>
+                                      ) : null}
+                                    </li>
+                                  );
+                                })}
+                            </ul>
+                          ) : null}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             );
           })}
@@ -312,7 +499,9 @@ export default function ServiceMenuPublicSection({
           </p>
           <div className="mt-2 flex flex-wrap items-end gap-3">
             <div className="min-w-[8rem] flex-1">
-              <label className="block text-[11px] text-neutral-600">{calculatorLabel}</label>
+              <label className="block text-[11px] text-neutral-600">
+                {calculatorLabel}
+              </label>
               <input
                 type="number"
                 min={1}
@@ -330,124 +519,54 @@ export default function ServiceMenuPublicSection({
               </div>
             ) : null}
           </div>
-          <p className="mt-2 text-[10px] text-neutral-500">
-            ההערכה לפי החבילה שנבחרה — המחיר הסופי ייקבע מול הספק.
-          </p>
-        </div>
-      ) : null}
-
-      {(menu.quantityTiers?.length ?? 0) > 0 ? (
-        <div className="mt-4 space-y-3">
-          <p className="text-xs font-semibold text-emerald-950">
-            {template.quantityTiersTitle ?? "מדרגות כמות"}
-          </p>
-          {(packageSecondaries.length > 1
-            ? packageSecondaries
-            : [null as string | null]
-          ).map((secKey) => {
-            const tiers =
-              secKey && packageSecondaries.length > 1
-                ? filterItemsForSecondary(
-                    menu.quantityTiers ?? [],
-                    secKey,
-                    packageSecondaries
-                  )
-                : menu.quantityTiers ?? [];
-            if (tiers.length === 0) return null;
-            return (
-              <div key={secKey ?? "tiers-all"}>
-                {secKey ? (
-                  <p className="mb-1 text-[11px] font-bold text-emerald-900">
-                    {secKey}
-                  </p>
-                ) : null}
-          <ul className="space-y-1">
-            {tiers.map((tier) => (
-              <li
-                key={tier.id}
-                className="flex flex-wrap justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs"
-              >
-                <span>
-                  {tier.minQty}
-                  {tier.maxQty != null ? `–${tier.maxQty}` : "+"}{" "}
-                  {template.quantityTierUnitLabel ?? "יחידות"}
-                </span>
-                {tier.pricePerUnit != null ? (
-                  <span className="font-semibold">
-                    ₪{tier.pricePerUnit}{" "}
-                    {template.quantityTierUnitLabel === "אורחים" ? "לראש" : "ליחידה"}
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
-
-      {(menu.deliverables?.length ?? 0) > 0 ? (
-        <div className="mt-4">
-          <p className="text-xs font-semibold text-emerald-950">תוצרים</p>
-          <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-            {menu.deliverables!.map((d) => (
-              <li
-                key={d.id}
-                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs"
-              >
-                <span className="font-medium text-emerald-950">{d.label}</span>
-                {d.value ? (
-                  <span className="text-neutral-600"> — {d.value}</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {menu.sections.some((s) => s.items.length > 0) ? (
-        <div className="mt-5 space-y-4">
-          <p className="text-xs font-semibold text-emerald-950">{template.catalogTitle}</p>
-          {menu.sections.map((section) =>
-            section.items.length === 0 ? null : (
-              <div key={section.id}>
-                <h3 className="text-sm font-semibold text-emerald-950">{section.title}</h3>
-                <ul className="mt-2 space-y-1.5">
-                  {section.items.map((item) => {
-                    const price = formatMenuItemPrice(item);
-                    return (
-                      <li
-                        key={item.id}
-                        className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-neutral-200/80 bg-white/90 px-3 py-2"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-emerald-950">{item.label}</p>
-                          {item.description?.trim() ? (
-                            <p className="mt-0.5 text-[11px] text-neutral-600">
-                              {item.description.trim()}
-                            </p>
-                          ) : null}
-                        </div>
-                        {price ? (
-                          <span className="shrink-0 text-xs font-semibold text-neutral-700">
-                            {price}
-                          </span>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )
-          )}
         </div>
       ) : null}
 
       {menu.menuNote?.trim() ? (
-        <p className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-[11px] leading-relaxed text-neutral-700">
+        <p className="mt-3 text-[11px] leading-relaxed text-neutral-600">
           {menu.menuNote.trim()}
         </p>
+      ) : null}
+
+      {menu.sections.some(
+        (s) => s.title.trim() || s.items.some((i) => i.label.trim())
+      ) ? (
+        <div className="mt-4 space-y-3 border-t border-neutral-100 pt-4">
+          <p className="text-xs font-semibold text-emerald-950">
+            {template.catalogTitle || "פירוט נוסף"}
+          </p>
+          {menu.sections.map((section) => {
+            const items = section.items.filter((i) => i.label.trim());
+            if (!section.title.trim() && items.length === 0) return null;
+            return (
+              <div key={section.id}>
+                {section.title.trim() ? (
+                  <p className="text-[11px] font-semibold text-neutral-800">
+                    {section.title.trim()}
+                  </p>
+                ) : null}
+                <ul className="mt-1 space-y-0.5 text-[11px] text-neutral-700">
+                  {items.map((item) => (
+                    <li key={item.id} className="flex flex-wrap justify-between gap-2">
+                      <span>
+                        {item.label.trim()}
+                        {formatItemPortion(item)
+                          ? ` (${formatItemPortion(item)})`
+                          : ""}
+                      </span>
+                      {formatMenuItemPrice(item) &&
+                      item.pricing !== "included" ? (
+                        <span className="font-medium">
+                          {formatMenuItemPrice(item)}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
       ) : null}
     </section>
   );

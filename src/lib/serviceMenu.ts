@@ -41,6 +41,9 @@ export type ServiceDeliverable = {
 
 export type ServiceMenuItemPortionUnit = "g" | "units";
 
+/** איך מחשבים כמות מנה — קבוע לשולחן או לפי מספר אורחים */
+export type ServiceMenuItemQuantityMode = "fixed" | "per_person";
+
 export type ServiceMenuItem = {
   id: string;
   label: string;
@@ -50,11 +53,20 @@ export type ServiceMenuItem = {
   minPrice?: number | null;
   maxPrice?: number | null;
   usePriceRange?: boolean;
-  /** כמות למנה — למשל 250 גרם / 4 יחידות */
+  /** כמות למנה — למשל 250 גרם / 4 יחידות / 1 לכל אורח */
   portionAmount?: number | null;
   portionUnit?: ServiceMenuItemPortionUnit | null;
+  /** קבוע לשולחן/חבילה, או לפי מספר האורחים */
+  quantityMode?: ServiceMenuItemQuantityMode | null;
   /** קבוצה בתפריט — למשל «מנות עיקריות» / «תוספות» (שולחן שוק) */
   group?: string | null;
+  /**
+   * אפשרויות לבחירת הלקוח (או / או).
+   * אם יש לפחות 2 — המחפש בוחר; `label` = כותרת הבחירה (למשל «מנה עיקרית»).
+   */
+  choiceOptions?: string[];
+  /** כמה אפשרויות לבחור מתוך הרשימה (ברירת מחדל 1) */
+  choiceSelectCount?: number | null;
 };
 
 export type ServiceMenuSection = {
@@ -105,6 +117,7 @@ export const MAX_MENU_ITEMS_PER_SECTION = 50;
 /** מנות כלולות בשולחן/חבילה — יכול להיות ארוך (30 עיקריות + תוספות…) */
 export const MAX_PACKAGE_INCLUDED_ITEMS = 80;
 export const MAX_MENU_PACKAGES = 12;
+export const MAX_CHOICE_OPTIONS = 12;
 const MAX_LABEL = 80;
 const MAX_DESC = 280;
 const MAX_NOTE = 500;
@@ -200,6 +213,32 @@ function sanitizeMenuItem(raw: unknown): ServiceMenuItem | null {
       ? portionUnitRaw
       : null;
 
+  const quantityModeRaw = sliceStr(o.quantityMode, 24);
+  const quantityMode: ServiceMenuItemQuantityMode | null =
+    quantityModeRaw === "fixed" || quantityModeRaw === "per_person"
+      ? quantityModeRaw
+      : null;
+
+  const choiceOptions: string[] = [];
+  if (Array.isArray(o.choiceOptions)) {
+    for (const opt of o.choiceOptions) {
+      const t = sliceStr(opt, MAX_LABEL);
+      if (t && !choiceOptions.includes(t)) choiceOptions.push(t);
+      if (choiceOptions.length >= MAX_CHOICE_OPTIONS) break;
+    }
+  }
+  let choiceSelectCount = toPriceIntOrNull(o.choiceSelectCount);
+  if (choiceOptions.length >= 2) {
+    const maxPick = choiceOptions.length;
+    if (choiceSelectCount == null || choiceSelectCount < 1) {
+      choiceSelectCount = 1;
+    } else if (choiceSelectCount > maxPick) {
+      choiceSelectCount = maxPick;
+    }
+  } else {
+    choiceSelectCount = null;
+  }
+
   return {
     id,
     label,
@@ -212,9 +251,27 @@ function sanitizeMenuItem(raw: unknown): ServiceMenuItem | null {
       ? { exactPrice }
       : {}),
     ...(portionAmount != null && portionAmount > 0
-      ? { portionAmount, ...(portionUnit ? { portionUnit } : { portionUnit: "units" as const }) }
-      : {}),
+      ? {
+          portionAmount,
+          ...(portionUnit
+            ? { portionUnit }
+            : quantityMode === "per_person"
+              ? { portionUnit: "units" as const }
+              : { portionUnit: "units" as const }),
+        }
+      : quantityMode === "per_person"
+        ? { portionAmount: 1, portionUnit: "units" as const }
+        : {}),
+    ...(quantityMode ? { quantityMode } : {}),
     ...(sliceStr(o.group, MAX_LABEL) ? { group: sliceStr(o.group, MAX_LABEL) } : {}),
+    ...(choiceOptions.length >= 2
+      ? {
+          choiceOptions,
+          ...(choiceSelectCount != null
+            ? { choiceSelectCount }
+            : {}),
+        }
+      : {}),
   };
 }
 
@@ -274,7 +331,16 @@ function sanitizePackage(raw: unknown): ServiceMenuPackage | null {
                 : {}),
             }
           : {}),
+        ...(parsed.quantityMode ? { quantityMode: parsed.quantityMode } : {}),
         ...(parsed.group ? { group: parsed.group } : {}),
+        ...(parsed.choiceOptions && parsed.choiceOptions.length >= 2
+          ? {
+              choiceOptions: parsed.choiceOptions,
+              ...(parsed.choiceSelectCount != null
+                ? { choiceSelectCount: parsed.choiceSelectCount }
+                : {}),
+            }
+          : {}),
       });
     }
   }
@@ -712,11 +778,125 @@ export function ensureMenuTemplateId(
 }
 
 export function formatItemPortion(
-  item: Pick<ServiceMenuItem, "portionAmount" | "portionUnit">
+  item: Pick<
+    ServiceMenuItem,
+    "portionAmount" | "portionUnit" | "quantityMode"
+  >
 ): string | null {
+  if (item.quantityMode === "per_person") {
+    const n =
+      item.portionAmount != null && item.portionAmount > 0
+        ? item.portionAmount
+        : 1;
+    return n === 1 ? "לכל אורח" : `${n} לכל אורח`;
+  }
   if (item.portionAmount == null || item.portionAmount <= 0) return null;
-  const unit = item.portionUnit === "g" ? "גרם" : "יח׳";
-  return `${item.portionAmount} ${unit}`;
+  if (item.portionUnit === "g") {
+    return `${item.portionAmount} גרם`;
+  }
+  const fixed = item.quantityMode === "fixed" ? " (קבוע)" : "";
+  return `${item.portionAmount} יח׳${fixed}`;
+}
+
+export function itemHasCustomerChoice(
+  item: Pick<ServiceMenuItem, "choiceOptions">
+): boolean {
+  return (item.choiceOptions?.length ?? 0) >= 2;
+}
+
+export function itemChoiceSelectCount(
+  item: Pick<ServiceMenuItem, "choiceOptions" | "choiceSelectCount">
+): number {
+  const opts = item.choiceOptions?.length ?? 0;
+  if (opts < 2) return 0;
+  const n = item.choiceSelectCount ?? 1;
+  return Math.min(Math.max(1, n), opts);
+}
+
+export type MenuInquirySelection = {
+  packageId: string;
+  packageName: string;
+  choices: Array<{
+    itemId: string;
+    title: string;
+    selected: string[];
+    quantityLabel?: string | null;
+  }>;
+};
+
+/** טקסט לבקשה / הודעה — מה המחפש בחר מהתפריט */
+export function formatMenuSelectionForMessage(
+  selection: MenuInquirySelection,
+  guestCount?: number | null
+): string {
+  const lines: string[] = ["--- בחירות תפריט ---", `חבילה: ${selection.packageName}`];
+  for (const c of selection.choices) {
+    const picked =
+      c.selected.length > 0 ? c.selected.join(" · ") : "(לא נבחר)";
+    let line = `${c.title}: ${picked}`;
+    if (c.quantityLabel) line += ` — ${c.quantityLabel}`;
+    lines.push(line);
+  }
+  if (guestCount != null && guestCount > 0) {
+    lines.push(`מספר אורחים: ${guestCount.toLocaleString("he-IL")}`);
+  }
+  return lines.join("\n");
+}
+
+export function buildMenuInquirySelection(
+  pkg: ServiceMenuPackage,
+  choicesByItemId: Record<string, string[]>,
+  guestCount?: number | null
+): MenuInquirySelection {
+  const choices: MenuInquirySelection["choices"] = [];
+  for (const item of pkg.includedItems ?? []) {
+    if (!itemHasCustomerChoice(item)) continue;
+    const selected = choicesByItemId[item.id] ?? [];
+    let quantityLabel = formatItemPortion(item);
+    if (
+      item.quantityMode === "per_person" &&
+      guestCount != null &&
+      guestCount > 0
+    ) {
+      const per =
+        item.portionAmount != null && item.portionAmount > 0
+          ? item.portionAmount
+          : 1;
+      quantityLabel = `${per} לכל אורח × ${guestCount.toLocaleString("he-IL")} אורחים (= ${(per * guestCount).toLocaleString("he-IL")})`;
+    }
+    choices.push({
+      itemId: item.id,
+      title: item.label.trim() || "בחירה",
+      selected,
+      quantityLabel,
+    });
+  }
+  return {
+    packageId: pkg.id,
+    packageName: pkg.name.trim() || "חבילה",
+    choices,
+  };
+}
+
+export function validateMenuInquiryChoices(
+  pkg: ServiceMenuPackage | null | undefined,
+  choicesByItemId: Record<string, string[]>
+): string | null {
+  if (!pkg) return "נא לבחור חבילה / שולחן מהתפריט";
+  for (const item of pkg.includedItems ?? []) {
+    if (!itemHasCustomerChoice(item)) continue;
+    const need = itemChoiceSelectCount(item);
+    const selected = (choicesByItemId[item.id] ?? []).filter((s) =>
+      (item.choiceOptions ?? []).includes(s)
+    );
+    const title = item.label.trim() || "בחירה";
+    if (selected.length < need) {
+      return need === 1
+        ? `נא לבחור אפשרות ב«${title}»`
+        : `נא לבחור ${need} אפשרויות ב«${title}»`;
+    }
+  }
+  return null;
 }
 
 export function validateMenuGuestCount(

@@ -221,6 +221,36 @@ describe("serviceMenu sanitize/validate", () => {
     });
   });
 
+  it("keeps per-person quantity and OR choice options on included items", () => {
+    const m = sanitizeServiceMenuFromClient({
+      templateId: "food_station",
+      packages: [
+        {
+          name: "שולחן",
+          perGuestPrice: 2400,
+          includedItems: [
+            {
+              label: "מנה עיקרית",
+              pricing: "included",
+              group: "מנות עיקריות",
+              quantityMode: "per_person",
+              portionAmount: 1,
+              choiceOptions: ["כריך חזה עוף", "אנטריקוט", "בגט חזה עוף"],
+              choiceSelectCount: 1,
+            },
+          ],
+        },
+      ],
+    });
+    expect(m.packages[0]?.includedItems?.[0]).toMatchObject({
+      label: "מנה עיקרית",
+      quantityMode: "per_person",
+      portionAmount: 1,
+      choiceOptions: ["כריך חזה עוף", "אנטריקוט", "בגט חזה עוף"],
+      choiceSelectCount: 1,
+    });
+  });
+
   it("aliases activation templateId to attraction", () => {
     const m = sanitizeServiceMenuFromClient({ templateId: "activation" });
     expect(m.templateId).toBe("attraction");
