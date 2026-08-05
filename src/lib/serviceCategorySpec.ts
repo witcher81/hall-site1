@@ -46,6 +46,7 @@ export const LEGACY_SECONDARY_ALIASES: Record<string, string> = {
   "דיילות וקבלת פנים": "צוות קבלת פנים",
   "השכרת רכב יוקרה / לימוזינה": "השכרת לימוזינה",
   "אוטובוסים / מיניבוסים לאורחים": "אוטובוסים ומיניבוסים לאורחים",
+  "קליפ בערב החתונה": "קליפ חתונה",
 };
 
 /** ברירת מחדל לפי קטגוריה ראשית */
@@ -408,6 +409,24 @@ export const SECONDARY_CATALOG_HINTS: Partial<
   "צילום וידאו לאירוע": {
     packagesHint: "למשל: Highlights 3–5 דקות, סרט מלא.",
   },
+  "אלבום חתונה": {
+    packagesHint: "למשל: אלבום 30×30 עם 50 עמודים — מחיר קבוע לאלבום.",
+    packageNamePlaceholder: "למשל: אלבום קלאסי 30×30",
+    packageCardNoun: "אלבום",
+    packageCardDetail: "שם, מחיר ומה כלול באלבום",
+  },
+  "קליפ חתונה": {
+    packagesHint: "למשל: same-day edit בערב, או Highlights אחרי האירוע.",
+    packageNamePlaceholder: "למשל: קליפ Highlights 3 דקות",
+  },
+  "עורכי וידאו": {
+    packagesHint: "למשל: עריכת Highlights מחומר קיים — מחיר לפי דקות / פרויקט.",
+    packageNamePlaceholder: "למשל: עריכת קליפ Highlights",
+  },
+  "שידור חתונה בלייב": {
+    packagesHint: "למשל: שידור חי ל־4 שעות — מחיר קבוע לאירוע.",
+    packageNamePlaceholder: "למשל: שידור חי לערב מלא",
+  },
   "צלם מגנטים": {
     packagesHint: "למשל: 4 שעות + מגנטים ללא הגבלה.",
     catalogItemPlaceholder: "למשל: מגנטים ללא הגבלה, אלבום דיגיטלי",
@@ -696,9 +715,9 @@ export function verifyServiceCategorySpec(): void {
       }
     }
   }
-  if (count !== 128) {
+  if (count !== 131) {
     throw new Error(
-      `serviceCategorySpec: צפויות 128 תתי־קטגוריות, נמצאו ${count}`
+      `serviceCategorySpec: צפויות 131 תתי־קטגוריות, נמצאו ${count}`
     );
   }
 }

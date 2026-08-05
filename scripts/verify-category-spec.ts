@@ -1,5 +1,5 @@
 /**
- * QA: וידוא מיפוי 128 תתי־קטגוריות, כל תבנית, ו-alias ישנים.
+ * QA: וידוא מיפוי 131 תתי־קטגוריות, כל תבנית, ו-alias ישנים.
  * הרצה: npx tsx scripts/verify-category-spec.ts
  */
 import {
