@@ -1,4 +1,8 @@
-import { parseServiceCategorySelections } from "@/lib/freelancerServiceCategories";
+import {
+  FOOD_BEVERAGE_PRIMARY,
+  FREELANCER_CATEGORY_GROUPS,
+  parseServiceCategorySelections,
+} from "@/lib/freelancerServiceCategories";
 import { normalizeSecondaryName } from "@/lib/serviceCategorySpec";
 import type { CatalogTemplateId } from "@/lib/serviceCategoryTemplates";
 
@@ -23,7 +27,15 @@ type PyramidTierSeed = {
   secondary?: string;
 };
 
-/** תת־קטגוריות שהן עמדה/שולחן קבוע — בלי שאלת פר־ראש */
+/** כל תת־קטגוריות «אוכל ומשקאות» — כולן מקבלות בחירת מודל מחיר */
+const FOOD_PRICING_CHOICE_SECONDARIES = new Set(
+  (
+    FREELANCER_CATEGORY_GROUPS.find((g) => g.primary === FOOD_BEVERAGE_PRIMARY)
+      ?.services ?? []
+  ).map((s) => normalizeSecondaryName(s))
+);
+
+/** תת־קטגוריות שהן עמדה/שולחן (תבנית food_station כברירת מחדל) */
 const STATION_ONLY_SECONDARIES = new Set(
   [
     "בר מתוקים",
@@ -34,21 +46,6 @@ const STATION_ONLY_SECONDARIES = new Set(
     "עמדת סושי",
     "עוגות לאירועים",
     "שולחן שוק",
-  ].map(normalizeSecondaryName)
-);
-
-/** תת־קטגוריות שבהן שואלים: מחיר קבוע לראש או פירמידה יורדת */
-const FOOD_PRICING_CHOICE_SECONDARIES = new Set(
-  [
-    "קייטרינג חלבי",
-    "קייטרינג בשרי",
-    "קייטרינג צמחוני",
-    "קייטרינג טבעוני",
-    "שף פרטי לאירוע",
-    "שף על האש",
-    "סדנאות אוכל",
-    "מזנונים ודוכני אוכל",
-    "קינוחים ושולחנות מתוקים",
   ].map(normalizeSecondaryName)
 );
 
@@ -73,11 +70,9 @@ export function secondariesNeedingFoodPricingChoice(
 ): string[] {
   const list = secondaries.map((s) => s.trim()).filter(Boolean);
   if (list.length === 0) return [];
-  return list.filter((s) => {
-    const n = normalizeSecondaryName(s);
-    if (STATION_ONLY_SECONDARIES.has(n)) return false;
-    return FOOD_PRICING_CHOICE_SECONDARIES.has(n);
-  });
+  return list.filter((s) =>
+    FOOD_PRICING_CHOICE_SECONDARIES.has(normalizeSecondaryName(s))
+  );
 }
 
 export function isFixedPerHeadMode(mode: FoodPricingMode | null | undefined): boolean {
@@ -234,8 +229,8 @@ export const FOOD_PRICING_MODE_OPTIONS: Array<{
 }> = [
   {
     value: "fixed_per_head",
-    title: "מחיר קבוע לראש",
-    hint: "אותו מחיר לאורח — לא משנה כמה מוזמנים. + תפריט מנות לכל קבוצה (מבוגרים / ילדים…).",
+    title: "מחיר קבוע",
+    hint: "מחיר קבוע לראש או לשולחן/הצעה — לא משתנה לפי כמות אורחים. + תפריט מנות.",
   },
   {
     value: "pyramid_per_head",

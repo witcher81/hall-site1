@@ -1020,13 +1020,21 @@ export function resolveCatalogTemplateFromCategory(
   if (isPyramidPerHeadMode(mode) && needsFoodPricingModeChoice(category)) {
     return {
       ...withHints,
-      editorTitle: "מחיר ותפריט — פירמידה יורדת",
-      editorHint:
-        "קודם מגדירים מדרגות מחיר לראש לפי מספר אורחים, ואז תפריטים ומנות לכל קבוצה.",
-      packagesTitle: "תפריטים (מנות לפי קבוצה)",
-      packagesHint:
-        "המחיר לראש נקבע במדרגות למעלה. כאן רק שם התפריט (מבוגרים / ילדים…) והמנות שכלולות.",
-      packageCardDetail: "שם ומנות — בלי מחיר נפרד",
+      editorTitle: withHints.packageIncludedGroups?.length
+        ? withHints.editorTitle
+        : "מחיר ותפריט — פירמידה יורדת",
+      editorHint: withHints.packageIncludedGroups?.length
+        ? withHints.editorHint
+        : "קודם מגדירים מדרגות מחיר לראש לפי מספר אורחים, ואז תפריטים ומנות לכל קבוצה.",
+      packagesTitle: withHints.packageIncludedGroups?.length
+        ? withHints.packagesTitle
+        : "תפריטים (מנות לפי קבוצה)",
+      packagesHint: withHints.packageIncludedGroups?.length
+        ? `${withHints.packagesHint} המחיר נקבע במדרגות פירמידה לפי כמות אורחים.`
+        : "המחיר לראש נקבע במדרגות למעלה. כאן רק שם התפריט (מבוגרים / ילדים…) והמנות שכלולות.",
+      packageCardDetail: withHints.packageIncludedGroups?.length
+        ? withHints.packageCardDetail
+        : "שם ומנות — בלי מחיר נפרד",
       showQuantityTiers: true,
       hidePackagePrice: true,
       quantityTiersTitle: "פירמידה יורדת — מחיר לראש לפי כמות אורחים",
@@ -1037,16 +1045,24 @@ export function resolveCatalogTemplateFromCategory(
       quantityTierPricePlaceholder: "₪ לראש",
       quantityTierAddLabel: "+ הוסף מדרגת אורחים",
       quantityTierUnitLabel: "אורחים",
-      packageIncludedHint:
-        "מנות בתפריט — אפשר להוסיף כמות בגרם או יחידות (למשל 250 גרם / 4 יח׳).",
+      ...(withHints.packageIncludedGroups?.length
+        ? {}
+        : {
+            packageIncludedHint:
+              "מנות בתפריט — אפשר להוסיף כמות בגרם או יחידות (למשל 250 גרם / 4 יח׳).",
+          }),
     };
   }
 
   if (isFixedPerHeadMode(mode) && needsFoodPricingModeChoice(category)) {
     return {
       ...withHints,
-      packageIncludedHint:
-        "מנות בתפריט — אפשר להוסיף כמות בגרם או ביחידות (למשל 250 גרם / 4 יח׳).",
+      ...(withHints.packageIncludedGroups?.length
+        ? {}
+        : {
+            packageIncludedHint:
+              "מנות בתפריט — אפשר להוסיף כמות בגרם או ביחידות (למשל 250 גרם / 4 יח׳).",
+          }),
     };
   }
 

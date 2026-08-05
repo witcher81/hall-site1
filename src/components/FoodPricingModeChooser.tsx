@@ -42,7 +42,7 @@ export default function FoodPricingModeChooser({
       <p className="mt-1 text-[11px] leading-relaxed text-amber-900/85">
         {secondaryLabel?.trim()
           ? "בחירה רק לתת־הקטגוריה הזו — לא חובה לבחור גם באחרות. לחיצה חוזרת על אותה אפשרות מבטלת."
-          : "בחרו מחיר קבוע לראש או פירמידה יורדת. אפשר לבטל את הבחירה בכל רגע."}
+          : "בחרו מחיר קבוע או פירמידה יורדת. אפשר לבטל את הבחירה בכל רגע."}
       </p>
       {value === "general" ? (
         <p className="mt-2 rounded-lg border border-amber-300/80 bg-amber-100/60 px-2.5 py-2 text-[11px] leading-relaxed text-amber-950">

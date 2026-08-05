@@ -113,10 +113,7 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
     };
     if (next.foodPricingMode) return next;
     if (needsFoodPricingModeChoice(initialCategorySplit.category)) {
-      if (next.templateId === "food_station") {
-        return { ...next, foodPricingMode: "general" as const };
-      }
-      if (next.templateId === "food" || !next.templateId) {
+      if (next.templateId === "food_station" || next.templateId === "food") {
         return { ...next, foodPricingMode: "fixed_per_head" as const };
       }
     }
