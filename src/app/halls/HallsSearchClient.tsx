@@ -781,24 +781,36 @@ export default function HallsSearchClient({
     router.replace("/halls", { scroll: false });
   }
 
+  function scrollToHallResults() {
+    window.setTimeout(() => {
+      document.getElementById("halls-results")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+  }
+
   function applyNaturalSearch() {
     const hints = parseNaturalHallSearchQuery(naturalQuery);
-    if (Object.keys(hints).length === 0) return;
-    setForm((f) => ({
-      ...f,
-      city: hints.city ?? f.city,
-      eventType: hints.eventType ?? f.eventType,
-      exactGuests: hints.minGuests ?? f.exactGuests,
-      minGuests: hints.minGuests ?? f.minGuests,
-      maxGuests: hints.maxGuests ?? f.maxGuests,
-      exactPrice: hints.maxPrice ?? f.exactPrice,
-      maxPrice: hints.maxPrice ?? f.maxPrice,
-      kashrut: hints.kashrut ?? f.kashrut,
-      seaView: hints.seaView ?? f.seaView,
-      boutique: hints.boutique ?? f.boutique,
-      accessible: hints.accessible ?? f.accessible,
-      hasChuppa: hints.hasChuppa ?? f.hasChuppa,
-    }));
+    if (Object.keys(hints).length > 0) {
+      setForm((f) => ({
+        ...f,
+        city: hints.city ?? f.city,
+        eventType: hints.eventType ?? f.eventType,
+        exactGuests: hints.minGuests ?? f.exactGuests,
+        minGuests: hints.minGuests ?? f.minGuests,
+        maxGuests: hints.maxGuests ?? f.maxGuests,
+        exactPrice: hints.maxPrice ?? f.exactPrice,
+        maxPrice: hints.maxPrice ?? f.maxPrice,
+        kashrut: hints.kashrut ?? f.kashrut,
+        seaView: hints.seaView ?? f.seaView,
+        boutique: hints.boutique ?? f.boutique,
+        accessible: hints.accessible ?? f.accessible,
+        hasChuppa: hints.hasChuppa ?? f.hasChuppa,
+      }));
+    }
+    setFiltersOpen(false);
+    scrollToHallResults();
   }
 
   const mapVenueIds = useMemo(
@@ -814,7 +826,9 @@ export default function HallsSearchClient({
     ).toString();
     lastPushedQsRef.current = next;
     setLoading(true);
+    setFiltersOpen(false);
     router.replace(next ? `/halls?${next}` : "/halls", { scroll: false });
+    scrollToHallResults();
   }
 
   const searchFiltersForBrain = useMemo((): SearchFilters => {
@@ -1441,6 +1455,7 @@ export default function HallsSearchClient({
         </p>
       ) : null}
 
+      <div id="halls-results" className="scroll-mt-24">
       {fetchError ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-right text-xs text-red-800">
           {fetchError}
@@ -1566,6 +1581,7 @@ export default function HallsSearchClient({
           </section>
         </>
       )}
+      </div>
       {compareIds.length > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4">
           <div className="flex w-full max-w-xl items-center justify-between gap-3 rounded-2xl bg-emerald-950 px-4 py-3 text-xs text-white shadow-[0_18px_45px_rgba(0,0,0,0.5)]">
