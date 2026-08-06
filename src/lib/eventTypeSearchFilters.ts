@@ -84,41 +84,32 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
     { value: "VIP", label: "אזור VIP" },
   ],
   "יום הולדת": [
-    { value: "גינה", label: "גינה / חצר" },
     { value: "בריכ", label: "בריכה / מים" },
-    { value: "מוזיק", label: "מוזיקה / DJ" },
     { value: "עמד", label: "עמדות / אטרקציות" },
     { value: "במה", label: "במה / הופעות" },
     { value: "בר קינוחים", label: "בר קינוחים" },
-    { value: "חניה", label: "חניה נוחה" },
     { value: "לובי", label: "לובי / קבלת פנים" },
   ],
   [EVENT_TYPE_BAR_BAT]: [
     { value: "במה", label: "במה / הופעות" },
     { value: "בר קינוחים", label: "בר / קינוחים" },
-    { value: "גינה", label: "גינה / חצר" },
-    { value: "מוזיק", label: "מוזיקה / DJ" },
     { value: "לובי", label: "לובי / קבלת פנים" },
-    { value: "חניה", label: "חניה נוחה" },
   ],
   [EVENT_TYPE_BRIT]: [
     { value: "מקרן", label: "מסך / מקרן" },
     { value: "הנקה", label: "חדר הנקה / שקט" },
     { value: "לובי", label: "לובי / קבלת פנים" },
     { value: "תאורה", label: "תאורה לאירוע" },
-    { value: "גינה", label: "גינה / חצר" },
     { value: "עמד", label: "עמדת קינוחים" },
     { value: "קפה", label: "עמדת קפה / בוקר" },
-    { value: "פרטי", label: "חדר פרטי לטקס" },
   ],
   חינה: [
-    { value: "גינה", label: "גינה / חצר" },
     { value: "בר משקאות", label: "בר משקאות" },
+    { value: "לובי", label: "לובי / קבלת פנים" },
   ],
   [EVENT_TYPE_BACHELOR]: [
     { value: "בר משקאות", label: "בר משקאות" },
     { value: "בריכ", label: "בריכה / ג'קוזי" },
-    { value: "מוזיק", label: "מוזיקה / DJ" },
     { value: "עמד", label: "עמדות / אטרקציות" },
     { value: "לינה", label: "לינה במקום" },
     { value: "פרטי", label: "מקום פרטי / סגור" },
@@ -127,7 +118,6 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
     { value: "מקרן", label: "מסך / מקרן" },
     { value: "במה", label: "במה / במה להרצאות" },
     { value: "וייפיי", label: "Wi‑Fi / אינטרנט" },
-    { value: "חניה", label: "חניה נוחה" },
     { value: "לובי", label: "לובי / קבלת פנים" },
   ],
   כנס: [
@@ -135,17 +125,14 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
     { value: "במה", label: "במה / דוכן נואמים" },
     { value: "תרגום", label: "תרגום / תמלול" },
     { value: "וייפיי", label: "Wi‑Fi / אינטרנט" },
-    { value: "חניה", label: "חניה נוחה" },
   ],
   "מסיבת סיום": [
     { value: "במה", label: "במה / הופעות" },
-    { value: "מוזיק", label: "מוזיקה / DJ" },
     { value: "בר משקאות", label: "בר משקאות" },
     { value: "עמד", label: "עמדות / אטרקציות" },
   ],
   "אירוע אחר": [
     { value: "לובי", label: "לובי / קבלת פנים" },
-    { value: "גינה", label: "גינה / חצר" },
     { value: "במה", label: "במה / הופעות" },
     { value: "בר משקאות", label: "בר משקאות" },
   ],
@@ -170,13 +157,10 @@ const WEDDING_PRODUCTS: OfferProductKey[] = [
   "seaView",
   "boutique",
   "accessible",
-  "hasParkingNearby",
   "hasChuppa",
   "hasChuppaOutdoor",
   "hasChuppaCovered",
   "hasBridalRoom",
-  "hasFood",
-  "hasVeganFood",
   "hasTableSetup",
   "hasDanceFloor",
   "hasSoundSystem",
@@ -187,9 +171,6 @@ const PARTY_PRODUCTS: OfferProductKey[] = [
   "seaView",
   "boutique",
   "accessible",
-  "hasParkingNearby",
-  "hasFood",
-  "hasVeganFood",
   "hasTableSetup",
   "hasDanceFloor",
   "hasSoundSystem",
@@ -199,17 +180,15 @@ const PARTY_PRODUCTS: OfferProductKey[] = [
 const BRIT_PRODUCTS: OfferProductKey[] = [
   "accessible",
   "boutique",
-  "hasParkingNearby",
   "seaView",
   "hasBridalRoom",
-  "hasFood",
-  "hasVeganFood",
   "hasTableSetup",
   "hasSoundSystem",
   "hasAcumLicense",
 ];
 
-/** מסנני «מוצרים שהאולם מציעה» לפי סוג אירוע — null = לא נבחר סוג */
+/** מסנני «מוצרים שהאולם מציעה» לפי סוג אירוע — null = לא נבחר סוג.
+ * אוכל/כשרות/חניה — בסקשנים נפרדים למעלה (בלי כפילות כאן). */
 export function offerProductKeysForEventType(
   eventType: string
 ): OfferProductKey[] | null {
@@ -223,8 +202,6 @@ export function offerProductKeysForEventType(
     return [
       "seaView",
       "boutique",
-      "hasParkingNearby",
-      "hasFood",
       "hasDanceFloor",
       "hasSoundSystem",
       "hasAcumLicense",
@@ -237,8 +214,6 @@ export function offerProductKeysForEventType(
       "seaView",
       "boutique",
       "accessible",
-      "hasParkingNearby",
-      "hasFood",
       "hasDanceFloor",
       "hasSoundSystem",
       "hasAcumLicense",
@@ -248,12 +223,9 @@ export function offerProductKeysForEventType(
   if (et === "אירוע עסקי" || et === "כנס") {
     return [
       "accessible",
-      "hasParkingNearby",
       "hasTableSetup",
       "hasSoundSystem",
       "hasAcumLicense",
-      "hasFood",
-      "hasVeganFood",
       "boutique",
       "seaView",
     ];
@@ -263,10 +235,8 @@ export function offerProductKeysForEventType(
       "hasDanceFloor",
       "hasSoundSystem",
       "hasAcumLicense",
-      "hasFood",
       "hasTableSetup",
       "accessible",
-      "hasParkingNearby",
       "boutique",
     ];
   }
@@ -278,7 +248,30 @@ export function softAttrFiltersForEventType(
 ): SoftAttrFilterOption[] {
   const et = normalizeEventTypeLabel(eventType.trim());
   if (!et) return [];
-  return SOFT_ATTR_FILTERS_BY_EVENT[et] ?? [];
+  const raw = SOFT_ATTR_FILTERS_BY_EVENT[et] ?? [];
+  const offerKeys = offerProductKeysForEventType(et) ?? [];
+  const offerLabels = new Set(
+    offerKeys.map((k) =>
+      offerProductLabelForEvent(k, et).toLowerCase().replace(/\s+/g, " ")
+    )
+  );
+  const seen = new Set<string>();
+  return raw.filter((opt) => {
+    const label = opt.label.toLowerCase().replace(/\s+/g, " ");
+    const value = opt.value.toLowerCase();
+    if (seen.has(label) || seen.has(value)) return false;
+    if (offerLabels.has(label)) return false;
+    for (const ol of offerLabels) {
+      if (ol.includes(label) || label.includes(ol)) return false;
+      // גינה vs גינה / חצר
+      const olCore = ol.split("/")[0]?.trim() ?? ol;
+      const labelCore = label.split("/")[0]?.trim() ?? label;
+      if (olCore && labelCore && olCore === labelCore) return false;
+    }
+    seen.add(label);
+    seen.add(value);
+    return true;
+  });
 }
 
 export function eventQuickChipsForEventType(eventType: string): EventQuickChip[] {
@@ -692,26 +685,11 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
 }
 
 export function eventContextChipsForEventType(
-  eventType: string
+  _eventType: string
 ): EventContextChip[] {
-  const et = normalizeEventTypeLabel(eventType.trim());
-  const religious =
-    et === "חתונה" ||
-    et === EVENT_TYPE_BAR_BAT ||
-    et === EVENT_TYPE_BRIT ||
-    et === "חינה";
-  const chips: EventContextChip[] = [];
-  if (religious) {
-    chips.push(
-      { id: "k-mehadrin", label: "כשרות מהדרין", kashrut: "מהדרין" },
-      { id: "k-regular", label: "כשרות רגילה", kashrut: "רגיל" }
-    );
-  }
-  chips.push(
-    { id: "p-adj", label: "חניה צמודה", parkingKind: "adjacent" },
-    { id: "p-near", label: "חניה בקרבת מקום", parkingKind: "nearby" }
-  );
-  return chips;
+  // כשרות — תחת סקשן האוכל; חניה — בבחירת «חניה» בפילטרים נוספים.
+  // אין צ'יפים כפולים כאן.
+  return [];
 }
 
 export function showBirthdayAgeFilter(eventType: string): boolean {

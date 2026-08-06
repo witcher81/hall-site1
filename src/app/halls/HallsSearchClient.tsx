@@ -45,7 +45,6 @@ import {
 import {
   BIRTHDAY_AGE_GROUP_OPTIONS,
   clearHiddenOfferProductFilters,
-  eventContextChipsForEventType,
   eventQuickChipsForEventType,
   offerProductKeysForEventType,
   showBirthdayAgeFilter,
@@ -930,10 +929,6 @@ export default function HallsSearchClient({
     () => eventQuickChipsForEventType(form.eventType),
     [form.eventType]
   );
-  const contextChips = useMemo(
-    () => eventContextChipsForEventType(form.eventType),
-    [form.eventType]
-  );
   const softAttrOptions = useMemo(
     () => softAttrFiltersForEventType(form.eventType),
     [form.eventType]
@@ -1182,7 +1177,12 @@ export default function HallsSearchClient({
               <button
                 type="button"
                 onClick={() =>
-                  setForm((f) => ({ ...f, hasFood: false, kashrut: "" }))
+                  setForm((f) => ({
+                    ...f,
+                    hasFood: false,
+                    kashrut: "",
+                    hasVeganFood: false,
+                  }))
                 }
                 className={`min-h-[44px] rounded-xl px-5 text-sm font-semibold transition ${
                   !form.hasFood
@@ -1196,14 +1196,30 @@ export default function HallsSearchClient({
             </div>
 
             {form.hasFood ? (
-              <div className="mt-4 border-t border-neutral-200/80 pt-4">
-                <label className={labelClass}>כשרות</label>
-                <VenueKashrutSelect
-                  mode="search"
-                  value={form.kashrut}
-                  onChange={(kashrut) => setForm((f) => ({ ...f, kashrut }))}
-                  className={fieldClass}
-                />
+              <div className="mt-4 space-y-3 border-t border-neutral-200/80 pt-4">
+                <div>
+                  <label className={labelClass}>כשרות</label>
+                  <VenueKashrutSelect
+                    mode="search"
+                    value={form.kashrut}
+                    onChange={(kashrut) => setForm((f) => ({ ...f, kashrut }))}
+                    className={fieldClass}
+                  />
+                </div>
+                <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-neutral-200/80 bg-white px-3 py-2.5 text-sm font-medium text-neutral-900">
+                  <input
+                    type="checkbox"
+                    checked={form.hasVeganFood}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        hasVeganFood: e.target.checked,
+                      }))
+                    }
+                    className="h-4 w-4 shrink-0 rounded border-[#C9A227] text-amber-600 focus:ring-amber-400"
+                  />
+                  מנות טבעוניות / צמחוניות
+                </label>
               </div>
             ) : null}
           </div>
@@ -1326,54 +1342,6 @@ export default function HallsSearchClient({
                       {chip.label}
                     </button>
                   ))}
-                </div>
-              </div>
-            ) : null}
-
-            {form.eventType && contextChips.length > 0 ? (
-              <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4">
-                <p className="text-xs font-semibold text-emerald-950">כשרות וחניה</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {contextChips.map((chip) => {
-                    const kashrutActive =
-                      chip.kashrut != null && form.kashrut === chip.kashrut;
-                    const parkingActive =
-                      chip.parkingKind != null &&
-                      form.parkingKind === chip.parkingKind;
-                    const active = kashrutActive || parkingActive;
-                    return (
-                      <button
-                        key={chip.id}
-                        type="button"
-                        onClick={() =>
-                          setForm((f) => ({
-                            ...f,
-                            ...(chip.kashrut != null
-                              ? {
-                                  kashrut:
-                                    f.kashrut === chip.kashrut ? "" : chip.kashrut,
-                                }
-                              : {}),
-                            ...(chip.parkingKind != null
-                              ? {
-                                  parkingKind:
-                                    f.parkingKind === chip.parkingKind
-                                      ? ""
-                                      : chip.parkingKind,
-                                }
-                              : {}),
-                          }))
-                        }
-                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                          active
-                            ? "bg-emerald-950 text-white"
-                            : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
-                        }`}
-                      >
-                        {chip.label}
-                      </button>
-                    );
-                  })}
                 </div>
               </div>
             ) : null}

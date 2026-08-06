@@ -80,7 +80,7 @@ export default function VenueOfferProductsSection({
           ) : null}
         </p>
         <p className="text-[11px] leading-relaxed text-neutral-600">
-          * אופציונלי — הסימון מסנן אולמות שמציעים את השירות (מחיר למנה מוזן בנפרד למעלה).
+          * אופציונלי — הסימון מסנן אולמות שמציעים את השירות. אוכל וכשרות נבחרים בסקשן האוכל למעלה; חניה בפילטרים נוספים.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
