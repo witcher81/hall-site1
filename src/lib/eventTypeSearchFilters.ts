@@ -88,10 +88,18 @@ export const SOFT_ATTR_FILTERS_BY_EVENT: Record<string, SoftAttrFilterOption[]> 
     { value: "בריכ", label: "בריכה / מים" },
     { value: "מוזיק", label: "מוזיקה / DJ" },
     { value: "עמד", label: "עמדות / אטרקציות" },
+    { value: "במה", label: "במה / הופעות" },
+    { value: "בר קינוחים", label: "בר קינוחים" },
+    { value: "חניה", label: "חניה נוחה" },
+    { value: "לובי", label: "לובי / קבלת פנים" },
   ],
   [EVENT_TYPE_BAR_BAT]: [
     { value: "במה", label: "במה / הופעות" },
     { value: "בר קינוחים", label: "בר / קינוחים" },
+    { value: "גינה", label: "גינה / חצר" },
+    { value: "מוזיק", label: "מוזיקה / DJ" },
+    { value: "לובי", label: "לובי / קבלת פנים" },
+    { value: "חניה", label: "חניה נוחה" },
   ],
   [EVENT_TYPE_BRIT]: [
     { value: "מקרן", label: "מסך / מקרן" },
@@ -147,6 +155,8 @@ export type EventQuickChip = {
   id: string;
   label: string;
   toggles: Partial<VenueOfferProductsSlice>;
+  /** אופציונלי — ליום הולדת */
+  birthdayAgeGroup?: BirthdayAgeGroup;
 };
 
 export type EventContextChip = {
@@ -295,6 +305,31 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         label: "חופה מקורה",
         toggles: { hasChuppaCovered: true, hasChuppa: true },
       },
+      {
+        id: "wedding-bridal",
+        label: "עם חדר כלה",
+        toggles: { hasBridalRoom: true },
+      },
+      {
+        id: "wedding-vegan",
+        label: "מנות טבעוניות",
+        toggles: { hasFood: true, hasVeganFood: true },
+      },
+      {
+        id: "wedding-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
+      },
+      {
+        id: "wedding-access",
+        label: "נגיש לנכים",
+        toggles: { accessible: true },
+      },
+      {
+        id: "wedding-small",
+        label: "אירוע קטן",
+        toggles: { boutique: true, hasFood: true },
+      },
     ];
   }
   if (et === "יום הולדת") {
@@ -303,11 +338,64 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         id: "bday-kids",
         label: "מסיבת ילדים",
         toggles: { boutique: true, hasSoundSystem: true, hasFood: true },
+        birthdayAgeGroup: "kids",
+      },
+      {
+        id: "bday-teens",
+        label: "מסיבת נוער",
+        toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
+        birthdayAgeGroup: "teens",
+      },
+      {
+        id: "bday-adults",
+        label: "יום הולדת לבוגרים",
+        toggles: {
+          hasDanceFloor: true,
+          hasSoundSystem: true,
+          hasFood: true,
+          hasTableSetup: true,
+        },
+        birthdayAgeGroup: "adults",
       },
       {
         id: "bday-dance",
         label: "מסיבה עם ריקודים",
         toggles: { hasDanceFloor: true, hasSoundSystem: true },
+      },
+      {
+        id: "bday-food",
+        label: "עם אוכל / בופה",
+        toggles: { hasFood: true, hasTableSetup: true },
+      },
+      {
+        id: "bday-garden",
+        label: "גינה / חצר",
+        toggles: { seaView: true },
+      },
+      {
+        id: "bday-small",
+        label: "מקום קטן ואינטימי",
+        toggles: { boutique: true, hasFood: true },
+      },
+      {
+        id: "bday-sound",
+        label: "עם הגברה",
+        toggles: { hasSoundSystem: true, hasAcumLicense: true },
+      },
+      {
+        id: "bday-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
+      },
+      {
+        id: "bday-access",
+        label: "נגיש לנכים",
+        toggles: { accessible: true },
+      },
+      {
+        id: "bday-vegan",
+        label: "מנות טבעוניות",
+        toggles: { hasFood: true, hasVeganFood: true },
       },
     ];
   }
@@ -333,6 +421,21 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         label: "בחוץ / עם נוף",
         toggles: { seaView: true, hasSoundSystem: true },
       },
+      {
+        id: "bachelor-sound",
+        label: "עם הגברה וריקודים",
+        toggles: { hasDanceFloor: true, hasSoundSystem: true, hasAcumLicense: true },
+      },
+      {
+        id: "bachelor-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
+      },
+      {
+        id: "bachelor-food",
+        label: "עם אוכל",
+        toggles: { hasFood: true, hasTableSetup: true },
+      },
     ];
   }
   if (et === EVENT_TYPE_BAR_BAT) {
@@ -341,6 +444,41 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         id: "bm-party",
         label: "מסיבה + ריקודים",
         toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
+      },
+      {
+        id: "bm-food",
+        label: "עם אוכל ושולחנות",
+        toggles: { hasFood: true, hasTableSetup: true },
+      },
+      {
+        id: "bm-garden",
+        label: "גינה / חצר",
+        toggles: { seaView: true, hasSoundSystem: true },
+      },
+      {
+        id: "bm-small",
+        label: "אירוע קטן",
+        toggles: { boutique: true, hasFood: true },
+      },
+      {
+        id: "bm-sound",
+        label: "במה והגברה",
+        toggles: { hasSoundSystem: true, hasAcumLicense: true },
+      },
+      {
+        id: "bm-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
+      },
+      {
+        id: "bm-access",
+        label: "נגיש לנכים",
+        toggles: { accessible: true },
+      },
+      {
+        id: "bm-vegan",
+        label: "מנות טבעוניות",
+        toggles: { hasFood: true, hasVeganFood: true },
       },
     ];
   }
@@ -366,6 +504,21 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         label: "חדר פרטי לטקס",
         toggles: { hasBridalRoom: true, boutique: true },
       },
+      {
+        id: "brit-food",
+        label: "עם אוכל",
+        toggles: { hasFood: true, hasTableSetup: true },
+      },
+      {
+        id: "brit-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
+      },
+      {
+        id: "brit-access",
+        label: "נגיש לנכים",
+        toggles: { accessible: true },
+      },
     ];
   }
   if (et === "חינה") {
@@ -379,6 +532,26 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         id: "henna-dance",
         label: "חינה עם ריקודים",
         toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
+      },
+      {
+        id: "henna-food",
+        label: "עם אוכל ושולחנות",
+        toggles: { hasFood: true, hasTableSetup: true },
+      },
+      {
+        id: "henna-small",
+        label: "אירוע קטן",
+        toggles: { boutique: true, hasFood: true },
+      },
+      {
+        id: "henna-sound",
+        label: "עם הגברה",
+        toggles: { hasSoundSystem: true, hasAcumLicense: true },
+      },
+      {
+        id: "henna-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
       },
     ];
   }
@@ -394,6 +567,26 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         label: "אירוע קטן",
         toggles: { boutique: true, hasFood: true },
       },
+      {
+        id: "grad-food",
+        label: "עם אוכל",
+        toggles: { hasFood: true, hasTableSetup: true },
+      },
+      {
+        id: "grad-sound",
+        label: "במה והגברה",
+        toggles: { hasSoundSystem: true, hasAcumLicense: true },
+      },
+      {
+        id: "grad-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
+      },
+      {
+        id: "grad-access",
+        label: "נגיש לנכים",
+        toggles: { accessible: true },
+      },
     ];
   }
   if (et === "אירוע עסקי" || et === "כנס") {
@@ -403,9 +596,99 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         label: "כנס עם הגברה",
         toggles: { hasSoundSystem: true, hasTableSetup: true },
       },
+      {
+        id: "conf-food",
+        label: "עם כיבוד / אוכל",
+        toggles: { hasFood: true, hasTableSetup: true },
+      },
+      {
+        id: "conf-access",
+        label: "נגיש לנכים",
+        toggles: { accessible: true },
+      },
+      {
+        id: "conf-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
+      },
+      {
+        id: "conf-small",
+        label: "אולם קטן / ישיבות",
+        toggles: { boutique: true, hasTableSetup: true },
+      },
+      {
+        id: "conf-vegan",
+        label: "מנות טבעוניות",
+        toggles: { hasFood: true, hasVeganFood: true },
+      },
+      {
+        id: "conf-outdoor",
+        label: "עם גינה / חצר",
+        toggles: { seaView: true },
+      },
     ];
   }
-  return [];
+  if (et === "אירוע אחר") {
+    return [
+      {
+        id: "other-food",
+        label: "עם אוכל",
+        toggles: { hasFood: true, hasTableSetup: true },
+      },
+      {
+        id: "other-dance",
+        label: "עם ריקודים",
+        toggles: { hasDanceFloor: true, hasSoundSystem: true },
+      },
+      {
+        id: "other-garden",
+        label: "גינה / חצר",
+        toggles: { seaView: true },
+      },
+      {
+        id: "other-small",
+        label: "מקום קטן",
+        toggles: { boutique: true },
+      },
+      {
+        id: "other-parking",
+        label: "עם חניה",
+        toggles: { hasParkingNearby: true },
+      },
+      {
+        id: "other-access",
+        label: "נגיש לנכים",
+        toggles: { accessible: true },
+      },
+    ];
+  }
+  return [
+    {
+      id: "generic-food",
+      label: "עם אוכל",
+      toggles: { hasFood: true, hasTableSetup: true },
+    },
+    {
+      id: "generic-dance",
+      label: "עם ריקודים",
+      toggles: { hasDanceFloor: true, hasSoundSystem: true },
+    },
+    {
+      id: "generic-garden",
+      label: "גינה / חצר",
+      toggles: { seaView: true },
+    },
+    {
+      id: "generic-parking",
+      label: "עם חניה",
+      toggles: { hasParkingNearby: true },
+    },
+    {
+      id: "generic-access",
+      label: "נגיש לנכים",
+      toggles: { accessible: true },
+    },
+  ];
 }
 
 export function eventContextChipsForEventType(

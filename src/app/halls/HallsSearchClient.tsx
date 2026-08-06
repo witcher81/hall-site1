@@ -1316,6 +1316,9 @@ export default function HallsSearchClient({
                         setForm((f) => ({
                           ...f,
                           ...chip.toggles,
+                          ...(chip.birthdayAgeGroup != null
+                            ? { birthdayAgeGroup: chip.birthdayAgeGroup }
+                            : {}),
                         }))
                       }
                       className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-950 transition hover:border-amber-400 hover:bg-amber-50"
