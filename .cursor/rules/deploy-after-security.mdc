@@ -1,5 +1,5 @@
 ---
-description: After security-related changes, commit and push to deploy Vercel
+description: After security changes, prepare a security commit — push only if the user asks
 alwaysApply: true
 ---
 
@@ -7,10 +7,10 @@ alwaysApply: true
 
 When adding or changing **security** (headers, CSP, auth, cookies, secrets handling, XSS/safe hrefs, Prisma/server-only, rate limits, API hardening, etc.):
 
-1. Stage only intentional files — **never** commit `.env` or real secrets.
-2. Run `git commit` with a clear message (e.g. `security: …`).
-3. Run `git push origin main` so **Vercel** rebuilds the live site.
+1. Stage only intentional files when the user asks to commit — **never** commit `.env` or real secrets.
+2. Prefer commit message style `security: …` when the user asks to commit.
+3. **Do not** `git push` unless the user explicitly asks to push (see `no-auto-push`).
 
-If `git push` fails (auth/network), report the error and what remains to do locally.
+If the user asks to push and it fails (auth/network), report the error and what remains to do locally.
 
-Skip auto-push only if the user explicitly asks to hold commits or review first.
+When security work is done and ready, briefly tell the user it is ready to commit/push — do not run those commands unprompted.

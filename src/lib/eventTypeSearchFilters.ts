@@ -276,6 +276,7 @@ export function softAttrFiltersForEventType(
 
 export function eventQuickChipsForEventType(eventType: string): EventQuickChip[] {
   const et = normalizeEventTypeLabel(eventType.trim());
+  // רק פריסטים מורכבים — בלי צ'יפים שחוזרים על תיבות הסימון ב«מוצרים שהאולם מציעה»
   if (et === "חתונה") {
     return [
       {
@@ -297,31 +298,6 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         id: "wedding-indoor",
         label: "חופה מקורה",
         toggles: { hasChuppaCovered: true, hasChuppa: true },
-      },
-      {
-        id: "wedding-bridal",
-        label: "עם חדר כלה",
-        toggles: { hasBridalRoom: true },
-      },
-      {
-        id: "wedding-vegan",
-        label: "מנות טבעוניות",
-        toggles: { hasFood: true, hasVeganFood: true },
-      },
-      {
-        id: "wedding-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
-      {
-        id: "wedding-access",
-        label: "נגיש לנכים",
-        toggles: { accessible: true },
-      },
-      {
-        id: "wedding-small",
-        label: "אירוע קטן",
-        toggles: { boutique: true, hasFood: true },
       },
     ];
   }
@@ -351,44 +327,10 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         birthdayAgeGroup: "adults",
       },
       {
-        id: "bday-dance",
-        label: "מסיבה עם ריקודים",
-        toggles: { hasDanceFloor: true, hasSoundSystem: true },
-      },
-      {
-        id: "bday-food",
-        label: "עם אוכל / בופה",
-        toggles: { hasFood: true, hasTableSetup: true },
-      },
-      {
-        id: "bday-garden",
-        label: "גינה / חצר",
-        toggles: { seaView: true },
-      },
-      {
-        id: "bday-small",
-        label: "מקום קטן ואינטימי",
-        toggles: { boutique: true, hasFood: true },
-      },
-      {
-        id: "bday-sound",
-        label: "עם הגברה",
-        toggles: { hasSoundSystem: true, hasAcumLicense: true },
-      },
-      {
-        id: "bday-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
-      {
-        id: "bday-access",
-        label: "נגיש לנכים",
-        toggles: { accessible: true },
-      },
-      {
-        id: "bday-vegan",
-        label: "מנות טבעוניות",
-        toggles: { hasFood: true, hasVeganFood: true },
+        id: "bday-mixed",
+        label: "כל הגילאים",
+        toggles: { hasFood: true, hasTableSetup: true, hasSoundSystem: true },
+        birthdayAgeGroup: "mixed",
       },
     ];
   }
@@ -405,29 +347,9 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         },
       },
       {
-        id: "bachelor-private",
-        label: "מקום פרטי / קטן",
-        toggles: { boutique: true, hasFood: true },
-      },
-      {
         id: "bachelor-outdoor",
         label: "בחוץ / עם נוף",
-        toggles: { seaView: true, hasSoundSystem: true },
-      },
-      {
-        id: "bachelor-sound",
-        label: "עם הגברה וריקודים",
-        toggles: { hasDanceFloor: true, hasSoundSystem: true, hasAcumLicense: true },
-      },
-      {
-        id: "bachelor-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
-      {
-        id: "bachelor-food",
-        label: "עם אוכל",
-        toggles: { hasFood: true, hasTableSetup: true },
+        toggles: { seaView: true, hasSoundSystem: true, hasFood: true },
       },
     ];
   }
@@ -439,39 +361,14 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
       },
       {
-        id: "bm-food",
-        label: "עם אוכל ושולחנות",
-        toggles: { hasFood: true, hasTableSetup: true },
-      },
-      {
-        id: "bm-garden",
-        label: "גינה / חצר",
-        toggles: { seaView: true, hasSoundSystem: true },
-      },
-      {
-        id: "bm-small",
-        label: "אירוע קטן",
-        toggles: { boutique: true, hasFood: true },
-      },
-      {
-        id: "bm-sound",
-        label: "במה והגברה",
-        toggles: { hasSoundSystem: true, hasAcumLicense: true },
-      },
-      {
-        id: "bm-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
-      {
-        id: "bm-access",
-        label: "נגיש לנכים",
-        toggles: { accessible: true },
-      },
-      {
-        id: "bm-vegan",
-        label: "מנות טבעוניות",
-        toggles: { hasFood: true, hasVeganFood: true },
+        id: "bm-stage",
+        label: "במה והופעות",
+        toggles: {
+          hasSoundSystem: true,
+          hasAcumLicense: true,
+          hasDanceFloor: true,
+          hasFood: true,
+        },
       },
     ];
   }
@@ -485,32 +382,12 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
       {
         id: "brit-garden",
         label: "ברית בגינה / חצר",
-        toggles: { seaView: true, hasTableSetup: true },
-      },
-      {
-        id: "brit-tech",
-        label: "הגברה ומסך",
-        toggles: { hasSoundSystem: true, hasAcumLicense: true },
+        toggles: { seaView: true, hasTableSetup: true, hasFood: true },
       },
       {
         id: "brit-private",
         label: "חדר פרטי לטקס",
-        toggles: { hasBridalRoom: true, boutique: true },
-      },
-      {
-        id: "brit-food",
-        label: "עם אוכל",
-        toggles: { hasFood: true, hasTableSetup: true },
-      },
-      {
-        id: "brit-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
-      {
-        id: "brit-access",
-        label: "נגיש לנכים",
-        toggles: { accessible: true },
+        toggles: { hasBridalRoom: true, boutique: true, hasFood: true },
       },
     ];
   }
@@ -526,59 +403,24 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
         label: "חינה עם ריקודים",
         toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
       },
-      {
-        id: "henna-food",
-        label: "עם אוכל ושולחנות",
-        toggles: { hasFood: true, hasTableSetup: true },
-      },
-      {
-        id: "henna-small",
-        label: "אירוע קטן",
-        toggles: { boutique: true, hasFood: true },
-      },
-      {
-        id: "henna-sound",
-        label: "עם הגברה",
-        toggles: { hasSoundSystem: true, hasAcumLicense: true },
-      },
-      {
-        id: "henna-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
     ];
   }
   if (et === "מסיבת סיום") {
     return [
       {
         id: "grad-party",
-        label: "מסיבה עם ריקודים",
-        toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
+        label: "מסיבת סיום מלאה",
+        toggles: {
+          hasDanceFloor: true,
+          hasSoundSystem: true,
+          hasFood: true,
+          hasTableSetup: true,
+        },
       },
       {
         id: "grad-small",
-        label: "אירוע קטן",
-        toggles: { boutique: true, hasFood: true },
-      },
-      {
-        id: "grad-food",
-        label: "עם אוכל",
-        toggles: { hasFood: true, hasTableSetup: true },
-      },
-      {
-        id: "grad-sound",
-        label: "במה והגברה",
-        toggles: { hasSoundSystem: true, hasAcumLicense: true },
-      },
-      {
-        id: "grad-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
-      {
-        id: "grad-access",
-        label: "נגיש לנכים",
-        toggles: { accessible: true },
+        label: "סיום אינטימי",
+        toggles: { boutique: true, hasFood: true, hasSoundSystem: true },
       },
     ];
   }
@@ -586,102 +428,26 @@ export function eventQuickChipsForEventType(eventType: string): EventQuickChip[]
     return [
       {
         id: "conf-tech",
-        label: "כנס עם הגברה",
-        toggles: { hasSoundSystem: true, hasTableSetup: true },
+        label: "כנס עם הגברה ושולחנות",
+        toggles: { hasSoundSystem: true, hasTableSetup: true, accessible: true },
       },
       {
-        id: "conf-food",
-        label: "עם כיבוד / אוכל",
-        toggles: { hasFood: true, hasTableSetup: true },
-      },
-      {
-        id: "conf-access",
-        label: "נגיש לנכים",
-        toggles: { accessible: true },
-      },
-      {
-        id: "conf-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
-      {
-        id: "conf-small",
-        label: "אולם קטן / ישיבות",
-        toggles: { boutique: true, hasTableSetup: true },
-      },
-      {
-        id: "conf-vegan",
-        label: "מנות טבעוניות",
-        toggles: { hasFood: true, hasVeganFood: true },
-      },
-      {
-        id: "conf-outdoor",
-        label: "עם גינה / חצר",
-        toggles: { seaView: true },
+        id: "conf-catered",
+        label: "אירוע עסקי עם כיבוד",
+        toggles: { hasFood: true, hasTableSetup: true, hasSoundSystem: true },
       },
     ];
   }
   if (et === "אירוע אחר") {
     return [
       {
-        id: "other-food",
-        label: "עם אוכל",
-        toggles: { hasFood: true, hasTableSetup: true },
-      },
-      {
-        id: "other-dance",
-        label: "עם ריקודים",
-        toggles: { hasDanceFloor: true, hasSoundSystem: true },
-      },
-      {
-        id: "other-garden",
-        label: "גינה / חצר",
-        toggles: { seaView: true },
-      },
-      {
-        id: "other-small",
-        label: "מקום קטן",
-        toggles: { boutique: true },
-      },
-      {
-        id: "other-parking",
-        label: "עם חניה",
-        toggles: { hasParkingNearby: true },
-      },
-      {
-        id: "other-access",
-        label: "נגיש לנכים",
-        toggles: { accessible: true },
+        id: "other-party",
+        label: "אירוע עם ריקודים ואוכל",
+        toggles: { hasDanceFloor: true, hasSoundSystem: true, hasFood: true },
       },
     ];
   }
-  return [
-    {
-      id: "generic-food",
-      label: "עם אוכל",
-      toggles: { hasFood: true, hasTableSetup: true },
-    },
-    {
-      id: "generic-dance",
-      label: "עם ריקודים",
-      toggles: { hasDanceFloor: true, hasSoundSystem: true },
-    },
-    {
-      id: "generic-garden",
-      label: "גינה / חצר",
-      toggles: { seaView: true },
-    },
-    {
-      id: "generic-parking",
-      label: "עם חניה",
-      toggles: { hasParkingNearby: true },
-    },
-    {
-      id: "generic-access",
-      label: "נגיש לנכים",
-      toggles: { accessible: true },
-    },
-  ];
+  return [];
 }
 
 export function eventContextChipsForEventType(

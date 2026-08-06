@@ -1322,7 +1322,12 @@ export default function HallsSearchClient({
 
             {form.eventType && quickChips.length > 0 ? (
               <div className="rounded-2xl border border-neutral-200/80 bg-white/90 p-4">
-                <p className="text-xs font-semibold text-emerald-950">הצעות לסינון</p>
+                <p className="text-xs font-semibold text-emerald-950">
+                  הצעות לסינון
+                </p>
+                <p className="mt-0.5 text-[11px] text-neutral-600">
+                  פריסטים מהירים — פרטים בודדים מסמנים למטה במוצרים.
+                </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {quickChips.map((chip) => (
                     <button
