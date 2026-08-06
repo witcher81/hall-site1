@@ -13,7 +13,6 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import VenueKashrutSelect from "@/components/VenueKashrutSelect";
-import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import RecentHallSearchesPanel from "@/components/RecentHallSearchesPanel";
@@ -206,9 +205,11 @@ function buildFilterSummary(f: SearchFormState): string | null {
         ? `${f.minPrice}–${f.maxPrice}`
         : f.minPrice || f.maxPrice;
     if (p) parts.push(`₪${p} למנה`);
-  } else   if (f.exactPrice.trim()) {
+  } else if (f.exactPrice.trim()) {
     parts.push(`₪${f.exactPrice} למנה`);
   }
+  if (f.hasFood) parts.push("עם אוכל");
+  if (f.kashrut) parts.push(`כשרות: ${f.kashrut}`);
   if (f.birthdayAgeGroup) {
     const ageLabel = BIRTHDAY_AGE_GROUP_OPTIONS.find(
       (o) => o.value === f.birthdayAgeGroup
@@ -1161,50 +1162,50 @@ export default function HallsSearchClient({
           </div>
 
           <div className="rounded-2xl border border-neutral-200/90 bg-neutral-50/70 p-4 sm:p-5">
-            <OptionalPriceRangeFields
-              useRange={form.priceUseRange}
-              onUseRangeChange={(useRange) =>
-                setForm((f) => {
-                  if (useRange) {
-                    const p = f.exactPrice.trim();
-                    return {
-                      ...f,
-                      priceUseRange: true,
-                      minPrice: p || f.minPrice,
-                      maxPrice: p || f.maxPrice || p,
-                      exactPrice: "",
-                    };
-                  }
-                  const ep =
-                    f.minPrice && f.minPrice === f.maxPrice
-                      ? f.minPrice
-                      : f.minPrice || f.maxPrice || "";
-                  return {
-                    ...f,
-                    priceUseRange: false,
-                    exactPrice: ep,
-                    minPrice: "",
-                    maxPrice: "",
-                  };
-                })
-              }
-              minPrice={form.priceUseRange ? form.minPrice : form.exactPrice}
-              maxPrice={form.priceUseRange ? form.maxPrice : form.exactPrice}
-              onChange={(min, max) =>
-                setForm((f) =>
-                  f.priceUseRange
-                    ? { ...f, minPrice: min, maxPrice: max }
-                    : { ...f, exactPrice: min, minPrice: "", maxPrice: "" }
-                )
-              }
-              singleLabel="מחיר למנה שאני מחפש (₪)"
-              singlePlaceholder="לדוגמה: 250"
-              minLabel="מחיר מינימום למנה (₪)"
-              maxLabel="מחיר מקסימום למנה (₪)"
-              expandRangeLabel="יש לי טווח מחירים ולא מחיר מדויק למנה"
-              collapseRangeLabel="יש לי מחיר מדויק למנה"
-              inputClassName={fieldClass}
-            />
+            <p className={labelClass}>האם אתם רוצים אוכל באירוע?</p>
+            <p className="mt-1 text-[11px] text-neutral-600">
+              אם כן — נציג רק אולמות עם אוכל, ואפשר לבחור גם כשרות.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, hasFood: true }))}
+                className={`min-h-[44px] rounded-xl px-5 text-sm font-semibold transition ${
+                  form.hasFood
+                    ? "bg-emerald-950 text-white shadow-sm"
+                    : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                }`}
+                aria-pressed={form.hasFood}
+              >
+                כן
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((f) => ({ ...f, hasFood: false, kashrut: "" }))
+                }
+                className={`min-h-[44px] rounded-xl px-5 text-sm font-semibold transition ${
+                  !form.hasFood
+                    ? "bg-emerald-950 text-white shadow-sm"
+                    : "border border-neutral-200 bg-white text-emerald-950 hover:border-amber-400"
+                }`}
+                aria-pressed={!form.hasFood}
+              >
+                לא / לא משנה
+              </button>
+            </div>
+
+            {form.hasFood ? (
+              <div className="mt-4 border-t border-neutral-200/80 pt-4">
+                <label className={labelClass}>כשרות</label>
+                <VenueKashrutSelect
+                  mode="search"
+                  value={form.kashrut}
+                  onChange={(kashrut) => setForm((f) => ({ ...f, kashrut }))}
+                  className={fieldClass}
+                />
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -1245,16 +1246,7 @@ export default function HallsSearchClient({
           <p className="mb-4 text-sm font-semibold text-emerald-950">
             פילטרים נוספים
           </p>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <div>
-              <label className={labelClass}>כשרות</label>
-              <VenueKashrutSelect
-                mode="search"
-                value={form.kashrut}
-                onChange={(kashrut) => setForm((f) => ({ ...f, kashrut }))}
-                className={fieldClass}
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
               <label className={labelClass}>חניה</label>
               <select
