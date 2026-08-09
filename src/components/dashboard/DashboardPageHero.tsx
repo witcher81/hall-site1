@@ -36,7 +36,7 @@ export default function DashboardPageHero({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 text-right">
             <p className="dashboard-hero-kicker">
-              HALLS HUB · {badge}
+              EVENT FOR YOU · {badge}
             </p>
             <h1 className="dashboard-hero-title">{title}</h1>
             {description ? (

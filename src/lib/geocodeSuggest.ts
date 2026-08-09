@@ -10,7 +10,7 @@ import {
 } from "@/lib/geocode";
 import { normalizeCityNameForLookup, tryExactCityCoords } from "@/lib/israel-city-coords";
 
-const USER_AGENT = "HallsHub/1.0 (venue map; contact via site admin)";
+const USER_AGENT = "EventForYou/1.0 (venue map; contact via site admin)";
 const FETCH_NO_STORE = { cache: "no-store" as const };
 
 export type StreetSuggestion = {

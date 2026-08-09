@@ -12,7 +12,7 @@ import HallsSearchClient from "./HallsSearchClient";
 export const metadata: Metadata = {
   title: "חיפוש אולמות לאירוע",
   description:
-    "חיפוש אולמות וגני אירועים לפי עיר, מספר אורחים, תקציב וסוג אירוע – השוואה, מפה ופנייה ישירה ב־Halls Hub.",
+    "חיפוש אולמות וגני אירועים לפי עיר, מספר אורחים, תקציב וסוג אירוע – השוואה, מפה ופנייה ישירה ב־EventForYou.",
   alternates: { canonical: "/halls" },
 };
 

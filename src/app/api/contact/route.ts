@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   await sendEmail({
     to: legal.supportEmail,
     replyTo: email,
-    subject: `[Halls Hub] ${subj}`,
+    subject: `[EventForYou] ${subj}`,
     html: `<div dir="rtl"><p><strong>מאת:</strong> ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p><p><strong>נושא:</strong> ${escapeHtml(subj)}</p><hr/><pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(message)}</pre></div>`,
     text: `מאת: ${name} <${email}>\nנושא: ${subj}\n\n${message}`,
   });

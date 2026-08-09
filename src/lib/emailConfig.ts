@@ -20,14 +20,14 @@ export function stripEnvQuotes(value: string): string {
   return v;
 }
 
-export const RESEND_SANDBOX_FROM = "Halls Hub <onboarding@resend.dev>";
+export const RESEND_SANDBOX_FROM = "EventForYou <onboarding@resend.dev>";
 
 export function normalizeEmailFrom(raw: string): string {
   const v = stripEnvQuotes(raw);
   if (!v) return RESEND_SANDBOX_FROM;
   // כתובת בלבד — עטיפה בשם תצוגה
   if (/^[^\s<>]+@[^\s<>]+$/.test(v)) {
-    return `Halls Hub <${v}>`;
+    return `EventForYou <${v}>`;
   }
   return v;
 }
@@ -91,7 +91,7 @@ export function userFacingEmailSendError(
     case "restricted_api_key":
       return "מפתח Resend מוגבל — נדרש Full access לשליחת מיילים.";
     case "invalid_from":
-      return "כתובת השולח (EMAIL_FROM) לא תקינה. דוגמה: Halls Hub <noreply@yourdomain.com>";
+      return "כתובת השולח (EMAIL_FROM) לא תקינה. דוגמה: EventForYou <noreply@yourdomain.com>";
     default:
       return "שליחת המייל נכשלה. נסו שוב מאוחר יותר.";
   }

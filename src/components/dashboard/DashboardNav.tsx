@@ -31,9 +31,9 @@ export default function DashboardNav({
             <Link
               href="/"
               className="text-lg font-bold tracking-tight text-white transition hover:text-amber-300"
-              aria-label="Halls Hub — דף הבית"
+              aria-label="EventForYou — דף הבית"
             >
-              Halls Hub
+              EventForYou
             </Link>
             <span className="dashboard-nav-badge">{config.badge}</span>
           </div>

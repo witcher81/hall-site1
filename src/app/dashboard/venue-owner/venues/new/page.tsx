@@ -791,8 +791,8 @@ export default function NewVenuePage() {
   useEffect(() => {
     const city = form.city.trim();
     document.title = city
-      ? `יצירת אולם · ${city} | Halls Hub`
-      : "יצירת אולם חדש | Halls Hub";
+      ? `יצירת אולם · ${city} | EventForYou`
+      : "יצירת אולם חדש | EventForYou";
   }, [form.city]);
 
   /** לפני ציור — כדי ש-VenueLocationPicker יקבל nonce>0 כבר בטעינה ראשונה (לא רק אחרי blur) */

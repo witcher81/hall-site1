@@ -77,7 +77,7 @@ export function buildProductionHealthReport(): ProductionHealthReport {
       );
     } else if (!emailFromProductionReady) {
       warnings.push(
-        "EMAIL_FROM — חסר או משתמש ב-resend.dev; אימות אימייל ומיילים ייכשלו לנמענים אחרים. אמתו דומיין ב-Resend והגדירו EMAIL_FROM (למשל Halls Hub <noreply@yourdomain.com>)."
+        "EMAIL_FROM — חסר או משתמש ב-resend.dev; אימות אימייל ומיילים ייכשלו לנמענים אחרים. אמתו דומיין ב-Resend והגדירו EMAIL_FROM (למשל EventForYou <noreply@yourdomain.com>)."
       );
     }
     if (emailVerifyCodeOnScreenFallback) {

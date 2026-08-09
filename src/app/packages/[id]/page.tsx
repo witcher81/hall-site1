@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = truncateMeta(
     pkg.subtitle ||
       pkg.description ||
-      `חבילת אירוע באולם ${pkg.venue.name} ב${pkg.venue.city} – Halls Hub`,
+      `חבילת אירוע באולם ${pkg.venue.name} ב${pkg.venue.city} – EventForYou`,
     160
   );
   const ogUrl = absoluteImageUrl(pkg.venue.coverImageUrl);

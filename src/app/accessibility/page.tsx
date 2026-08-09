@@ -10,7 +10,7 @@ export default async function AccessibilityPage() {
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
         <p>
-          Halls Hub מחויב להנגיש את השירותים הדיגיטליים שלו לכלל המשתמשים, כולל אנשים עם
+          EventForYou מחויב להנגיש את השירותים הדיגיטליים שלו לכלל המשתמשים, כולל אנשים עם
           מוגבלות. אנו פועלים להתאמת האתר לדרישות תקן ישראלי 5568 (מבוסס על WCAG 2.0) ברמת
           AA, ככל שניתן במסגרת המערכת הקיימת.
         </p>
@@ -62,11 +62,11 @@ export default async function AccessibilityPage() {
         </p>
         <p>
           דוא״ל:{" "}
-          <a href="mailto:accessibility@hallshub.example" className="text-emerald-950 underline">
-            accessibility@hallshub.example
+          <a href="mailto:accessibility@eventforyou.example" className="text-emerald-950 underline">
+            accessibility@eventforyou.example
           </a>
           <br />
-          נושא מומלץ: «נגישות — Halls Hub»
+          נושא מומלץ: «נגישות — EventForYou»
         </p>
         <p>
           נשתדל להשיב בתוך 14 ימי עסקים ולטפל בפניות בהתאם לחוק שוויון זכויות לאנשים עם

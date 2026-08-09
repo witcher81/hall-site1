@@ -132,7 +132,7 @@ function RegisterForm() {
   return (
     <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="auth-kicker">HALLS HUB</p>
+        <p className="auth-kicker">EVENT FOR YOU</p>
         <h1 className="auth-page-title">הרשמה</h1>
         {isCheckout ? (
           <p className="auth-alert-info mt-2">

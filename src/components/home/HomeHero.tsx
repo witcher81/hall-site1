@@ -274,11 +274,11 @@ export default function HomeHero() {
         ))}
       </div>
       <div
-        className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-neutral-950/90"
+        className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-neutral-950/55"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(251,191,36,0.14),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(251,191,36,0.22),transparent_55%)]"
         aria-hidden
       />
       <div className="home-hero-grid pointer-events-none absolute inset-0" aria-hidden />
@@ -289,7 +289,7 @@ export default function HomeHero() {
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(260px,0.85fr)]">
           <div className="home-animate-in home-hero-copy max-w-2xl text-right">
             <p className="text-xs font-semibold tracking-[0.35em] text-amber-300/90">
-              HALLS HUB
+              EVENT FOR YOU
             </p>
             <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
               בונים אירוע?

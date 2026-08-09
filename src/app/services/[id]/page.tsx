@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       service.shortDescription || service.description,
       service.category ? `קטגוריה: ${service.category}.` : null,
       service.serviceArea ? `אזור שירות: ${service.serviceArea}.` : null,
-      `שירות אירועים מאת ${providerName} ב־Halls Hub.`,
+      `שירות אירועים מאת ${providerName} ב־EventForYou.`,
     ]
       .filter(Boolean)
       .join(" "),
@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description:
       description ||
-      `${service.name} מאת ${providerName} – Halls Hub.`,
+      `${service.name} מאת ${providerName} – EventForYou.`,
     alternates: { canonical: `/services/${serviceId}` },
     openGraph: {
       title,

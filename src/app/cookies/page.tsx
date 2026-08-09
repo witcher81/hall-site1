@@ -11,7 +11,7 @@ export default async function CookiesPage() {
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
         <p>
-          אתר Halls Hub משתמש בעוגיות ובאחסון מקומי בדפדפן (localStorage) כדי להפעיל את
+          אתר EventForYou משתמש בעוגיות ובאחסון מקומי בדפדפן (localStorage) כדי להפעיל את
           השירות, לשמור העדפות ולמדוד שימוש. מסמך זה מסביר מה נאסף וכיצד לנהל את ההסכמה.
         </p>
 
@@ -56,8 +56,8 @@ export default async function CookiesPage() {
 
         <p>
           לשאלות:{" "}
-          <a href="mailto:privacy@hallshub.example" className="text-emerald-950 underline">
-            privacy@hallshub.example
+          <a href="mailto:privacy@eventforyou.example" className="text-emerald-950 underline">
+            privacy@eventforyou.example
           </a>
         </p>
       </div>

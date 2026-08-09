@@ -9,7 +9,7 @@ import ProvidersSearchClient from "./ProvidersSearchClient";
 export const metadata: Metadata = {
   title: "שירותי ספקים לאירוע",
   description:
-    "חיפוש ספקי אירועים – צילום, DJ, קייטרינג, עיצוב, איפור ועוד. סינון לפי קטגוריה ומחיר, ושליחת בקשה ישירות ב־Halls Hub.",
+    "חיפוש ספקי אירועים – צילום, DJ, קייטרינג, עיצוב, איפור ועוד. סינון לפי קטגוריה ומחיר, ושליחת בקשה ישירות ב־EventForYou.",
   alternates: { canonical: "/providers" },
 };
 

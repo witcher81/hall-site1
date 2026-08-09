@@ -21,7 +21,7 @@ export async function sendWelcomeEmail(input: {
 
   await sendEmail({
     to: input.to,
-    subject: "ברוכים הבאים ל-Halls Hub",
+    subject: "ברוכים הבאים ל-EventForYou",
     html: `<p dir="rtl">${greetingHtml}</p><p dir="rtl">החשבון שלך נוצר בהצלחה כ<strong>${roleLabel}</strong>.</p><p dir="rtl"><a href="/">כניסה לאתר</a></p>`,
     text: `${greetingText}\nהחשבון נוצר בהצלחה (${roleLabel}).\nכניסה: /`,
   });

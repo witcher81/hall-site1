@@ -62,7 +62,7 @@ export default function PackagesPageHero() {
 
       <div className="relative px-5 py-10 sm:px-8 sm:py-14 lg:px-12">
         <p className="text-xs font-semibold tracking-[0.28em] text-amber-300/90">
-          HALLS HUB
+          EVENT FOR YOU
         </p>
         <h1 className="mt-3 max-w-2xl text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
           האתר בונה לכם את החבילה

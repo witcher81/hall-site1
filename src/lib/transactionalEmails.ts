@@ -20,7 +20,7 @@ function emailShell(title: string, bodyHtml: string): string {
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:#ffffff;border:1px solid #d9cfc0;border-radius:16px;padding:28px;box-shadow:0 8px 28px rgba(0,0,0,0.08);">
             <tr>
               <td>
-                <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;letter-spacing:0.25em;color:#d97706;">HALLS HUB</p>
+                <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;letter-spacing:0.25em;color:#d97706;">EVENT FOR YOU</p>
                 <h1 style="margin:0 0 16px 0;font-size:20px;font-weight:700;color:#022c22;">${safeTitle}</h1>
                 ${bodyHtml}
               </td>

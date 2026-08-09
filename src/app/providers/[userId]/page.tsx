@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       provider.businessBio,
       categories.length ? `שירותים: ${categories.slice(0, 3).join(", ")}.` : null,
       provider.businessAddress ? `אזור: ${provider.businessAddress}.` : null,
-      `ספק אירועים ב־Halls Hub`,
+      `ספק אירועים ב־EventForYou`,
     ]
       .filter(Boolean)
       .join(" "),
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description:
       description ||
-      `${displayName} – ספק שירותים לאירועים ב־Halls Hub.`,
+      `${displayName} – ספק שירותים לאירועים ב־EventForYou.`,
     alternates: { canonical: `/providers/${providerId}` },
     openGraph: {
       title,

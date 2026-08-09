@@ -124,7 +124,7 @@ export default function ResetPasswordClient({
   return (
     <div className="site-page">
       <main className="mx-auto max-w-md px-4 py-12">
-        <p className="auth-kicker">HALLS HUB</p>
+        <p className="auth-kicker">EVENT FOR YOU</p>
         <h1 className="auth-page-title">איפוס סיסמה</h1>
         <a href="/auth/login" className="auth-back-link mt-3">
           <span aria-hidden>←</span>

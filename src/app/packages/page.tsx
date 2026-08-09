@@ -9,7 +9,7 @@ import PackagesSearchClient from "./PackagesSearchClient";
 export const metadata: Metadata = {
   title: "חבילות אירוע",
   description:
-    "האתר בונה לכם חבילת אירוע לפי סוג, אזור ואורחים — אולם + ספקים מתאימים ב־Halls Hub.",
+    "האתר בונה לכם חבילת אירוע לפי סוג, אזור ואורחים — אולם + ספקים מתאימים ב־EventForYou.",
   alternates: { canonical: "/packages" },
 };
 

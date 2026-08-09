@@ -22,15 +22,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "Halls Hub – מקום אחד לכל האירועים",
-    template: "%s | Halls Hub",
+    default: "EventForYou – מקום אחד לכל האירועים",
+    template: "%s | EventForYou",
   },
   description:
     "חיפוש אולמות לאירועים, חתונות ובר מצווה. מחבר בין מחפשי אולמות, בעלי אולמות וספקי שירותים.",
   openGraph: {
     type: "website",
     locale: "he_IL",
-    siteName: "Halls Hub",
+    siteName: "EventForYou",
   },
 };
 

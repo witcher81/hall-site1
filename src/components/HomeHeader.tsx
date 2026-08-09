@@ -201,7 +201,7 @@ export default function HomeHeader({
       <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-3 py-4 lg:px-4 xl:gap-4 xl:px-6">
         <div className="flex min-w-0 flex-1 items-center justify-start gap-2 xl:gap-4">
           <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-slate-50">
-            Halls Hub
+            EventForYou
           </Link>
           {/* ניווט אחיד: אותם פריטי בסיס לכולם; "אזור אישי" = מה שהיה תלוי־תפקיד */}
           <nav className="hidden min-w-0 flex-1 flex-nowrap items-center gap-x-1 min-[900px]:flex xl:gap-x-2">

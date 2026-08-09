@@ -1,3 +1,5 @@
+import { SITE_BRAND_KICKER } from "@/lib/siteBrand";
+
 type SitePageHeaderProps = {
   kicker?: string;
   hideKicker?: boolean;
@@ -7,7 +9,7 @@ type SitePageHeaderProps = {
 };
 
 export default function SitePageHeader({
-  kicker = "HALLS HUB",
+  kicker = SITE_BRAND_KICKER,
   hideKicker = false,
   title,
   description,

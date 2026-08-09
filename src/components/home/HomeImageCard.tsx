@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 const PLACEHOLDER =
   "data:image/svg+xml," +
   encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="#e7e5e4" width="100%" height="100%"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#a8a29e" font-size="14" font-family="sans-serif">Halls Hub</text></svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect fill="#e7e5e4" width="100%" height="100%"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#a8a29e" font-size="14" font-family="sans-serif">EventForYou</text></svg>'
   );
 
 function isOptimizableSrc(src: string): boolean {

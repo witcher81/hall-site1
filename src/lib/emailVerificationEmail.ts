@@ -30,7 +30,7 @@ export async function sendEmailVerificationCodeEmail(
   const validUntil = escapeHtml(formatHebrewDateTime(input.expiresAt));
   const codeHtml = escapeHtml(input.code);
 
-  const subject = "קוד אימות — Halls Hub";
+  const subject = "קוד אימות — EventForYou";
 
   const html = `<!doctype html>
 <html lang="he" dir="rtl">
@@ -46,7 +46,7 @@ export async function sendEmailVerificationCodeEmail(
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:#ffffff;border:1px solid #E0D4C3;border-radius:16px;padding:28px;box-shadow:0 12px 40px rgba(15,59,46,0.08);">
             <tr>
               <td>
-                <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;letter-spacing:0.25em;color:#C9A227;">HALLS HUB</p>
+                <p style="margin:0 0 4px 0;font-size:11px;font-weight:600;letter-spacing:0.25em;color:#C9A227;">EVENT FOR YOU</p>
                 <h1 style="margin:0 0 16px 0;font-size:20px;font-weight:600;color:#0F3B2E;">אימות כתובת אימייל</h1>
                 <p style="margin:0 0 12px 0;font-size:14px;line-height:1.6;">${greeting}</p>
                 <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;">הזינו את הקוד הבא באתר כדי להשלים את ההרשמה ולהתחבר:</p>
@@ -56,7 +56,7 @@ export async function sendEmailVerificationCodeEmail(
               </td>
             </tr>
           </table>
-          <p style="margin:14px 0 0 0;font-size:11px;color:#6B6560;">Halls Hub · אין להשיב למייל אוטומטי זה</p>
+          <p style="margin:14px 0 0 0;font-size:11px;color:#6B6560;">EventForYou · אין להשיב למייל אוטומטי זה</p>
         </td>
       </tr>
     </table>
@@ -64,7 +64,7 @@ export async function sendEmailVerificationCodeEmail(
 </html>`;
 
   const text = [
-    "Halls Hub - קוד אימות אימייל",
+    "EventForYou - קוד אימות אימייל",
     "",
     greetingName ? `שלום ${greetingName},` : "שלום,",
     "",

@@ -79,7 +79,7 @@ export async function generateMetadata({
     title,
     description:
       description ||
-      `פרטים, גלריה וביקורות על ${venue.name} ב${venue.city} – Halls Hub.`,
+      `פרטים, גלריה וביקורות על ${venue.name} ב${venue.city} – EventForYou.`,
     alternates: {
       canonical: `/halls/${venueId}`,
     },

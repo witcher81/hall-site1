@@ -73,7 +73,7 @@ export default function ProviderViewClient({
                 </p>
               ) : (
                 <p className="text-sm text-neutral-600">
-                  ספק שירותים לאירועים ב־Halls Hub.
+                  ספק שירותים לאירועים ב־EventForYou.
                 </p>
               )}
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">

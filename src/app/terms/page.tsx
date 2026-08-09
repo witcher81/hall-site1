@@ -10,7 +10,7 @@ export default async function TermsPage() {
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
         <p>
-          ברוכים הבאים ל-Halls Hub. השימוש באתר מהווה הסכמה לתנאים אלה. האתר מספק פלטפורמה
+          ברוכים הבאים ל-EventForYou. השימוש באתר מהווה הסכמה לתנאים אלה. האתר מספק פלטפורמה
           לחיבור בין מחפשי אולמות, בעלי אולמות וספקי שירותים לאירועים — איננו צד לחוזה בין
           המשתמשים.
         </p>
@@ -38,8 +38,8 @@ export default async function TermsPage() {
         </p>
         <p>
           שאלות:{" "}
-          <a href="mailto:support@hallshub.example" className="text-emerald-950 underline">
-            support@hallshub.example
+          <a href="mailto:support@eventforyou.example" className="text-emerald-950 underline">
+            support@eventforyou.example
           </a>
         </p>
       </div>

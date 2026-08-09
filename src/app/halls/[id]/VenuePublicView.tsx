@@ -537,7 +537,7 @@ export default function VenuePublicView({
     () =>
       buildWhatsAppUrl(
         venue.ownerContactPhone,
-        `שלום, אשמח לקבל פרטים על אולם ${venue.name} ב${venue.city} (Halls Hub)`
+        `שלום, אשמח לקבל פרטים על אולם ${venue.name} ב${venue.city} (EventForYou)`
       ),
     [venue.ownerContactPhone, venue.name, venue.city]
   );
