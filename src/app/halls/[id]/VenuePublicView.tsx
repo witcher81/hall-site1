@@ -833,7 +833,7 @@ export default function VenuePublicView({
         <div className="venue-hero-band relative border-b border-neutral-200/80">
           {allImages.length > 0 && heroImage ? (
             <div
-              className="relative aspect-[21/9] w-full overflow-hidden bg-neutral-900"
+              className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-900 sm:aspect-[16/9] lg:aspect-[21/9]"
               onMouseEnter={() => setHeroCarouselPaused(true)}
               onMouseLeave={() => setHeroCarouselPaused(false)}
               onFocusCapture={() => setHeroCarouselPaused(true)}
@@ -892,20 +892,24 @@ export default function VenuePublicView({
                     </svg>
                   </button>
 
-                  <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5">
+                  <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-0.5">
                     {allImages.map((_, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => setHeroImageIndex(idx)}
-                        className={`h-2 rounded-full transition ${
-                          idx === heroImageIndex
-                            ? "w-5 bg-white"
-                            : "w-2 bg-white/50 hover:bg-white/75"
-                        }`}
+                        className="flex h-8 min-w-8 items-center justify-center"
                         aria-label={`תמונה ${idx + 1}`}
                         aria-current={idx === heroImageIndex ? "true" : undefined}
-                      />
+                      >
+                        <span
+                          className={`block h-2 rounded-full transition ${
+                            idx === heroImageIndex
+                              ? "w-5 bg-white"
+                              : "w-2 bg-white/50"
+                          }`}
+                        />
+                      </button>
                     ))}
                   </div>
 
@@ -1403,7 +1407,7 @@ export default function VenuePublicView({
           <button
             type="button"
             onClick={closeLightbox}
-            className="absolute left-4 top-4 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/70"
+            className="absolute left-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/70"
             aria-label="סגור"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -11,7 +11,7 @@ export default function HomeTopProviders({
   if (services.length === 0) return null;
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8">
+    <section>
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-wrap items-end justify-between gap-4 text-right">
           <div>

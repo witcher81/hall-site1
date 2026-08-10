@@ -129,11 +129,11 @@ export default function VenueAvailabilitySection({
                 return { year: prevYear, month: prevMonth };
               })
             }
-            className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
+            className="min-h-11 rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-sm font-medium text-emerald-950 hover:bg-neutral-50"
           >
             חודש קודם
           </button>
-          <span className="min-w-[10rem] text-center text-xs font-semibold text-emerald-950">
+          <span className="min-w-[10rem] text-center text-sm font-semibold text-emerald-950">
             {new Date(visibleMonth.year, visibleMonth.month, 1).toLocaleDateString("he-IL", {
               month: "long",
               year: "numeric",
@@ -148,7 +148,7 @@ export default function VenueAvailabilitySection({
                 return { year: nextYear, month: nextMonth };
               })
             }
-            className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
+            className="min-h-11 rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-sm font-medium text-emerald-950 hover:bg-neutral-50"
           >
             חודש הבא
           </button>

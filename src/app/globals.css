@@ -46,10 +46,15 @@ html[data-theme="night"] {
   background: var(--background);
 }
 
+html {
+  overflow-x: clip;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: clip;
 }
 
 /* מעטפת דף ציבורי */
@@ -1862,6 +1867,7 @@ html.a11y-stop-animations .home-hero-float-card {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -2157,6 +2163,25 @@ html.a11y-stop-animations .home-hall-cinema__frame {
 }
 
 @media (max-width: 640px) {
+  .home-hall-cinema--journey {
+    height: 280vh;
+  }
+
+  .home-hall-cinema__copy--journey {
+    min-height: 0;
+    padding: 1rem 0;
+    width: min(34rem, calc(100% - 1.5rem));
+  }
+
+  .home-hall-cinema__cta,
+  .home-hall-cinema__copy--journey > .home-hall-cinema__scroll-cue {
+    padding-top: 6.5rem;
+  }
+
+  .home-journey-progress {
+    bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+  }
+
   .home-journey-sheet {
     margin-top: -1.25rem;
     border-radius: 1.5rem 1.5rem 0 0;
@@ -2164,7 +2189,7 @@ html.a11y-stop-animations .home-hall-cinema__frame {
 
   .home-journey-scroll-hint {
     inset-inline-end: 1rem;
-    bottom: 1rem;
+    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
     font-size: 0.55rem;
   }
 }

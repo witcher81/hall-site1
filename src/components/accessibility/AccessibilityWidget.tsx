@@ -149,7 +149,7 @@ export default function AccessibilityWidget() {
   return (
     <div
       ref={rootRef}
-      className="a11y-widget fixed bottom-4 left-4 z-[620] sm:bottom-5 sm:left-5"
+      className="a11y-widget fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] left-4 z-[620] sm:bottom-5 sm:left-5"
     >
       {mounted ? (
         <div

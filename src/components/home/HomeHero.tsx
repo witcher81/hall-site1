@@ -227,6 +227,13 @@ export default function HomeHero() {
 
   function onPointerMove(e: PointerEvent<HTMLElement>) {
     if (reduceMotion) return;
+    if (e.pointerType !== "mouse") return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: none), (pointer: coarse)").matches
+    ) {
+      return;
+    }
     const el = stageRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -250,7 +257,7 @@ export default function HomeHero() {
   return (
     <section
       ref={stageRef}
-      className="home-hero-stage relative min-h-[min(88vh,720px)] w-full overflow-hidden"
+      className="home-hero-stage relative min-h-[min(88svh,720px)] w-full overflow-hidden"
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
       style={{ "--hx": 0, "--hy": 0 } as CSSProperties}
@@ -285,20 +292,20 @@ export default function HomeHero() {
       <div className="home-hero-orb home-hero-orb--a" aria-hidden />
       <div className="home-hero-orb home-hero-orb--b" aria-hidden />
 
-      <div className="relative mx-auto flex min-h-[min(88vh,720px)] max-w-6xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
+      <div className="relative mx-auto flex min-h-[min(88svh,720px)] max-w-6xl flex-col justify-center px-4 py-14 pb-20 sm:px-6 sm:py-20 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(260px,0.85fr)]">
           <div className="home-animate-in home-hero-copy max-w-2xl text-right">
             <p className="text-xs font-semibold tracking-[0.35em] text-amber-300/90">
               EVENT FOR YOU
             </p>
-            <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
+            <h1 className="mt-3 text-[1.85rem] font-bold leading-tight tracking-tight text-white sm:mt-4 sm:text-5xl lg:text-[3.25rem]">
               בונים אירוע?
               <br />
               <span className="text-amber-200/95">
                 מוצאים אולם, DJ, צלם, מעצב ועוד — במקום אחד
               </span>
             </h1>
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-white/80">
+            <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/80 sm:mt-5 sm:text-base">
               מרקטפלייס לאירועים: חיפוש, השוואה ובקשות — בלי לקפוץ בין עשרות אתרים.
             </p>
 

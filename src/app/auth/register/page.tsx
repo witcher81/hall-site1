@@ -245,14 +245,14 @@ function RegisterForm() {
               <p className="block text-xs font-medium text-neutral-600">
                 סוג משתמש
               </p>
-              <div className="mt-2 grid grid-cols-3 gap-2">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {(["SEEKER", "VENUE_OWNER", "FREELANCER"] as const).map(
                   (r) => (
                     <button
                       key={r}
                       type="button"
                       onClick={() => setRole(r)}
-                      className={`auth-role-btn w-full rounded-full border px-3 py-1.5 text-center text-xs transition ${
+                      className={`auth-role-btn min-h-11 w-full rounded-full border px-3 py-2.5 text-center text-sm transition sm:py-2 sm:text-xs ${
                         role === r ? "auth-role-btn-active" : ""
                       }`}
                     >

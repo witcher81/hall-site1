@@ -212,7 +212,7 @@ function VerifyEmailForm() {
                     onChange={(e) => {
                       setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
                     }}
-                    className="site-input mt-1 py-3 text-center font-mono text-2xl tracking-[0.4em]"
+                    className="site-input mt-1 w-full max-w-full py-3 text-center font-mono text-xl tracking-[0.2em] sm:text-2xl sm:tracking-[0.35em]"
                     placeholder="000000"
                     disabled={!email && Boolean(error)}
                   />

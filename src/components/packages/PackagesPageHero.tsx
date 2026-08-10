@@ -105,7 +105,7 @@ export default function PackagesPageHero() {
                       className="object-cover transition duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                    <span className="absolute inset-x-0 bottom-0 p-2.5 text-center text-xs font-bold text-white sm:text-sm">
+                    <span className="absolute inset-x-0 bottom-0 p-2 text-center text-[11px] font-bold leading-tight text-white sm:p-2.5 sm:text-sm">
                       {item.label}
                     </span>
                   </div>

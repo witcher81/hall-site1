@@ -18,7 +18,7 @@ const STEPS = [
 
 export default function HomeHowItWorks() {
   return (
-    <section className="px-4 sm:px-6 lg:px-8">
+    <section>
       <div className="home-surface-panel mx-auto max-w-6xl p-8 sm:p-10">
         <h2 className="text-center text-2xl font-bold text-neutral-900 sm:text-3xl">
           איך זה עובד

@@ -467,11 +467,11 @@ export default function SingleServiceView({
             </a>
           </div>
 
-          <div className="mt-3 flex items-start justify-between gap-3">
-            <h1 className="text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <h1 className="min-w-0 flex-1 text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
               {service.name}
             </h1>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2 self-end sm:self-start">
               <ShareButton
                 sharePath={`/services/${service.id}`}
                 title={service.name}
@@ -977,7 +977,7 @@ export default function SingleServiceView({
           <button
             type="button"
             onClick={() => setGalleryLightboxIndex(null)}
-            className="absolute left-4 top-4 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/70"
+            className="absolute left-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/70"
             aria-label="סגור"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

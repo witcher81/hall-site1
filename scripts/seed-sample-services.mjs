@@ -598,8 +598,33 @@ async function wipeSeedServices() {
   });
   const ids = services.map((s) => s.id);
   if (ids.length === 0) return 0;
+
+  await prisma.negotiationOffer.deleteMany({
+    where: { thread: { serviceId: { in: ids } } },
+  });
+  await prisma.negotiationThread.deleteMany({
+    where: { serviceId: { in: ids } },
+  });
   await prisma.serviceRequest.deleteMany({ where: { serviceId: { in: ids } } });
   await prisma.serviceFavorite.deleteMany({ where: { serviceId: { in: ids } } });
+  await prisma.serviceReview.deleteMany({ where: { serviceId: { in: ids } } });
+  await prisma.eventPackageService.deleteMany({ where: { serviceId: { in: ids } } });
+  await prisma.eventPlan.updateMany({
+    where: { photographerServiceId: { in: ids } },
+    data: { photographerServiceId: null },
+  });
+  await prisma.eventPlan.updateMany({
+    where: { djServiceId: { in: ids } },
+    data: { djServiceId: null },
+  });
+  await prisma.eventPlan.updateMany({
+    where: { cateringServiceId: { in: ids } },
+    data: { cateringServiceId: null },
+  });
+  await prisma.conversation.updateMany({
+    where: { serviceId: { in: ids } },
+    data: { serviceId: null },
+  });
   const r = await prisma.service.deleteMany({ where: { id: { in: ids } } });
   return r.count;
 }
@@ -726,6 +751,9 @@ async function main() {
         s.galleryImageUrls.length > 0 ? JSON.stringify(s.galleryImageUrls) : null,
       minPrice: s.minPrice,
       maxPrice: s.maxPrice,
+      moderationStatus: "APPROVED",
+      moderatedAt: new Date(),
+      moderationNote: "seed auto-approved",
     };
 
     if (dup && !REBUILD) {

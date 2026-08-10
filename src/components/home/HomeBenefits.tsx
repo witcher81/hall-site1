@@ -23,7 +23,7 @@ const BENEFITS = [
 
 export default function HomeBenefits() {
   return (
-    <section className="px-4 sm:px-6 lg:px-8">
+    <section>
       <div className="mx-auto max-w-6xl">
         <h2 className="text-right text-2xl font-bold text-neutral-900 sm:text-3xl">
           למה להשתמש באתר

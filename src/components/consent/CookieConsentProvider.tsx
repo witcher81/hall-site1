@@ -138,7 +138,7 @@ export default function CookieConsentProvider({
 
       {bannerVisible && (
         <div
-          className="fixed inset-x-0 bottom-0 z-[90] border-t border-neutral-200 bg-white/95 p-4 shadow-[0_-8px_32px_rgba(15,59,46,0.12)] backdrop-blur-sm"
+          className="fixed inset-x-0 bottom-0 z-[90] border-t border-neutral-200 bg-white/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] shadow-[0_-8px_32px_rgba(15,59,46,0.12)] backdrop-blur-sm"
           role="dialog"
           aria-label="הסכמה לעוגיות"
         >
@@ -158,28 +158,28 @@ export default function CookieConsentProvider({
                 </Link>
               </p>
             </div>
-            <div className="flex shrink-0 flex-wrap justify-end gap-2">
+            <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
               <button
                 type="button"
                 onClick={() => {
                   syncDraftFromStorage();
                   setPrefsOpen(true);
                 }}
-                className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 hover:bg-neutral-50"
+                className="min-h-11 rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-emerald-950 hover:bg-neutral-50"
               >
                 ניהול העדפות
               </button>
               <button
                 type="button"
                 onClick={handleRejectAll}
-                className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 hover:bg-neutral-50"
+                className="min-h-11 rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-emerald-950 hover:bg-neutral-50"
               >
                 דחיית הכל
               </button>
               <button
                 type="button"
                 onClick={handleAcceptAll}
-                className="rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-neutral-950 shadow-sm hover:bg-amber-300"
+                className="min-h-11 rounded-full bg-amber-400 px-4 text-sm font-semibold text-neutral-950 shadow-sm hover:bg-amber-300"
               >
                 קבלת הכל
               </button>

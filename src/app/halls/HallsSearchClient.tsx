@@ -433,7 +433,7 @@ function VenueResultCard({
               setFavoriteIds((prev) => new Set(prev).add(v.id));
             }
           }}
-          className="absolute left-2 top-2 rounded-full bg-black/50 p-1.5 text-white transition hover:bg-black/70"
+          className="absolute left-2 top-2 flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
           aria-label={favoriteIds.has(v.id) ? "הסר ממועדפים" : "שמירה למועדפים"}
         >
             <svg
@@ -458,12 +458,12 @@ function VenueResultCard({
             <p className="mt-0.5 text-xs text-neutral-600">{v.city}</p>
           </div>
           <label
-            className="flex cursor-pointer items-center gap-1 text-[11px] text-neutral-600"
+            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-1 text-xs text-neutral-600"
             onClick={(e) => e.stopPropagation()}
           >
             <input
               type="checkbox"
-              className="h-3.5 w-3.5 cursor-pointer rounded border-[#C9A227] text-amber-600 focus:ring-amber-400"
+              className="h-4 w-4 cursor-pointer rounded border-[#C9A227] text-amber-600 focus:ring-amber-400"
               checked={compareIds.includes(v.id)}
               onChange={(e) => {
                 setCompareIds((prev) =>
@@ -939,17 +939,17 @@ export default function HallsSearchClient({
       <button
         type="button"
         onClick={() => setMapOpenWithUrl(!mapOpen)}
-        className={`fixed top-36 z-[60] flex flex-col items-center gap-1 rounded-l-2xl border border-neutral-200 bg-white px-2.5 py-4 text-[11px] font-bold shadow-[0_8px_28px_rgba(15,59,46,0.15)] transition hover:border-amber-400 hover:bg-amber-50 sm:px-3 ${
+        className={`fixed z-[60] flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-l-2xl border border-neutral-200 bg-white px-2.5 py-3 text-[11px] font-bold shadow-[0_8px_28px_rgba(15,59,46,0.15)] transition hover:border-amber-400 hover:bg-amber-50 sm:px-3 sm:py-4 ${
           mapOpen ? "border-amber-400 bg-amber-50 text-emerald-950" : "text-emerald-950"
         }`}
-        style={{ insetInlineEnd: 0 }}
+        style={{ insetInlineEnd: 0, top: "max(7.5rem, calc(env(safe-area-inset-top, 0px) + 6.5rem))" }}
         aria-expanded={mapOpen}
         aria-label={mapOpen ? "הסתר מפת אולמות" : "הצג מפת אולמות"}
       >
         <span aria-hidden className="text-lg">
           🗺
         </span>
-        <span className="max-w-[3rem] leading-tight">
+        <span className="max-w-[3.25rem] leading-tight">
           {mapOpen ? "הסתר מפה" : "מפת אולמות"}
         </span>
       </button>
@@ -1032,7 +1032,7 @@ export default function HallsSearchClient({
             <button
               type="button"
               onClick={applyNaturalSearch}
-              className="shrink-0 rounded-xl bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900"
+              className="min-h-[44px] w-full shrink-0 rounded-xl bg-emerald-950 px-5 text-sm font-semibold text-white hover:bg-emerald-900 sm:w-auto"
             >
               החל סינון
             </button>
@@ -1402,7 +1402,7 @@ export default function HallsSearchClient({
           />
           <div
             id="halls-map-panel"
-            className="fixed z-50 flex max-h-[calc(100dvh-4.5rem)] w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl inset-x-2 top-[4.25rem] bottom-2 sm:inset-x-4 sm:top-20 sm:w-[calc(100vw-2rem)] md:left-1/2 md:right-auto md:top-1/2 md:bottom-auto md:w-[min(94vw,1160px)] md:max-h-[min(90dvh,860px)] md:-translate-x-1/2 md:-translate-y-1/2"
+            className="fixed inset-x-2 top-[4.25rem] bottom-[max(0.5rem,env(safe-area-inset-bottom,0px))] z-50 flex max-h-[calc(100dvh-4.5rem)] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl sm:inset-x-4 sm:top-20 md:left-1/2 md:right-auto md:top-1/2 md:bottom-auto md:w-[min(94vw,1160px)] md:max-h-[min(90dvh,860px)] md:-translate-x-1/2 md:-translate-y-1/2"
           >
             <HallsMapSection
               initialMapVenues={initialMapVenues}
@@ -1551,9 +1551,9 @@ export default function HallsSearchClient({
       )}
       </div>
       {compareIds.length > 0 && (
-        <div className="fixed inset-x-0 bottom-4 z-30 flex justify-center px-4">
-          <div className="flex w-full max-w-xl items-center justify-between gap-3 rounded-2xl bg-emerald-950 px-4 py-3 text-xs text-white shadow-[0_18px_45px_rgba(0,0,0,0.5)]">
-            <div>
+        <div className="fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom,0px))] z-[95] flex justify-center px-4 pb-[env(safe-area-inset-bottom,0px)]">
+          <div className="flex w-full max-w-xl flex-col gap-3 rounded-2xl bg-emerald-950 px-4 py-3 text-xs text-white shadow-[0_18px_45px_rgba(0,0,0,0.5)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 text-right">
               <p className="font-semibold">
                 {compareIds.length} אולמות נבחרו להשוואה
               </p>
@@ -1561,11 +1561,11 @@ export default function HallsSearchClient({
                 לחץ על “השווה אולמות” כדי לראות טבלת השוואה מסודרת.
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex w-full gap-2 sm:w-auto">
               <button
                 type="button"
                 onClick={() => setCompareIds([])}
-                className="rounded-full border border-white/40 px-3 py-1.5 text-[11px] font-medium text-white hover:bg-white/10"
+                className="min-h-11 flex-1 rounded-full border border-white/40 px-3 text-xs font-medium text-white hover:bg-white/10 sm:flex-none"
               >
                 נקה
               </button>
@@ -1575,7 +1575,7 @@ export default function HallsSearchClient({
                   const ids = compareIds.join(",");
                   router.push(`/halls/compare?ids=${ids}`);
                 }}
-                className="rounded-full bg-amber-400 px-4 py-1.5 text-[11px] font-semibold text-neutral-950 hover:bg-amber-300"
+                className="min-h-11 flex-1 rounded-full bg-amber-400 px-4 text-xs font-semibold text-neutral-950 hover:bg-amber-300 sm:flex-none"
               >
                 השווה אולמות
               </button>

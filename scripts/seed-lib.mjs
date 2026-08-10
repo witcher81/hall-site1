@@ -69,22 +69,27 @@ export function buildVenueRichPayload(v) {
     profiles[et] = {
       minGuests: String(v.minGuests ?? 80),
       maxGuests: String(v.maxGuests ?? 350),
-      minPrice: String(v.minPrice ?? 200),
-      maxPrice: String(v.maxPrice ?? 380),
+      minPrice: hasFood ? String(v.minPrice ?? 200) : "",
+      maxPrice: hasFood ? String(v.maxPrice ?? 380) : "",
       hasFoodAtEvent: hasFood,
-      ...(hasFood && isWedding
+      ...(hasFood
         ? {
             mealAlternatives: v.mealAlternatives ?? [
               "בשרי",
               "דגים",
-              "טבעוני",
+              ...(v.hasVeganFood !== false ? ["טבעוני"] : []),
               "תפריט ילדים",
             ],
             publicNotes:
               v.publicNotes ??
               "קבלת פנים כוללת שתייה קלה. ניתן להתאים תפריט ללא גלוטן בתיאום מראש.",
           }
-        : {}),
+        : {
+            mealAlternatives: [],
+            publicNotes:
+              v.publicNotes ??
+              "האולם ללא מטבח מובנה — אפשר להביא קייטרינג חיצוני בתיאום מראש.",
+          }),
       customHallItems: buildEventCustomHallItems(v, et, isWedding),
     };
   }
@@ -197,7 +202,8 @@ export function buildVenueRichPayload(v) {
     autoReplyMessage: `שלום! קיבלנו את בקשת ההזמנה ל${v.name}. נבדוק זמינות לתאריך שביקשתם ונחזור אליכם תוך יום עסקים עם פירוט מחירים ושירותים.`,
     hasChuppaOutdoor: Boolean(v.hasChuppa),
     hasChuppaCovered: Boolean(v.hasChuppa),
-    hasVeganFood: Boolean(v.hasFood),
+    hasVeganFood: v.hasVeganFood !== false && Boolean(v.hasFood),
+    hasAcumLicense: v.hasAcumLicense !== false,
     parking: parkingKind === "adjacent" ? "חניה צמודה לאולם" : "חניון ציבורי בקרבת מקום",
     hasParkingNearby: parkingKind === "nearby",
     parkingLatitude: hasParking && v.latitude != null ? v.latitude + 0.0012 : null,

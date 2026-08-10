@@ -118,8 +118,8 @@ const VENUES = [
     venueType: "רופטופ",
     minGuests: 60,
     maxGuests: 180,
-    minPrice: 350,
-    maxPrice: 520,
+    minPrice: null,
+    maxPrice: null,
     hallRentalMin: 22000,
     hallRentalMax: 42000,
     kashrut: "ללא",
@@ -130,7 +130,8 @@ const VENUES = [
     boutique: true,
     accessible: false,
     hasChuppa: false,
-    hasFood: true,
+    hasFood: false,
+    hasVeganFood: false,
     hasDanceFloor: true,
     hasTableSetup: true,
     hasSoundSystem: true,
@@ -138,8 +139,9 @@ const VENUES = [
     coverImageUrl: U.rooftopBar,
     galleryImageUrls: [U.djParty, U.mountainView],
     description:
-      "אירועים על גג עם נוף פנורמי לעיר. אידיאלי לחתונות ערב, קוקטיילים ואירועי השקה.",
+      "אירועים על גג עם נוף פנורמי לעיר — ללא מטבח מובנה. אידיאלי לקוקטיילים ואירועי השקה עם קייטרינג חיצוני.",
     eventTypes: ["חתונה", "אירוע עסקי", "יום הולדת"],
+    publicNotes: "ניתן להביא קייטרינג חיצוני מאושר. יש חיבור חשמל ומים לבר.",
   },
   {
     name: "אולם רויאל ירושלים",
@@ -366,11 +368,16 @@ async function getOrCreateOwner() {
         passwordHash,
         role: "VENUE_OWNER",
         emailVerified: true,
-        businessName: "Halls Hub — אולמות לדוגמה",
+        businessName: "EventForYou — אולמות לדוגמה",
         businessPhone: "050-0000000",
       },
     });
     console.log("נוצר בעל אולם דוגמה:", owner.email);
+  } else if (owner.businessName?.includes("Halls Hub")) {
+    owner = await prisma.user.update({
+      where: { id: owner.id },
+      data: { businessName: "EventForYou — אולמות לדוגמה" },
+    });
   }
   return owner;
 }
@@ -411,6 +418,7 @@ function venueCreateData(ownerId, v) {
     hasChuppaOutdoor: rich.hasChuppaOutdoor,
     hasChuppaCovered: rich.hasChuppaCovered,
     hasVeganFood: rich.hasVeganFood,
+    hasAcumLicense: rich.hasAcumLicense,
     coverImageUrl: v.coverImageUrl,
     galleryImageUrls: JSON.stringify(galleryUrls.slice(1)),
     description: `${v.description} ${SEED_MARKER}`,
@@ -419,6 +427,9 @@ function venueCreateData(ownerId, v) {
     customAmenitiesJson: rich.customAmenitiesJson,
     venueSoftAttributesJson: rich.venueSoftAttributesJson,
     autoReplyMessage: rich.autoReplyMessage,
+    moderationStatus: "APPROVED",
+    moderatedAt: new Date(),
+    moderationNote: "seed auto-approved",
     galleryImages: {
       create: gallery.map(({ url, category }) => ({ url, category })),
     },
@@ -432,11 +443,45 @@ async function wipeSeedVenues(ownerId) {
   });
   const ids = venues.map((x) => x.id);
   if (ids.length === 0) return 0;
-  await prisma.inquiry.deleteMany({ where: { venueId: { in: ids } } });
+
+  const inquiries = await prisma.inquiry.findMany({
+    where: { venueId: { in: ids } },
+    select: { id: true },
+  });
+  const inquiryIds = inquiries.map((i) => i.id);
+
+  if (inquiryIds.length > 0) {
+    await prisma.negotiationOffer.deleteMany({
+      where: { thread: { inquiryId: { in: inquiryIds } } },
+    });
+    await prisma.negotiationThread.deleteMany({
+      where: { inquiryId: { in: inquiryIds } },
+    });
+    await prisma.serviceRequest.updateMany({
+      where: { inquiryId: { in: inquiryIds } },
+      data: { inquiryId: null },
+    });
+    await prisma.inquiry.deleteMany({ where: { id: { in: inquiryIds } } });
+  }
+
   await prisma.favorite.deleteMany({ where: { venueId: { in: ids } } });
   await prisma.venueReview.deleteMany({ where: { venueId: { in: ids } } });
   await prisma.venueAvailability.deleteMany({ where: { venueId: { in: ids } } });
+  await prisma.venuePageView.deleteMany({ where: { venueId: { in: ids } } });
   await prisma.eventPackage.deleteMany({ where: { venueId: { in: ids } } });
+  await prisma.seekerEventBundle.updateMany({
+    where: { venueId: { in: ids } },
+    data: { venueId: null },
+  });
+  await prisma.eventPlan.updateMany({
+    where: { venueId: { in: ids } },
+    data: { venueId: null },
+  });
+  await prisma.conversation.updateMany({
+    where: { venueId: { in: ids } },
+    data: { venueId: null },
+  });
+  await prisma.venueGalleryImage.deleteMany({ where: { venueId: { in: ids } } });
   const r = await prisma.venue.deleteMany({ where: { id: { in: ids } } });
   return r.count;
 }
