@@ -6,8 +6,6 @@ import { applyRateLimit } from "@/lib/rateLimit";
 const SKIP_PREFIXES = [
   "/api/webhooks/",
   "/api/realtime/stream",
-  "/api/health",
-  "/api/dev/",
 ] as const;
 const CORS_METHODS = "GET,POST,PUT,PATCH,DELETE,OPTIONS";
 const CORS_ALLOWED_HEADERS = "Content-Type, Authorization";

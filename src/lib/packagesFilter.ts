@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { parsePackageTier } from "@/lib/eventPackageTypes";
 import { eventTypeSearchContainsVariants } from "@/lib/eventTypeOptions";
+import { publicPackageWhere } from "@/lib/listingModerationTypes";
 
 export type PackagesListSort = "order" | "price_low" | "price_high";
 
@@ -48,7 +49,7 @@ export function parsePackagesSearchParams(
 export function buildEventPackageWhere(
   input: PackagesSearchInput
 ): Prisma.EventPackageWhereInput {
-  const conditions: Prisma.EventPackageWhereInput[] = [{ isPublished: true }];
+  const conditions: Prisma.EventPackageWhereInput[] = [publicPackageWhere()];
 
   if (input.q) {
     const q = input.q;

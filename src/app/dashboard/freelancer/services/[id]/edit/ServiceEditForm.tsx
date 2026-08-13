@@ -101,6 +101,11 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
   const [paidExtras, setPaidExtras] = useState<ServicePaidExtraItem[]>(
     () => initialIncludes.paidExtras
   );
+  const [includesTravel, setIncludesTravel] = useState(initial.includesTravel);
+  const [includesEquipment, setIncludesEquipment] = useState(
+    initial.includesEquipment
+  );
+  const [includesNote, setIncludesNote] = useState(initial.includesNote ?? "");
   const [menu, setMenu] = useState<ServiceMenuConfig>(() => {
     const parsed = parseServiceMenuJson(initial.menuJson);
     const dietaryMerged = [
@@ -214,9 +219,9 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
       fd.append("serviceArea", form.serviceArea.trim());
       fd.append("experienceYears", form.experienceYears.trim());
       fd.append("languages", form.languages.trim());
-      fd.append("includesTravel", "false");
-      fd.append("includesEquipment", "false");
-      fd.append("includesNote", "");
+      fd.append("includesTravel", includesTravel ? "true" : "false");
+      fd.append("includesEquipment", includesEquipment ? "true" : "false");
+      fd.append("includesNote", includesNote.trim());
       fd.append(
         "customIncludesJson",
         JSON.stringify({
@@ -462,6 +467,12 @@ export default function ServiceEditForm({ serviceId, initial }: Props) {
             onCustomIncludesChange={setCustomIncludes}
             paidExtras={paidExtras}
             onPaidExtrasChange={setPaidExtras}
+            includesTravel={includesTravel}
+            onIncludesTravelChange={setIncludesTravel}
+            includesEquipment={includesEquipment}
+            onIncludesEquipmentChange={setIncludesEquipment}
+            includesNote={includesNote}
+            onIncludesNoteChange={setIncludesNote}
           />
 
           {showSimplePrice ? (

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -14,8 +15,8 @@ export async function GET(
     return NextResponse.json({ error: "מזהה לא תקין" }, { status: 400 });
   }
 
-  const venue = await prisma.venue.findUnique({
-    where: { id: venueId },
+  const venue = await prisma.venue.findFirst({
+    where: { id: venueId, ...approvedListingWhere() },
     select: { id: true, city: true },
   });
   if (!venue) {

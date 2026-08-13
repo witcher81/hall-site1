@@ -21,6 +21,7 @@ import {
   isPyramidPerHeadMode,
   resolveFoodPricingModeForSecondary,
 } from "@/lib/foodPricingMode";
+import { isUsefulIncludeDescription } from "@/lib/serviceIncludes";
 
 type Props = {
   menu: ServiceMenuConfig;
@@ -306,7 +307,10 @@ export default function ServiceMenuPublicSection({
         <span>
           {item.label.trim()}
           {qty ? ` (${qty})` : ""}
-          {item.description?.trim() ? ` — ${item.description.trim()}` : ""}
+          {item.description &&
+          isUsefulIncludeDescription(item.label, item.description)
+            ? ` — ${item.description.trim()}`
+            : ""}
         </span>
       </li>
     );
@@ -466,7 +470,11 @@ export default function ServiceMenuPublicSection({
                                         </span>
                                         <span>
                                           {item.label.trim()}
-                                          {item.description?.trim()
+                                          {item.description &&
+                                          isUsefulIncludeDescription(
+                                            item.label,
+                                            item.description
+                                          )
                                             ? ` — ${item.description.trim()}`
                                             : ""}
                                         </span>

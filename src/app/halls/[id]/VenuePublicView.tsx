@@ -69,9 +69,11 @@ type Venue = {
     checked: boolean;
     priceMode?: PriceMode;
     extraPrice?: number | null;
+    extraPriceMax?: number | null;
   }[];
   amenityPriceModes?: Partial<Record<BuiltinAmenityKey, PriceMode>>;
   amenityExtraPrices?: Partial<Record<BuiltinAmenityKey, number>>;
+  amenityExtraPriceMaxes?: Partial<Record<BuiltinAmenityKey, number>>;
   /** תוויות מ־venueSoftAttributesJson (מאפיינים משל בעל האולם, ללא תמחור) */
   softCustomAttributeLabels?: string[];
   /** פרופיל לפי סוג אירוע — מ־eventTypeProfilesJson בשרת */
@@ -85,18 +87,27 @@ function AmenityOfferPill({
   label,
   mode,
   extraPrice,
+  extraPriceMax,
   /** אוכל לאירועים שאינם חתונה: "לפי מנות" / "מחיר חדש" במקום כלול/בתוספת */
   foodNonWeddingPricing,
 }: {
   label: string;
   mode?: PriceMode;
   extraPrice?: number | null;
+  extraPriceMax?: number | null;
   foodNonWeddingPricing?: boolean;
 }) {
   const isExtra = mode === "extra";
   const price =
     typeof extraPrice === "number" && extraPrice > 0
       ? Math.trunc(extraPrice)
+      : null;
+  const priceMax =
+    typeof extraPriceMax === "number" &&
+    extraPriceMax > 0 &&
+    price != null &&
+    extraPriceMax !== price
+      ? Math.trunc(extraPriceMax)
       : null;
 
   let badgeText: ReactNode;
@@ -106,7 +117,9 @@ function AmenityOfferPill({
         <>
           מחיר חדש{" "}
           <span className="tabular-nums" dir="ltr">
-            ₪{price}
+            {priceMax != null
+              ? `₪${price.toLocaleString("he-IL")}–${priceMax.toLocaleString("he-IL")}`
+              : `₪${price.toLocaleString("he-IL")}`}
           </span>
           {" למנה"}
         </>
@@ -121,7 +134,9 @@ function AmenityOfferPill({
         <>
           בתוספת{" "}
           <span className="tabular-nums" dir="ltr">
-            ₪{price}
+            {priceMax != null
+              ? `₪${price.toLocaleString("he-IL")}–${priceMax.toLocaleString("he-IL")}`
+              : `₪${price.toLocaleString("he-IL")}`}
           </span>
         </>
       ) : (
@@ -329,7 +344,11 @@ function EventTypeProfilePanel({
                 <span className="shrink-0 text-xs text-neutral-600">
                   {item.priceMode === "extra"
                     ? item.extraPrice != null && item.extraPrice > 0
-                      ? `בתוספת ₪${item.extraPrice}`
+                      ? item.extraPriceMax != null &&
+                        item.extraPriceMax > 0 &&
+                        item.extraPriceMax !== item.extraPrice
+                        ? `בתוספת ₪${item.extraPrice.toLocaleString("he-IL")}–${item.extraPriceMax.toLocaleString("he-IL")}`
+                        : `בתוספת ₪${item.extraPrice.toLocaleString("he-IL")}`
                       : "בתוספת תשלום"
                     : "כלול"}
                 </span>
@@ -350,6 +369,7 @@ type AmenityOfferRow = {
   label: string;
   mode?: PriceMode;
   extraPrice?: number | null;
+  extraPriceMax?: number | null;
   foodNonWeddingPricing?: boolean;
 };
 
@@ -383,6 +403,7 @@ function OfferServicesGrid({ items }: { items: AmenityOfferRow[] }) {
             label={a.label}
             mode={a.mode}
             extraPrice={a.extraPrice}
+            extraPriceMax={a.extraPriceMax}
             foodNonWeddingPricing={a.foodNonWeddingPricing}
           />
         </li>
@@ -689,6 +710,7 @@ export default function VenuePublicView({
             label: venueMealPriceLabel ? `אוכל · ${venueMealPriceLabel}` : "אוכל",
             mode: venue.amenityPriceModes?.hasFood,
             extraPrice: venue.amenityExtraPrices?.hasFood,
+            extraPriceMax: venue.amenityExtraPriceMaxes?.hasFood,
             foodNonWeddingPricing: !venueMealPriceLabel,
           },
         ]
@@ -700,6 +722,7 @@ export default function VenuePublicView({
             label: "סידור שולחנות",
             mode: venue.amenityPriceModes?.hasTableSetup,
             extraPrice: venue.amenityExtraPrices?.hasTableSetup,
+            extraPriceMax: venue.amenityExtraPriceMaxes?.hasTableSetup,
           },
         ]
       : []),
@@ -710,6 +733,7 @@ export default function VenuePublicView({
             label: "מערכת הגברה",
             mode: venue.amenityPriceModes?.hasSoundSystem,
             extraPrice: venue.amenityExtraPrices?.hasSoundSystem,
+            extraPriceMax: venue.amenityExtraPriceMaxes?.hasSoundSystem,
           },
         ]
       : []),
@@ -720,6 +744,7 @@ export default function VenuePublicView({
             label: 'רישיון אקו"ם',
             mode: venue.amenityPriceModes?.hasAcumLicense,
             extraPrice: venue.amenityExtraPrices?.hasAcumLicense,
+            extraPriceMax: venue.amenityExtraPriceMaxes?.hasAcumLicense,
           },
         ]
       : []),
@@ -728,6 +753,7 @@ export default function VenuePublicView({
       label: a.label,
       mode: a.priceMode,
       extraPrice: a.extraPrice,
+      extraPriceMax: a.extraPriceMax,
     })),
   ];
 
@@ -1125,6 +1151,7 @@ export default function VenuePublicView({
                               label: a.label,
                               mode: a.mode,
                               extraPrice: a.extraPrice,
+                              extraPriceMax: a.extraPriceMax,
                               foodNonWeddingPricing:
                                 "foodNonWeddingPricing" in a
                                   ? a.foodNonWeddingPricing

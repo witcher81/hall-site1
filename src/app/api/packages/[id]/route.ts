@@ -4,6 +4,7 @@ import {
   packageToBundleItems,
 } from "@/lib/eventPackagePrefill";
 import { packageRowToClient } from "@/lib/eventPackageForm";
+import { publicPackageWhere } from "@/lib/listingModerationTypes";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -46,7 +47,7 @@ export async function GET(
   }
 
   const pkg = await prisma.eventPackage.findFirst({
-    where: { id: pid, isPublished: true },
+    where: { id: pid, ...publicPackageWhere() },
     include: {
       venue: { select: venueSelect },
       services: {

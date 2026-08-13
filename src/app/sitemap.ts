@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { prisma } from "@/lib/prisma";
-import { approvedListingWhere } from "@/lib/listingModerationTypes";
+import {
+  approvedListingWhere,
+  publicPackageWhere,
+} from "@/lib/listingModerationTypes";
 
 /** Avoid baking DB calls into the Vercel build — Neon blips were failing deploys. */
 export const dynamic = "force-dynamic";
@@ -38,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         take: 500,
       }),
       prisma.eventPackage.findMany({
-        where: { isPublished: true },
+        where: publicPackageWhere(),
         select: { id: true, updatedAt: true },
         take: 500,
       }),

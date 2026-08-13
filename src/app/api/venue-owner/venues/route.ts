@@ -19,7 +19,7 @@ import {
   validateOptionalShortText,
   validatePriceMinMax,
   validateRequiredText,
-  validateUploadedImageFile,
+  validateUploadedImageContent,
 } from "@/lib/userInputValidation";
 import { validateVenueKashrut } from "@/lib/venueKashrutOptions";
 import { saveVenueImageFile } from "@/lib/venueImageUpload";
@@ -694,12 +694,12 @@ export async function POST(req: NextRequest) {
     ...galleryFilesFood,
   ]) {
     if (f instanceof File && f.size > 0) {
-      const imgErr = validateUploadedImageFile(f);
+      const imgErr = await validateUploadedImageContent(f);
       if (imgErr) return badRequest(imgErr);
     }
   }
   if (coverImageFile && coverImageFile.size > 0) {
-    const imgErr = validateUploadedImageFile(coverImageFile);
+    const imgErr = await validateUploadedImageContent(coverImageFile);
     if (imgErr) return badRequest(imgErr);
   }
 
@@ -1099,13 +1099,13 @@ export async function PUT(req: NextRequest) {
       ...galleryFilesFood,
     ]) {
       if (f instanceof File && f.size > 0) {
-        const ie = validateUploadedImageFile(f);
+        const ie = await validateUploadedImageContent(f);
         if (ie) return badRequest(ie);
       }
     }
   }
   if (coverImageFile && coverImageFile.size > 0) {
-    const ie = validateUploadedImageFile(coverImageFile);
+    const ie = await validateUploadedImageContent(coverImageFile);
     if (ie) return badRequest(ie);
   }
 

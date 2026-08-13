@@ -55,6 +55,14 @@ export function approvedListingWhere() {
   return { moderationStatus: ListingModerationStatus.APPROVED } as const;
 }
 
+/** חבילה ציבורית: מפורסמת + אולם מאושר */
+export function publicPackageWhere() {
+  return {
+    isPublished: true,
+    venue: approvedListingWhere(),
+  } as const;
+}
+
 export type ExternalModerationDecisionPayload = {
   listingType: ListingType;
   listingId: number;

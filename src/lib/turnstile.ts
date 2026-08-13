@@ -1,10 +1,18 @@
 import "server-only";
 
+import { isProductionRuntime } from "@/lib/isProduction";
+
 export async function verifyTurnstileToken(
   token: string | undefined | null,
   remoteIp?: string | null
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!isTurnstileConfigured()) {
+    if (isProductionRuntime()) {
+      return {
+        ok: false,
+        error: "אימות האבטחה אינו מוגדר בשרת. נסו שוב מאוחר יותר.",
+      };
+    }
     return { ok: true };
   }
 

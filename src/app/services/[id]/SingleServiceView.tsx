@@ -29,6 +29,7 @@ import type {
   ServiceCustomInclude,
   ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
+import { isUsefulIncludeDescription } from "@/lib/serviceIncludes";
 import { parseSocialLinksJson, type SocialLink } from "@/lib/socialLinks";
 import {
   checkoutAuthHref,
@@ -689,9 +690,9 @@ export default function SingleServiceView({
                     <p className="text-sm font-semibold text-emerald-950">
                       {c.label.trim()}
                     </p>
-                    {c.description?.trim() ? (
+                    {isUsefulIncludeDescription(c.label, c.description) ? (
                       <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-                        {c.description.trim()}
+                        {c.description!.trim()}
                       </p>
                     ) : null}
                   </div>
@@ -743,9 +744,9 @@ export default function SingleServiceView({
                         </span>
                       ) : null}
                     </div>
-                    {p.description?.trim() ? (
+                    {isUsefulIncludeDescription(p.label, p.description) ? (
                       <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-                        {p.description.trim()}
+                        {p.description!.trim()}
                       </p>
                     ) : null}
                   </div>

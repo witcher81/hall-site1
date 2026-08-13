@@ -188,7 +188,6 @@ export function buildVenueRichPayload(v) {
     ...(v.accessible ? [{ id: "sa-access", label: "נגישות מלאה", on: true }] : []),
     { id: "sa-ac", label: "מיזוג אוויר", on: true },
     { id: "sa-wifi", label: "WiFi לאורחים", on: true },
-    { id: "sa-coat", label: "שירות חניה לנכים", on: Boolean(v.accessible) },
     ...(v.softExtras ?? []),
   ];
 

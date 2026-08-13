@@ -190,6 +190,23 @@ export function sanitizeIncludesNote(
   return t.slice(0, MAX_INCLUDES_NOTE_LEN);
 }
 
+/** האם ההסבר מוסיף מידע מעבר לשם הפריט (לא חזרה ריקה כמו «כלול במחיר — X») */
+export function isUsefulIncludeDescription(
+  label: string,
+  description: string | null | undefined
+): boolean {
+  const desc = (description ?? "").trim();
+  if (!desc) return false;
+  const lab = label.trim();
+  if (!lab) return true;
+  if (desc === lab) return false;
+  const redundantPrefixes = ["כלול במחיר —", "כלול במחיר -", "כלול במחיר:"];
+  for (const prefix of redundantPrefixes) {
+    if (desc === `${prefix} ${lab}` || desc === `${prefix}${lab}`) return false;
+  }
+  return true;
+}
+
 export function hasAnyServiceIncludes(
   includesTravel: boolean,
   includesEquipment: boolean,

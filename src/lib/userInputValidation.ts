@@ -221,24 +221,72 @@ export function validateExperienceYearsInt(n: number | null): boolean {
   );
 }
 
-/** תמונת JPEG/PNG/WebP עד 5MB */
+function isAllowedImageMime(type: string): boolean {
+  const t = type.toLowerCase();
+  return (
+    t === "image/jpeg" ||
+    t === "image/jpg" ||
+    t === "image/png" ||
+    t === "image/webp"
+  );
+}
+
+function isAllowedImageExt(name: string): boolean {
+  return /\.(jpe?g|png|webp)$/i.test(name);
+}
+
+/** חתימות קובץ — JPEG / PNG / WebP */
+export function validateImageMagicBytes(bytes: Uint8Array): string | null {
+  if (bytes.length < 12) {
+    return "יש להעלות תמונה בפורמט JPEG, PNG או WebP";
+  }
+  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const isPng =
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47 &&
+    bytes[4] === 0x0d &&
+    bytes[5] === 0x0a &&
+    bytes[6] === 0x1a &&
+    bytes[7] === 0x0a;
+  const isWebp =
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50;
+  if (!isJpeg && !isPng && !isWebp) {
+    return "יש להעלות תמונה בפורמט JPEG, PNG או WebP";
+  }
+  return null;
+}
+
+/** תמונת JPEG/PNG/WebP עד 5MB — דורש MIME וסיומת תואמים */
 export function validateUploadedImageFile(file: File): string | null {
   if (file.size <= 0) return "קובץ תמונה ריק";
   if (file.size > USER_INPUT_MAX.MAX_UPLOAD_IMAGE_BYTES) {
     return "גודל התמונה חורג מהמותר (עד 5MB)";
   }
-  const t = (file.type || "").toLowerCase();
-  const name = (file.name || "").toLowerCase();
-  const mimeOk =
-    t === "image/jpeg" ||
-    t === "image/jpg" ||
-    t === "image/png" ||
-    t === "image/webp";
-  const extOk = /\.(jpe?g|png|webp)$/i.test(name);
-  if (!mimeOk && !extOk) {
+  const mimeOk = isAllowedImageMime(file.type || "");
+  const extOk = isAllowedImageExt(file.name || "");
+  if (!mimeOk || !extOk) {
     return "יש להעלות תמונה בפורמט JPEG, PNG או WebP";
   }
   return null;
+}
+
+/** ולידציית מטא + חתימת קובץ */
+export async function validateUploadedImageContent(
+  file: File
+): Promise<string | null> {
+  const metaErr = validateUploadedImageFile(file);
+  if (metaErr) return metaErr;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  return validateImageMagicBytes(bytes);
 }
 
 export function formDataJsonStringTooLong(

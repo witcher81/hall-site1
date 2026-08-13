@@ -11,6 +11,7 @@ import {
   sanitizeServiceIncludesBundleFromClient,
   serializeServiceIncludesBundle,
 } from "@/lib/serviceIncludes";
+import { deriveServiceShortDescription } from "@/lib/freelancerServiceDescription";
 import {
   deriveServicePricesFromMenu,
   ensureMenuTemplateId,
@@ -37,7 +38,7 @@ import {
   validateOptionalShortText,
   validatePriceMinMax,
   validateRequiredText,
-  validateUploadedImageFile,
+  validateUploadedImageContent,
 } from "@/lib/userInputValidation";
 
 const MAX_INT = 2_147_483_647;
@@ -276,13 +277,13 @@ export async function POST(req: NextRequest) {
   const galleryFiles = formData.getAll("galleryImages") as File[];
   let nonEmptyGallery = 0;
   if (coverImage && coverImage.size > 0) {
-    const ie = validateUploadedImageFile(coverImage);
+    const ie = await validateUploadedImageContent(coverImage);
     if (ie) return badRequest(ie);
   }
   for (const file of galleryFiles) {
     if (file.size > 0) {
       nonEmptyGallery += 1;
-      const ie = validateUploadedImageFile(file);
+      const ie = await validateUploadedImageContent(file);
       if (ie) return badRequest(ie);
     }
   }
@@ -302,7 +303,7 @@ export async function POST(req: NextRequest) {
       providerId: user.id,
       name: nameCheck.value,
       category: catCheck.value,
-      shortDescription: null,
+      shortDescription: deriveServiceShortDescription(descCheck.value),
       description: descCheck.value,
       serviceArea: areaCheck.value,
       experienceYears,
@@ -499,14 +500,14 @@ export async function PUT(req: NextRequest) {
 
   const coverImageFile = (formData.get("coverImage") as File | null) ?? null;
   if (coverImageFile && coverImageFile.size > 0) {
-    const ie = validateUploadedImageFile(coverImageFile);
+    const ie = await validateUploadedImageContent(coverImageFile);
     if (ie) return badRequest(ie);
   }
 
   const galleryFiles = formData.getAll("galleryImages") as File[];
   for (const file of galleryFiles) {
     if (file.size > 0) {
-      const ie = validateUploadedImageFile(file);
+      const ie = await validateUploadedImageContent(file);
       if (ie) return badRequest(ie);
     }
   }
@@ -545,7 +546,7 @@ export async function PUT(req: NextRequest) {
     data: {
       name: nameCheckPut.value,
       category: catCheckPut.value,
-      shortDescription: null,
+      shortDescription: deriveServiceShortDescription(descCheckPut.value),
       description: descCheckPut.value,
       serviceArea: areaCheckPut.value,
       experienceYears,

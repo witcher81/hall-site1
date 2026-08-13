@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
+import { secretsEqual } from "@/lib/timingSafeSecret";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     const provided = extractWebhookSecret(req);
-    if (!provided || provided !== secret) {
+    if (!secretsEqual(provided, secret)) {
       return NextResponse.json({ error: "Invalid webhook secret" }, { status: 401 });
     }
 

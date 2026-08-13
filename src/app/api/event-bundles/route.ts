@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { publicPackageWhere } from "@/lib/listingModerationTypes";
 import { prisma } from "@/lib/prisma";
 import {
   BUNDLE_BUILD_MODES,
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest) {
 
   if (sourcePackageId != null) {
     const pkg = await prisma.eventPackage.findFirst({
-      where: { id: sourcePackageId, isPublished: true },
+      where: { id: sourcePackageId, ...publicPackageWhere() },
       select: { id: true },
     });
     if (!pkg) return NextResponse.json({ error: "חבילת מקור לא נמצאה" }, { status: 400 });

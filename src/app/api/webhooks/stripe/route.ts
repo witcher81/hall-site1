@@ -38,6 +38,32 @@ export async function POST(req: NextRequest) {
       Number.isInteger(venueId) &&
       venueId > 0
     ) {
+      const payment = await prisma.payment.findUnique({
+        where: { id: paymentId },
+        select: {
+          id: true,
+          purpose: true,
+          venueId: true,
+          status: true,
+        },
+      });
+
+      if (
+        !payment ||
+        payment.purpose !== "venue_boost" ||
+        payment.venueId !== venueId
+      ) {
+        return NextResponse.json({ received: true, ignored: true });
+      }
+
+      if (payment.status === "COMPLETED") {
+        return NextResponse.json({ received: true });
+      }
+
+      if (payment.status !== "PENDING") {
+        return NextResponse.json({ received: true, ignored: true });
+      }
+
       const venue = await prisma.venue.findUnique({
         where: { id: venueId },
         select: { boostExpiresAt: true },

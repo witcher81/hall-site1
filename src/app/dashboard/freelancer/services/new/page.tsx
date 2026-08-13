@@ -61,6 +61,9 @@ export default function NewServicePage() {
     []
   );
   const [paidExtras, setPaidExtras] = useState<ServicePaidExtraItem[]>([]);
+  const [includesTravel, setIncludesTravel] = useState(false);
+  const [includesEquipment, setIncludesEquipment] = useState(false);
+  const [includesNote, setIncludesNote] = useState("");
   const [menu, setMenu] = useState<ServiceMenuConfig>(() => parseServiceMenuJson(null));
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
@@ -159,9 +162,9 @@ export default function NewServicePage() {
       if (form.serviceArea.trim()) fd.append("serviceArea", form.serviceArea.trim());
       if (form.experienceYears.trim()) fd.append("experienceYears", form.experienceYears.trim());
       if (form.languages.trim()) fd.append("languages", form.languages.trim());
-      fd.append("includesTravel", "false");
-      fd.append("includesEquipment", "false");
-      fd.append("includesNote", "");
+      fd.append("includesTravel", includesTravel ? "true" : "false");
+      fd.append("includesEquipment", includesEquipment ? "true" : "false");
+      if (includesNote.trim()) fd.append("includesNote", includesNote.trim());
       fd.append(
         "customIncludesJson",
         JSON.stringify({
@@ -427,6 +430,12 @@ export default function NewServicePage() {
               onCustomIncludesChange={setCustomIncludes}
               paidExtras={paidExtras}
               onPaidExtrasChange={setPaidExtras}
+              includesTravel={includesTravel}
+              onIncludesTravelChange={setIncludesTravel}
+              includesEquipment={includesEquipment}
+              onIncludesEquipmentChange={setIncludesEquipment}
+              includesNote={includesNote}
+              onIncludesNoteChange={setIncludesNote}
             />
 
             {showSimplePrice ? (

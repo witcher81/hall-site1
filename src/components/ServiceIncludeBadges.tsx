@@ -2,6 +2,7 @@ import type {
   ServiceCustomInclude,
   ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
+import { isUsefulIncludeDescription } from "@/lib/serviceIncludes";
 
 type Props = {
   includesTravel?: boolean;
@@ -79,7 +80,8 @@ export default function ServiceIncludeBadges({
           {checkedCustom.map((c, i) => (
             <li key={`${c.label}-${i}`} className="text-right">
               <p className={itemTitle}>{c.label.trim()}</p>
-              {c.description?.trim() ? (
+              {c.description &&
+              isUsefulIncludeDescription(c.label, c.description) ? (
                 <p className={itemDesc}>{c.description.trim()}</p>
               ) : null}
             </li>
@@ -113,7 +115,8 @@ export default function ServiceIncludeBadges({
                     </span>
                   ) : null}
                 </p>
-                {p.description?.trim() ? (
+                {p.description &&
+                isUsefulIncludeDescription(p.label, p.description) ? (
                   <p className={itemDesc}>{p.description.trim()}</p>
                 ) : null}
               </li>

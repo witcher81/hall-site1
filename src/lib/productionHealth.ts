@@ -82,7 +82,7 @@ export function buildProductionHealthReport(): ProductionHealthReport {
     }
     if (emailVerifyCodeOnScreenFallback) {
       warnings.push(
-        "PRE-LAUNCH: קוד אימות מוצג על המסך כשהמייל לא נשלח. לפני השקה ציבורית: אמתו EMAIL_FROM, בדקו שנשלח מייל אמיתי, והגדירו DISABLE_EMAIL_VERIFY_CODE_FALLBACK=true ב-Vercel."
+        "ENABLE_EMAIL_VERIFY_CODE_FALLBACK=true — קוד אימות / קישור איפוס מוצגים על המסך כשהמייל נכשל. בטלו לפני השקה ציבורית (או הגדירו DISABLE_EMAIL_VERIFY_CODE_FALLBACK=true)."
       );
     }
     if (!blobConfigured) {
@@ -93,6 +93,14 @@ export function buildProductionHealthReport(): ProductionHealthReport {
     if (!geocodeFallbackConfigured) {
       warnings.push(
         "GOOGLE_GEOCODING_API_KEY — אופציונלי; גיבוי לגיאוקוד כש-ArcGIS לא מספיק."
+      );
+    }
+    if (
+      !process.env.TURNSTILE_SECRET_KEY?.trim() ||
+      !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()
+    ) {
+      warnings.push(
+        "TURNSTILE_SECRET_KEY + NEXT_PUBLIC_TURNSTILE_SITE_KEY — חובה בפרוד (לוגין, הרשמה, איפוס סיסמה, צור קשר)."
       );
     }
     if (process.env.ALLOW_DEV_USER_SWITCH === "true") {

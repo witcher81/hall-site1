@@ -8,6 +8,7 @@ import {
 import { formatFreelancerServicePriceShekelCompact } from "@/lib/freelancerServicePriceForm";
 import type { InquiryAddonFreelancerPick } from "@/lib/inquiryAddonFreelancers";
 import type { ServicePaidExtraItem } from "@/lib/serviceIncludes";
+import { isUsefulIncludeDescription } from "@/lib/serviceIncludes";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -79,9 +80,9 @@ function PaidExtrasPicker({
                       · {paidExtraPriceLabel(p)}
                     </span>
                   ) : null}
-                  {p.description?.trim() ? (
+                  {isUsefulIncludeDescription(label, p.description) ? (
                     <span className="mt-0.5 block text-[10px] text-neutral-500">
-                      {p.description.trim()}
+                      {p.description!.trim()}
                     </span>
                   ) : null}
                 </span>

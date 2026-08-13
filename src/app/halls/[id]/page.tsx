@@ -236,19 +236,31 @@ export default async function HallPublicPage({
         checked: boolean;
         priceMode: PriceMode;
         extraPrice: number | null;
+        extraPriceMax: number | null;
       }[] = [];
       for (const item of v) {
         if (typeof item !== "object" || item === null) continue;
         const o = item as Record<string, unknown>;
         const label = typeof o.label === "string" ? o.label.trim() : "";
         if (!label) continue;
+        const extraPrice =
+          typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
+            ? Math.trunc(o.extraPrice)
+            : null;
+        const extraPriceMaxRaw =
+          typeof o.extraPriceMax === "number" && Number.isFinite(o.extraPriceMax)
+            ? Math.trunc(o.extraPriceMax)
+            : null;
         out.push({
           label,
           checked: o.checked === true,
           priceMode: o.priceMode === "extra" ? "extra" : "included",
-          extraPrice:
-            typeof o.extraPrice === "number" && Number.isFinite(o.extraPrice)
-              ? Math.trunc(o.extraPrice)
+          extraPrice,
+          extraPriceMax:
+            extraPrice != null &&
+            extraPriceMaxRaw != null &&
+            extraPriceMaxRaw !== extraPrice
+              ? extraPriceMaxRaw
               : null,
         });
       }
@@ -259,6 +271,7 @@ export default async function HallPublicPage({
   })();
   const amenityPriceModes: Partial<Record<BuiltinAmenityKey, PriceMode>> = {};
   const amenityExtraPrices: Partial<Record<BuiltinAmenityKey, number>> = {};
+  const amenityExtraPriceMaxes: Partial<Record<BuiltinAmenityKey, number>> = {};
   const customAmenities = parsedAmenities.filter((row) => {
     if (!row.label.startsWith("__builtin__:")) return true;
     const key = row.label.slice("__builtin__:".length) as BuiltinAmenityKey;
@@ -272,6 +285,9 @@ export default async function HallPublicPage({
       amenityPriceModes[key] = row.priceMode;
       if (typeof row.extraPrice === "number" && row.extraPrice > 0) {
         amenityExtraPrices[key] = row.extraPrice;
+      }
+      if (typeof row.extraPriceMax === "number" && row.extraPriceMax > 0) {
+        amenityExtraPriceMaxes[key] = row.extraPriceMax;
       }
     }
     return false;
@@ -347,6 +363,7 @@ export default async function HallPublicPage({
           hasAcumLicense: venue.hasAcumLicense,
           amenityPriceModes,
           amenityExtraPrices,
+          amenityExtraPriceMaxes,
           softCustomAttributeLabels:
             softCustomAttributeLabels.length > 0 ? softCustomAttributeLabels : undefined,
           customAmenities:

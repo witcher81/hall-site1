@@ -13,7 +13,7 @@ import {
 import {
   USER_INPUT_MAX,
   validateOptionalShortText,
-  validateUploadedImageFile,
+  validateUploadedImageContent,
 } from "@/lib/userInputValidation";
 
 const BIO_MAX = 800;
@@ -190,7 +190,7 @@ export async function PUT(req: NextRequest) {
   }
 
   if (profileImageFile) {
-    const imgErr = validateUploadedImageFile(profileImageFile);
+    const imgErr = await validateUploadedImageContent(profileImageFile);
     if (imgErr) {
       return NextResponse.json({ error: imgErr }, { status: 400 });
     }

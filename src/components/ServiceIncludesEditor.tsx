@@ -16,6 +16,12 @@ type Props = {
   /** שדרוגים / תוספות בתשלום נפרד */
   paidExtras: ServicePaidExtraItem[];
   onPaidExtrasChange: Dispatch<SetStateAction<ServicePaidExtraItem[]>>;
+  includesTravel?: boolean;
+  onIncludesTravelChange?: (v: boolean) => void;
+  includesEquipment?: boolean;
+  onIncludesEquipmentChange?: (v: boolean) => void;
+  includesNote?: string;
+  onIncludesNoteChange?: (v: string) => void;
 };
 
 const MAX_LABEL = 80;
@@ -30,6 +36,12 @@ export default function ServiceIncludesEditor({
   onCustomIncludesChange,
   paidExtras,
   onPaidExtrasChange,
+  includesTravel = false,
+  onIncludesTravelChange,
+  includesEquipment = false,
+  onIncludesEquipmentChange,
+  includesNote = "",
+  onIncludesNoteChange,
 }: Props) {
   function addFreeItem() {
     if (customIncludes.length >= MAX_SERVICE_INCLUDE_ITEMS) return;
@@ -103,15 +115,63 @@ export default function ServiceIncludesEditor({
           מה כלול בשירות
         </h3>
         <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
-          פירטו מה הלקוח מקבל במחיר שמוצג — לכל פריט שם והסבר קצר.
+          כאן מפרטים ללקוח מה הוא מקבל במחיר שמוצג. לכל פריט: שם קצר + הסבר
+          מה בדיוק כלול (כמויות, חומרים, זמן, מי מבצע).
         </p>
+
+        {(onIncludesTravelChange || onIncludesEquipmentChange) && (
+          <div className="mt-3 flex flex-wrap gap-3">
+            {onIncludesTravelChange ? (
+              <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-emerald-950">
+                <input
+                  type="checkbox"
+                  checked={includesTravel}
+                  onChange={(e) => onIncludesTravelChange(e.target.checked)}
+                  className="h-4 w-4 rounded border-neutral-300 text-amber-500 focus:ring-amber-400/40"
+                />
+                כולל נסיעות לאירוע
+              </label>
+            ) : null}
+            {onIncludesEquipmentChange ? (
+              <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-emerald-950">
+                <input
+                  type="checkbox"
+                  checked={includesEquipment}
+                  onChange={(e) => onIncludesEquipmentChange(e.target.checked)}
+                  className="h-4 w-4 rounded border-neutral-300 text-amber-500 focus:ring-amber-400/40"
+                />
+                כולל ציוד מקצועי
+              </label>
+            ) : null}
+          </div>
+        )}
+
+        {onIncludesNoteChange ? (
+          <div className="mt-3">
+            <label className="block text-[10px] font-medium text-neutral-500">
+              הערה כללית על מה כלול (אופציונלי)
+            </label>
+            <textarea
+              dir="rtl"
+              rows={2}
+              maxLength={500}
+              value={includesNote}
+              onChange={(e) =>
+                onIncludesNoteChange(e.target.value.slice(0, 500))
+              }
+              placeholder="למשל: מערכת הגברה מקצועית, תאורת רחבה ומיקרופון אלחוטי כלולים במחיר"
+              className={textarea}
+            />
+          </div>
+        ) : null}
 
         <div className="mt-4">
           <p className="text-[11px] font-medium text-neutral-600">
             מה ניתן במחיר המוצג (ללא תוספת תשלום)
           </p>
           <p className="mt-0.5 text-[10px] text-[#9A948C]">
-            לכל שורה: שם הפריט, ומתחת הסבר קצר למה הלקוח מקבל.
+            דוגמה: שם «3 קוקטיילים ייחודיים» · הסבר «תפריט 3 קוקטיילים מותאמים,
+            כולל אלכוהול בסיסי והכנה במקום».
           </p>
           <ul className="mt-2 space-y-3">
             {customIncludes.map((row, index) => (
@@ -119,7 +179,10 @@ export default function ServiceIncludesEditor({
                 key={index}
                 className="rounded-lg border border-neutral-200/50 bg-white/90 p-2.5"
               >
-                <div className="flex flex-wrap items-start gap-2">
+                <label className="block text-[10px] font-medium text-neutral-500">
+                  שם הפריט
+                </label>
+                <div className="mt-1 flex flex-wrap items-start gap-2">
                   <input
                     type="text"
                     dir="rtl"
@@ -131,9 +194,12 @@ export default function ServiceIncludesEditor({
                       })
                     }
                     className={input}
-                    placeholder="למשל: עריכת וידאו בסיסית"
+                    placeholder="למשל: 3 קוקטיילים ייחודיים"
                   />
                 </div>
+                <label className="mt-2 block text-[10px] font-medium text-neutral-500">
+                  מה בדיוק כלול בפריט הזה
+                </label>
                 <textarea
                   dir="rtl"
                   rows={2}
@@ -144,7 +210,7 @@ export default function ServiceIncludesEditor({
                       description: e.target.value.slice(0, MAX_ITEM_DESC),
                     })
                   }
-                  placeholder="הסבר על מה כלול בפריט הזה"
+                  placeholder="למשל: תפריט של 3 קוקטיילים מותאמים לאירוע, כולל אלכוהול בסיסי והכנה במקום"
                   className={textarea}
                 />
                 <div className="mt-1 flex justify-end">

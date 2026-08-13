@@ -13,10 +13,14 @@ import {
 import {
   validateEmail,
   validateGuestCount,
+  validateImageMagicBytes,
   validateIsraeliPhoneRegister,
   validateNewPassword,
   validateRequiredText,
+  validateUploadedImageFile,
 } from "@/lib/userInputValidation";
+import { publicPackageWhere } from "@/lib/listingModerationTypes";
+import { secretsEqual } from "@/lib/timingSafeSecret";
 import { safeInternalPath, checkoutAuthHref } from "@/lib/guestCheckout";
 
 function mockReq(headers: Record<string, string>) {
@@ -112,6 +116,67 @@ describe("userInputValidation", () => {
     expect(validateGuestCount(0)).toBe(false);
     expect(validateRequiredText("hi", 10, 2, "שם").ok).toBe(true);
     expect(validateRequiredText("x", 10, 2, "שם").ok).toBe(false);
+  });
+});
+
+describe("image upload validation", () => {
+  it("requires both MIME and extension", () => {
+    const bytes = new Uint8Array(32);
+    expect(
+      validateUploadedImageFile(
+        new File([bytes], "photo.jpg", { type: "image/jpeg" })
+      )
+    ).toBeNull();
+    expect(
+      validateUploadedImageFile(
+        new File([bytes], "photo", { type: "image/jpeg" })
+      )
+    ).not.toBeNull();
+    expect(
+      validateUploadedImageFile(
+        new File([bytes], "photo.jpg", { type: "application/octet-stream" })
+      )
+    ).not.toBeNull();
+  });
+
+  it("accepts JPEG PNG WebP magic bytes and rejects others", () => {
+    const jpeg = new Uint8Array(12);
+    jpeg[0] = 0xff;
+    jpeg[1] = 0xd8;
+    jpeg[2] = 0xff;
+    expect(validateImageMagicBytes(jpeg)).toBeNull();
+
+    const png = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0,
+    ]);
+    expect(validateImageMagicBytes(png)).toBeNull();
+
+    const webp = new Uint8Array(12);
+    webp.set([0x52, 0x49, 0x46, 0x46], 0);
+    webp.set([0x57, 0x45, 0x42, 0x50], 8);
+    expect(validateImageMagicBytes(webp)).toBeNull();
+
+    expect(validateImageMagicBytes(new Uint8Array(12))).not.toBeNull();
+    expect(validateImageMagicBytes(new Uint8Array(4))).not.toBeNull();
+  });
+});
+
+describe("publicPackageWhere", () => {
+  it("requires published package and approved venue", () => {
+    expect(publicPackageWhere()).toEqual({
+      isPublished: true,
+      venue: { moderationStatus: "APPROVED" },
+    });
+  });
+});
+
+describe("secretsEqual", () => {
+  it("matches equal secrets and rejects mismatches", () => {
+    expect(secretsEqual("abc", "abc")).toBe(true);
+    expect(secretsEqual("abc", "abd")).toBe(false);
+    expect(secretsEqual("ab", "abc")).toBe(false);
+    expect(secretsEqual(null, "abc")).toBe(false);
+    expect(secretsEqual("", "abc")).toBe(false);
   });
 });
 

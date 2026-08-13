@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 import { prisma } from "@/lib/prisma";
 
 type RouteContext = {
@@ -27,6 +28,14 @@ export async function GET(req: NextRequest, context: RouteContext) {
   const defaultFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const defaultTo = new Date(defaultFrom);
   defaultTo.setUTCDate(defaultTo.getUTCDate() + 180);
+
+  const venue = await prisma.venue.findFirst({
+    where: { id: venueId, ...approvedListingWhere() },
+    select: { id: true },
+  });
+  if (!venue) {
+    return NextResponse.json({ error: "לא נמצא" }, { status: 404 });
+  }
 
   const { searchParams } = new URL(req.url);
   const requestedFrom = parseDate(searchParams.get("from") ?? "") ?? defaultFrom;

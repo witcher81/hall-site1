@@ -7,7 +7,9 @@ import {
   buildInquiryPrefillFromPackage,
   estimatePackagePriceRange,
 } from "@/lib/eventPackagePrefill";
-import { PACKAGE_TIER_LABELS, parsePackageTier } from "@/lib/eventPackageTypes";
+import { PACKAGE_TIER_LABELS, parsePackageTier, parseVenueIncludesJson } from "@/lib/eventPackageTypes";
+import { HALL_VENUE_PRODUCT_DND_ITEMS } from "@/lib/venueBuiltinAmenities";
+import { publicPackageWhere } from "@/lib/listingModerationTypes";
 import { prisma } from "@/lib/prisma";
 import { formatBundlePrice } from "@/lib/eventPackagePrice";
 import { absoluteImageUrl, truncateMeta } from "@/lib/seoMeta";
@@ -21,7 +23,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!Number.isInteger(pid) || pid <= 0) return { title: "חבילה" };
 
   const pkg = await prisma.eventPackage.findFirst({
-    where: { id: pid, isPublished: true },
+    where: { id: pid, ...publicPackageWhere() },
     select: {
       title: true,
       subtitle: true,
@@ -66,7 +68,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
   if (!Number.isInteger(pid) || pid <= 0) notFound();
 
   const pkg = await prisma.eventPackage.findFirst({
-    where: { id: pid, isPublished: true },
+    where: { id: pid, ...publicPackageWhere() },
     include: {
       venue: {
         select: {
@@ -120,6 +122,31 @@ export default async function PackageDetailPage({ params }: PageProps) {
   });
 
   if (!pkg) notFound();
+
+  const venueIncludeLabels = (() => {
+    const includes = parseVenueIncludesJson(pkg.venueIncludesJson);
+    if (includes.length === 0) return [] as string[];
+    const labelById = new Map<string, string>([
+      ...HALL_VENUE_PRODUCT_DND_ITEMS.map(
+        (i) => [`service:${i.key}`, i.label] as const
+      ),
+      ["service:chuppaCovered", "חופה מקורה"],
+      ["service:hasDanceFloor", "רחבת ריקודים"],
+      ["service:hasChuppa", "חופה"],
+    ]);
+    const labels: string[] = [];
+    for (const inc of includes) {
+      const known = labelById.get(inc.venueOptionId);
+      if (known) {
+        labels.push(known);
+        continue;
+      }
+      if (inc.venueOptionId.startsWith("service:")) {
+        labels.push(inc.venueOptionId.slice("service:".length));
+      }
+    }
+    return labels;
+  })();
 
   const pkgForPrefill = {
     id: pkg.id,
@@ -245,6 +272,21 @@ export default async function PackageDetailPage({ params }: PageProps) {
                   {pkg.venue.name} · {pkg.venue.city}
                 </Link>
               </li>
+              {venueIncludeLabels.length > 0 ? (
+                <li className="border-b border-neutral-200/60 pb-3">
+                  <p className="font-semibold text-emerald-950">כלול מהאולם</p>
+                  <ul className="mt-2 space-y-1 text-xs text-neutral-700">
+                    {venueIncludeLabels.map((label) => (
+                      <li key={label} className="flex gap-1.5">
+                        <span className="text-emerald-700" aria-hidden>
+                          ·
+                        </span>
+                        <span>{label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ) : null}
               {pkg.services.map((row) => {
                 const s = row.service;
                 const serviceBlurb = mergeFreelancerServiceDescriptionForForm(
