@@ -3,7 +3,12 @@ import "server-only";
 import { isProductionRuntime } from "@/lib/isProduction";
 import { isStripeConfigured } from "@/lib/stripe";
 
-export { VENUE_BOOST_DAYS, VENUE_BOOST_PRICE_NIS } from "@/lib/venueBoostConfig";
+export {
+  SERVICE_BOOST_DAYS,
+  SERVICE_BOOST_PRICE_NIS,
+  VENUE_BOOST_DAYS,
+  VENUE_BOOST_PRICE_NIS,
+} from "@/lib/venueBoostConfig";
 
 /**
  * קידום «דמו» (ללא סליקה) — מותר בפיתוח מקומי בלבד, או בפרוד עם

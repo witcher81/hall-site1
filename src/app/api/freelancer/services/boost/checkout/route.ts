@@ -4,15 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { getSiteUrl } from "@/lib/siteUrl";
 import {
-  VENUE_BOOST_DAYS,
-  VENUE_BOOST_PRICE_NIS,
+  SERVICE_BOOST_DAYS,
+  SERVICE_BOOST_PRICE_NIS,
 } from "@/lib/venueBoost.server";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
-  if (!user || user.role !== "VENUE_OWNER") {
+  if (!user || user.role !== "FREELANCER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -24,17 +24,17 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const venueId = Number(body.venueId);
-  if (!Number.isInteger(venueId) || venueId <= 0) {
-    return NextResponse.json({ error: "מזהה אולם לא תקין" }, { status: 400 });
+  const serviceId = Number(body.serviceId);
+  if (!Number.isInteger(serviceId) || serviceId <= 0) {
+    return NextResponse.json({ error: "מזהה שירות לא תקין" }, { status: 400 });
   }
 
-  const venue = await prisma.venue.findFirst({
-    where: { id: venueId, ownerId: user.id },
+  const service = await prisma.service.findFirst({
+    where: { id: serviceId, providerId: user.id },
     select: { id: true, name: true },
   });
-  if (!venue) {
-    return NextResponse.json({ error: "אולם לא נמצא" }, { status: 404 });
+  if (!service) {
+    return NextResponse.json({ error: "שירות לא נמצא" }, { status: 404 });
   }
 
   const stripe = getStripe();
@@ -46,9 +46,9 @@ export async function POST(req: NextRequest) {
   const payment = await prisma.payment.create({
     data: {
       userId: user.id,
-      venueId,
-      amountNis: VENUE_BOOST_PRICE_NIS,
-      purpose: "venue_boost",
+      serviceId,
+      amountNis: SERVICE_BOOST_PRICE_NIS,
+      purpose: "service_boost",
       status: "PENDING",
     },
   });
@@ -60,10 +60,10 @@ export async function POST(req: NextRequest) {
       {
         price_data: {
           currency: "ils",
-          unit_amount: VENUE_BOOST_PRICE_NIS * 100,
+          unit_amount: SERVICE_BOOST_PRICE_NIS * 100,
           product_data: {
-            name: `קידום אולם — ${venue.name}`,
-            description: `${VENUE_BOOST_DAYS} ימים בראש תוצאות החיפוש + תג מאומת`,
+            name: `קידום שירות — ${service.name}`,
+            description: `${SERVICE_BOOST_DAYS} ימים בראש החיפוש + תג מאומת`,
           },
         },
         quantity: 1,
@@ -71,12 +71,12 @@ export async function POST(req: NextRequest) {
     ],
     metadata: {
       paymentId: String(payment.id),
-      venueId: String(venueId),
+      serviceId: String(serviceId),
       userId: String(user.id),
-      purpose: "venue_boost",
+      purpose: "service_boost",
     },
-    success_url: `${siteUrl}/dashboard/venue-owner/venues/${venueId}?boost=success`,
-    cancel_url: `${siteUrl}/dashboard/venue-owner/venues/${venueId}?boost=cancel`,
+    success_url: `${siteUrl}/dashboard/freelancer/services/${serviceId}?boost=success`,
+    cancel_url: `${siteUrl}/dashboard/freelancer/services/${serviceId}?boost=cancel`,
   });
 
   await prisma.payment.update({

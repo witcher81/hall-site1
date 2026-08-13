@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import ListingModerationBadge from "@/components/ListingModerationBadge";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
+import { isBoostActive } from "@/lib/listingBoost";
 
 type Venue = {
   id: number;
@@ -18,6 +20,7 @@ type Venue = {
   coverImageUrl: string | null;
   moderationStatus: string;
   moderationNote: string | null;
+  boostExpiresAt?: string | Date | null;
 };
 
 type RecentInquiry = {
@@ -137,7 +140,13 @@ export default function VenueOwnerDashboardClient({ initial }: Props) {
                       {v.name}
                       <span className="font-normal text-neutral-600"> · {v.city}</span>
                     </p>
-                    <ListingModerationBadge status={v.moderationStatus} note={v.moderationNote} />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <ListingPromoBadges
+                        active={isBoostActive(v.boostExpiresAt)}
+                        compact
+                      />
+                      <ListingModerationBadge status={v.moderationStatus} note={v.moderationNote} />
+                    </div>
                   </div>
                   <p className="mt-0.5 text-xs text-neutral-600">{v.address}</p>
                   {(v.minGuests != null || v.maxGuests != null) && (

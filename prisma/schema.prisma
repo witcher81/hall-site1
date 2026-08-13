@@ -317,12 +317,14 @@ model Payment {
   amountNis       Int
   purpose         String
   venueId         Int?
+  serviceId       Int?
   status          String   @default("PENDING")
   createdAt       DateTime @default(now())
   completedAt     DateTime?
 
   @@index([userId, createdAt])
   @@index([venueId])
+  @@index([serviceId])
 }
 
 model Service {
@@ -363,6 +365,8 @@ model Service {
   packageLinks    EventPackageService[]
   reviews         ServiceReview[]
   favorites       ServiceFavorite[]
+  /// קידום בתשלום — עד תאריך זה השירות מוצג בראש החיפוש + תג מאומת
+  boostExpiresAt  DateTime?
   /// PENDING | APPROVED | REJECTED — פרסום ציבורי רק לאחר APPROVED
   moderationStatus      String   @default("PENDING")
   moderationNote        String?
@@ -380,6 +384,7 @@ model Service {
   @@index([minPrice])
   @@index([maxPrice])
   @@index([createdAt])
+  @@index([boostExpiresAt])
 }
 
 /// חבילת אירוע: אולם + שירותים (סגנון "טיסה+מלון" – הכל במקום אחד)

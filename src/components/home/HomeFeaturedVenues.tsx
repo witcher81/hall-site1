@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { HomeFeaturedVenue } from "@/lib/homePageData";
 import { VENUE_HALL_SOFT_PRESET_LABEL } from "@/lib/venueHallSoftPresets";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import HomeImageCard from "./HomeImageCard";
 
 export default function HomeFeaturedVenues({
@@ -41,9 +42,7 @@ export default function HomeFeaturedVenues({
                 badge={
                   <>
                     {v.isBoosted ? (
-                      <span className="rounded-full bg-amber-400 px-2.5 py-0.5 text-[11px] font-bold text-neutral-900">
-                        מומלץ
-                      </span>
+                      <ListingPromoBadges active />
                     ) : null}
                     {v.boutique ? (
                       <span className="rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-800 backdrop-blur">

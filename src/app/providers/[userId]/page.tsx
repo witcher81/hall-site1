@@ -131,8 +131,15 @@ export default async function ProviderPage({ params }: PageProps) {
   }
 
   const services = await prisma.service.findMany({
-    where: { providerId },
+    where: { providerId, ...approvedListingWhere() },
     orderBy: { createdAt: "desc" },
+  });
+  const now = new Date();
+  const servicesForView = [...services].sort((a, b) => {
+    const ab = Boolean(a.boostExpiresAt && a.boostExpiresAt > now);
+    const bb = Boolean(b.boostExpiresAt && b.boostExpiresAt > now);
+    if (ab !== bb) return ab ? -1 : 1;
+    return 0;
   });
 
   const providerName = provider.businessName || provider.name || "ספק";
@@ -161,7 +168,7 @@ export default async function ProviderPage({ params }: PageProps) {
           profileImageUrl: provider.profileImageUrl,
           socialLinks: parseSocialLinksJson(provider.socialLinksJson),
         }}
-        services={services.map((s) => ({
+        services={servicesForView.map((s) => ({
           id: s.id,
           name: s.name,
           category: s.category,
@@ -170,6 +177,7 @@ export default async function ProviderPage({ params }: PageProps) {
           coverImageUrl: s.coverImageUrl,
           minPrice: s.minPrice,
           maxPrice: s.maxPrice,
+          isBoosted: Boolean(s.boostExpiresAt && s.boostExpiresAt > now),
         }))}
       />
     </SitePageShell>

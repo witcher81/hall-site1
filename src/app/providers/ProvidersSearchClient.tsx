@@ -1,6 +1,7 @@
 "use client";
 
 import OptionalPriceRangeFields from "@/components/OptionalPriceRangeFields";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import PopularBadge from "@/components/PopularBadge";
 import {
   FREELANCER_SERVICE_CATEGORIES,
@@ -35,6 +36,7 @@ type Service = {
   minPrice: number | null;
   maxPrice: number | null;
   providerId: number;
+  isBoosted?: boolean;
   provider: {
     id: number;
     name: string | null;
@@ -415,6 +417,11 @@ export default function ProvidersSearchClient({
                   <a href={`/services/${s.id}`} className="block p-4 pb-3">
                     {s.coverImageUrl ? (
                       <div className="relative mb-2 h-32 w-full overflow-hidden rounded-xl">
+                        <ListingPromoBadges
+                          active={Boolean(s.isBoosted)}
+                          compact
+                          className="absolute bottom-2 left-2 z-10"
+                        />
                         {popularProviderIds.has(s.providerId) && (
                           <PopularBadge className="absolute right-2 top-2 z-10" />
                         )}
@@ -434,6 +441,13 @@ export default function ProvidersSearchClient({
                       )
                     )}
                     <h2 className="font-semibold text-emerald-950">{s.name}</h2>
+                    {!s.coverImageUrl ? (
+                      <ListingPromoBadges
+                        active={Boolean(s.isBoosted)}
+                        compact
+                        className="mt-1"
+                      />
+                    ) : null}
                     {s.category && (
                       <p className="mt-0.5 text-xs text-neutral-600">{s.category}</p>
                     )}

@@ -8,6 +8,7 @@ import {
   type ServicePaidExtraItem,
 } from "@/lib/serviceIncludes";
 import { USER_INPUT_MAX } from "@/lib/userInputValidation";
+import { isBoostActive } from "@/lib/listingBoost";
 import { approvedListingWhere } from "@/lib/listingModerationTypes";
 
 /** תקרת תוצאות לחיפוש פומבי — מונע טעינת כל הטבלה לזיכרון (DoS) */
@@ -27,6 +28,7 @@ export type PublicProviderServiceItem = {
   maxPrice: number | null;
   providerId: number;
   paidExtras: ServicePaidExtraItem[];
+  isBoosted: boolean;
   provider: {
     id: number;
     name: string | null;
@@ -79,6 +81,7 @@ export async function searchPublicProviders(
       maxPrice: true,
       providerId: true,
       customIncludesJson: true,
+      boostExpiresAt: true,
       provider: {
         select: {
           id: true,
@@ -91,8 +94,16 @@ export async function searchPublicProviders(
     },
   });
 
+  const now = new Date();
+  const sorted = [...services].sort((a, b) => {
+    const ab = isBoostActive(a.boostExpiresAt, now);
+    const bb = isBoostActive(b.boostExpiresAt, now);
+    if (ab !== bb) return ab ? -1 : 1;
+    return 0;
+  });
+
   return {
-    services: services.map((s) => ({
+    services: sorted.map((s) => ({
       id: s.id,
       name: s.name,
       category: s.category,
@@ -106,6 +117,7 @@ export async function searchPublicProviders(
       maxPrice: s.maxPrice,
       providerId: s.providerId,
       paidExtras: parseServiceIncludesBundle(s.customIncludesJson).paidExtras,
+      isBoosted: isBoostActive(s.boostExpiresAt, now),
       provider: s.provider,
     })),
   };

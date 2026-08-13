@@ -90,6 +90,8 @@ function pickLimiterKind(pathname: string): LimiterKind {
   if (
     pathname === "/api/venue-owner/venues/boost" ||
     pathname === "/api/venue-owner/venues/boost/checkout" ||
+    pathname === "/api/freelancer/services/boost" ||
+    pathname === "/api/freelancer/services/boost/checkout" ||
     pathname === "/api/settings/account" ||
     pathname === "/api/contact" ||
     pathname === "/api/privacy-request"

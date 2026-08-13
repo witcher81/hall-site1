@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
-import { VENUE_BOOST_DAYS } from "@/lib/venueBoostConfig";
+import { nextBoostExpiry } from "@/lib/listingBoost";
+import {
+  SERVICE_BOOST_DAYS,
+  VENUE_BOOST_DAYS,
+} from "@/lib/venueBoostConfig";
 
 export const runtime = "nodejs";
 
@@ -28,53 +32,51 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     const paymentId = Number(session.metadata?.paymentId);
-    const venueId = Number(session.metadata?.venueId);
     const purpose = session.metadata?.purpose;
+    const stripePaymentId =
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : null;
 
-    if (
-      purpose === "venue_boost" &&
-      Number.isInteger(paymentId) &&
-      paymentId > 0 &&
-      Number.isInteger(venueId) &&
-      venueId > 0
-    ) {
-      const payment = await prisma.payment.findUnique({
-        where: { id: paymentId },
-        select: {
-          id: true,
-          purpose: true,
-          venueId: true,
-          status: true,
-        },
-      });
+    if (!Number.isInteger(paymentId) || paymentId <= 0) {
+      return NextResponse.json({ received: true });
+    }
 
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      select: {
+        id: true,
+        purpose: true,
+        venueId: true,
+        serviceId: true,
+        status: true,
+      },
+    });
+
+    if (!payment) {
+      return NextResponse.json({ received: true, ignored: true });
+    }
+    if (payment.status === "COMPLETED") {
+      return NextResponse.json({ received: true });
+    }
+    if (payment.status !== "PENDING" || payment.purpose !== purpose) {
+      return NextResponse.json({ received: true, ignored: true });
+    }
+
+    if (purpose === "venue_boost") {
+      const venueId = Number(session.metadata?.venueId);
       if (
-        !payment ||
-        payment.purpose !== "venue_boost" ||
+        !Number.isInteger(venueId) ||
+        venueId <= 0 ||
         payment.venueId !== venueId
       ) {
         return NextResponse.json({ received: true, ignored: true });
       }
-
-      if (payment.status === "COMPLETED") {
-        return NextResponse.json({ received: true });
-      }
-
-      if (payment.status !== "PENDING") {
-        return NextResponse.json({ received: true, ignored: true });
-      }
-
       const venue = await prisma.venue.findUnique({
         where: { id: venueId },
         select: { boostExpiresAt: true },
       });
-      const base =
-        venue?.boostExpiresAt && venue.boostExpiresAt > new Date()
-          ? venue.boostExpiresAt
-          : new Date();
-      const expires = new Date(base);
-      expires.setDate(expires.getDate() + VENUE_BOOST_DAYS);
-
+      const expires = nextBoostExpiry(venue?.boostExpiresAt, VENUE_BOOST_DAYS);
       await prisma.$transaction([
         prisma.venue.update({
           where: { id: venueId },
@@ -84,10 +86,37 @@ export async function POST(req: NextRequest) {
           where: { id: paymentId },
           data: {
             status: "COMPLETED",
-            stripePaymentId:
-              typeof session.payment_intent === "string"
-                ? session.payment_intent
-                : null,
+            stripePaymentId,
+            completedAt: new Date(),
+          },
+        }),
+      ]);
+    }
+
+    if (purpose === "service_boost") {
+      const serviceId = Number(session.metadata?.serviceId);
+      if (
+        !Number.isInteger(serviceId) ||
+        serviceId <= 0 ||
+        payment.serviceId !== serviceId
+      ) {
+        return NextResponse.json({ received: true, ignored: true });
+      }
+      const service = await prisma.service.findUnique({
+        where: { id: serviceId },
+        select: { boostExpiresAt: true },
+      });
+      const expires = nextBoostExpiry(service?.boostExpiresAt, SERVICE_BOOST_DAYS);
+      await prisma.$transaction([
+        prisma.service.update({
+          where: { id: serviceId },
+          data: { boostExpiresAt: expires },
+        }),
+        prisma.payment.update({
+          where: { id: paymentId },
+          data: {
+            status: "COMPLETED",
+            stripePaymentId,
             completedAt: new Date(),
           },
         }),

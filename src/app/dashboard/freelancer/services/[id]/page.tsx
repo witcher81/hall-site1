@@ -1,6 +1,11 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseServiceIncludesBundle } from "@/lib/serviceIncludes";
+import {
+  isVenueBoostDemoPurchaseEnabled,
+  isVenueBoostPurchaseUiEnabled,
+  isVenueBoostStripeEnabled,
+} from "@/lib/venueBoost.server";
 import { redirect } from "next/navigation";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -54,6 +59,9 @@ export default async function ServiceDetailsPage({
       <DashboardMain width="narrow">
         <ServiceDetailsClient
           providerId={user.id}
+          boostPurchaseEnabled={isVenueBoostPurchaseUiEnabled()}
+          boostStripeEnabled={isVenueBoostStripeEnabled()}
+          boostDemoEnabled={isVenueBoostDemoPurchaseEnabled()}
           service={{
         id: service.id,
         name: service.name,
@@ -73,6 +81,7 @@ export default async function ServiceDetailsPage({
         galleryImageUrls: service.galleryImageUrls ? (JSON.parse(service.galleryImageUrls) as string[]) : [],
         minPrice: service.minPrice,
         maxPrice: service.maxPrice,
+        boostExpiresAt: service.boostExpiresAt?.toISOString() ?? null,
       }}
         />
       </DashboardMain>

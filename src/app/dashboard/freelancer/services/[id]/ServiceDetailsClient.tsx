@@ -1,6 +1,11 @@
 "use client";
 
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import ServiceIncludeBadges from "@/components/ServiceIncludeBadges";
+import {
+  SERVICE_BOOST_DAYS,
+  SERVICE_BOOST_PRICE_NIS,
+} from "@/lib/venueBoostConfig";
 import {
   hasAnyServiceIncludes,
   type ServiceCustomInclude,
@@ -8,7 +13,7 @@ import {
 } from "@/lib/serviceIncludes";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type Service = {
   id: number;
@@ -29,18 +34,75 @@ type Service = {
   galleryImageUrls: string[];
   minPrice: number | null;
   maxPrice: number | null;
+  boostExpiresAt?: string | null;
 };
 
 export default function ServiceDetailsClient({
   service,
   providerId,
+  boostPurchaseEnabled,
+  boostStripeEnabled = false,
+  boostDemoEnabled = false,
 }: {
   service: Service;
   providerId: number;
+  boostPurchaseEnabled: boolean;
+  boostStripeEnabled?: boolean;
+  boostDemoEnabled?: boolean;
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [boostExpiresAt, setBoostExpiresAt] = useState<string | null>(
+    service.boostExpiresAt ?? null
+  );
+  const [boosting, setBoosting] = useState(false);
+  const [boostError, setBoostError] = useState<string | null>(null);
+  const boostActive = useMemo(() => {
+    if (!boostExpiresAt) return false;
+    return new Date(boostExpiresAt) > new Date();
+  }, [boostExpiresAt]);
+
+  async function handleBoost() {
+    setBoosting(true);
+    setBoostError(null);
+    try {
+      if (boostStripeEnabled) {
+        const res = await fetch("/api/freelancer/services/boost/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ serviceId: service.id }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.url) {
+          setBoostError(data?.error || "פתיחת תשלום נכשלה");
+          setBoosting(false);
+          return;
+        }
+        window.location.assign(data.url as string);
+        return;
+      }
+      const res = await fetch("/api/freelancer/services/boost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId: service.id }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setBoostError(data?.error || "הקידום נכשל");
+        setBoosting(false);
+        return;
+      }
+      if (typeof data?.boostExpiresAt === "string") {
+        setBoostExpiresAt(data.boostExpiresAt);
+      }
+      router.refresh();
+    } catch {
+      setBoostError("שגיאה בלתי צפויה");
+    } finally {
+      setBoosting(false);
+    }
+  }
   const descriptionDisplay = mergeFreelancerServiceDescriptionForForm(
     service.shortDescription,
     service.description
@@ -115,6 +177,65 @@ export default function ServiceDetailsClient({
           {deleteError}
         </p>
       )}
+
+      <section className="mt-6 space-y-3 rounded-2xl border border-[#C9A227]/35 bg-gradient-to-br from-[#FFF9E6] to-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
+        <div className="mb-2 h-1 w-12 rounded-full bg-amber-400" aria-hidden />
+        <h2 className="text-lg font-semibold text-emerald-950">קידום בחיפוש</h2>
+        <p className="text-xs leading-relaxed text-[#5C564C]">
+          הקפצת השירות לראש תוצאות החיפוש + תג «מאומת» למשך {SERVICE_BOOST_DAYS} ימים
+          {boostStripeEnabled ? (
+            <>
+              . תשלום מאובטח דרך Stripe.
+            </>
+          ) : boostDemoEnabled ? (
+            <>
+              . התשלום כאן הוא{" "}
+              <span className="font-medium text-emerald-950">דמו בלבד</span> (ללא סליקה אמיתית).
+            </>
+          ) : (
+            <>
+              . <span className="font-medium text-emerald-950">רכישת קידום תיפתח בקרוב</span>.
+            </>
+          )}
+        </p>
+        {boostActive ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <ListingPromoBadges active />
+            {boostExpiresAt ? (
+              <p className="text-xs font-medium text-emerald-950">
+                פעיל עד{" "}
+                {new Date(boostExpiresAt).toLocaleString("he-IL", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        {boostPurchaseEnabled ? (
+          <button
+            type="button"
+            onClick={handleBoost}
+            disabled={boosting}
+            className="mt-1 inline-flex items-center justify-center rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-neutral-950 shadow-sm transition hover:bg-amber-300 disabled:opacity-60"
+          >
+            {boosting
+              ? "מעבד..."
+              : boostActive
+                ? `הארך קידום — ₪${SERVICE_BOOST_PRICE_NIS}${boostDemoEnabled ? " (דמו)" : ""}`
+                : `קדם את השירות — ₪${SERVICE_BOOST_PRICE_NIS}${boostDemoEnabled ? " (דמו)" : ""}`}
+          </button>
+        ) : (
+          <p className="mt-1 text-xs text-neutral-600">
+            כשהקידום יהיה זמין תוכלו לרכוש כאן. קידום קיים (אם יש) ימשיך עד תאריך הסיום.
+          </p>
+        )}
+        {boostError && (
+          <p className="text-xs text-red-600" role="alert">
+            {boostError}
+          </p>
+        )}
+      </section>
 
       <section className="mt-6 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
         {service.coverImageUrl && (

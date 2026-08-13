@@ -1,5 +1,6 @@
 "use client";
 
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import ReportContentButton from "@/components/ReportContentButton";
 import ShareButton from "@/components/ShareButton";
 import SocialLinksRow from "@/components/SocialLinksRow";
@@ -30,6 +31,7 @@ type Service = {
   coverImageUrl: string | null;
   minPrice: number | null;
   maxPrice: number | null;
+  isBoosted?: boolean;
 };
 
 export default function ProviderViewClient({
@@ -141,6 +143,11 @@ export default function ProviderViewClient({
                     ) : null}
                     <div className="p-4 text-right">
                       <p className="font-semibold text-neutral-900">{s.name}</p>
+                      <ListingPromoBadges
+                        active={Boolean(s.isBoosted)}
+                        compact
+                        className="mt-1"
+                      />
                       {s.category && (
                         <p className="mt-0.5 text-xs text-emerald-950">{s.category}</p>
                       )}

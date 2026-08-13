@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import {
   VENUE_BOOST_DAYS,
   VENUE_BOOST_PRICE_NIS,
@@ -376,7 +377,7 @@ export default function VenueDetailsClient({
         <div className="mb-2 h-1 w-12 rounded-full bg-amber-400" aria-hidden />
         <h2 className="text-lg font-semibold text-emerald-950">קידום בחיפוש</h2>
         <p className="text-xs leading-relaxed text-[#5C564C]">
-          הקפצת האולם לראש רשימת תוצאות החיפוש למשך {VENUE_BOOST_DAYS} ימים
+          הקפצת האולם לראש רשימת תוצאות החיפוש + תג «מאומת» למשך {VENUE_BOOST_DAYS} ימים
           {boostStripeEnabled ? (
             <>
               . תשלום מאובטח דרך Stripe.
@@ -392,15 +393,20 @@ export default function VenueDetailsClient({
             </>
           )}
         </p>
-        {boostActive && boostExpiresAt && (
-          <p className="text-xs font-medium text-emerald-950">
-            קידום פעיל עד:{" "}
-            {new Date(boostExpiresAt).toLocaleString("he-IL", {
-              dateStyle: "medium",
-              timeStyle: "short",
-            })}
-          </p>
-        )}
+        {boostActive ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <ListingPromoBadges active />
+            {boostExpiresAt ? (
+              <p className="text-xs font-medium text-emerald-950">
+                פעיל עד{" "}
+                {new Date(boostExpiresAt).toLocaleString("he-IL", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         {boostPurchaseEnabled ? (
           <button
             type="button"

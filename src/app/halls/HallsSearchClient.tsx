@@ -13,6 +13,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import CityAutocompleteInput from "@/components/CityAutocompleteInput";
 import VenueKashrutSelect from "@/components/VenueKashrutSelect";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import PopularBadge from "@/components/PopularBadge";
 import RecentlyViewedBar from "@/components/RecentlyViewedBar";
 import RecentHallSearchesPanel from "@/components/RecentHallSearchesPanel";
@@ -386,11 +387,11 @@ function VenueResultCard({
       }`}
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F5EFE3]">
-        {v.isBoosted && (
-          <span className="absolute bottom-2 left-2 z-10 rounded-full bg-emerald-950 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-400 shadow-sm">
-            מקודם
-          </span>
-        )}
+        <ListingPromoBadges
+          active={Boolean(v.isBoosted)}
+          compact
+          className="absolute bottom-2 left-2 z-10"
+        />
         {popularVenueIds.has(v.id) && (
           <PopularBadge className="absolute right-2 top-2 z-10" />
         )}

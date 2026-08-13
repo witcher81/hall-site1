@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { HomeTopService } from "@/lib/homePageData";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import HomeImageCard from "./HomeImageCard";
 import HomeStarRating from "./HomeStarRating";
 
@@ -38,6 +39,7 @@ export default function HomeTopProviders({
                 alt={s.name}
                 title={s.name}
                 subtitle={s.categoryLabel}
+                badge={s.isBoosted ? <ListingPromoBadges active /> : null}
                 meta={
                   <div className="space-y-2">
                     <p className="text-xs text-neutral-500">{s.providerName}</p>

@@ -1,6 +1,8 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
+import { isBoostActive } from "@/lib/listingBoost";
+import { approvedListingWhere } from "@/lib/listingModerationTypes";
 import {
   resolveServiceRating,
   type MarketplaceCandidateInput,
@@ -28,6 +30,7 @@ export type HomeTopService = {
   ratingIsEstimated: boolean;
   providerName: string;
   providerId: number;
+  isBoosted: boolean;
 };
 
 function firstGalleryUrl(galleryImageUrls: string | null): string | null {
@@ -83,6 +86,7 @@ export async function getHomeFeaturedVenues(
 ): Promise<HomeFeaturedVenue[]> {
   const now = new Date();
   const rows = await prisma.venue.findMany({
+    where: approvedListingWhere(),
     take: Math.max(limit * 4, 24),
     orderBy: { createdAt: "desc" },
     select: {
@@ -101,8 +105,8 @@ export async function getHomeFeaturedVenues(
   });
 
   const sorted = [...rows].sort((a, b) => {
-    const ab = !!(a.boostExpiresAt && a.boostExpiresAt > now);
-    const bb = !!(b.boostExpiresAt && b.boostExpiresAt > now);
+    const ab = isBoostActive(a.boostExpiresAt, now);
+    const bb = isBoostActive(b.boostExpiresAt, now);
     if (ab !== bb) return ab ? -1 : 1;
     return 0;
   });
@@ -113,13 +117,15 @@ export async function getHomeFeaturedVenues(
     city: v.city,
     imageUrl: v.coverImageUrl ?? firstGalleryUrl(v.galleryImageUrls),
     priceLabel: formatVenuePriceLabel(v),
-    isBoosted: !!(v.boostExpiresAt && v.boostExpiresAt > now),
+    isBoosted: isBoostActive(v.boostExpiresAt, now),
     boutique: Boolean(v.boutique),
   }));
 }
 
 export async function getHomeTopServices(limit = 8): Promise<HomeTopService[]> {
+  const now = new Date();
   const rows = await prisma.service.findMany({
+    where: approvedListingWhere(),
     take: 60,
     orderBy: { createdAt: "desc" },
     include: {
@@ -161,11 +167,15 @@ export async function getHomeTopServices(limit = 8): Promise<HomeTopService[]> {
         s.provider.name?.trim() ||
         "ספק",
       providerId: s.provider.id,
+      isBoosted: isBoostActive(s.boostExpiresAt, now),
       sortScore: rating * 10 + reviewCount + (s.coverImageUrl ? 2 : 0),
     };
   });
 
-  scored.sort((a, b) => b.sortScore - a.sortScore);
+  scored.sort((a, b) => {
+    if (a.isBoosted !== b.isBoosted) return a.isBoosted ? -1 : 1;
+    return b.sortScore - a.sortScore;
+  });
 
   return scored.slice(0, limit).map(({ sortScore: _s, ...rest }) => rest);
 }

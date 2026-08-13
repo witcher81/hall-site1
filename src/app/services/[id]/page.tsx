@@ -226,6 +226,9 @@ export default async function PublicSingleServicePage({ params }: PageProps) {
             : null,
           minPrice: service.minPrice,
           maxPrice: service.maxPrice,
+          isBoosted: Boolean(
+            service.boostExpiresAt && service.boostExpiresAt > new Date()
+          ),
         }}
         siblingServicesCount={siblingServicesCount}
         seekerLoggedIn={user?.role === "SEEKER"}

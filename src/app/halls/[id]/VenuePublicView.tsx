@@ -13,6 +13,7 @@ import { getVenueTypePublicLabel } from "@/lib/venueTypeOptions";
 import VenueReviewsSection from "@/components/VenueReviewsSection";
 import ReportContentButton from "@/components/ReportContentButton";
 import VenueAvailabilitySection from "@/components/VenueAvailabilitySection";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import ShareButton from "@/components/ShareButton";
 import LoginPromptModal from "@/components/LoginPromptModal";
 import {
@@ -80,6 +81,7 @@ type Venue = {
   eventTypeProfiles?: Record<string, PublicEventTypeProfile>;
   ownerContactPhone?: string | null;
   packages?: VenuePackageCard[];
+  isBoosted?: boolean;
 };
 
 /** שבב שירות — שם בולט + תג סטטוס מחיר (כלול / בתוספת) */
@@ -1005,6 +1007,7 @@ export default function VenuePublicView({
                 <h1 className="mt-1 text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">
                   {venue.name}
                 </h1>
+                <ListingPromoBadges active={Boolean(venue.isBoosted)} className="mt-2" />
                 <p className="mt-2 text-sm text-neutral-600">
                   {[venue.city, venue.address].filter(Boolean).join(" · ")}
                 </p>

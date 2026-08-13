@@ -1,9 +1,11 @@
 "use client";
 
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
+import { isBoostActive } from "@/lib/listingBoost";
 import { serviceRequestStatusLabel } from "@/lib/serviceRequestStatus";
 import { useState } from "react";
 import ListingModerationBadge from "@/components/ListingModerationBadge";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 
 type Service = {
   id: number;
@@ -16,6 +18,7 @@ type Service = {
   maxPrice: number | null;
   moderationStatus: string;
   moderationNote: string | null;
+  boostExpiresAt?: string | Date | null;
 };
 
 type RecentRequest = {
@@ -159,6 +162,10 @@ export default function FreelancerDashboardClient({ initial }: Props) {
                           <span className="text-neutral-600"> · {s.category}</span>
                         )}
                       </p>
+                      <ListingPromoBadges
+                        active={isBoostActive(s.boostExpiresAt)}
+                        compact
+                      />
                       <ListingModerationBadge
                         status={s.moderationStatus}
                         note={s.moderationNote}

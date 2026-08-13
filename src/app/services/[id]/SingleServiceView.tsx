@@ -4,6 +4,7 @@ import ReportContentButton from "@/components/ReportContentButton";
 import ServiceMenuPublicSection from "@/components/ServiceMenuPublicSection";
 import ServiceReviewsSection from "@/components/ServiceReviewsSection";
 import SocialLinksRow from "@/components/SocialLinksRow";
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import ShareButton from "@/components/ShareButton";
 import LoginPromptModal from "@/components/LoginPromptModal";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
@@ -72,6 +73,7 @@ type Service = {
   minPrice: number | null;
   maxPrice: number | null;
   menu: ServiceMenuConfig | null;
+  isBoosted?: boolean;
 };
 
 import { COMMON_INQUIRY_EVENT_TYPE_OPTIONS } from "@/lib/eventTypeOptions";
@@ -469,9 +471,15 @@ export default function SingleServiceView({
           </div>
 
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <h1 className="min-w-0 flex-1 text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
-              {service.name}
-            </h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-bold leading-tight tracking-tight text-emerald-950 sm:text-3xl">
+                {service.name}
+              </h1>
+              <ListingPromoBadges
+                active={Boolean(service.isBoosted)}
+                className="mt-2"
+              />
+            </div>
             <div className="flex shrink-0 items-center gap-2 self-end sm:self-start">
               <ShareButton
                 sharePath={`/services/${service.id}`}

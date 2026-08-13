@@ -156,6 +156,7 @@ export default async function HallPublicPage({
       customAmenitiesJson: true,
       venueSoftAttributesJson: true,
       coverImageUrl: true,
+      boostExpiresAt: true,
       galleryImageUrls: true,
       galleryImages: {
         select: {
@@ -338,6 +339,9 @@ export default async function HallPublicPage({
         venue={{
           id: venue.id,
           name: venue.name,
+          isBoosted: Boolean(
+            venue.boostExpiresAt && venue.boostExpiresAt > new Date()
+          ),
           city: venue.city,
           address: venue.address,
           minGuests: venue.minGuests,

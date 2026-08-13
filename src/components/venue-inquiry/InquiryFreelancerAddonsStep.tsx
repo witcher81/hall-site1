@@ -1,5 +1,6 @@
 "use client";
 
+import ListingPromoBadges from "@/components/ListingPromoBadges";
 import {
   FREELANCER_SERVICE_CATEGORIES,
   getPrimaryCategoryDescription,
@@ -20,6 +21,7 @@ type PublicService = {
   minPrice: number | null;
   maxPrice: number | null;
   paidExtras: ServicePaidExtraItem[];
+  isBoosted?: boolean;
   provider: {
     name: string | null;
     businessName: string | null;
@@ -150,7 +152,10 @@ function ServiceRow({
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1 text-right">
-          <p className="text-sm font-medium text-neutral-900">{service.name}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="text-sm font-medium text-neutral-900">{service.name}</p>
+            <ListingPromoBadges active={Boolean(service.isBoosted)} compact />
+          </div>
           <p className="text-[11px] text-neutral-600">{providerLabel(service)}</p>
           {service.shortDescription ? (
             <p className="mt-0.5 line-clamp-2 text-[10px] text-neutral-500">

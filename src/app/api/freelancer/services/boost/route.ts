@@ -4,19 +4,15 @@ import { getCurrentUser } from "@/lib/auth";
 import { nextBoostExpiry } from "@/lib/listingBoost";
 import {
   isVenueBoostDemoPurchaseEnabled,
-  VENUE_BOOST_DAYS,
-  VENUE_BOOST_PRICE_NIS,
+  SERVICE_BOOST_DAYS,
+  SERVICE_BOOST_PRICE_NIS,
 } from "@/lib/venueBoost.server";
 
 export const runtime = "nodejs";
 
-/**
- * קידום אולם לראש רשימת החיפוש — רק כשדמו מותר (פיתוח / VENUE_BOOST_ALLOW_DEMO).
- * בפרוד ללא סליקה אמיתית — 503 עד שיופעל תשלום.
- */
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
-  if (!user || user.role !== "VENUE_OWNER") {
+  if (!user || user.role !== "FREELANCER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -32,31 +28,34 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const venueId = Number((body as { venueId?: unknown }).venueId);
-  if (!Number.isInteger(venueId) || venueId <= 0) {
-    return NextResponse.json({ error: "מזהה אולם לא תקין" }, { status: 400 });
+  const serviceId = Number((body as { serviceId?: unknown }).serviceId);
+  if (!Number.isInteger(serviceId) || serviceId <= 0) {
+    return NextResponse.json({ error: "מזהה שירות לא תקין" }, { status: 400 });
   }
 
-  const venue = await prisma.venue.findFirst({
-    where: { id: venueId, ownerId: user.id },
+  const service = await prisma.service.findFirst({
+    where: { id: serviceId, providerId: user.id },
     select: { id: true, boostExpiresAt: true },
   });
-  if (!venue) {
-    return NextResponse.json({ error: "אולם לא נמצא" }, { status: 404 });
+  if (!service) {
+    return NextResponse.json({ error: "שירות לא נמצא" }, { status: 404 });
   }
 
-  const boostExpiresAt = nextBoostExpiry(venue.boostExpiresAt, VENUE_BOOST_DAYS);
+  const boostExpiresAt = nextBoostExpiry(
+    service.boostExpiresAt,
+    SERVICE_BOOST_DAYS
+  );
 
-  await prisma.venue.update({
-    where: { id: venueId },
+  await prisma.service.update({
+    where: { id: serviceId },
     data: { boostExpiresAt },
   });
 
   return NextResponse.json({
     ok: true,
     boostExpiresAt: boostExpiresAt.toISOString(),
-    priceNis: VENUE_BOOST_PRICE_NIS,
-    daysAdded: VENUE_BOOST_DAYS,
+    priceNis: SERVICE_BOOST_PRICE_NIS,
+    daysAdded: SERVICE_BOOST_DAYS,
     demoPayment: true,
   });
 }
