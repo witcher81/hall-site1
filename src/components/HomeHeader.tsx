@@ -136,7 +136,6 @@ export default function HomeHeader({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const mobileNavRef = useRef<HTMLDivElement | null>(null);
   const personalRef = useRef<HTMLDivElement | null>(null);
 
   const personalLinks = personalAreaLinks(user?.role);
@@ -177,6 +176,15 @@ export default function HomeHeader({
   }, [pathname]);
 
   useEffect(() => {
+    if (!mobileNavOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileNavOpen]);
+
+  useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       const t = e.target as Node;
       if (personalRef.current && !personalRef.current.contains(t)) {
@@ -185,26 +193,23 @@ export default function HomeHeader({
       if (menuRef.current && !menuRef.current.contains(t)) {
         setMenuOpen(false);
       }
-      if (mobileNavRef.current && !mobileNavRef.current.contains(t)) {
-        setMobileNavOpen(false);
-      }
     }
-    if (personalOpen || menuOpen || mobileNavOpen) {
+    if (personalOpen || menuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [personalOpen, menuOpen, mobileNavOpen]);
+  }, [personalOpen, menuOpen]);
 
   return (
     <header className="site-header relative z-50 border-b border-slate-800 bg-emerald-950 backdrop-blur-sm">
       {user ? <RealtimeEventBridge /> : null}
-      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-3 py-4 lg:px-4 xl:gap-4 xl:px-6">
+      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-3 py-3 sm:py-4 lg:px-4 xl:gap-4 xl:px-6">
         <div className="flex min-w-0 flex-1 items-center justify-start gap-2 xl:gap-4">
           <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-slate-50">
             EventForYou
           </Link>
-          {/* ניווט אחיד: אותם פריטי בסיס לכולם; "אזור אישי" = מה שהיה תלוי־תפקיד */}
-          <nav className="hidden min-w-0 flex-1 flex-nowrap items-center gap-x-1 min-[900px]:flex xl:gap-x-2">
+          {/* ניווט אופקי רק במסכים רחבים — במובייל/טאבלט: תפריט המבורגר */}
+          <nav className="hidden min-w-0 flex-1 flex-nowrap items-center gap-x-1 xl:flex xl:gap-x-2">
             <Link
               href="/halls"
               aria-current={navKeyActive(pathname, "halls") ? "page" : undefined}
@@ -374,12 +379,13 @@ export default function HomeHeader({
           ) : null}
           {showHeaderThemeToggle ? <ThemeToggle variant="header" /> : null}
 
-          <div className="relative min-[900px]:hidden" ref={mobileNavRef}>
+          <div className="relative xl:hidden">
             <button
               type="button"
               onClick={() => {
                 setMobileNavOpen((v) => !v);
                 setMenuOpen(false);
+                setPersonalOpen(false);
               }}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/30 text-white transition hover:bg-white/10"
               aria-expanded={mobileNavOpen}
@@ -396,104 +402,6 @@ export default function HomeHeader({
                 </svg>
               )}
             </button>
-            {mobileNavOpen ? (
-              <div
-                id="mobile-main-nav"
-                role="navigation"
-                aria-label="ניווט ראשי"
-                className="absolute left-0 z-[60] mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-2 text-right text-sm shadow-xl"
-              >
-                <Link
-                  href="/halls"
-                  aria-current={navKeyActive(pathname, "halls") ? "page" : undefined}
-                  className={`${navLinkMobileBase} ${navKeyActive(pathname, "halls") ? navLinkMobileActive : navLinkMobileIdle}`}
-                  onClick={() => setMobileNavOpen(false)}
-                >
-                  חיפוש אולמות
-                </Link>
-                <Link
-                  href="/providers"
-                  aria-current={navKeyActive(pathname, "providers") ? "page" : undefined}
-                  className={`${navLinkMobileBase} ${navKeyActive(pathname, "providers") ? navLinkMobileActive : navLinkMobileIdle}`}
-                  onClick={() => setMobileNavOpen(false)}
-                >
-                  שירותי ספקים
-                </Link>
-                <Link
-                  href="/packages"
-                  aria-current={navKeyActive(pathname, "packages") ? "page" : undefined}
-                  className={`${navLinkMobileBase} ${navKeyActive(pathname, "packages") ? navLinkMobileActive : navLinkMobileIdle}`}
-                  onClick={() => setMobileNavOpen(false)}
-                >
-                  חבילות אירוע
-                </Link>
-                {user?.role === "SEEKER" ? (
-                  <>
-                    <Link
-                      href="/favorites"
-                      aria-current={navKeyActive(pathname, "favorites") ? "page" : undefined}
-                      className={`${navLinkMobileBase} ${navKeyActive(pathname, "favorites") ? navLinkMobileActive : navLinkMobileIdle}`}
-                      onClick={() => setMobileNavOpen(false)}
-                    >
-                      מועדפים
-                    </Link>
-                    <Link
-                      href="/event-tools"
-                      aria-current={navKeyActive(pathname, "eventTools") ? "page" : undefined}
-                      className={`${navLinkMobileBase} ${navKeyActive(pathname, "eventTools") ? navLinkMobileActive : navLinkMobileIdle}`}
-                      onClick={() => setMobileNavOpen(false)}
-                    >
-                      כלי תכנון
-                    </Link>
-                  </>
-                ) : null}
-                {canUseMessages ? (
-                  <Link
-                    href="/messages"
-                    aria-current={navKeyActive(pathname, "messages") ? "page" : undefined}
-                    className={`relative inline-flex items-center ${navLinkMobileBase} ${navKeyActive(pathname, "messages") ? navLinkMobileActive : navLinkMobileIdle}`}
-                    onClick={() => setMobileNavOpen(false)}
-                  >
-                    הודעות
-                    <MessagesUnreadBadge />
-                  </Link>
-                ) : null}
-                {canUseNotifications ? (
-                  <Link
-                    href="/notifications"
-                    aria-current={navKeyActive(pathname, "notifications") ? "page" : undefined}
-                    className={`relative inline-flex items-center ${navLinkMobileBase} ${navKeyActive(pathname, "notifications") ? navLinkMobileActive : navLinkMobileIdle}`}
-                    onClick={() => setMobileNavOpen(false)}
-                  >
-                    התראות
-                    <NotificationsUnreadBadge />
-                  </Link>
-                ) : null}
-                {isAdmin ? (
-                  <Link
-                    href="/admin"
-                    aria-current={adminNavActive ? "page" : undefined}
-                    className={`${navLinkMobileBase} font-semibold ${
-                      adminNavActive
-                        ? "bg-amber-400/25 text-emerald-950 ring-1 ring-amber-400/60"
-                        : "text-amber-900 hover:bg-amber-50"
-                    }`}
-                    onClick={() => setMobileNavOpen(false)}
-                  >
-                    פאנל ניהול
-                  </Link>
-                ) : null}
-                {!user ? (
-                  <a
-                    href="/auth/login"
-                    className={`${navLinkMobileBase} ${navLinkMobileIdle}`}
-                    onClick={() => setMobileNavOpen(false)}
-                  >
-                    התחברות
-                  </a>
-                ) : null}
-              </div>
-            ) : null}
           </div>
 
           {user ? (
@@ -504,7 +412,7 @@ export default function HomeHeader({
                   setMenuOpen((v) => !v);
                   setMobileNavOpen(false);
                 }}
-                className={`flex max-w-[120px] items-center gap-2 truncate rounded-full px-3 py-2 text-sm font-medium transition sm:max-w-[220px] sm:px-4 ${
+                className={`flex max-w-[100px] items-center gap-2 truncate rounded-full px-2.5 py-2 text-sm font-medium transition sm:max-w-[220px] sm:px-4 ${
                   theme === "night"
                     ? "border border-sky-400/35 bg-slate-900/50 text-sky-100 hover:bg-slate-800/60"
                     : "bg-amber-300 text-slate-900 hover:bg-amber-200"
@@ -528,27 +436,6 @@ export default function HomeHeader({
               </button>
               {menuOpen && (
                 <div className="user-menu absolute left-0 z-[60] mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-2 text-right text-sm shadow-xl">
-                  {personalLinks.length > 0 && (
-                    <div className="border-b border-neutral-200/80 py-2 min-[900px]:hidden">
-                      <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-600">
-                        אזור אישי
-                      </p>
-                      {personalLinks.map((item) => {
-                        const active = item.href === activePersonalHref;
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            aria-current={active ? "page" : undefined}
-                            className={`${navLinkMobileBase} ${active ? navLinkMobileActive : navLinkMobileIdle}`}
-                            onClick={() => setMenuOpen(false)}
-                          >
-                            {item.label}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
                   <Link
                     href="/settings/profile"
                     aria-current={pathname.startsWith("/settings") ? "page" : undefined}
@@ -561,20 +448,6 @@ export default function HomeHeader({
                   >
                     <span>הגדרות</span>
                   </Link>
-                  {isAdmin ? (
-                    <Link
-                      href="/admin"
-                      aria-current={adminNavActive ? "page" : undefined}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 font-semibold ${
-                        adminNavActive
-                          ? navLinkMobileActive
-                          : "text-amber-900 hover:bg-amber-50"
-                      }`}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <span>פאנל ניהול</span>
-                    </Link>
-                  ) : null}
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -589,7 +462,7 @@ export default function HomeHeader({
             <>
               <a
                 href="/auth/login"
-                className="hidden rounded-full border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 min-[900px]:inline-flex sm:px-4"
+                className="hidden rounded-full border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 xl:inline-flex sm:px-4"
               >
                 התחברות
               </a>
@@ -603,6 +476,147 @@ export default function HomeHeader({
           )}
         </nav>
       </div>
+
+      {mobileNavOpen ? (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-[55] bg-black/40 xl:hidden"
+            aria-label="סגור תפריט"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <div
+            id="mobile-main-nav"
+            role="navigation"
+            aria-label="ניווט ראשי"
+            className="absolute inset-x-0 top-full z-[60] max-h-[min(80vh,640px)] overflow-y-auto border-b border-neutral-200 bg-white px-3 py-3 text-right text-sm shadow-xl xl:hidden"
+          >
+            <div className="mx-auto flex max-w-[1600px] flex-col gap-0.5">
+              <Link
+                href="/halls"
+                aria-current={navKeyActive(pathname, "halls") ? "page" : undefined}
+                className={`${navLinkMobileBase} ${navKeyActive(pathname, "halls") ? navLinkMobileActive : navLinkMobileIdle}`}
+                onClick={() => setMobileNavOpen(false)}
+              >
+                חיפוש אולמות
+              </Link>
+              <Link
+                href="/providers"
+                aria-current={navKeyActive(pathname, "providers") ? "page" : undefined}
+                className={`${navLinkMobileBase} ${navKeyActive(pathname, "providers") ? navLinkMobileActive : navLinkMobileIdle}`}
+                onClick={() => setMobileNavOpen(false)}
+              >
+                שירותי ספקים
+              </Link>
+              <Link
+                href="/packages"
+                aria-current={navKeyActive(pathname, "packages") ? "page" : undefined}
+                className={`${navLinkMobileBase} ${navKeyActive(pathname, "packages") ? navLinkMobileActive : navLinkMobileIdle}`}
+                onClick={() => setMobileNavOpen(false)}
+              >
+                חבילות אירוע
+              </Link>
+              {user?.role === "SEEKER" ? (
+                <>
+                  <Link
+                    href="/favorites"
+                    aria-current={navKeyActive(pathname, "favorites") ? "page" : undefined}
+                    className={`${navLinkMobileBase} ${navKeyActive(pathname, "favorites") ? navLinkMobileActive : navLinkMobileIdle}`}
+                    onClick={() => setMobileNavOpen(false)}
+                  >
+                    מועדפים
+                  </Link>
+                  <Link
+                    href="/event-tools"
+                    aria-current={navKeyActive(pathname, "eventTools") ? "page" : undefined}
+                    className={`${navLinkMobileBase} ${navKeyActive(pathname, "eventTools") ? navLinkMobileActive : navLinkMobileIdle}`}
+                    onClick={() => setMobileNavOpen(false)}
+                  >
+                    כלי תכנון
+                  </Link>
+                </>
+              ) : null}
+              {canUseMessages ? (
+                <Link
+                  href="/messages"
+                  aria-current={navKeyActive(pathname, "messages") ? "page" : undefined}
+                  className={`relative inline-flex items-center ${navLinkMobileBase} ${navKeyActive(pathname, "messages") ? navLinkMobileActive : navLinkMobileIdle}`}
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  הודעות
+                  <MessagesUnreadBadge />
+                </Link>
+              ) : null}
+              {canUseNotifications ? (
+                <Link
+                  href="/notifications"
+                  aria-current={
+                    navKeyActive(pathname, "notifications") ? "page" : undefined
+                  }
+                  className={`relative inline-flex items-center ${navLinkMobileBase} ${navKeyActive(pathname, "notifications") ? navLinkMobileActive : navLinkMobileIdle}`}
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  התראות
+                  <NotificationsUnreadBadge />
+                </Link>
+              ) : null}
+              {isAdmin ? (
+                <Link
+                  href="/admin"
+                  aria-current={adminNavActive ? "page" : undefined}
+                  className={`${navLinkMobileBase} font-semibold ${
+                    adminNavActive
+                      ? "bg-amber-400/25 text-emerald-950 ring-1 ring-amber-400/60"
+                      : "text-amber-900 hover:bg-amber-50"
+                  }`}
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  פאנל ניהול
+                </Link>
+              ) : null}
+              {personalLinks.length > 0 ? (
+                <div className="mt-2 border-t border-neutral-200 pt-2">
+                  <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
+                    אזור אישי
+                  </p>
+                  {personalLinks.map((item) => {
+                    const active = item.href === activePersonalHref;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={`${navLinkMobileBase} ${active ? navLinkMobileActive : navLinkMobileIdle}`}
+                        onClick={() => setMobileNavOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
+              {!user ? (
+                <div className="mt-2 border-t border-neutral-200 pt-2">
+                  <a
+                    href="/auth/login"
+                    className={`${navLinkMobileBase} ${navLinkMobileIdle}`}
+                    onClick={() => setMobileNavOpen(false)}
+                  >
+                    התחברות
+                  </a>
+                  <a
+                    href="/auth/register"
+                    className={`${navLinkMobileBase} font-semibold text-emerald-950`}
+                    onClick={() => setMobileNavOpen(false)}
+                  >
+                    הרשמה
+                  </a>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </>
+      ) : null}
     </header>
   );
 }
