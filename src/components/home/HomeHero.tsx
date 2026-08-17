@@ -281,11 +281,11 @@ export default function HomeHero() {
         ))}
       </div>
       <div
-        className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-neutral-950/55"
+        className="home-hero-veil absolute inset-0"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(251,191,36,0.22),transparent_55%)]"
+        className="home-hero-gold-glow pointer-events-none absolute inset-0"
         aria-hidden
       />
       <div className="home-hero-grid pointer-events-none absolute inset-0" aria-hidden />
@@ -295,13 +295,13 @@ export default function HomeHero() {
       <div className="relative mx-auto flex min-h-[min(88svh,720px)] max-w-6xl flex-col justify-center px-4 py-14 pb-20 sm:px-6 sm:py-20 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(260px,0.85fr)]">
           <div className="home-animate-in home-hero-copy max-w-2xl text-right">
-            <p className="text-xs font-semibold tracking-[0.35em] text-amber-300/90">
+            <p className="text-xs font-semibold tracking-[0.35em] text-[#e6d08a]">
               EVENT FOR YOU
             </p>
-            <h1 className="mt-3 text-[1.85rem] font-bold leading-tight tracking-tight text-white sm:mt-4 sm:text-5xl lg:text-[3.25rem]">
+            <h1 className="mt-3 text-[1.85rem] font-bold leading-tight tracking-tight text-[#faf6ee] sm:mt-4 sm:text-5xl lg:text-[3.25rem]">
               בונים אירוע?
               <br />
-              <span className="text-amber-200/95">
+              <span className="text-[#e6d08a]">
                 מוצאים אולם, DJ, צלם, מעצב ועוד — במקום אחד
               </span>
             </h1>
@@ -318,7 +318,7 @@ export default function HomeHero() {
               </Link>
               <Link
                 href="/providers"
-                className="home-animate-in home-stagger-2 home-hero-cta rounded-full border border-white/40 bg-white/10 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/20"
+                className="home-animate-in home-stagger-2 home-hero-cta home-hero-cta-secondary rounded-full border border-[#e6d08a]/50 bg-[#3d8b64]/35 px-8 py-3.5 text-sm font-bold text-[#faf6ee] backdrop-blur-md transition hover:bg-[#3d8b64]/50"
               >
                 חפש ספקים
               </Link>
@@ -326,7 +326,7 @@ export default function HomeHero() {
 
             <form
               onSubmit={onSearch}
-              className="home-animate-in home-stagger-3 home-search-glow mt-8 flex max-w-xl overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl"
+              className="home-animate-in home-stagger-3 home-search-glow home-hero-search mt-8 flex max-w-xl overflow-hidden rounded-2xl border border-[#e6d08a]/35 bg-[#1e4d38]/45 p-1.5 backdrop-blur-xl"
             >
               <input
                 type="search"
@@ -338,7 +338,7 @@ export default function HomeHero() {
               />
               <button
                 type="submit"
-                className="shrink-0 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-amber-50"
+                className="home-hero-search-btn shrink-0 rounded-xl bg-[#c9a227] px-5 py-3 text-sm font-semibold text-[#1a1408] transition hover:bg-[#d4b44a]"
               >
                 חיפוש
               </button>

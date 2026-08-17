@@ -38,11 +38,7 @@ export default function ThemeToggle({
         onClick={toggleTheme}
         aria-label={`${label}. לחצו להחלפה`}
         title="מצב תצוגה"
-        className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-2 text-sm transition sm:px-3 ${
-          theme === "night"
-            ? "border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/15"
-            : "border-emerald-950/15 bg-emerald-950/[0.04] text-emerald-950 hover:bg-emerald-950/[0.08]"
-        }`}
+        className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-2.5 py-2 text-sm text-white transition hover:border-white/40 hover:bg-white/15 sm:px-3"
       >
         <span className="hidden sm:inline">מצב תצוגה</span>
         <ThemeSwitch theme={theme} />
