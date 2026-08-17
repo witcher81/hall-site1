@@ -9,7 +9,7 @@ export default async function PrivacyPage() {
   return (
     <SitePageShell mainWidth="legal">
       <h1 className="site-page-title">מדיניות פרטיות</h1>
-      <p className="mt-2 text-xs text-neutral-600">עודכן: מאי 2026</p>
+      <p className="mt-2 text-xs text-neutral-600">עודכן: אוגוסט 2026</p>
       <SiteLegalNotice show={legal.isPlaceholder} />
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
@@ -27,6 +27,19 @@ export default async function PrivacyPage() {
         <p>
           להפעלת החשבון, הצגת תוצאות חיפוש, התראות, מניעת שימוש לרעה (כולל הגבלת קצב בקשות),
           ושיפור השירות.
+        </p>
+        <h2 className="text-base font-semibold text-emerald-950">שיתוף מידע וספקי שירות</h2>
+        <p>
+          פרטים שמוזנים בפנייה או בבקשה מועברים לצד השני הרלוונטי בלבד — למשל לבעל האולם או
+          לספק שאליו פניתם. אנו עשויים להיעזר בספקי תשתית לצורך אחסון, מסד נתונים, שליחת דוא״ל,
+          מניעת שימוש לרעה, מדידת שימוש ודיווח שגיאות; הם מקבלים רק מידע הנחוץ להפעלת השירות.
+          איננו מוכרים מידע אישי.
+        </p>
+        <h2 className="text-base font-semibold text-emerald-950">שמירה ומחיקה</h2>
+        <p>
+          מידע בחשבון נשמר כל עוד החשבון פעיל או כל עוד הוא נדרש לצורך מתן השירות, אבטחה,
+          טיפול במחלוקות ועמידה בחובות לפי דין. אפשר לבקש מחיקה, עיון או תיקון באמצעות טופס
+          הפרטיות; חלק מהמידע עשוי להישמר לתקופה מוגבלת אם הדין מחייב זאת.
         </p>
         <h2 className="text-base font-semibold text-emerald-950">זכויותיכם (תיקון 13)</h2>
         <p>

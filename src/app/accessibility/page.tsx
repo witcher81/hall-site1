@@ -1,12 +1,16 @@
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteFooter from "@/components/layout/SiteFooter";
 import Link from "next/link";
+import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
+import { getSiteLegalInfo } from "@/lib/siteLegal";
 
 export default async function AccessibilityPage() {
+  const legal = getSiteLegalInfo();
   return (
     <SitePageShell mainWidth="legal">
       <h1 className="site-page-title">הצהרת נגישות</h1>
-      <p className="mt-2 text-xs text-neutral-600">עודכן: מאי 2026</p>
+      <p className="mt-2 text-xs text-neutral-600">עודכן: אוגוסט 2026</p>
+      <SiteLegalNotice show={legal.isPlaceholder} />
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
         <p>
@@ -62,8 +66,8 @@ export default async function AccessibilityPage() {
         </p>
         <p>
           דוא״ל:{" "}
-          <a href="mailto:accessibility@eventforyou.example" className="text-emerald-950 underline">
-            accessibility@eventforyou.example
+          <a href={`mailto:${legal.accessibilityEmail}`} className="text-emerald-950 underline">
+            {legal.accessibilityEmail}
           </a>
           <br />
           נושא מומלץ: «נגישות — EventForYou»
