@@ -30,7 +30,7 @@ export default function DashboardNav({
           <div className="flex min-w-0 shrink-0 items-center gap-2 xl:gap-3">
             <Link
               href="/"
-              className="text-lg font-bold tracking-tight text-white transition hover:text-amber-300"
+              className="dashboard-nav-brand text-lg font-bold tracking-tight transition"
               aria-label="EventForYou — דף הבית"
             >
               EventForYou
@@ -65,7 +65,7 @@ export default function DashboardNav({
             {showHeaderThemeToggle ? <ThemeToggle variant="header" /> : null}
             {displayName ? (
               <span
-                className="hidden max-w-[12rem] truncate text-xs text-white/75 sm:inline sm:text-sm"
+                className="dashboard-nav-user hidden max-w-[12rem] truncate text-xs sm:inline sm:text-sm"
                 title={displayName}
               >
                 {displayName}

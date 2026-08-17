@@ -72,13 +72,16 @@ function navKeyActive(pathname: string, key: NavKey): boolean {
 
 const navLinkDesktopBase =
   "shrink-0 whitespace-nowrap rounded-full px-2 py-1.5 text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3 xl:text-sm";
-const navLinkDesktopActive =
+const navLinkDesktopActiveLight =
+  "bg-amber-400/30 font-semibold text-emerald-950 ring-1 ring-amber-400/60";
+const navLinkDesktopActiveNight =
   "bg-amber-400/25 font-semibold text-[#F5E6A8] ring-1 ring-amber-400/70 shadow-[0_0_0_1px_rgba(201,162,39,0.15)]";
-const navLinkDesktopIdle = "text-slate-200 hover:text-white";
+const navLinkDesktopIdleLight = "text-emerald-950/75 hover:bg-emerald-950/5 hover:text-emerald-950";
+const navLinkDesktopIdleNight = "text-slate-200 hover:text-white";
 
-const navLinkMobileBase = "block rounded-xl px-3 py-2 transition";
+const navLinkMobileBase = "block rounded-xl px-3.5 py-3 text-[15px] transition";
 const navLinkMobileActive =
-  "bg-amber-400/15 font-semibold text-emerald-950 ring-1 ring-amber-400/50";
+  "bg-amber-400/20 font-semibold text-emerald-950 ring-1 ring-amber-400/50";
 const navLinkMobileIdle = "text-neutral-900 hover:bg-neutral-50";
 
 const personalDropdownLinkBase = "block px-4 py-2.5 text-sm transition rounded-lg mx-1";
@@ -131,12 +134,20 @@ export default function HomeHeader({
 }) {
   const pathname = usePathname();
   const { theme } = useSiteTheme();
+  const isNight = theme === "night";
   const showHeaderThemeToggle = useHeaderThemeToggleVisible();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const personalRef = useRef<HTMLDivElement | null>(null);
+
+  const navLinkDesktopActive = isNight
+    ? navLinkDesktopActiveNight
+    : navLinkDesktopActiveLight;
+  const navLinkDesktopIdle = isNight
+    ? navLinkDesktopIdleNight
+    : navLinkDesktopIdleLight;
 
   const personalLinks = personalAreaLinks(user?.role);
   const activePersonalHref = useMemo(() => {
@@ -201,11 +212,14 @@ export default function HomeHeader({
   }, [personalOpen, menuOpen]);
 
   return (
-    <header className="site-header relative z-50 border-b border-slate-800 bg-emerald-950 backdrop-blur-sm">
+    <header className="site-header relative z-50 border-b backdrop-blur-sm">
       {user ? <RealtimeEventBridge /> : null}
-      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-3 py-3 sm:py-4 lg:px-4 xl:gap-4 xl:px-6">
+      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-2 px-3 py-2.5 sm:py-3.5 lg:px-4 xl:gap-4 xl:px-6">
         <div className="flex min-w-0 flex-1 items-center justify-start gap-2 xl:gap-4">
-          <Link href="/" className="shrink-0 text-lg font-bold tracking-tight text-slate-50">
+          <Link
+            href="/"
+            className="site-header-brand shrink-0 text-base font-bold tracking-tight sm:text-lg"
+          >
             EventForYou
           </Link>
           {/* ניווט אופקי רק במסכים רחבים — במובייל/טאבלט: תפריט המבורגר */}
@@ -305,8 +319,10 @@ export default function HomeHeader({
                 aria-current={adminNavActive ? "page" : undefined}
                 className={`shrink-0 whitespace-nowrap rounded-full border px-2 py-1.5 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3 xl:text-sm ${
                   adminNavActive
-                    ? "border-amber-300 bg-amber-400 text-emerald-950"
-                    : "border-amber-400/60 bg-amber-400/15 text-[#F5E6A8] hover:bg-amber-400/25"
+                    ? "border-amber-400 bg-amber-400 text-emerald-950"
+                    : isNight
+                      ? "border-amber-400/60 bg-amber-400/15 text-[#F5E6A8] hover:bg-amber-400/25"
+                      : "border-amber-500/50 bg-amber-400/20 text-amber-950 hover:bg-amber-400/30"
                 }`}
               >
                 פאנל ניהול
@@ -321,8 +337,12 @@ export default function HomeHeader({
                     personalOpen
                       ? "border-[#C9A227] bg-amber-400 text-neutral-950 shadow-sm"
                       : activePersonalHref
-                        ? "border-[#C9A227]/80 bg-amber-400/20 text-[#F5E6A8] ring-1 ring-amber-400/50"
-                        : "border-white/35 bg-white/10 text-white hover:bg-white/20"
+                        ? isNight
+                          ? "border-[#C9A227]/80 bg-amber-400/20 text-[#F5E6A8] ring-1 ring-amber-400/50"
+                          : "border-amber-500/60 bg-amber-400/25 text-emerald-950 ring-1 ring-amber-400/40"
+                        : isNight
+                          ? "border-white/35 bg-white/10 text-white hover:bg-white/20"
+                          : "border-emerald-950/20 bg-emerald-950/[0.04] text-emerald-950 hover:bg-emerald-950/[0.08]"
                   }`}
                   aria-expanded={personalOpen}
                   aria-haspopup="true"
@@ -387,7 +407,11 @@ export default function HomeHeader({
                 setMenuOpen(false);
                 setPersonalOpen(false);
               }}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/30 text-white transition hover:bg-white/10"
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition sm:h-11 sm:w-11 ${
+                isNight
+                  ? "border-white/30 text-white hover:bg-white/10"
+                  : "border-emerald-950/15 text-emerald-950 hover:bg-emerald-950/[0.06]"
+              }`}
               aria-expanded={mobileNavOpen}
               aria-controls="mobile-main-nav"
               aria-label={mobileNavOpen ? "סגור תפריט ניווט" : "פתח תפריט ניווט"}
@@ -462,7 +486,11 @@ export default function HomeHeader({
             <>
               <a
                 href="/auth/login"
-                className="hidden rounded-full border border-white/30 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 xl:inline-flex sm:px-4"
+                className={`hidden rounded-full border px-3 py-2 text-sm font-medium transition xl:inline-flex sm:px-4 ${
+                  isNight
+                    ? "border-white/30 text-white hover:bg-white/10"
+                    : "border-emerald-950/20 text-emerald-950 hover:bg-emerald-950/[0.05]"
+                }`}
               >
                 התחברות
               </a>
@@ -489,9 +517,9 @@ export default function HomeHeader({
             id="mobile-main-nav"
             role="navigation"
             aria-label="ניווט ראשי"
-            className="absolute inset-x-0 top-full z-[60] max-h-[min(80vh,640px)] overflow-y-auto border-b border-neutral-200 bg-white px-3 py-3 text-right text-sm shadow-xl xl:hidden"
+            className="absolute inset-x-0 top-full z-[60] max-h-[min(78vh,620px)] overflow-y-auto border-b border-neutral-200/90 bg-white px-2 py-2 text-right shadow-[0_16px_40px_rgba(15,59,46,0.12)] xl:hidden"
           >
-            <div className="mx-auto flex max-w-[1600px] flex-col gap-0.5">
+            <div className="mx-auto flex max-w-[1600px] flex-col gap-0.5 pb-2">
               <Link
                 href="/halls"
                 aria-current={navKeyActive(pathname, "halls") ? "page" : undefined}
