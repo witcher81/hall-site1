@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
-/* פלטה אחידה — בהירה ונקייה (מצב קלאסי) */
+/* פלטה אחידה — שמנת, ירוק עשיר, זהב רך (מצב קלאסי) */
 :root,
 html[data-theme="classic"] {
-  --background: #f7f5f1;
-  --background-soft: #fbfaf8;
-  --card: #ffffff;
-  --card-muted: #f3f0ea;
-  --border-soft: #e5e0d6;
+  --background: #efe6d5;
+  --background-soft: #f6edd8;
+  --card: #faf3e6;
+  --card-muted: #f3ead8;
+  --border-soft: #e0d4c0;
   --foreground: #1a1a1a;
-  --muted: #5c5c5c;
-  --brand: #0f3b2e;
-  --accent: #fbbf24;
-  --accent-hover: #fcd34d;
-  --accent-contrast: #0a0a0a;
-  --heading: #0f3b2e;
-  --header-bg: #ffffff;
-  --header-fg: #0f3b2e;
-  --header-muted: #5a6b62;
-  --header-border: #ebe6de;
-  --header-chip: rgb(15 59 46 / 0.06);
+  --muted: #5c564c;
+  --brand: #2f8a5f;
+  --accent: #c9a227;
+  --accent-hover: #d4b44a;
+  --accent-contrast: #1a1408;
+  --heading: #1e6b4a;
+  --header-bg: #f6edd8;
+  --header-fg: #1e6b4a;
+  --header-muted: #4f6f5d;
+  --header-border: #e4d6c0;
+  --header-chip: rgb(47 138 95 / 0.12);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   color-scheme: light;
@@ -352,8 +352,8 @@ html[data-theme="night"] .dashboard-nav-user {
   padding: 1.1rem 0 1.5rem;
   background: linear-gradient(
     180deg,
-    #ffffff 0%,
-    color-mix(in srgb, var(--background-soft) 70%, #e8f2ed) 100%
+    var(--header-bg) 0%,
+    color-mix(in srgb, var(--background) 70%, #dceee4) 100%
   );
   border-bottom: 1px solid var(--border-soft);
   box-shadow: 0 8px 24px rgb(15 59 46 / 0.05);
@@ -596,6 +596,44 @@ header.site-header .personal-menu button,
 header.site-header .personal-menu span,
 header.site-header .personal-menu p {
   color: #1a1a1a !important;
+}
+
+/* קלאסי: כרטיסים שמנת במקום לבן בוהק; ירוק עשיר וזהב במקום אמרלד/ענבר */
+html[data-theme="classic"] .bg-white,
+html[data-theme="classic"] .bg-white\/80,
+html[data-theme="classic"] .bg-white\/90,
+html[data-theme="classic"] .bg-white\/95 {
+  background-color: var(--card) !important;
+}
+
+html[data-theme="classic"] .bg-emerald-950,
+html[data-theme="classic"] .hover\:bg-emerald-950:hover {
+  background-color: #2f8a5f !important;
+}
+
+html[data-theme="classic"] .text-emerald-950 {
+  color: #1e6b4a !important;
+}
+
+html[data-theme="classic"] .bg-amber-400,
+html[data-theme="classic"] .bg-amber-300 {
+  background-color: #c9a227 !important;
+  color: #1a1408;
+}
+
+html[data-theme="classic"] .hover\:bg-amber-300:hover,
+html[data-theme="classic"] .hover\:bg-amber-400:hover {
+  background-color: #d4b44a !important;
+}
+
+html[data-theme="classic"] .text-amber-400,
+html[data-theme="classic"] .text-amber-200 {
+  color: #a8841c !important;
+}
+
+html[data-theme="classic"] .border-amber-400,
+html[data-theme="classic"] .border-amber-400\/60 {
+  border-color: #c9a227 !important;
 }
 
 /* כרטיסים שהיו slate כהה – עכשיו שמנת/לבן, לא כחול כהה */
