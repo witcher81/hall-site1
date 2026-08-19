@@ -15,11 +15,11 @@ html[data-theme="classic"] {
   --accent-hover: #d4b44a;
   --accent-contrast: #1a1408;
   --heading: #246b4a;
-  --header-bg: #9edbb4;
-  --header-fg: #174832;
-  --header-muted: #2f5d45;
-  --header-border: #7ec49a;
-  --header-chip: rgb(201 162 39 / 0.22);
+  --header-bg: #3f6f52;
+  --header-fg: #f4ead6;
+  --header-muted: #d5e4d6;
+  --header-border: #345c45;
+  --header-chip: rgb(201 162 39 / 0.28);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   color-scheme: light;
@@ -579,7 +579,7 @@ html[data-theme="night"] .dashboard-nav-user {
   );
 }
 
-/* כותרת האתר — ירוק בהיר עשיר בקלאסי, כהה בלילה */
+/* כותרת האתר — ירוק זית עמוק בקלאסי, כהה בלילה */
 header.site-header {
   background-color: var(--header-bg) !important;
   border-color: var(--header-border) !important;
@@ -589,7 +589,16 @@ header.site-header {
 
 html[data-theme="classic"] header.site-header,
 html[data-theme="classic"] header.dashboard-nav {
-  background: linear-gradient(180deg, #b4e8c8 0%, #8fd4a8 100%) !important;
+  background: linear-gradient(180deg, #4a7d5c 0%, #35674a 100%) !important;
+}
+
+html[data-theme="classic"] header.site-header .text-emerald-950,
+html[data-theme="classic"] header.site-header .hover\:text-emerald-950:hover {
+  color: var(--header-fg) !important;
+}
+
+html[data-theme="classic"] header.site-header .text-emerald-950\/80 {
+  color: var(--header-muted) !important;
 }
 
 header.site-header .site-header-brand {

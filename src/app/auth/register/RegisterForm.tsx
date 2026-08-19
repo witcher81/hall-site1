@@ -144,7 +144,7 @@ export default function RegisterForm({
       <main className="mx-auto max-w-md px-4 py-12">
         <p className="auth-kicker">EVENT FOR YOU</p>
         <h1 className="auth-page-title">
-          {variant === "business" ? "הרשמת בעל עסק" : "הרשמה"}
+          {variant === "business" ? "הרשמת בעל עסק" : "הרשמה למחפשי אולמות"}
         </h1>
         {isCheckout ? (
           <p className="auth-alert-info mt-2">
@@ -162,6 +162,36 @@ export default function RegisterForm({
           <span aria-hidden>←</span>
           <span>חזרה לדף הבית</span>
         </a>
+
+        {showBusinessCta ? (
+          <div className="mt-6 rounded-2xl border border-[#C9A227]/50 bg-[#FFF9E6] px-4 py-4 text-right shadow-sm">
+            <p className="text-base font-semibold text-emerald-950">
+              יש לכם עסק?
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-neutral-700">
+              בעלי אולמות וספקי שירותים — הרשמה נפרדת, ואחרי אימות המייל ממלאים
+              פרופיל עסקי.
+            </p>
+            <a
+              href="/auth/register/business"
+              className="btn-secondary mt-3 flex w-full justify-center"
+            >
+              הרשמת בעל אולם או ספק שירותים
+            </a>
+          </div>
+        ) : null}
+
+        {variant === "business" ? (
+          <p className="mt-4 text-sm text-neutral-700">
+            מחפשים אולם לאירוע?{" "}
+            <a
+              href="/auth/register"
+              className="font-semibold text-emerald-950 underline underline-offset-2"
+            >
+              הרשמה כמחפש
+            </a>
+          </p>
+        ) : null}
 
         <form
           onSubmit={handleSubmit}
@@ -337,28 +367,6 @@ export default function RegisterForm({
               התחברות
             </a>
           </p>
-          {showBusinessCta ? (
-            <p className="border-t border-neutral-200 pt-3 text-xs leading-relaxed text-neutral-600">
-              יש לך עסק?{" "}
-              <a
-                href="/auth/register/business"
-                className="font-semibold text-emerald-950 underline underline-offset-2"
-              >
-                הרשמת בעל אולם או ספק שירותים
-              </a>
-            </p>
-          ) : null}
-          {variant === "business" ? (
-            <p className="text-xs text-neutral-600">
-              מחפשים אולם לאירוע?{" "}
-              <a
-                href="/auth/register"
-                className="font-semibold text-emerald-950 underline underline-offset-2"
-              >
-                הרשמה כמחפש
-              </a>
-            </p>
-          ) : null}
         </form>
       </main>
     </div>
