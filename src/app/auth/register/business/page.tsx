@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import RegisterForm from "./RegisterForm";
+import RegisterForm from "../RegisterForm";
 
 function RegisterFallback() {
   return (
@@ -9,10 +9,10 @@ function RegisterFallback() {
   );
 }
 
-export default function RegisterPage() {
+export default function BusinessRegisterPage() {
   return (
     <Suspense fallback={<RegisterFallback />}>
-      <RegisterForm variant="seeker" />
+      <RegisterForm variant="business" />
     </Suspense>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, Suspense, useCallback, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { defaultPathAfterAuth } from "@/lib/postAuthRedirect";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -24,15 +25,6 @@ function VerifyEmailForm() {
   const [devCode, setDevCode] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(true);
   const [emailWarning, setEmailWarning] = useState<string | null>(null);
-
-  const goNext = useCallback(() => {
-    if (afterVerify) {
-      router.push(afterVerify);
-    } else {
-      router.push("/");
-    }
-    router.refresh();
-  }, [afterVerify, router]);
 
   useEffect(() => {
     try {
@@ -107,9 +99,15 @@ function VerifyEmailForm() {
         setSubmitting(false);
         return;
       }
+      const role =
+        typeof data?.user?.role === "string" ? data.user.role : null;
+      const nextPath = afterVerify || defaultPathAfterAuth(role);
       setSuccess(true);
       setSubmitting(false);
-      setTimeout(goNext, 1200);
+      setTimeout(() => {
+        router.push(nextPath);
+        router.refresh();
+      }, 1200);
     } catch {
       setError("שגיאה בלתי צפויה.");
       setSubmitting(false);

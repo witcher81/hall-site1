@@ -82,7 +82,11 @@ export async function POST(req: NextRequest) {
       const jwt = createSessionToken(authUser);
       await clearPendingVerificationCookie();
       await setSessionCookie(jwt);
-      const res = NextResponse.json({ success: true, alreadyVerified: true });
+      const res = NextResponse.json({
+        success: true,
+        alreadyVerified: true,
+        user: authUser,
+      });
       setSessionCookieOnResponse(res, jwt);
       clearPendingVerificationCookieOnResponse(res);
       return res;
