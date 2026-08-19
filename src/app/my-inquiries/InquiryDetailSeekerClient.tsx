@@ -154,14 +154,14 @@ export default function InquiryDetailSeekerClient({
                   href={inquiryCheckoutHref(inquiry.id)}
                   className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-neutral-950 shadow-sm transition hover:bg-amber-300"
                 >
-                  תשלום מקדמה
+                  סיכום הזמנה (BETA)
                 </Link>
               ) : canSeekerPreviewCheckout(inquiry.status) ? (
                 <Link
                   href={inquiryCheckoutHref(inquiry.id)}
                   className="inline-flex items-center justify-center rounded-full border border-amber-400/60 bg-amber-50/80 px-4 py-2 text-xs font-semibold text-emerald-950 transition hover:border-amber-400"
                 >
-                  דף תשלום (תצוגה מקדימה)
+                  סיכום הזמנה (BETA)
                 </Link>
               ) : null}
               <Link
@@ -214,17 +214,17 @@ export default function InquiryDetailSeekerClient({
           {status === "APPROVED" && (
             <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-xs">
               <p className="font-medium text-emerald-900">
-                ההזמנה אושרה — התאריך שמור אצל האולם. לתשלום מקדמה או לצפייה בסיכום לפני חיוב,
-                עברו לדף התשלום.
+                ההזמנה אושרה — התאריך שמור אצל האולם. תשלום באתר עדיין ב־BETA;
+                אפשר לצפות בסיכום או להמשיך בהודעות.
               </p>
               <Link
                 href={inquiryCheckoutHref(inquiry.id)}
                 className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-amber-400 px-5 text-sm font-bold text-neutral-950 shadow-md transition hover:bg-amber-300"
               >
-                מעבר לתשלום מקדמה
+                סיכום הזמנה (BETA)
               </Link>
               <p className="mt-2 text-[10px] text-neutral-600">
-                סליקה אמיתית עדיין לא מחוברת — הדף הוא תצוגה מקדימה של הממשק.
+                אין סליקה באתר בשלב זה.
               </p>
             </div>
           )}

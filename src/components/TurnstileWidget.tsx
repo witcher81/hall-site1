@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { isTurnstileUnavailable } from "@/lib/turnstileClient";
+import { USER_FACING_UNAVAILABLE } from "@/lib/userFacingErrors";
 
 declare global {
   interface Window {
@@ -84,6 +86,14 @@ export default function TurnstileWidget({ onToken, onExpire }: Props) {
       }
     };
   }, [siteKey]);
+
+  if (isTurnstileUnavailable()) {
+    return (
+      <p className="mt-2 text-xs text-red-700" role="alert">
+        {USER_FACING_UNAVAILABLE}
+      </p>
+    );
+  }
 
   if (!siteKey) return null;
   return (

@@ -1,6 +1,11 @@
 import "server-only";
 
 import { isProductionRuntime } from "@/lib/isProduction";
+import {
+  USER_FACING_TURNSTILE_FAILED,
+  USER_FACING_TURNSTILE_MISSING,
+  USER_FACING_UNAVAILABLE,
+} from "@/lib/userFacingErrors";
 
 export async function verifyTurnstileToken(
   token: string | undefined | null,
@@ -10,7 +15,7 @@ export async function verifyTurnstileToken(
     if (isProductionRuntime()) {
       return {
         ok: false,
-        error: "אימות האבטחה אינו מוגדר בשרת. נסו שוב מאוחר יותר.",
+        error: USER_FACING_UNAVAILABLE,
       };
     }
     return { ok: true };
@@ -20,7 +25,7 @@ export async function verifyTurnstileToken(
 
   const t = token?.trim();
   if (!t) {
-    return { ok: false, error: "נא לאשר את אימות האבטחה (CAPTCHA)" };
+    return { ok: false, error: USER_FACING_TURNSTILE_MISSING };
   }
 
   const body = new URLSearchParams({
@@ -36,9 +41,9 @@ export async function verifyTurnstileToken(
     );
     const data = (await res.json()) as { success?: boolean };
     if (data.success) return { ok: true };
-    return { ok: false, error: "אימות CAPTCHA נכשל — נסו שוב" };
+    return { ok: false, error: USER_FACING_TURNSTILE_FAILED };
   } catch {
-    return { ok: false, error: "שגיאה באימות CAPTCHA" };
+    return { ok: false, error: USER_FACING_TURNSTILE_FAILED };
   }
 }
 

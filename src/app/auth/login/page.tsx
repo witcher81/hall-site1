@@ -4,6 +4,7 @@ import { FormEvent, Suspense, useId, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import PasswordInput from "@/components/PasswordInput";
+import { isCaptchaSubmitReady } from "@/lib/turnstileClient";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -46,6 +47,16 @@ function LoginForm() {
       const needsVerify = data?.requiresEmailVerification === true;
 
       if (needsVerify) {
+        if (typeof data?.emailSent === "boolean") {
+          try {
+            sessionStorage.setItem(
+              "hall_verify_email_sent",
+              data.emailSent ? "1" : "0"
+            );
+          } catch {
+            /* ignore */
+          }
+        }
         if (typeof data?.emailWarning === "string") {
           try {
             sessionStorage.setItem("hall_verify_email_warning", data.emailWarning);
@@ -126,7 +137,7 @@ function LoginForm() {
           {error && <p className="text-xs text-red-700">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !isCaptchaSubmitReady(turnstileToken)}
             className="btn-primary w-full disabled:opacity-60"
           >
             {loading ? "מתחבר..." : "התחברות"}

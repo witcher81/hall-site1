@@ -23,9 +23,6 @@ export default class VenueEditErrorBoundary extends Component<Props, State> {
             <p className="mt-2 text-sm text-neutral-800">
               אירעה שגיאה בדפדפן. נסו לרענן את הדף; אם הבעיה נמשכת, פנו לתמיכה.
             </p>
-            <p className="mt-4 rounded-lg border border-neutral-200 bg-white/80 px-3 py-2 font-mono text-[11px] text-neutral-600">
-              {this.state.error.message}
-            </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"

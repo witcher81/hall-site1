@@ -6,7 +6,6 @@ import { getApprovedVenueCities } from "@/lib/searchAvailability";
 import { getApprovedVenueMapMarkers } from "@/lib/approvedVenueMapMarkers";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
-import SiteFooter from "@/components/layout/SiteFooter";
 import HallsSearchClient from "./HallsSearchClient";
 
 export const metadata: Metadata = {
@@ -76,7 +75,6 @@ export default async function HallsPage({ searchParams }: PageProps) {
         initialWarning={initialWarning ?? null}
         availableCities={availableCities}
       />
-      <SiteFooter />
     </SitePageShell>
   );
 }

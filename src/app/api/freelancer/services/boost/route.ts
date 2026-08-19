@@ -7,6 +7,7 @@ import {
   SERVICE_BOOST_DAYS,
   SERVICE_BOOST_PRICE_NIS,
 } from "@/lib/venueBoost.server";
+import { BETA_BOOST_COPY } from "@/lib/betaPayments";
 
 export const runtime = "nodejs";
 
@@ -19,8 +20,7 @@ export async function POST(req: NextRequest) {
   if (!isVenueBoostDemoPurchaseEnabled()) {
     return NextResponse.json(
       {
-        error:
-          "קידום בתשלום עדיין לא זמין באתר החי. נשמור עליכם מעודכנים כשיופעל.",
+        error: BETA_BOOST_COPY,
         boostPurchaseEnabled: false,
       },
       { status: 503 }

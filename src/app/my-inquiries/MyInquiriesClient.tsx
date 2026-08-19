@@ -134,7 +134,7 @@ export default function MyInquiriesClient({
                 href={inquiryCheckoutHref(q.id)}
                 className="inline-flex min-h-[44px] w-full items-center justify-center rounded-2xl bg-amber-400 text-sm font-bold text-neutral-950 shadow-sm transition hover:bg-amber-300 sm:w-auto sm:px-6"
               >
-                תשלום מקדמה
+                סיכום הזמנה (BETA)
               </Link>
             </div>
           ) : null}

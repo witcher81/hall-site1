@@ -7,18 +7,19 @@ import {
   SERVICE_BOOST_DAYS,
   SERVICE_BOOST_PRICE_NIS,
 } from "@/lib/venueBoost.server";
+import { USER_FACING_GENERIC, USER_FACING_UNAVAILABLE } from "@/lib/userFacingErrors";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user || user.role !== "FREELANCER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "אין הרשאה" }, { status: 403 });
   }
 
   if (!isStripeConfigured()) {
     return NextResponse.json(
-      { error: "תשלום לא מוגדר בשרת" },
+      { error: USER_FACING_UNAVAILABLE },
       { status: 503 }
     );
   }
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   const stripe = getStripe();
   if (!stripe) {
-    return NextResponse.json({ error: "Stripe לא זמין" }, { status: 503 });
+    return NextResponse.json({ error: USER_FACING_UNAVAILABLE }, { status: 503 });
   }
 
   const siteUrl = getSiteUrl();
@@ -53,7 +54,9 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const session = await stripe.checkout.sessions.create({
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: user.email,
     line_items: [
@@ -77,7 +80,15 @@ export async function POST(req: NextRequest) {
     },
     success_url: `${siteUrl}/dashboard/freelancer/services/${serviceId}?boost=success`,
     cancel_url: `${siteUrl}/dashboard/freelancer/services/${serviceId}?boost=cancel`,
-  });
+    });
+  } catch (error) {
+    console.error("service boost checkout:", error);
+    return NextResponse.json({ error: USER_FACING_GENERIC }, { status: 500 });
+  }
+
+  if (!session.url) {
+    return NextResponse.json({ error: USER_FACING_GENERIC }, { status: 500 });
+  }
 
   await prisma.payment.update({
     where: { id: payment.id },

@@ -2,6 +2,7 @@
 
 import { FormEvent, useId, useState } from "react";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import { isCaptchaSubmitReady } from "@/lib/turnstileClient";
 
 const RESET_URL_STORAGE_KEY = "hall_reset_url";
 
@@ -40,9 +41,19 @@ export default function ForgotPasswordPage() {
         setLoading(false);
         return;
       }
+      const emailSent = data?.emailSent !== false;
+      const hasResetUrl =
+        typeof data?.resetUrl === "string" && data.resetUrl.length > 0;
+      if (!emailSent && !hasResetUrl) {
+        setError(
+          data?.message || "לא הצלחנו לשלוח מייל כרגע. נסו שוב מאוחר יותר."
+        );
+        setLoading(false);
+        return;
+      }
       setSuccessMessage(
         data?.message ||
-          "שלחנו קישור לאיפוס סיסמה לכתובת שביקשתם. בדקו את תיבת הדואר (וגם ספאם). הקישור תקף לשעה."
+          "אם קיים חשבון בכתובת זו, נשלח קישור לאיפוס סיסמה. בדקו את תיבת הדואר (וגם ספאם). הקישור תקף לשעה."
       );
       setHasSubmitted(true);
       if (typeof data?.emailWarning === "string") {
@@ -133,7 +144,7 @@ export default function ForgotPasswordPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !isCaptchaSubmitReady(turnstileToken)}
             className={
               hasSubmitted
                 ? "btn-secondary w-full disabled:opacity-60"

@@ -1,9 +1,10 @@
 import SitePageShell from "@/components/layout/SitePageShell";
-import SiteFooter from "@/components/layout/SiteFooter";
 import CookieSettingsLink from "@/components/consent/CookieSettingsLink";
 import Link from "next/link";
+import { getSiteLegalInfo } from "@/lib/siteLegal";
 
 export default async function CookiesPage() {
+  const legal = getSiteLegalInfo();
   return (
     <SitePageShell mainWidth="legal">
       <h1 className="site-page-title">מדיניות עוגיות</h1>
@@ -56,9 +57,15 @@ export default async function CookiesPage() {
 
         <p>
           לשאלות:{" "}
-          <a href="mailto:privacy@eventforyou.example" className="text-emerald-950 underline">
-            privacy@eventforyou.example
-          </a>
+          {legal.privacyEmail ? (
+            <a href={`mailto:${legal.privacyEmail}`} className="text-emerald-950 underline">
+              {legal.privacyEmail}
+            </a>
+          ) : (
+            <Link href="/contact" className="text-emerald-950 underline">
+              טופס יצירת קשר
+            </Link>
+          )}
         </p>
       </div>
 
@@ -79,7 +86,6 @@ export default async function CookiesPage() {
           דף הבית
         </Link>
       </p>
-      <SiteFooter />
     </SitePageShell>
   );
 }

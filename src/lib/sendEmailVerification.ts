@@ -43,8 +43,8 @@ export function verificationEmailClientPayload(
     emailWarning:
       emailSend.userMessage ??
       (emailSend.skipped
-        ? "מייל לא נשלח (Resend לא מוגדר). בפיתוח — הקוד מופיע בדף האימות."
-        : "שליחת קוד האימות נכשלה. בדקו את תיבת הספאם ולחצו «שליחת קוד חדש». אם הבעיה נמשכת — פנו לתמיכה."),
+        ? userFacingEmailSendError("missing_api_key")
+        : "שליחת קוד האימות נכשלה. נסו שוב מאוחר יותר."),
     devCode: emailSend.devCode,
     emailErrorCode: emailSend.errorCode,
   };

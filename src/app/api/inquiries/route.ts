@@ -394,7 +394,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "לא ניתן לשמור את הפנייה בגלל כפילות במסד הנתונים (למשל הגבלה ישנה לפנייה אחת לאולם). הרץ `npx prisma migrate deploy` או `npx prisma db push` כדי לעדכן — אחרי זה אפשר לשלוח כמה פניות לאותו אולם.",
+            "כבר יש פנייה פתוחה לאולם הזה. עקבו אחריה ב«ההזמנות שלי» או פנו לאולם בהודעה.",
         },
         { status: 409 }
       );

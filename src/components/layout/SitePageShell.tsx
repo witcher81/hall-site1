@@ -1,4 +1,5 @@
 import HomeHeader from "@/components/HomeHeader";
+import SiteFooter from "@/components/layout/SiteFooter";
 import { isAdminEmail } from "@/lib/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { loadDevSwitcherUsers } from "@/lib/devSwitcherData";
@@ -48,6 +49,7 @@ export default async function SitePageShell({
       >
         {children}
       </main>
+      <SiteFooter />
     </div>
   );
 }

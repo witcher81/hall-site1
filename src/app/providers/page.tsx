@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
-import SiteFooter from "@/components/layout/SiteFooter";
 import { searchPublicProviders } from "@/lib/publicProvidersSearch";
 import { getApprovedServiceCategoryAvailability } from "@/lib/searchAvailability";
 import ProvidersSearchClient from "./ProvidersSearchClient";
@@ -48,7 +47,6 @@ export default async function ProvidersPage({ searchParams }: PageProps) {
         initialServices={initialServices}
         categoryAvailability={categoryAvailability}
       />
-      <SiteFooter />
     </SitePageShell>
   );
 }

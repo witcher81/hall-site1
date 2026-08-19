@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isProductionRuntime } from "@/lib/isProduction";
+import { USER_FACING_EMAIL_FAILED } from "@/lib/userFacingErrors";
 
 /** קודי שגיאה לשליחת מייל — לתגובות API ולוגים */
 export type EmailSendErrorCode =
@@ -81,8 +82,11 @@ export function classifyResendErrorMessage(
 }
 
 export function userFacingEmailSendError(
-  code: EmailSendErrorCode
+  code: EmailSendErrorCode | undefined
 ): string {
+  if (isProductionRuntime()) {
+    return USER_FACING_EMAIL_FAILED;
+  }
   switch (code) {
     case "missing_api_key":
       return "שליחת מייל לא מוגדרת בשרת (RESEND_API_KEY).";
@@ -95,7 +99,7 @@ export function userFacingEmailSendError(
     case "invalid_from":
       return "כתובת השולח (EMAIL_FROM) לא תקינה. דוגמה: EventForYou <noreply@yourdomain.com>";
     default:
-      return "שליחת המייל נכשלה. נסו שוב מאוחר יותר.";
+      return USER_FACING_EMAIL_FAILED;
   }
 }
 

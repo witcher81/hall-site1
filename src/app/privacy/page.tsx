@@ -1,5 +1,4 @@
 import SitePageShell from "@/components/layout/SitePageShell";
-import SiteFooter from "@/components/layout/SiteFooter";
 import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
 import Link from "next/link";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
@@ -52,9 +51,15 @@ export default async function PrivacyPage() {
         </p>
         <p>
           יצירת קשר:{" "}
-          <a href={`mailto:${legal.privacyEmail}`} className="text-emerald-950 underline">
-            {legal.privacyEmail}
-          </a>
+          {legal.privacyEmail ? (
+            <a href={`mailto:${legal.privacyEmail}`} className="text-emerald-950 underline">
+              {legal.privacyEmail}
+            </a>
+          ) : (
+            <Link href="/contact" className="text-emerald-950 underline">
+              טופס יצירת קשר
+            </Link>
+          )}
         </p>
       </div>
 
@@ -75,7 +80,6 @@ export default async function PrivacyPage() {
           יצירת קשר
         </Link>
       </p>
-      <SiteFooter />
     </SitePageShell>
   );
 }

@@ -825,7 +825,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: readOnlyFs
-          ? "שמירת תמונות נכשלה: ב-Vercel יש להגדיר BLOB_READ_WRITE_TOKEN (Vercel Blob) בהגדרות הפרויקט."
+          ? "שמירת התמונות נכשלה. נסו שוב מאוחר יותר או פנו לתמיכה."
           : dev
             ? msg.slice(0, 500)
             : "שגיאת שרת בשמירת האולם. נסה שוב או פנה לתמיכה.",
@@ -1253,7 +1253,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json(
       {
         error: readOnlyFs
-          ? "שמירת תמונות נכשלה: ב-Vercel יש להגדיר BLOB_READ_WRITE_TOKEN (Vercel Blob) בהגדרות הפרויקט."
+          ? "שמירת התמונות נכשלה. נסו שוב מאוחר יותר או פנו לתמיכה."
           : dev
             ? msg.slice(0, 500)
             : "שגיאת שרת בעדכון האולם. נסה שוב או פנה לתמיכה.",

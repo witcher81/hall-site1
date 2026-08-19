@@ -8,15 +8,18 @@ import {
 } from "@/lib/sendPasswordReset";
 import { getSiteUrlFromRequest } from "@/lib/siteUrl";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { USER_FACING_EMAIL_FAILED, USER_FACING_GENERIC } from "@/lib/userFacingErrors";
 
 function forgotPasswordSuccessMessage(
-  email: string,
   clientPayload?: ReturnType<typeof passwordResetClientPayload>
 ): string {
+  if (clientPayload && !clientPayload.emailSent && !clientPayload.resetUrl) {
+    return USER_FACING_EMAIL_FAILED;
+  }
   if (clientPayload?.resetUrl && !clientPayload.emailSent) {
     return "לא ניתן לשלוח מייל כרגע — השתמשו בקישור למטה כדי לאפס את הסיסמה.";
   }
-  return `שלחנו קישור לאיפוס סיסמה ל־${email}. בדקו את תיבת הדואר (וגם ספאם). הקישור תקף לשעה.`;
+  return "אם קיים חשבון בכתובת זו, נשלח קישור לאיפוס סיסמה. בדקו את תיבת הדואר (וגם ספאם). הקישור תקף לשעה.";
 }
 
 export async function POST(req: NextRequest) {
@@ -89,10 +92,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const message = forgotPasswordSuccessMessage(
-      normalizedEmail,
-      clientPayload
-    );
+    const message = forgotPasswordSuccessMessage(clientPayload);
 
     return NextResponse.json({
       message,
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("forgot-password error:", error);
     return NextResponse.json(
-      { error: "Something went wrong" },
+      { error: USER_FACING_GENERIC },
       { status: 500 }
     );
   }

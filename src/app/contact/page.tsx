@@ -1,6 +1,4 @@
 import SitePageShell from "@/components/layout/SitePageShell";
-import SiteFooter from "@/components/layout/SiteFooter";
-import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
 import ContactForm from "./ContactForm";
 
@@ -9,18 +7,22 @@ export default async function ContactPage() {
   return (
     <SitePageShell mainWidth="narrow">
       <h1 className="site-page-title">יצירת קשר</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        שאלות, הצעות או בעיות טכניות — נשמח לעזור. ניתן גם לכתוב ל־
-        <a href={`mailto:${legal.supportEmail}`} className="font-medium text-emerald-950 underline">
+      <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+        פניות, תלונות, שאלות ותמיכה — אפשר לכתוב ישירות לאימייל או למלא את הטופס
+        למטה. נחזור אליכם בהקדם.
+      </p>
+      <p className="mt-3 text-sm text-neutral-800">
+        אימייל:{" "}
+        <a
+          href={`mailto:${legal.supportEmail}`}
+          className="font-semibold text-emerald-950 underline underline-offset-2"
+        >
           {legal.supportEmail}
         </a>
-        .
       </p>
-      <SiteLegalNotice show={legal.isPlaceholder} />
       <div className="site-card-padded mt-6">
         <ContactForm />
       </div>
-      <SiteFooter />
     </SitePageShell>
   );
 }

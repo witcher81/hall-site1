@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
 import SitePageHeader from "@/components/layout/SitePageHeader";
+import { BETA_PAYMENT_BANNER } from "@/lib/betaPayments";
 import {
   type CheckoutOrderSummary,
   depositAmounts,
@@ -14,14 +14,6 @@ type CheckoutUser = {
   email: string;
 };
 
-type PaymentMethod = "card" | "bit" | "wallet";
-
-const STEPS = [
-  { id: "summary", label: "סיכום" },
-  { id: "payment", label: "תשלום" },
-  { id: "confirm", label: "אישור" },
-] as const;
-
 export default function CheckoutClient({
   user,
   order,
@@ -29,88 +21,35 @@ export default function CheckoutClient({
   user: CheckoutUser;
   order: CheckoutOrderSummary;
 }) {
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [previewMessage, setPreviewMessage] = useState<string | null>(null);
-
-  const deposit = useMemo(
-    () =>
-      depositAmounts(order.totalMin, order.totalMax, order.depositPercent),
-    [order.depositPercent, order.totalMax, order.totalMin]
+  const deposit = depositAmounts(
+    order.totalMin,
+    order.totalMax,
+    order.depositPercent
   );
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setPreviewMessage(null);
-    if (!acceptedTerms) {
-      setPreviewMessage("יש לאשר את תנאי התשלום לפני המשך.");
-      return;
-    }
-    setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 600));
-    setSubmitting(false);
-    setPreviewMessage(
-      "סליקה עדיין לא מחוברת — זהו מבנה תצוגה בלבד. בהמשך ייפתח חיוב מאובטח."
-    );
-  }
+  const backHref = order.inquiryId
+    ? `/my-inquiries/${order.inquiryId}`
+    : "/my-inquiries";
 
   return (
     <>
-      {order.inquiryId ? (
-        <p className="mb-4 text-right text-sm">
-          <Link
-            href={`/my-inquiries/${order.inquiryId}`}
-            className="font-medium text-emerald-950 underline-offset-4 hover:underline"
-          >
-            ← חזרה להזמנה
-          </Link>
-        </p>
-      ) : null}
+      <p className="mb-4 text-right text-sm">
+        <Link
+          href={backHref}
+          className="font-medium text-emerald-950 underline-offset-4 hover:underline"
+        >
+          ← חזרה להזמנה
+        </Link>
+      </p>
       <SitePageHeader
-        title="סליקה ותשלום"
-        description="סיכום ההזמנה ופרטי תשלום. בשלב זה הדף הוא תצוגה מקדימה — לא מתבצע חיוב."
+        title="סיכום הזמנה"
+        description="האתר ב־BETA — אין סליקה באתר כרגע. הסיכום להמחשה בלבד."
       />
 
       <div className="mb-6 rounded-2xl border border-amber-200/90 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
-        <strong className="font-semibold">תצוגה מקדימה:</strong> ממשק הסליקה
-        בבנייה. אפשר לעבור על המבנה; כפתור התשלום לא מחייב בפועל.
+        <strong className="font-semibold">BETA</strong>
+        {" — "}
+        {BETA_PAYMENT_BANNER}
       </div>
-
-      <nav
-        aria-label="שלבי תשלום"
-        className="mb-8 flex flex-wrap items-center justify-center gap-2 sm:gap-4"
-      >
-        {STEPS.map((step, index) => {
-          const active = step.id === "payment";
-          const done = step.id === "summary";
-          return (
-            <div key={step.id} className="flex items-center gap-2">
-              <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                  active
-                    ? "bg-emerald-950 text-white"
-                    : done
-                      ? "bg-emerald-100 text-emerald-900"
-                      : "bg-neutral-100 text-neutral-500"
-                }`}
-              >
-                {done ? "✓" : index + 1}
-              </span>
-              <span
-                className={`text-sm font-medium ${
-                  active ? "text-emerald-950" : "text-neutral-600"
-                }`}
-              >
-                {step.label}
-              </span>
-              {index < STEPS.length - 1 ? (
-                <span className="hidden h-px w-8 bg-neutral-200 sm:block" />
-              ) : null}
-            </div>
-          );
-        })}
-      </nav>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start">
         <aside className="site-card-padded space-y-4 text-right">
@@ -167,196 +106,41 @@ export default function CheckoutClient({
               </span>
             </div>
             <div className="flex justify-between gap-3 text-neutral-700">
-              <span>מקדמה ({order.depositPercent}%)</span>
+              <span>מקדמה משוערת ({order.depositPercent}%)</span>
               <span className="tabular-nums font-medium">
                 {formatCheckoutAmount(deposit.min, deposit.max)}
               </span>
             </div>
             <p className="text-[11px] leading-relaxed text-neutral-500">
-              יתרת התשלום תסוכם מול האולם לאחר אישור סופי. הסכומים להמחשה בלבד.
+              הסכומים להמחשה. תיאום התשלום מול האולם — מחוץ לאתר, עד שהסליקה
+              תיפתח.
             </p>
           </div>
-
-          {order.inquiryId ? (
-            <Link
-              href={`/my-inquiries/${order.inquiryId}`}
-              className="inline-block text-xs font-medium text-emerald-950 underline"
-            >
-              חזרה למעקב ההזמנה
-            </Link>
-          ) : null}
         </aside>
 
-        <section className="site-card-padded text-right">
-          <h2 className="text-base font-semibold text-emerald-950">
-            פרטי תשלום
-          </h2>
-          <p className="mt-1 text-xs text-neutral-600">
-            כאן יוטמע Stripe / ספק סליקה. כרגע השדות לתצוגה בלבד.
+        <section className="site-card-padded space-y-4 text-right">
+          <h2 className="text-base font-semibold text-emerald-950">תשלום</h2>
+          <p className="text-sm leading-relaxed text-neutral-700">
+            {BETA_PAYMENT_BANNER}
           </p>
-
-          <form onSubmit={handleSubmit} className="mt-5 space-y-5">
-            <fieldset>
-              <legend className="mb-2 text-xs font-semibold text-neutral-700">
-                אמצעי תשלום
-              </legend>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {(
-                  [
-                    { id: "card" as const, label: "כרטיס אשראי", ready: true },
-                    { id: "bit" as const, label: "Bit", ready: false },
-                    {
-                      id: "wallet" as const,
-                      label: "Apple / Google Pay",
-                      ready: false,
-                    },
-                  ] as const
-                ).map((method) => (
-                  <button
-                    key={method.id}
-                    type="button"
-                    disabled={!method.ready}
-                    onClick={() => method.ready && setPaymentMethod(method.id)}
-                    className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
-                      paymentMethod === method.id && method.ready
-                        ? "border-emerald-700 bg-emerald-50 text-emerald-950"
-                        : "border-neutral-200 bg-white text-neutral-800"
-                    } ${!method.ready ? "cursor-not-allowed opacity-50" : "hover:border-amber-400/70"}`}
-                  >
-                    {method.label}
-                    {!method.ready ? (
-                      <span className="mt-1 block text-[10px] font-normal text-neutral-500">
-                        בקרוב
-                      </span>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            {/* Stripe Payment Element ייכנס כאן */}
-            <div className="space-y-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 p-4">
-              <p className="text-xs font-semibold text-neutral-700">
-                פרטי כרטיס (דמו)
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block sm:col-span-2">
-                  <span className="text-xs text-neutral-600">מספר כרטיס</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="0000 0000 0000 0000"
-                    disabled
-                    className="mt-1 w-full rounded-xl border border-neutral-200 bg-white/80 px-3 py-2 text-neutral-500"
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-xs text-neutral-600">תוקף</span>
-                  <input
-                    type="text"
-                    placeholder="MM / YY"
-                    disabled
-                    className="mt-1 w-full rounded-xl border border-neutral-200 bg-white/80 px-3 py-2 text-neutral-500"
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-xs text-neutral-600">CVV</span>
-                  <input
-                    type="text"
-                    placeholder="•••"
-                    disabled
-                    className="mt-1 w-full rounded-xl border border-neutral-200 bg-white/80 px-3 py-2 text-neutral-500"
-                  />
-                </label>
-                <label className="block sm:col-span-2">
-                  <span className="text-xs text-neutral-600">שם בעל הכרטיס</span>
-                  <input
-                    type="text"
-                    defaultValue={user.name ?? ""}
-                    disabled
-                    className="mt-1 w-full rounded-xl border border-neutral-200 bg-white/80 px-3 py-2 text-neutral-500"
-                  />
-                </label>
-              </div>
-            </div>
-
-            <fieldset className="space-y-3">
-              <legend className="text-xs font-semibold text-neutral-700">
-                חשבונית / פרטים ליצירת קשר
-              </legend>
-              <label className="block">
-                <span className="text-xs text-neutral-600">שם מלא</span>
-                <input
-                  type="text"
-                  defaultValue={user.name ?? ""}
-                  readOnly
-                  className="mt-1 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-800"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs text-neutral-600">אימייל</span>
-                <input
-                  type="email"
-                  defaultValue={user.email}
-                  readOnly
-                  className="mt-1 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-800"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs text-neutral-600">
-                  ח.פ / ת.ז (אופציונלי)
-                </span>
-                <input
-                  type="text"
-                  placeholder="לצורך חשבונית מס"
-                  disabled
-                  className="mt-1 w-full rounded-xl border border-neutral-200 bg-white/80 px-3 py-2 text-neutral-500"
-                />
-              </label>
-            </fieldset>
-
-            <label className="flex cursor-pointer items-start gap-2 text-xs text-neutral-700">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-emerald-950 focus:ring-amber-400"
-              />
-              <span>
-                אני מאשר/ת את{" "}
-                <Link href="/terms" className="font-medium underline">
-                  תנאי השימוש
-                </Link>{" "}
-                ומבין/ה שהתשלום כאן הוא תצוגה מקדימה בלבד.
-              </span>
-            </label>
-
-            {previewMessage ? (
-              <p
-                className={`rounded-xl px-3 py-2 text-xs ${
-                  previewMessage.includes("לאשר")
-                    ? "border border-red-200 bg-red-50 text-red-800"
-                    : "border border-amber-200 bg-amber-50 text-amber-950"
-                }`}
-              >
-                {previewMessage}
-              </p>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="btn-primary w-full disabled:opacity-60"
+          <p className="text-xs text-neutral-600">
+            חשבון: {user.name?.trim() || user.email}
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Link href={backHref} className="btn-primary text-center">
+              חזרה להזמנה
+            </Link>
+            <Link
+              href={
+                order.venueId
+                  ? `/messages?venueId=${order.venueId}`
+                  : "/messages"
+              }
+              className="rounded-full border border-neutral-200 bg-white px-6 py-2.5 text-center text-sm font-semibold text-emerald-950 hover:border-amber-400/60"
             >
-              {submitting
-                ? "מעבד…"
-                : `תשלום מקדמה ${formatCheckoutAmount(deposit.min, deposit.max)}`}
-            </button>
-
-            <p className="text-center text-[10px] text-neutral-500">
-              🔒 תשלום מאובטח — SSL · PCI (בהמשך)
-            </p>
-          </form>
+              הודעה לאולם
+            </Link>
+          </div>
         </section>
       </div>
     </>

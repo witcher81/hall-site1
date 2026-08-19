@@ -3,6 +3,7 @@ import { getSiteLegalInfo } from "@/lib/siteLegal";
 import { sendEmail } from "@/lib/email";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { escapeHtml } from "@/lib/escapeHtml";
+import { USER_FACING_EMAIL_FAILED } from "@/lib/userFacingErrors";
 
 export const runtime = "nodejs";
 
@@ -37,13 +38,20 @@ export async function POST(req: NextRequest) {
   };
 
   const legal = getSiteLegalInfo();
-  await sendEmail({
-    to: legal.privacyEmail,
+  const to = legal.privacyEmail ?? legal.supportEmail;
+  if (!to) {
+    return NextResponse.json({ error: USER_FACING_EMAIL_FAILED }, { status: 503 });
+  }
+  const sent = await sendEmail({
+    to,
     replyTo: email,
     subject: `[תיקון 13] ${typeLabel[requestType] ?? requestType}`,
     html: `<div dir="rtl"><p><strong>סוג בקשה:</strong> ${escapeHtml(typeLabel[requestType] ?? requestType)}</p><p><strong>שם:</strong> ${escapeHtml(fullName)}</p><p><strong>אימייל:</strong> ${escapeHtml(email)}</p><p><strong>פרטים:</strong></p><pre style="white-space:pre-wrap">${details ? escapeHtml(details) : "(ללא)"}</pre></div>`,
     text: `סוג: ${typeLabel[requestType]}\nשם: ${fullName}\nאימייל: ${email}\n\n${details}`,
   });
+  if (!sent.ok) {
+    return NextResponse.json({ error: USER_FACING_EMAIL_FAILED }, { status: 503 });
+  }
 
   return NextResponse.json({ ok: true });
 }

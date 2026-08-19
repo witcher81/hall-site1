@@ -12,6 +12,10 @@ export default function SiteFooter() {
       {legal.contactAddress && (
         <p className="mt-1 text-xs text-neutral-500">{legal.contactAddress}</p>
       )}
+      <p className="mt-2 text-sm">
+        יצירת קשר:{" "}
+        <a href={`mailto:${legal.supportEmail}`}>{legal.supportEmail}</a>
+      </p>
       <p className="mt-3 flex flex-wrap justify-center gap-x-6 gap-y-2">
         <Link href="/terms">תנאי שימוש</Link>
         <Link href="/privacy">פרטיות</Link>

@@ -7,6 +7,7 @@ import {
   VENUE_BOOST_DAYS,
   VENUE_BOOST_PRICE_NIS,
 } from "@/lib/venueBoostConfig";
+import { BETA_BOOST_COPY } from "@/lib/betaPayments";
 
 type Venue = {
   id: number;
@@ -375,23 +376,12 @@ export default function VenueDetailsClient({
 
       <section className="mt-8 space-y-3 rounded-2xl border border-[#C9A227]/35 bg-gradient-to-br from-[#FFF9E6] to-white p-6 text-right text-sm shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
         <div className="mb-2 h-1 w-12 rounded-full bg-amber-400" aria-hidden />
-        <h2 className="text-lg font-semibold text-emerald-950">קידום בחיפוש</h2>
+        <h2 className="text-lg font-semibold text-emerald-950">
+          קידום ממומן — BETA
+        </h2>
         <p className="text-xs leading-relaxed text-[#5C564C]">
-          הקפצת האולם לראש רשימת תוצאות החיפוש + תג «מאומת» למשך {VENUE_BOOST_DAYS} ימים
-          {boostStripeEnabled ? (
-            <>
-              . תשלום מאובטח דרך Stripe.
-            </>
-          ) : boostDemoEnabled ? (
-            <>
-              . התשלום כאן הוא{" "}
-              <span className="font-medium text-emerald-950">דמו בלבד</span> (ללא סליקה אמיתית).
-            </>
-          ) : (
-            <>
-              . <span className="font-medium text-emerald-950">רכישת קידום תיפתח בקרוב</span>.
-            </>
-          )}
+          הקפצת האולם לראש רשימת תוצאות החיפוש + תג «מאומת» למשך {VENUE_BOOST_DAYS}{" "}
+          ימים. {BETA_BOOST_COPY}
         </p>
         {boostActive ? (
           <div className="flex flex-wrap items-center gap-2">
@@ -417,13 +407,11 @@ export default function VenueDetailsClient({
             {boosting
               ? "מעבד..."
               : boostActive
-                ? `הארך קידום — ₪${VENUE_BOOST_PRICE_NIS}${boostDemoEnabled ? " (דמו)" : ""}`
-                : `קדם את האולם — ₪${VENUE_BOOST_PRICE_NIS}${boostDemoEnabled ? " (דמו)" : ""}`}
+                ? `הארך קידום — ₪${VENUE_BOOST_PRICE_NIS} (BETA)`
+                : `קדם את האולם — ₪${VENUE_BOOST_PRICE_NIS} (BETA)`}
           </button>
         ) : (
-          <p className="mt-1 text-xs text-neutral-600">
-            כשהקידום יהיה זמין תוכלו לרכוש כאן. קידום קיים (אם יש) ימשיך עד תאריך הסיום.
-          </p>
+          <p className="mt-1 text-xs text-neutral-600">{BETA_BOOST_COPY}</p>
         )}
         {boostError && (
           <p className="text-xs text-red-600" role="alert">

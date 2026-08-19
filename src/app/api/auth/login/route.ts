@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth";
 import { sendEmailVerificationForUser, verificationEmailClientPayload } from "@/lib/sendEmailVerification";
 import { validateEmail, validateLoginPassword } from "@/lib/userInputValidation";
+import { USER_FACING_GENERIC, USER_FACING_LOGIN_INVALID } from "@/lib/userFacingErrors";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
       !(await verifyPassword(passwordPlain, user.passwordHash))
     ) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: USER_FACING_LOGIN_INVALID },
         { status: 401 }
       );
     }
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
-      { error: "Something went wrong" },
+      { error: USER_FACING_GENERIC },
       { status: 500 }
     );
   }

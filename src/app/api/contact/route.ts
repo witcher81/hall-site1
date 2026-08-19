@@ -3,6 +3,7 @@ import { getSiteLegalInfo } from "@/lib/siteLegal";
 import { sendEmail } from "@/lib/email";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { escapeHtml } from "@/lib/escapeHtml";
+import { USER_FACING_EMAIL_FAILED } from "@/lib/userFacingErrors";
 
 export const runtime = "nodejs";
 
@@ -27,14 +28,20 @@ export async function POST(req: NextRequest) {
   }
 
   const legal = getSiteLegalInfo();
+  if (!legal.supportEmail) {
+    return NextResponse.json({ error: USER_FACING_EMAIL_FAILED }, { status: 503 });
+  }
   const subj = subject || "פנייה מהאתר";
-  await sendEmail({
+  const sent = await sendEmail({
     to: legal.supportEmail,
     replyTo: email,
     subject: `[EventForYou] ${subj}`,
     html: `<div dir="rtl"><p><strong>מאת:</strong> ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p><p><strong>נושא:</strong> ${escapeHtml(subj)}</p><hr/><pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(message)}</pre></div>`,
     text: `מאת: ${name} <${email}>\nנושא: ${subj}\n\n${message}`,
   });
+  if (!sent.ok) {
+    return NextResponse.json({ error: USER_FACING_EMAIL_FAILED }, { status: 503 });
+  }
 
   return NextResponse.json({ ok: true });
 }

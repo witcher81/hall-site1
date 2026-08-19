@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import SitePageShell from "@/components/layout/SitePageShell";
-import SiteFooter from "@/components/layout/SiteFooter";
 import PackagesPageHero from "@/components/packages/PackagesPageHero";
 import { searchPublicPackages } from "@/lib/publicPackagesSearch";
 import PackagesSearchClient from "./PackagesSearchClient";
@@ -74,7 +73,6 @@ export default async function PackagesPage({ searchParams }: PageProps) {
           </Suspense>
         </section>
       </div>
-      <SiteFooter />
     </SitePageShell>
   );
 }

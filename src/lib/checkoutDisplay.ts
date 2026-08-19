@@ -9,7 +9,7 @@ export type CheckoutLineItem = {
 };
 
 export type CheckoutOrderSummary = {
-  kind: "venue-inquiry" | "demo";
+  kind: "venue-inquiry";
   title: string;
   subtitle?: string;
   meta: Array<{ label: string; value: string }>;
@@ -45,44 +45,6 @@ export function depositAmounts(
       ? Math.round((totalMax * percent) / 100)
       : min;
   return { min, max };
-}
-
-export function demoCheckoutSummary(): CheckoutOrderSummary {
-  return {
-    kind: "demo",
-    title: "אולם גן העיר — תצוגה מקדימה",
-    subtitle: "דף סליקה לדוגמה (ללא חיוב אמיתי)",
-    meta: [
-      { label: "תאריך אירוע", value: "15.08.2026" },
-      { label: "סוג אירוע", value: "חתונה" },
-      { label: "מספר אורחים", value: "180" },
-    ],
-    lineItems: [
-      {
-        id: "venue",
-        label: "אולם + כלול במחיר",
-        amountMin: 45_000,
-        amountMax: 52_000,
-      },
-      {
-        id: "extra-bar",
-        label: "בר נוסף",
-        amountMin: 3_500,
-        amountMax: 3_500,
-        note: "תוספת בתשלום",
-      },
-      {
-        id: "extra-dj",
-        label: "DJ (ספק חיצוני)",
-        amountMin: 4_000,
-        amountMax: 5_500,
-        note: "תוספת בתשלום",
-      },
-    ],
-    totalMin: 52_500,
-    totalMax: 61_000,
-    depositPercent: 20,
-  };
 }
 
 type InquiryCheckoutInput = {

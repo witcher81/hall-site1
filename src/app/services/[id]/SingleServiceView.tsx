@@ -857,8 +857,8 @@ export default function SingleServiceView({
           <form onSubmit={handleSubmit} className="mt-4 space-y-3 text-sm">
             {!seekerLoggedIn ? (
               <p className="rounded-lg border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-xs text-amber-950">
-                אפשר למלא את הבקשה כאורח. יצירת חשבון מחפש תידרש רק לפני אישור סופי
-                (ותשלום — בקרוב).
+                אפשר למלא את הבקשה כאורח. יצירת חשבון מחפש תידרש רק לפני אישור סופי.
+                תשלום באתר עדיין ב־BETA.
               </p>
             ) : null}
             <div>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ISRAELI_MOBILE_PREFIXES } from "@/lib/israeliPhone";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import PasswordInput from "@/components/PasswordInput";
+import { isCaptchaSubmitReady } from "@/lib/turnstileClient";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -95,6 +96,16 @@ function RegisterForm() {
       const needsVerify = data?.requiresEmailVerification === true;
 
       if (needsVerify) {
+        if (typeof data?.emailSent === "boolean") {
+          try {
+            sessionStorage.setItem(
+              "hall_verify_email_sent",
+              data.emailSent ? "1" : "0"
+            );
+          } catch {
+            /* ignore */
+          }
+        }
         if (typeof data?.emailWarning === "string") {
           try {
             sessionStorage.setItem("hall_verify_email_warning", data.emailWarning);
@@ -136,7 +147,8 @@ function RegisterForm() {
         <h1 className="auth-page-title">הרשמה</h1>
         {isCheckout ? (
           <p className="auth-alert-info mt-2">
-            כמעט סיימתם — צרו חשבון מחפש כדי לאשר את ההזמנה. (תשלום יתווסף בהמשך.)
+            כמעט סיימתם — צרו חשבון מחפש כדי לאשר את ההזמנה. התשלום באתר עדיין
+            ב־BETA.
           </p>
         ) : null}
         <a href="/" className="auth-back-link mt-3">
@@ -294,7 +306,12 @@ function RegisterForm() {
           {error && <p className="text-xs text-red-700">{error}</p>}
           <button
             type="submit"
-            disabled={loading || (!isCheckout && !role) || !acceptedLegal}
+            disabled={
+              loading ||
+              (!isCheckout && !role) ||
+              !acceptedLegal ||
+              !isCaptchaSubmitReady(turnstileToken)
+            }
             className="btn-primary w-full disabled:opacity-60"
           >
             {loading ? "נרשם..." : "הרשמה"}

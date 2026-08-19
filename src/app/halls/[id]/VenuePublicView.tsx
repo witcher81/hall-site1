@@ -1377,7 +1377,7 @@ export default function VenuePublicView({
             </a>
             <p className="mt-3 text-xs text-neutral-600">
               אפשר למלא את כל הפרטים כאורח. יצירת חשבון תידרש לפני אישור ההזמנה.
-              תשלום מקדמה — ב«ההזמנות שלי» אחרי אישור האולם.
+              תשלום באתר עדיין ב־BETA.
             </p>
             <p className="mt-2 text-xs text-neutral-600">
               כבר יש לכם חשבון?{" "}

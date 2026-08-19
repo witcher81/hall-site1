@@ -19,6 +19,7 @@ import {
   validateRequiredText,
 } from "@/lib/userInputValidation";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { USER_FACING_GENERIC } from "@/lib/userFacingErrors";
 
 const ALLOWED_ROLES = ["SEEKER", "VENUE_OWNER", "FREELANCER"] as const;
 
@@ -158,7 +159,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Register error:", error);
     return NextResponse.json(
-      { error: "Something went wrong" },
+      { error: USER_FACING_GENERIC },
       { status: 500 }
     );
   }

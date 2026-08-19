@@ -12,6 +12,7 @@ import {
   markResetTokenUsed,
 } from "@/lib/passwordReset";
 import { validateNewPassword } from "@/lib/userInputValidation";
+import { USER_FACING_GENERIC } from "@/lib/userFacingErrors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("reset-password error:", error);
     return NextResponse.json(
-      { error: "Something went wrong" },
+      { error: USER_FACING_GENERIC },
       { status: 500 }
     );
   }

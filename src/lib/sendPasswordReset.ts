@@ -51,8 +51,8 @@ export function passwordResetClientPayload(
     emailWarning:
       result.userMessage ??
       (result.skipped
-        ? "מייל לא נשלח (Resend לא מוגדר). הקישור מוצג בדף לצורך המשך."
-        : "שליחת קישור האיפוס נכשלה. נסו שוב או השתמשו בקישור שמוצג בדף."),
+        ? userFacingEmailSendError("missing_api_key")
+        : "שליחת קישור האיפוס נכשלה. נסו שוב מאוחר יותר."),
     emailErrorCode: result.errorCode,
   };
 }

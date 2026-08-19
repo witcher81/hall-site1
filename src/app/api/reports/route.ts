@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { isAdminEmail } from "@/lib/admin";
-import { getSiteLegalInfo } from "@/lib/siteLegal";
 import { sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { escapeHtml } from "@/lib/escapeHtml";
@@ -38,12 +36,11 @@ export async function POST(req: NextRequest) {
     .filter(Boolean);
 
   if (adminEmails.length > 0) {
-    const legal = getSiteLegalInfo();
     for (const to of adminEmails) {
       await sendEmail({
         to,
         subject: `[דיווח תוכן] ${targetType} #${targetId}`,
-        html: `<div dir="rtl"><p>דיווח חדש #${report.id}</p><p>סוג: ${escapeHtml(targetType)}, מזהה: ${targetId}</p><p>סיבה: ${escapeHtml(reason)}</p><p>${escapeHtml(details)}</p><p>מדיניות: ${escapeHtml(legal.privacyEmail)}</p></div>`,
+        html: `<div dir="rtl"><p>דיווח חדש #${report.id}</p><p>סוג: ${escapeHtml(targetType)}, מזהה: ${targetId}</p><p>סיבה: ${escapeHtml(reason)}</p><p>${escapeHtml(details)}</p></div>`,
         text: `דיווח #${report.id}\n${targetType} ${targetId}\n${reason}\n${details}`,
       });
     }

@@ -22,6 +22,7 @@ function VerifyEmailForm() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [devCode, setDevCode] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(true);
   const [emailWarning, setEmailWarning] = useState<string | null>(null);
 
   const goNext = useCallback(() => {
@@ -44,6 +45,13 @@ function VerifyEmailForm() {
       if (warn) {
         setEmailWarning(warn);
         sessionStorage.removeItem("hall_verify_email_warning");
+      }
+      const sent = sessionStorage.getItem("hall_verify_email_sent");
+      if (sent === "0") {
+        setEmailSent(false);
+        sessionStorage.removeItem("hall_verify_email_sent");
+      } else if (sent === "1") {
+        sessionStorage.removeItem("hall_verify_email_sent");
       }
     } catch {
       /* ignore */
@@ -127,8 +135,12 @@ function VerifyEmailForm() {
         return;
       }
       setResendMessage(data?.message || "נשלח קוד חדש.");
+      if (typeof data?.emailSent === "boolean") {
+        setEmailSent(data.emailSent);
+      }
       if (typeof data?.emailWarning === "string") {
         setEmailWarning(data.emailWarning);
+        setEmailSent(false);
       }
       if (typeof data?.devCode === "string") {
         setDevCode(data.devCode);
@@ -159,11 +171,17 @@ function VerifyEmailForm() {
             </p>
           ) : (
             <>
-              {email ? (
+              {email && emailSent && !emailWarning ? (
                 <p className="text-neutral-700 leading-relaxed">
                   שלחנו קוד בן 6 ספרות ל־
                   <strong className="text-emerald-950"> {email}</strong>. הזינו
                   את הקוד כדי להתחבר לאתר.
+                </p>
+              ) : email ? (
+                <p className="text-neutral-700 leading-relaxed">
+                  הזינו את קוד האימות ל־
+                  <strong className="text-emerald-950">{email}</strong>. אם לא
+                  התקבל מייל, לחצו «שליחת קוד חדש».
                 </p>
               ) : (
                 <p className="text-neutral-700 leading-relaxed">
@@ -185,10 +203,6 @@ function VerifyEmailForm() {
                   </p>
                   <p className="mt-1 font-mono text-2xl font-bold tracking-[0.35em]">
                     {devCode}
-                  </p>
-                  <p className="mt-2 text-[10px] leading-relaxed opacity-70">
-                    זמני — לפני השקה יש להגדיר EMAIL_FROM מאומת ב-Resend ולשלוח
-                    את הקוד במייל בלבד.
                   </p>
                 </div>
               ) : null}

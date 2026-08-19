@@ -10,6 +10,7 @@ import {
   setSessionCookieOnResponse,
   type AuthUser,
 } from "@/lib/auth";
+import { USER_FACING_GENERIC } from "@/lib/userFacingErrors";
 import {
   markVerificationCodeUsed,
   normalizeVerificationCodeInput,
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("verify-email error:", error);
     return NextResponse.json(
-      { error: "Something went wrong" },
+      { error: USER_FACING_GENERIC },
       { status: 500 }
     );
   }

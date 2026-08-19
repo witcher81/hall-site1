@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import TurnstileWidget from "@/components/TurnstileWidget";
+import { isCaptchaSubmitReady } from "@/lib/turnstileClient";
 
 export default function ContactForm() {
   const nameId = useId();
@@ -103,7 +104,7 @@ export default function ContactForm() {
       {error && <p className="text-xs text-red-700">{error}</p>}
       <button
         type="submit"
-        disabled={sending}
+        disabled={sending || !isCaptchaSubmitReady(turnstileToken)}
         className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-amber-300 disabled:opacity-60"
       >
         {sending ? "שולח..." : "שליחה"}

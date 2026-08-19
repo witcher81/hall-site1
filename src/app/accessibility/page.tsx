@@ -1,5 +1,4 @@
 import SitePageShell from "@/components/layout/SitePageShell";
-import SiteFooter from "@/components/layout/SiteFooter";
 import Link from "next/link";
 import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
@@ -66,9 +65,15 @@ export default async function AccessibilityPage() {
         </p>
         <p>
           דוא״ל:{" "}
-          <a href={`mailto:${legal.accessibilityEmail}`} className="text-emerald-950 underline">
-            {legal.accessibilityEmail}
-          </a>
+          {legal.accessibilityEmail ? (
+            <a href={`mailto:${legal.accessibilityEmail}`} className="text-emerald-950 underline">
+              {legal.accessibilityEmail}
+            </a>
+          ) : (
+            <Link href="/contact" className="text-emerald-950 underline">
+              טופס יצירת קשר
+            </Link>
+          )}
           <br />
           נושא מומלץ: «נגישות — EventForYou»
         </p>
@@ -98,7 +103,6 @@ export default async function AccessibilityPage() {
           דף הבית
         </Link>
       </p>
-      <SiteFooter />
     </SitePageShell>
   );
 }

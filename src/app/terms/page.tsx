@@ -1,5 +1,4 @@
 import SitePageShell from "@/components/layout/SitePageShell";
-import SiteFooter from "@/components/layout/SiteFooter";
 import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
 import Link from "next/link";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
@@ -60,9 +59,15 @@ export default async function TermsPage() {
         </p>
         <p>
           שאלות:{" "}
-          <a href={`mailto:${legal.supportEmail}`} className="text-emerald-950 underline">
-            {legal.supportEmail}
-          </a>
+          {legal.supportEmail ? (
+            <a href={`mailto:${legal.supportEmail}`} className="text-emerald-950 underline">
+              {legal.supportEmail}
+            </a>
+          ) : (
+            <Link href="/contact" className="text-emerald-950 underline">
+              טופס יצירת קשר
+            </Link>
+          )}
         </p>
       </div>
 
@@ -79,7 +84,6 @@ export default async function TermsPage() {
           דף הבית
         </Link>
       </p>
-      <SiteFooter />
     </SitePageShell>
   );
 }

@@ -8,6 +8,7 @@ import {
   sendEmailVerificationForUser,
   verificationEmailClientPayload,
 } from "@/lib/sendEmailVerification";
+import { USER_FACING_GENERIC } from "@/lib/userFacingErrors";
 
 const COOLDOWN_MS = 60_000;
 const lastSentByUserId = new Map<number, number>();
@@ -69,7 +70,7 @@ export async function POST() {
   } catch (error) {
     console.error("resend-verification error:", error);
     return NextResponse.json(
-      { error: "Something went wrong" },
+      { error: USER_FACING_GENERIC },
       { status: 500 }
     );
   }
