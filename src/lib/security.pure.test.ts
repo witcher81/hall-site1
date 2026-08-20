@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { escapeHtml } from "@/lib/escapeHtml";
 import {
   sanitizeHttpUrlForHref,
@@ -57,6 +57,10 @@ describe("safeHref", () => {
 });
 
 describe("sameOriginGuard", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("allows localhost in non-production", () => {
     expect(
       isSameOriginApiRequest(mockReq({ host: "localhost:3000" }))
@@ -64,28 +68,23 @@ describe("sameOriginGuard", () => {
   });
 
   it("matches Origin hostname to Host in production-like headers", () => {
-    const prev = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
-    try {
-      expect(
-        isSameOriginApiRequest(
-          mockReq({
-            host: "hall.example",
-            origin: "https://hall.example",
-          })
-        )
-      ).toBe(true);
-      expect(
-        isSameOriginApiRequest(
-          mockReq({
-            host: "hall.example",
-            origin: "https://evil.com",
-          })
-        )
-      ).toBe(false);
-    } finally {
-      process.env.NODE_ENV = prev;
-    }
+    vi.stubEnv("NODE_ENV", "production");
+    expect(
+      isSameOriginApiRequest(
+        mockReq({
+          host: "hall.example",
+          origin: "https://hall.example",
+        })
+      )
+    ).toBe(true);
+    expect(
+      isSameOriginApiRequest(
+        mockReq({
+          host: "hall.example",
+          origin: "https://evil.com",
+        })
+      )
+    ).toBe(false);
   });
 });
 

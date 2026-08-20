@@ -18,6 +18,7 @@ type CreateNotificationInput = {
     | "LISTING_VENUE_REJECTED"
     | "LISTING_SERVICE_APPROVED"
     | "LISTING_SERVICE_REJECTED"
+    | "ADMIN_NEW_BUSINESS_USER"
     | "WELCOME";
   title: string;
   body?: string | null;
