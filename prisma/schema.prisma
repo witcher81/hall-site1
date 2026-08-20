@@ -27,6 +27,8 @@ model User {
   emailNotificationsJson String?
   /// חסימת משתמש על ידי אדמין
   isBlocked Boolean @default(false)
+  /// אדמין סימן שסקר/אישר משתמש עסקי (בעל אולם / פרילנסר)
+  adminReviewedAt DateTime?
   // פרופיל עסקי לבעל אולם / ספק שירותים
   businessName    String?
   businessPhone   String?

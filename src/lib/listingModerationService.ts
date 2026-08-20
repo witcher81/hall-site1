@@ -26,12 +26,13 @@ export function moderationFieldsForNewListing(): Pick<
   | "moderatedAt"
   | "moderatedByUserId"
 > {
+  const now = new Date();
   return {
-    moderationStatus: ListingModerationStatus.PENDING,
-    submittedForReviewAt: new Date(),
+    moderationStatus: ListingModerationStatus.APPROVED,
+    submittedForReviewAt: now,
     contentRevision: 1,
     moderationNote: null,
-    moderatedAt: null,
+    moderatedAt: now,
     moderatedByUserId: null,
   };
 }
@@ -50,15 +51,17 @@ export function moderationFieldsForOwnerEdit(
   | "moderatedAt"
   | "moderatedByUserId"
 > {
+  const now = new Date();
   const wasLive =
     current.moderationStatus === ListingModerationStatus.APPROVED ||
     current.moderationStatus === ListingModerationStatus.REJECTED;
   return {
-    moderationStatus: ListingModerationStatus.PENDING,
-    submittedForReviewAt: new Date(),
+    // פרסום מיידי — בלי המתנה לאישור; אדמין יכול לדחות מאוחר יותר מהפאנל
+    moderationStatus: ListingModerationStatus.APPROVED,
+    submittedForReviewAt: now,
     contentRevision: wasLive ? current.contentRevision + 1 : current.contentRevision,
     moderationNote: null,
-    moderatedAt: null,
+    moderatedAt: now,
     moderatedByUserId: null,
   };
 }
@@ -330,12 +333,12 @@ export async function logListingSubmittedForReview(input: {
     action:
       input.fromStatus === ListingModerationStatus.APPROVED ||
       input.fromStatus === ListingModerationStatus.REJECTED
-        ? "RESUBMITTED"
-        : "SUBMITTED",
+        ? "RESUBMITTED_LIVE"
+        : "PUBLISHED_LIVE",
     fromStatus: input.fromStatus,
-    toStatus: ListingModerationStatus.PENDING,
+    toStatus: ListingModerationStatus.APPROVED,
     actorUserId: input.actorUserId,
-    source: input.source ?? ListingModerationSource.OWNER,
+    source: input.source ?? ListingModerationSource.AUTO,
   });
 }
 

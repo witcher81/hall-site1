@@ -1,15 +1,21 @@
 /**
  * אדמין אתר: רשימת אימיילים מופרדת בפסיקים ב־ADMIN_EMAILS (משתנה סביבה).
  */
+export function getAdminEmails(): string[] {
+  const raw = process.env.ADMIN_EMAILS?.trim() ?? "";
+  return [
+    ...new Set(
+      raw
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean)
+    ),
+  ];
+}
+
 export function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
-  const raw = process.env.ADMIN_EMAILS?.trim() ?? "";
-  const set = new Set(
-    raw
-      .split(",")
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean)
-  );
+  const set = new Set(getAdminEmails());
   if (set.size === 0) return false;
   return set.has(email.toLowerCase());
 }

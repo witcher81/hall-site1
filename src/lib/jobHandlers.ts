@@ -1,6 +1,8 @@
 import "server-only";
 
+import { getAdminEmails } from "@/lib/admin";
 import { createNotification } from "@/lib/notifications";
+import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/passwordResetEmail";
 import { sendWelcomeEmail } from "@/lib/welcomeEmail";
 
@@ -50,7 +52,7 @@ export async function executeJob(jobType: string, payload: unknown): Promise<voi
       await createNotification({
         userId: p.userId as number,
         type: "WELCOME",
-        title: "ברוכים הבאים ל־Hall Site",
+        title: "ברוכים הבאים ל־EventForYou",
         body: `החשבון נוצר בהצלחה (${roleLabel}). אפשר להתחיל לעדכן פרופיל ולפעול במערכת.`,
         href: "/",
       });
@@ -61,6 +63,25 @@ export async function executeJob(jobType: string, payload: unknown): Promise<voi
           name: p.name ?? null,
           role: typeof p.role === "string" ? p.role : "SEEKER",
         });
+      }
+
+      if (p.role === "VENUE_OWNER" || p.role === "FREELANCER") {
+        const adminEmails = getAdminEmails();
+        if (adminEmails.length > 0) {
+          const admins = await prisma.user.findMany({
+            where: { email: { in: adminEmails } },
+            select: { id: true },
+          });
+          for (const admin of admins) {
+            await createNotification({
+              userId: admin.id,
+              type: "ADMIN_NEW_BUSINESS_USER",
+              title: "משתמש עסקי חדש",
+              body: `${p.name?.trim() || p.email || "משתמש"} נרשם כ${roleLabel}. בדקו בפאנל הניהול.`,
+              href: "/admin/users?focus=new-business",
+            });
+          }
+        }
       }
 
       const crmWebhook = process.env.REGISTER_CRM_WEBHOOK_URL?.trim();

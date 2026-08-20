@@ -6,31 +6,43 @@ import { usePathname } from "next/navigation";
 type Props = {
   pendingTotal: number;
   openReports: number;
+  newBusinessUsers: number;
 };
 
 const LINKS: Array<{
   href: string;
   label: string;
   exact?: boolean;
-  badge?: "pending" | "reports";
+  badge?: "pending" | "reports" | "newBusiness";
 }> = [
   { href: "/admin", label: "סקירה", exact: true },
-  { href: "/admin/moderation", label: "אישור תוכן", badge: "pending" },
+  {
+    href: "/admin/users?focus=new-business",
+    label: "משתמשים חדשים",
+    badge: "newBusiness",
+  },
   { href: "/admin/reports", label: "דיווחים", badge: "reports" },
-  { href: "/admin/users", label: "משתמשים" },
+  { href: "/admin/moderation", label: "בקרת תוכן", badge: "pending" },
+  { href: "/admin/users", label: "כל המשתמשים" },
 ];
 
 function badgeCount(
-  kind: "pending" | "reports" | undefined,
+  kind: "pending" | "reports" | "newBusiness" | undefined,
   pendingTotal: number,
-  openReports: number
+  openReports: number,
+  newBusinessUsers: number
 ): number {
   if (kind === "pending") return pendingTotal;
   if (kind === "reports") return openReports;
+  if (kind === "newBusiness") return newBusinessUsers;
   return 0;
 }
 
-export default function AdminNav({ pendingTotal, openReports }: Props) {
+export default function AdminNav({
+  pendingTotal,
+  openReports,
+  newBusinessUsers,
+}: Props) {
   const pathname = usePathname();
 
   return (
@@ -39,10 +51,16 @@ export default function AdminNav({ pendingTotal, openReports }: Props) {
       aria-label="ניווט פאנל ניהול"
     >
       {LINKS.map((item) => {
+        const pathOnly = item.href.split("?")[0];
         const active = item.exact
-          ? pathname === item.href
-          : pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const count = badgeCount(item.badge, pendingTotal, openReports);
+          ? pathname === pathOnly
+          : pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
+        const count = badgeCount(
+          item.badge,
+          pendingTotal,
+          openReports,
+          newBusinessUsers
+        );
         return (
           <Link
             key={item.href}

@@ -34,7 +34,7 @@ export default function ListingModerationBadge({ status, note, className = "" }:
       ) : null}
       {status === "PENDING" ? (
         <span className="text-[10px] text-neutral-500">
-          יפורסם באתר לאחר אישור מנהל
+          ממתין לטיפול מנהל
         </span>
       ) : null}
     </span>

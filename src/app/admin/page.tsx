@@ -3,13 +3,13 @@ import { getAdminDashboardStats } from "@/lib/adminDashboardStats";
 
 const SECTIONS = [
   {
-    href: "/admin/moderation",
-    title: "אישור אולמות ושירותים",
-    body: "אולמות ושירותי פרילנסרים חדשים או מעודכנים — לא מופיעים בחיפוש עד אישור.",
-    cta: "לתור האישורים",
+    href: "/admin/users?focus=new-business",
+    title: "משתמשים עסקיים חדשים",
+    body: "בעלי אולם ופרילנסרים שנרשמו — בדקו וסמנו כנבדקו, או חסמו אם צריך.",
+    cta: "למשתמשים החדשים",
     accent: "amber" as const,
-    countKey: "pendingTotal" as const,
-    countLabel: "ממתינים",
+    countKey: "newBusinessUsers" as const,
+    countLabel: "לבדיקה",
   },
   {
     href: "/admin/reports",
@@ -21,13 +21,13 @@ const SECTIONS = [
     countLabel: "פתוחים",
   },
   {
-    href: "/admin/users",
-    title: "משתמשים וחסימות",
-    body: "צפייה במשתמשים וחסימת חשבונות שפוגעים בפלטפורמה.",
-    cta: "למשתמשים",
+    href: "/admin/moderation",
+    title: "בקרת אולמות ושירותים",
+    body: "פרסום מיידי באתר. כאן אפשר לדחות או לאשר מחדש תוכן בעייתי.",
+    cta: "לבקרת תוכן",
     accent: "emerald" as const,
-    countKey: "blockedUsers" as const,
-    countLabel: "חסומים",
+    countKey: "pendingTotal" as const,
+    countLabel: "ממתינים",
   },
 ] as const;
 
@@ -70,18 +70,19 @@ export default async function AdminHomePage() {
       <section>
         <h2 className="text-base font-semibold text-emerald-950">מה לטפל עכשיו</h2>
         <p className="mt-1 text-sm text-neutral-600">
-          התחילו מאישור תוכן — זה מה שמונע פרסום ציבורי של אולמות ופרילנסרים.
+          אולמות ושירותים עולים לחיפוש מיד. בדקו משתמשים עסקיים חדשים, וטפלו
+          בדיווחים או בתוכן בעייתי.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800/80">
-              ממתינים לאישור
+              משתמשים עסקיים לבדיקה
             </p>
             <p className="mt-1 font-serif text-3xl font-semibold tabular-nums text-emerald-950">
-              {stats.pendingTotal}
+              {stats.newBusinessUsers}
             </p>
             <p className="mt-1 text-xs text-neutral-600">
-              {stats.pendingVenues} אולמות · {stats.pendingServices} שירותים
+              בעלי אולם ופרילנסרים שטרם סומנו
             </p>
           </div>
           <div className="rounded-2xl border border-rose-200 bg-white p-4 shadow-sm">

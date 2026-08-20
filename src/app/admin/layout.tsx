@@ -32,18 +32,18 @@ export default async function AdminLayout({
                 ניהול אתר
               </h1>
               <p className="mt-1.5 max-w-xl text-sm text-emerald-100/85">
-                אישור פרסומים, דיווחים ומשתמשים — לפני שהם מופיעים לציבור.
+                משתמשים עסקיים חדשים, דיווחים ובקרת תוכן — פרסום עולה לציבור מיד.
               </p>
             </div>
             <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs text-emerald-50/95">
               <p className="font-medium text-white">{displayName}</p>
               <Link
-                href="/admin/moderation"
+                href="/admin/users?focus=new-business"
                 className="mt-1 inline-block text-amber-200 underline-offset-2 hover:underline"
               >
-                {stats.pendingTotal > 0
-                  ? `${stats.pendingTotal} ממתינים לאישור`
-                  : "אין ממתינים לאישור"}
+                {stats.newBusinessUsers > 0
+                  ? `${stats.newBusinessUsers} משתמשים עסקיים לבדיקה`
+                  : "אין משתמשים עסקיים לבדיקה"}
               </Link>
             </div>
           </div>
@@ -51,6 +51,7 @@ export default async function AdminLayout({
             <AdminNav
               pendingTotal={stats.pendingTotal}
               openReports={stats.openReports}
+              newBusinessUsers={stats.newBusinessUsers}
             />
           </div>
         </div>
