@@ -56,6 +56,7 @@ export default function RegisterForm({
   const [businessRole, setBusinessRole] = useState<"" | BusinessRole>("");
   const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   const showBusinessCta = variant === "seeker" && !isCheckout;
 
@@ -113,6 +114,8 @@ export default function RegisterForm({
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setError(data?.error || "שגיאה בהרשמה");
+        setTurnstileToken("");
+        setTurnstileReset((n) => n + 1);
         setLoading(false);
         return;
       }
@@ -339,6 +342,7 @@ export default function RegisterForm({
           <TurnstileWidget
             onToken={setTurnstileToken}
             onExpire={() => setTurnstileToken("")}
+            resetSignal={turnstileReset}
           />
 
           {error && <p className="text-xs text-red-700">{error}</p>}

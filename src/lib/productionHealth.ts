@@ -104,7 +104,11 @@ export function buildProductionHealthReport(): ProductionHealthReport {
         "GOOGLE_GEOCODING_API_KEY — אופציונלי; גיבוי לגיאוקוד כש-ArcGIS לא מספיק."
       );
     }
-    if (
+    if (process.env.DISABLE_TURNSTILE === "true") {
+      warnings.push(
+        "DISABLE_TURNSTILE=true — CAPTCHA כבוי. החזירו אחרי יישור מפתחות Cloudflare Turnstile (site+secret + hostnames)."
+      );
+    } else if (
       !process.env.TURNSTILE_SECRET_KEY?.trim() ||
       !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()
     ) {

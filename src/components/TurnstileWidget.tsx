@@ -26,9 +26,15 @@ declare global {
 type Props = {
   onToken: (token: string) => void;
   onExpire?: () => void;
+  /** העלאת ערך מרעננת את הווידג'ט אחרי כישלון שליחה */
+  resetSignal?: number;
 };
 
-export default function TurnstileWidget({ onToken, onExpire }: Props) {
+export default function TurnstileWidget({
+  onToken,
+  onExpire,
+  resetSignal = 0,
+}: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
@@ -45,7 +51,11 @@ export default function TurnstileWidget({ onToken, onExpire }: Props) {
 
     const render = () => {
       if (cancelled || !window.turnstile) return;
-      if (widgetId.current) return;
+      if (widgetId.current) {
+        window.turnstile.remove(widgetId.current);
+        widgetId.current = null;
+        host.innerHTML = "";
+      }
       widgetId.current = window.turnstile.render(host, {
         sitekey: siteKey,
         retry: "auto",
@@ -85,7 +95,7 @@ export default function TurnstileWidget({ onToken, onExpire }: Props) {
         widgetId.current = null;
       }
     };
-  }, [siteKey]);
+  }, [siteKey, resetSignal]);
 
   if (isTurnstileUnavailable()) {
     return (
