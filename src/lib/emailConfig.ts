@@ -127,6 +127,19 @@ export function isEmailVerifyCodeFallbackActive(): boolean {
   return process.env.ENABLE_EMAIL_VERIFY_CODE_FALLBACK === "true";
 }
 
+/**
+ * כשאין דומיין מאומת ב-Resend — אפשר לכבות OTP זמנית:
+ * DISABLE_EMAIL_VERIFICATION=true ב-Vercel.
+ * הרשמה/התחברות נותנות סשן מלא בלי קוד במייל.
+ */
+export function isEmailVerificationDisabled(): boolean {
+  return process.env.DISABLE_EMAIL_VERIFICATION === "true";
+}
+
+export function isEmailVerificationRequired(): boolean {
+  return !isEmailVerificationDisabled();
+}
+
 export function isRecoverableFromAddressError(
   code: EmailSendErrorCode
 ): boolean {

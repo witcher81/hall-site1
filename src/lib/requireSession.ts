@@ -3,6 +3,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser, type AuthUser } from "./auth";
+import { isEmailVerificationRequired } from "./emailConfig";
 
 function loginRedirectPath(returnPath?: string): string {
   if (!returnPath) return "/auth/login";
@@ -21,11 +22,13 @@ export async function requireSession(returnPath?: string): Promise<AuthUser> {
   return user;
 }
 
-/** דורש אימייל מאומת — מפנה לדף אימות */
+/** דורש אימייל מאומת — מפנה לדף אימות (אלא אם DISABLE_EMAIL_VERIFICATION) */
 export async function requireVerifiedSession(
   returnPath?: string
 ): Promise<AuthUser> {
   const user = await requireSession(returnPath);
-  if (!user.emailVerified) redirect(verifyRedirectPath(returnPath));
+  if (!user.emailVerified && isEmailVerificationRequired()) {
+    redirect(verifyRedirectPath(returnPath));
+  }
   return user;
 }

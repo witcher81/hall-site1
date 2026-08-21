@@ -3,6 +3,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 
 import { getCurrentUser, type AuthUser } from "./auth";
+import { isEmailVerificationRequired } from "./emailConfig";
 
 const EMAIL_NOT_VERIFIED_MESSAGE =
   "יש לאמת את כתובת האימייל לפני פעולה זו.";
@@ -18,7 +19,13 @@ export function emailNotVerifiedResponse(): NextResponse {
 export function emailVerificationGuard(
   user: AuthUser | null
 ): NextResponse | null {
-  if (user && !user.emailVerified) return emailNotVerifiedResponse();
+  if (
+    user &&
+    !user.emailVerified &&
+    isEmailVerificationRequired()
+  ) {
+    return emailNotVerifiedResponse();
+  }
   return null;
 }
 
@@ -34,7 +41,7 @@ export async function requireVerifiedApiUser(): Promise<VerifiedApiUser> {
       response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
     };
   }
-  if (!user.emailVerified) {
+  if (!user.emailVerified && isEmailVerificationRequired()) {
     return { response: emailNotVerifiedResponse() };
   }
   return { user };

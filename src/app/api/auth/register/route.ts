@@ -4,10 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { assertPersonalPhoneAvailable } from "@/lib/phoneUnique";
 import {
   clearSessionCookie,
+  createSessionToken,
   hashPassword,
   setPendingVerificationCookie,
   setPendingVerificationCookieOnResponse,
+  setSessionCookie,
+  setSessionCookieOnResponse,
+  type AuthUser,
 } from "@/lib/auth";
+import { isEmailVerificationRequired } from "@/lib/emailConfig";
 import { sendEmailVerificationForUser, verificationEmailClientPayload } from "@/lib/sendEmailVerification";
 import { consumeQueueBatch, publishMessage } from "@/lib/messagingQueue";
 import { MessageTypes } from "@/lib/messagingQueueTypes";
@@ -97,6 +102,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: phoneFree.error }, { status: 409 });
     }
 
+    const skipEmailVerification = !isEmailVerificationRequired();
     const passwordHash = await hashPassword(passwordPlain);
     let user;
     try {
@@ -107,6 +113,7 @@ export async function POST(req: NextRequest) {
           passwordHash,
           role: selectedRole,
           phone: phoneResult.value,
+          emailVerified: skipEmailVerification,
         },
       });
     } catch (e) {
@@ -125,15 +132,6 @@ export async function POST(req: NextRequest) {
       throw e;
     }
 
-    await clearSessionCookie();
-    await setPendingVerificationCookie(user.id);
-
-    const emailSend = await sendEmailVerificationForUser({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-    });
-
     await publishMessage(MessageTypes.USER_REGISTER_POST_CREATE, {
       userId: user.id,
       role: user.role,
@@ -142,6 +140,34 @@ export async function POST(req: NextRequest) {
     });
     void consumeQueueBatch().catch((err) => {
       console.error("Background job kick failed after register:", err);
+    });
+
+    if (skipEmailVerification) {
+      const authUser: AuthUser = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        emailVerified: true,
+      };
+      const token = createSessionToken(authUser);
+      await clearSessionCookie();
+      await setSessionCookie(token);
+      const res = NextResponse.json(
+        { user: authUser, requiresEmailVerification: false },
+        { status: 201 }
+      );
+      setSessionCookieOnResponse(res, token);
+      return res;
+    }
+
+    await clearSessionCookie();
+    await setPendingVerificationCookie(user.id);
+
+    const emailSend = await sendEmailVerificationForUser({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
     });
 
     const emailPayload = verificationEmailClientPayload(emailSend);

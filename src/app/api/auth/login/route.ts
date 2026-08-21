@@ -10,6 +10,7 @@ import {
   verifyPassword,
   type AuthUser,
 } from "@/lib/auth";
+import { isEmailVerificationRequired } from "@/lib/emailConfig";
 import { sendEmailVerificationForUser, verificationEmailClientPayload } from "@/lib/sendEmailVerification";
 import { validateEmail, validateLoginPassword } from "@/lib/userInputValidation";
 import { USER_FACING_GENERIC, USER_FACING_LOGIN_INVALID } from "@/lib/userFacingErrors";
@@ -57,15 +58,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let emailVerified = user.emailVerified;
+    if (!emailVerified && !isEmailVerificationRequired()) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true },
+      });
+      emailVerified = true;
+    }
+
     const authUser: AuthUser = {
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
-      emailVerified: user.emailVerified,
+      emailVerified,
     };
 
-    if (!user.emailVerified) {
+    if (!emailVerified) {
       await clearSessionCookie();
       await setPendingVerificationCookie(user.id);
 
@@ -92,7 +102,10 @@ export async function POST(req: NextRequest) {
     const token = createSessionToken(authUser);
     await setSessionCookie(token);
 
-    const res = NextResponse.json({ user: authUser }, { status: 200 });
+    const res = NextResponse.json(
+      { user: authUser, requiresEmailVerification: false },
+      { status: 200 }
+    );
     setSessionCookieOnResponse(res, token);
     return res;
   } catch (error) {

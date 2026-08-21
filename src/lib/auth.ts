@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import type { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
+import { isEmailVerificationRequired } from "./emailConfig";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
@@ -256,13 +257,14 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     const user = await prisma.user.findUnique({
       where: { id: subId },
     });
-    if (!user || user.isBlocked || !user.emailVerified) return null;
+    if (!user || user.isBlocked) return null;
+    if (!user.emailVerified && isEmailVerificationRequired()) return null;
     return {
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
-      emailVerified: true,
+      emailVerified: user.emailVerified || !isEmailVerificationRequired(),
     };
   } catch {
     return null;

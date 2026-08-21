@@ -1,5 +1,6 @@
 import { isProductionRuntime } from "@/lib/isProduction";
 import {
+  isEmailVerificationDisabled,
   isEmailVerifyCodeFallbackActive,
   isProductionEmailFromReady,
 } from "@/lib/emailConfig";
@@ -17,6 +18,8 @@ export type ProductionHealthReport = {
   emailFromProductionReady: boolean;
   /** קוד OTP מוצג על המסך כשהמייל נכשל (מצב לפני השקה) */
   emailVerifyCodeOnScreenFallback: boolean;
+  /** OTP אימייל כבוי (DISABLE_EMAIL_VERIFICATION) */
+  emailVerificationDisabled: boolean;
   blobConfigured: boolean;
   geocodeFallbackConfigured: boolean;
   /** רמזים לתצורה חסרה — ללא ערכי סוד */
@@ -46,6 +49,7 @@ export function buildProductionHealthReport(): ProductionHealthReport {
     !production || !emailConfigured || isProductionEmailFromReady();
   const emailVerifyCodeOnScreenFallback =
     !production || isEmailVerifyCodeFallbackActive();
+  const emailVerificationDisabled = isEmailVerificationDisabled();
   const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
   const geocodeFallbackConfigured = Boolean(
     process.env.GOOGLE_GEOCODING_API_KEY?.trim()
@@ -75,9 +79,14 @@ export function buildProductionHealthReport(): ProductionHealthReport {
       warnings.push(
         "RESEND_API_KEY — אופציונלי; בלי זה אין מיילים (איפוס סיסמה, פניות)."
       );
-    } else if (!emailFromProductionReady) {
+    } else if (!emailFromProductionReady && !emailVerificationDisabled) {
       warnings.push(
         "EMAIL_FROM — חסר או משתמש ב-resend.dev; אימות אימייל ומיילים ייכשלו לנמענים אחרים. אמתו דומיין ב-Resend והגדירו EMAIL_FROM (למשל EventForYou <noreply@yourdomain.com>)."
+      );
+    }
+    if (emailVerificationDisabled) {
+      warnings.push(
+        "DISABLE_EMAIL_VERIFICATION=true — הרשמה בלי קוד במייל. החזירו כשיהיה דומיין מאומת ב-Resend."
       );
     }
     if (emailVerifyCodeOnScreenFallback) {
@@ -126,6 +135,7 @@ export function buildProductionHealthReport(): ProductionHealthReport {
     emailConfigured,
     emailFromProductionReady,
     emailVerifyCodeOnScreenFallback,
+    emailVerificationDisabled,
     blobConfigured,
     geocodeFallbackConfigured,
     warnings,
