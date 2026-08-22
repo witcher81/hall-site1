@@ -2,6 +2,7 @@ import { isAdminEmail } from "@/lib/admin";
 import { getAdminDashboardStats } from "@/lib/adminDashboardStats";
 import { requireVerifiedSession } from "@/lib/requireSession";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import SitePageShell from "@/components/layout/SitePageShell";
 import AdminNav from "@/components/admin/AdminNav";
 import Link from "next/link";
@@ -32,7 +33,8 @@ export default async function AdminLayout({
                 ניהול אתר
               </h1>
               <p className="mt-1.5 max-w-xl text-sm text-emerald-100/85">
-                משתמשים עסקיים חדשים, דיווחים ובקרת תוכן — פרסום עולה לציבור מיד.
+                עולה לאוויר מיד — כאן בודקים אחרי הפרסום: עסקים חדשים, דיווחים
+                ותוכן באתר.
               </p>
             </div>
             <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs text-emerald-50/95">
@@ -42,17 +44,23 @@ export default async function AdminLayout({
                 className="mt-1 inline-block text-amber-200 underline-offset-2 hover:underline"
               >
                 {stats.newBusinessUsers > 0
-                  ? `${stats.newBusinessUsers} משתמשים עסקיים לבדיקה`
-                  : "אין משתמשים עסקיים לבדיקה"}
+                  ? `${stats.newBusinessUsers} עסקים חדשים לבדיקה`
+                  : "אין עסקים חדשים לבדיקה"}
               </Link>
             </div>
           </div>
           <div className="mt-5">
-            <AdminNav
-              pendingTotal={stats.pendingTotal}
-              openReports={stats.openReports}
-              newBusinessUsers={stats.newBusinessUsers}
-            />
+            <Suspense
+              fallback={
+                <div className="h-10 animate-pulse rounded-full bg-white/10" />
+              }
+            >
+              <AdminNav
+                recentLiveTotal={stats.recentLiveTotal}
+                openReports={stats.openReports}
+                newBusinessUsers={stats.newBusinessUsers}
+              />
+            </Suspense>
           </div>
         </div>
       </div>

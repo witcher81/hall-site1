@@ -31,6 +31,24 @@ export async function GET(req: NextRequest) {
       createdAt: true,
       adminReviewedAt: true,
       businessName: true,
+      venues: {
+        select: {
+          id: true,
+          name: true,
+          moderationStatus: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      },
+      services: {
+        select: {
+          id: true,
+          name: true,
+          moderationStatus: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      },
     },
   });
 

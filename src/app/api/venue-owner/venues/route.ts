@@ -9,6 +9,7 @@ import {
   moderationFieldsForNewListing,
   moderationFieldsForOwnerEdit,
 } from "@/lib/listingModerationService";
+import { notifyAdminsNewListing } from "@/lib/notifyAdminsNewListing";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -812,6 +813,16 @@ export async function POST(req: NextRequest) {
     listingId: venue.id,
     fromStatus: null,
     actorUserId: user.id,
+  });
+
+  void notifyAdminsNewListing({
+    listingType: "VENUE",
+    listingId: venue.id,
+    listingName: venue.name,
+    ownerName: user.name,
+    ownerEmail: user.email,
+  }).catch((err) => {
+    console.error("notifyAdminsNewListing venue failed:", err);
   });
 
   return NextResponse.json({ venue }, { status: 201 });

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 type Props = {
-  pendingTotal: number;
+  recentLiveTotal: number;
   openReports: number;
   newBusinessUsers: number;
 };
@@ -13,37 +13,46 @@ const LINKS: Array<{
   href: string;
   label: string;
   exact?: boolean;
-  badge?: "pending" | "reports" | "newBusiness";
+  /** match /admin/users?focus=new-business vs all users */
+  focus?: "new-business" | "none";
+  badge?: "recentLive" | "reports" | "newBusiness";
 }> = [
   { href: "/admin", label: "סקירה", exact: true },
   {
     href: "/admin/users?focus=new-business",
-    label: "משתמשים חדשים",
+    label: "עסקים חדשים לבדיקה",
+    focus: "new-business",
     badge: "newBusiness",
   },
   { href: "/admin/reports", label: "דיווחים", badge: "reports" },
-  { href: "/admin/moderation", label: "בקרת תוכן", badge: "pending" },
-  { href: "/admin/users", label: "כל המשתמשים" },
+  {
+    href: "/admin/moderation",
+    label: "תוכן באוויר",
+    badge: "recentLive",
+  },
+  { href: "/admin/users", label: "כל המשתמשים", focus: "none" },
 ];
 
 function badgeCount(
-  kind: "pending" | "reports" | "newBusiness" | undefined,
-  pendingTotal: number,
+  kind: "recentLive" | "reports" | "newBusiness" | undefined,
+  recentLiveTotal: number,
   openReports: number,
   newBusinessUsers: number
 ): number {
-  if (kind === "pending") return pendingTotal;
+  if (kind === "recentLive") return recentLiveTotal;
   if (kind === "reports") return openReports;
   if (kind === "newBusiness") return newBusinessUsers;
   return 0;
 }
 
 export default function AdminNav({
-  pendingTotal,
+  recentLiveTotal,
   openReports,
   newBusinessUsers,
 }: Props) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const focusParam = searchParams.get("focus");
 
   return (
     <nav
@@ -52,12 +61,23 @@ export default function AdminNav({
     >
       {LINKS.map((item) => {
         const pathOnly = item.href.split("?")[0];
-        const active = item.exact
-          ? pathname === pathOnly
-          : pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
+        let active = false;
+        if (item.exact) {
+          active = pathname === pathOnly;
+        } else if (item.focus === "new-business") {
+          active =
+            pathname === pathOnly && focusParam === "new-business";
+        } else if (item.focus === "none") {
+          active =
+            pathname === pathOnly && focusParam !== "new-business";
+        } else {
+          active =
+            pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
+        }
+
         const count = badgeCount(
           item.badge,
-          pendingTotal,
+          recentLiveTotal,
           openReports,
           newBusinessUsers
         );

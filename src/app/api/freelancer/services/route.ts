@@ -29,6 +29,7 @@ import {
   moderationFieldsForNewListing,
   moderationFieldsForOwnerEdit,
 } from "@/lib/listingModerationService";
+import { notifyAdminsNewListing } from "@/lib/notifyAdminsNewListing";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -329,6 +330,16 @@ export async function POST(req: NextRequest) {
     listingId: service.id,
     fromStatus: null,
     actorUserId: user.id,
+  });
+
+  void notifyAdminsNewListing({
+    listingType: "SERVICE",
+    listingId: service.id,
+    listingName: service.name,
+    ownerName: user.name,
+    ownerEmail: user.email,
+  }).catch((err) => {
+    console.error("notifyAdminsNewListing service failed:", err);
   });
 
   return NextResponse.json({ service }, { status: 201 });

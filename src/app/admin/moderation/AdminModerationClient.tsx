@@ -33,13 +33,17 @@ type QueueData = {
 export default function AdminModerationClient() {
   const [data, setData] = useState<QueueData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("PENDING");
+  const [status, setStatus] = useState("APPROVED");
   const [rejectNote, setRejectNote] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
-    const res = await fetch(`/api/admin/moderation?status=${encodeURIComponent(status)}`);
+    setActionError(null);
+    const res = await fetch(
+      `/api/admin/moderation?status=${encodeURIComponent(status)}`
+    );
     const json = await res.json().catch(() => null);
     setData(json);
     setLoading(false);
@@ -47,6 +51,7 @@ export default function AdminModerationClient() {
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when status tab changes
   }, [status]);
 
   async function decide(
@@ -55,11 +60,12 @@ export default function AdminModerationClient() {
   ) {
     const key = `${item.listingType}-${item.id}`;
     if (decision === "REJECTED" && !rejectNote[key]?.trim()) {
-      alert("נא לציין סיבת דחייה");
+      setActionError("נא לציין סיבה לפני הסרה מהאוויר");
       return;
     }
     setBusyKey(key);
-    await fetch("/api/admin/moderation", {
+    setActionError(null);
+    const res = await fetch("/api/admin/moderation", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -69,7 +75,12 @@ export default function AdminModerationClient() {
         note: decision === "REJECTED" ? rejectNote[key]?.trim() : null,
       }),
     });
+    const json = await res.json().catch(() => null);
     setBusyKey(null);
+    if (!res.ok) {
+      setActionError(json?.error || "הפעולה נכשלה");
+      return;
+    }
     void load();
   }
 
@@ -82,21 +93,30 @@ export default function AdminModerationClient() {
   return (
     <div className="space-y-4 text-right text-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {data?.pendingCounts ? (
+        {data?.pendingCounts && data.pendingCounts.total > 0 ? (
           <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-950">
-            {data.pendingCounts.total} ממתינים · {data.pendingCounts.venues}{" "}
-            אולמות · {data.pendingCounts.services} שירותים
+            {data.pendingCounts.total} עדיין במצב ממתין (ישן) ·{" "}
+            {data.pendingCounts.venues} אולמות · {data.pendingCounts.services}{" "}
+            שירותים
           </span>
         ) : (
-          <span />
+          <span className="text-xs text-neutral-500">
+            תוכן חדש עולה לאוויר מיד — כאן מנהלים מה שכבר באתר
+          </span>
         )}
       </div>
 
+      {actionError ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+          {actionError}
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap gap-2">
         {[
-          { id: "PENDING", label: "ממתינים" },
-          { id: "APPROVED", label: "מאושרים" },
-          { id: "REJECTED", label: "נדחו" },
+          { id: "APPROVED", label: "באוויר" },
+          { id: "REJECTED", label: "הוסרו מהאוויר" },
+          { id: "PENDING", label: "ממתינים (ישן)" },
           { id: "ALL", label: "הכל" },
         ].map((tab) => (
           <button
@@ -127,6 +147,10 @@ export default function AdminModerationClient() {
           const key = `${item.listingType}-${item.id}`;
           const ownerLabel =
             item.owner.businessName || item.owner.name || item.owner.email;
+          const canTakeDown =
+            item.moderationStatus === "APPROVED" ||
+            item.moderationStatus === "PENDING";
+          const canRestore = item.moderationStatus === "REJECTED";
           return (
             <li
               key={key}
@@ -138,7 +162,9 @@ export default function AdminModerationClient() {
                     {item.listingTypeLabel}: {item.name}
                   </p>
                   {item.subtitle ? (
-                    <p className="mt-0.5 text-xs text-neutral-600">{item.subtitle}</p>
+                    <p className="mt-0.5 text-xs text-neutral-600">
+                      {item.subtitle}
+                    </p>
                   ) : null}
                   <p className="mt-1 text-[11px] text-neutral-500">
                     {ownerLabel} · גרסה {item.contentRevision} ·{" "}
@@ -161,46 +187,53 @@ export default function AdminModerationClient() {
                 ) : null}
               </div>
 
-              {item.moderationStatus === "PENDING" ? (
-                <div className="mt-3 space-y-2 border-t border-neutral-100 pt-3">
+              <div className="mt-3 space-y-2 border-t border-neutral-100 pt-3">
+                {canTakeDown ? (
                   <input
                     type="text"
                     dir="rtl"
                     value={rejectNote[key] ?? ""}
                     onChange={(e) =>
-                      setRejectNote((prev) => ({ ...prev, [key]: e.target.value }))
+                      setRejectNote((prev) => ({
+                        ...prev,
+                        [key]: e.target.value,
+                      }))
                     }
-                    placeholder="סיבת דחייה (רק אם דוחים)"
+                    placeholder="סיבה להסרה מהאוויר (חובה אם מסירים)"
                     className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-xs"
                   />
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <a
-                      href={item.publicHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
-                    >
-                      תצוגה
-                    </a>
+                ) : null}
+                <div className="flex flex-wrap justify-end gap-2">
+                  <a
+                    href={item.publicHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+                  >
+                    צפייה באתר
+                  </a>
+                  {canTakeDown ? (
                     <button
                       type="button"
                       disabled={busyKey === key}
                       onClick={() => void decide(item, "REJECTED")}
                       className="rounded-full border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                     >
-                      דחה
+                      הסר מהאוויר
                     </button>
+                  ) : null}
+                  {canRestore || item.moderationStatus === "PENDING" ? (
                     <button
                       type="button"
                       disabled={busyKey === key}
                       onClick={() => void decide(item, "APPROVED")}
                       className="rounded-full bg-emerald-950 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-900 disabled:opacity-50"
                     >
-                      אשר לפרסום
+                      {canRestore ? "החזר לאוויר" : "העלה לאוויר"}
                     </button>
-                  </div>
+                  ) : null}
                 </div>
-              ) : null}
+              </div>
             </li>
           );
         })}

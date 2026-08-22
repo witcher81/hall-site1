@@ -4,9 +4,9 @@ import { getAdminDashboardStats } from "@/lib/adminDashboardStats";
 const SECTIONS = [
   {
     href: "/admin/users?focus=new-business",
-    title: "משתמשים עסקיים חדשים",
-    body: "בעלי אולם ופרילנסרים שנרשמו — בדקו וסמנו כנבדקו, או חסמו אם צריך.",
-    cta: "למשתמשים החדשים",
+    title: "עסקים חדשים לבדיקה",
+    body: "בעלי אולם ופרילנסרים שנרשמו — כבר באתר. סמנו כנבדק או חסמו אם צריך.",
+    cta: "לעסקים החדשים",
     accent: "amber" as const,
     countKey: "newBusinessUsers" as const,
     countLabel: "לבדיקה",
@@ -22,12 +22,12 @@ const SECTIONS = [
   },
   {
     href: "/admin/moderation",
-    title: "בקרת אולמות ושירותים",
-    body: "פרסום מיידי באתר. כאן אפשר לדחות או לאשר מחדש תוכן בעייתי.",
-    cta: "לבקרת תוכן",
+    title: "תוכן באוויר",
+    body: "אולמות ושירותים שכבר בחיפוש. כאן אפשר להסיר מהאוויר או להחזיר.",
+    cta: "לתוכן באוויר",
     accent: "emerald" as const,
-    countKey: "pendingTotal" as const,
-    countLabel: "ממתינים",
+    countKey: "recentLiveTotal" as const,
+    countLabel: "חדשים השבוע",
   },
 ] as const;
 
@@ -70,19 +70,19 @@ export default async function AdminHomePage() {
       <section>
         <h2 className="text-base font-semibold text-emerald-950">מה לטפל עכשיו</h2>
         <p className="mt-1 text-sm text-neutral-600">
-          אולמות ושירותים עולים לחיפוש מיד. בדקו משתמשים עסקיים חדשים, וטפלו
-          בדיווחים או בתוכן בעייתי.
+          עולה לאוויר מיד. כאן בודקים אחרי הפרסום — עסקים חדשים, דיווחים ותוכן
+          באתר.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800/80">
-              משתמשים עסקיים לבדיקה
+              עסקים חדשים לבדיקה
             </p>
             <p className="mt-1 font-serif text-3xl font-semibold tabular-nums text-emerald-950">
               {stats.newBusinessUsers}
             </p>
             <p className="mt-1 text-xs text-neutral-600">
-              בעלי אולם ופרילנסרים שטרם סומנו
+              בעלי אולם ופרילנסרים שטרם סומנו כנבדק
             </p>
           </div>
           <div className="rounded-2xl border border-rose-200 bg-white p-4 shadow-sm">
@@ -94,14 +94,16 @@ export default async function AdminHomePage() {
             </p>
             <p className="mt-1 text-xs text-neutral-600">מחכים לטיפול</p>
           </div>
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
-              משתמשים חסומים
+          <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800/80">
+              פורסמו השבוע
             </p>
             <p className="mt-1 font-serif text-3xl font-semibold tabular-nums text-emerald-950">
-              {stats.blockedUsers}
+              {stats.recentLiveTotal}
             </p>
-            <p className="mt-1 text-xs text-neutral-600">פעילים כרגע</p>
+            <p className="mt-1 text-xs text-neutral-600">
+              אולמות ושירותים חדשים באוויר
+            </p>
           </div>
         </div>
       </section>
