@@ -28,12 +28,12 @@ export async function notifyAdminsNewListing(
   if (admins.length === 0) return;
 
   const kind = input.listingType === "VENUE" ? "אולם" : "שירות";
-  const publicHref =
-    input.listingType === "VENUE"
-      ? `/halls/${input.listingId}`
-      : `/services/${input.listingId}`;
   const ownerLabel =
     input.ownerName?.trim() || input.ownerEmail || "משתמש עסקי";
+  const adminHref =
+    input.listingType === "VENUE"
+      ? `/admin/content/venue/${input.listingId}`
+      : `/admin/content/service/${input.listingId}`;
 
   await Promise.all(
     admins.map((admin) =>
@@ -42,7 +42,7 @@ export async function notifyAdminsNewListing(
         type: "ADMIN_NEW_LISTING",
         title: `${kind} חדש באוויר`,
         body: `«${input.listingName}» מאת ${ownerLabel} — כבר בחיפוש. בדקו בפאנל.`,
-        href: publicHref,
+        href: adminHref,
       })
     )
   );

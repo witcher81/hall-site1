@@ -2,17 +2,24 @@ import { prisma } from "@/lib/prisma";
 import { ListingModerationStatus } from "@/lib/listingModerationTypes";
 
 const RECENT_LIVE_DAYS = 7;
+const WORK_QUEUE_LIMIT = 10;
 
 export type AdminDashboardStats = {
   pendingVenues: number;
   pendingServices: number;
   pendingTotal: number;
-  /** אולמות+שירותים שאושרו ופורסמו ב־7 הימים האחרונים */
   recentLiveTotal: number;
   openReports: number;
   blockedUsers: number;
-  /** בעלי אולם / פרילנסרים שעדיין לא סומנו כנבדקו באדמין */
   newBusinessUsers: number;
+};
+
+export type AdminWorkQueueItem = {
+  kind: "business" | "report" | "content";
+  href: string;
+  title: string;
+  subtitle: string;
+  meta: string;
 };
 
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
@@ -66,4 +73,116 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     blockedUsers,
     newBusinessUsers,
   };
+}
+
+export async function getAdminWorkQueue(): Promise<AdminWorkQueueItem[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - RECENT_LIVE_DAYS);
+
+  const [businesses, reports, recentVenues, recentServices] = await Promise.all([
+    prisma.user.findMany({
+      where: {
+        role: { in: ["VENUE_OWNER", "FREELANCER"] },
+        isBlocked: false,
+        adminReviewedAt: null,
+      },
+      orderBy: { createdAt: "desc" },
+      take: WORK_QUEUE_LIMIT,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    }),
+    prisma.contentReport.findMany({
+      where: { status: "OPEN" },
+      orderBy: { createdAt: "desc" },
+      take: WORK_QUEUE_LIMIT,
+      select: {
+        id: true,
+        targetType: true,
+        targetId: true,
+        reason: true,
+        createdAt: true,
+      },
+    }),
+    prisma.venue.findMany({
+      where: {
+        moderationStatus: ListingModerationStatus.APPROVED,
+        createdAt: { gte: since },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: { id: true, name: true, createdAt: true },
+    }),
+    prisma.service.findMany({
+      where: {
+        moderationStatus: ListingModerationStatus.APPROVED,
+        createdAt: { gte: since },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: { id: true, name: true, createdAt: true },
+    }),
+  ]);
+
+  const items: AdminWorkQueueItem[] = [];
+
+  for (const u of businesses) {
+    const roleLabel =
+      u.role === "VENUE_OWNER" ? "בעל/ת אולם" : "פרילנסר/ית";
+    items.push({
+      kind: "business",
+      href: `/admin/businesses/${u.id}`,
+      title: u.name?.trim() || u.email,
+      subtitle: `${roleLabel} · ${u.email}`,
+      meta: new Date(u.createdAt).toLocaleString("he-IL", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+    });
+  }
+
+  for (const r of reports) {
+    items.push({
+      kind: "report",
+      href: `/admin/reports/${r.id}`,
+      title: `דיווח: ${r.reason}`,
+      subtitle: `${r.targetType} #${r.targetId}`,
+      meta: new Date(r.createdAt).toLocaleString("he-IL", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+    });
+  }
+
+  for (const v of recentVenues) {
+    items.push({
+      kind: "content",
+      href: `/admin/content/venue/${v.id}`,
+      title: `אולם חדש: ${v.name}`,
+      subtitle: "פורסם לאחרונה",
+      meta: new Date(v.createdAt).toLocaleString("he-IL", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+    });
+  }
+
+  for (const s of recentServices) {
+    items.push({
+      kind: "content",
+      href: `/admin/content/service/${s.id}`,
+      title: `שירות חדש: ${s.name}`,
+      subtitle: "פורסם לאחרונה",
+      meta: new Date(s.createdAt).toLocaleString("he-IL", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+    });
+  }
+
+  return items.slice(0, WORK_QUEUE_LIMIT);
 }

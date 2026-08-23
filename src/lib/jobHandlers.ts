@@ -78,7 +78,7 @@ export async function executeJob(jobType: string, payload: unknown): Promise<voi
               type: "ADMIN_NEW_BUSINESS_USER",
               title: "משתמש עסקי חדש",
               body: `${p.name?.trim() || p.email || "משתמש"} נרשם כ${roleLabel}. בדקו בפאנל הניהול.`,
-              href: "/admin/users?focus=new-business",
+              href: `/admin/businesses/${p.userId as number}`,
             });
           }
         }

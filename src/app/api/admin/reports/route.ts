@@ -8,6 +8,24 @@ export async function GET(req: NextRequest) {
   const { denied } = await requireAdminApi();
   if (denied) return denied;
 
+  const idParam = req.nextUrl.searchParams.get("id")?.trim();
+  if (idParam) {
+    const id = Number(idParam);
+    if (!Number.isInteger(id) || id <= 0) {
+      return NextResponse.json({ error: "מזהה לא תקין" }, { status: 400 });
+    }
+    const report = await prisma.contentReport.findUnique({
+      where: { id },
+      include: {
+        reporter: { select: { id: true, email: true, name: true } },
+      },
+    });
+    if (!report) {
+      return NextResponse.json({ error: "דיווח לא נמצא" }, { status: 404 });
+    }
+    return NextResponse.json({ report });
+  }
+
   const status = req.nextUrl.searchParams.get("status")?.trim() || "OPEN";
   const reports = await prisma.contentReport.findMany({
     where: status === "ALL" ? {} : { status },
@@ -28,7 +46,11 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const id = Number(body.id);
   const status = typeof body.status === "string" ? body.status.trim() : "";
-  if (!Number.isInteger(id) || id <= 0 || !["OPEN", "RESOLVED", "DISMISSED"].includes(status)) {
+  if (
+    !Number.isInteger(id) ||
+    id <= 0 ||
+    !["OPEN", "RESOLVED", "DISMISSED"].includes(status)
+  ) {
     return NextResponse.json({ error: "נתונים לא תקינים" }, { status: 400 });
   }
 
