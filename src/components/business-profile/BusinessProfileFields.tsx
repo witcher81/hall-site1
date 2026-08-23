@@ -32,7 +32,7 @@ const inputReadOnly =
 const mobileSelect = "site-input shrink-0 w-auto py-2.5 px-2";
 const mobileRest = "site-input min-w-0 flex-1 py-2.5";
 const sectionClass =
-  "space-y-4 rounded-2xl border-2 border-[var(--border-soft)] bg-[var(--card)] p-5 shadow-[0_8px_28px_rgba(15,59,46,0.1)]";
+  "space-y-4 rounded-2xl border border-[var(--border-soft)] bg-[var(--card)] p-5 shadow-[0_8px_28px_rgba(15,59,46,0.08)]";
 const sectionTitle = "text-sm font-semibold text-[var(--heading)]";
 const labelClass = "block text-sm font-medium text-[var(--foreground)]";
 const hintClass = "mt-1 text-xs leading-relaxed text-[var(--muted)]";
@@ -141,7 +141,7 @@ export default function BusinessProfileFields({
 
       <section className={sectionClass}>
         <h2 className={sectionTitle}>מה שמחפשים רואים</h2>
-        <div className="rounded-xl border-2 border-[var(--accent)] bg-[var(--card-muted)] px-3 py-2.5 text-xs leading-relaxed text-[var(--foreground)]">
+        <div className="rounded-xl border border-[var(--accent)] bg-[var(--card-muted)] px-3 py-2.5 text-xs leading-relaxed text-[var(--foreground)]">
           {role === "venue-owner" ? (
             <>
               שם העסק והטלפון העסקי מוצגים בדף האולם ובפניות. לכל אולם יש כתובת

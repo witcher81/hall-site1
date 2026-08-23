@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
-/* פלטה אחידה — שמנת עמוקה (לא בוהקת), ירוק עשיר, זהב קריא */
+/* פלטה אחידה — שמנת בהירה ונקייה, ירוק חי, זהב חי, הדר ירוק כהה נוצץ */
 :root,
 html[data-theme="classic"] {
-  --background: #d6c6a8;
-  --background-soft: #e2d4b8;
-  --card: #faf6ed;
-  --card-muted: #efe6d4;
-  --border-soft: #a89878;
+  --background: #f3eee4;
+  --background-soft: #f8f4ec;
+  --card: #fffcf7;
+  --card-muted: #f5f0e6;
+  --border-soft: #c9c2b4;
   --foreground: #1a1a1a;
-  --muted: #4a453c;
-  --brand: #3d8b64;
-  --accent: #b8921f;
-  --accent-hover: #c9a227;
+  --muted: #5c564c;
+  --brand: #2f9a68;
+  --accent: #d4a017;
+  --accent-hover: #e0b02e;
   --accent-contrast: #1a1408;
-  --heading: #1e5c40;
-  --header-bg: #3f6f52;
-  --header-fg: #faf6ed;
-  --header-muted: #d5e4d6;
-  --header-border: #345c45;
-  --header-chip: rgb(184 146 31 / 0.32);
+  --heading: #167a4f;
+  --header-bg: #0f3d2e;
+  --header-fg: #f7fffb;
+  --header-muted: #b8dcc8;
+  --header-border: #0a2e22;
+  --header-chip: rgb(212 160 23 / 0.35);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   color-scheme: light;
@@ -585,17 +585,29 @@ html[data-theme="night"] .dashboard-nav-user {
   );
 }
 
-/* כותרת האתר — ירוק זית עמוק בקלאסי, כהה בלילה */
+/* כותרת האתר — ירוק כהה נוצץ בקלאסי, כהה בלילה */
 header.site-header {
   background-color: var(--header-bg) !important;
   border-color: var(--header-border) !important;
   color: var(--header-fg);
-  box-shadow: 0 1px 0 var(--header-border), 0 8px 22px rgb(23 72 50 / 0.1);
+  box-shadow: 0 1px 0 var(--header-border), 0 10px 28px rgb(15 61 46 / 0.22);
 }
 
 html[data-theme="classic"] header.site-header,
 html[data-theme="classic"] header.dashboard-nav {
-  background: linear-gradient(180deg, #4a7d5c 0%, #35674a 100%) !important;
+  background: linear-gradient(
+    180deg,
+    #1f6b4f 0%,
+    #145a40 28%,
+    #0f3d2e 72%,
+    #0c3427 100%
+  ) !important;
+  border-color: #0a2e22 !important;
+  box-shadow:
+    0 1px 0 #0a2e22,
+    0 12px 32px rgb(8 40 30 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    inset 0 -1px 0 rgb(0 0 0 / 0.2) !important;
 }
 
 html[data-theme="classic"] header.site-header .text-emerald-950,
@@ -667,11 +679,11 @@ html[data-theme="classic"] .placeholder\:text-\[\#9A9490\]::placeholder {
 
 html[data-theme="classic"] .bg-emerald-950,
 html[data-theme="classic"] .hover\:bg-emerald-950:hover {
-  background-color: #2f8a5f !important;
+  background-color: var(--brand) !important;
 }
 
 html[data-theme="classic"] .text-emerald-950 {
-  color: #1e6b4a !important;
+  color: var(--heading) !important;
 }
 
 html[data-theme="classic"] .bg-amber-400,
@@ -687,7 +699,7 @@ html[data-theme="classic"] .hover\:bg-amber-400:hover {
 
 html[data-theme="classic"] .text-amber-400,
 html[data-theme="classic"] .text-amber-200 {
-  color: #8f6f14 !important;
+  color: #b8860b !important;
 }
 
 html[data-theme="classic"] .border-amber-400,

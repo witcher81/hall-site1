@@ -48,7 +48,7 @@ export default function SecuritySettingsForm() {
   }
 
   return (
-    <section className="rounded-2xl border-2 border-[var(--border-soft)] bg-[var(--card)] p-6 shadow-[0_12px_40px_rgba(15,59,46,0.1)]">
+    <section className="rounded-2xl border border-[var(--border-soft)] bg-[var(--card)] p-6 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
       <h2 className="text-base font-semibold text-[var(--heading)]">אבטחה — שינוי סיסמה</h2>
       <p className="mt-1 text-xs text-[var(--muted)]">
         בחרו סיסמה חזקה שקל לכם לזכור. מינימום 6 תווים. לא ניתן להשתמש באותה סיסמה

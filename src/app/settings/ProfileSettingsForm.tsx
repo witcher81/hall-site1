@@ -38,7 +38,7 @@ export default function ProfileSettingsForm({ user }: { user: SettingsUser }) {
   }
 
   return (
-    <section className="rounded-2xl border-2 border-[var(--border-soft)] bg-[var(--card)] p-6 shadow-[0_12px_40px_rgba(15,59,46,0.1)]">
+    <section className="rounded-2xl border border-[var(--border-soft)] bg-[var(--card)] p-6 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
       <h2 className="text-base font-semibold text-[var(--heading)]">פרטי פרופיל</h2>
       <p className="mt-1 text-xs text-[var(--muted)]">
         השם והטלפון שלך עשויים להופיע בפניות ובבקשות כדי שיוכלו לחזור אליך.
