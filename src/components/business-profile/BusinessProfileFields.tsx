@@ -26,19 +26,16 @@ type Props = {
   onClearProfileImageChange?: (clear: boolean) => void;
 };
 
-const input =
-  "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
+const input = "site-input mt-1 py-2.5";
 const inputReadOnly =
-  "mt-1 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-neutral-600";
-const mobileSelect =
-  "shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
-const mobileRest =
-  "min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
+  "site-input mt-1 cursor-not-allowed bg-[var(--card-muted)] py-2.5 text-[var(--muted)] opacity-90";
+const mobileSelect = "site-input shrink-0 w-auto py-2.5 px-2";
+const mobileRest = "site-input min-w-0 flex-1 py-2.5";
 const sectionClass =
-  "space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-[0_8px_28px_rgba(15,59,46,0.06)]";
-const sectionTitle = "text-sm font-semibold text-emerald-950";
-const labelClass = "block text-sm font-medium text-neutral-700";
-const hintClass = "mt-1 text-xs leading-relaxed text-neutral-600";
+  "space-y-4 rounded-2xl border-2 border-[var(--border-soft)] bg-[var(--card)] p-5 shadow-[0_8px_28px_rgba(15,59,46,0.1)]";
+const sectionTitle = "text-sm font-semibold text-[var(--heading)]";
+const labelClass = "block text-sm font-medium text-[var(--foreground)]";
+const hintClass = "mt-1 text-xs leading-relaxed text-[var(--muted)]";
 
 function RequiredMark({ show }: { show: boolean }) {
   if (!show) return null;
@@ -87,7 +84,7 @@ export default function BusinessProfileFields({
     <div className="space-y-5 text-right">
       <section className={sectionClass}>
         <h2 className={sectionTitle}>פרטי חשבון</h2>
-        <p className="text-xs leading-relaxed text-neutral-600">
+        <p className="text-xs leading-relaxed text-[var(--muted)]">
           לשימוש פנימי, התחברות והתראות — לא מוצגים ישירות למחפשים.
         </p>
 
@@ -144,7 +141,7 @@ export default function BusinessProfileFields({
 
       <section className={sectionClass}>
         <h2 className={sectionTitle}>מה שמחפשים רואים</h2>
-        <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2.5 text-xs leading-relaxed text-amber-950">
+        <div className="rounded-xl border-2 border-[var(--accent)] bg-[var(--card-muted)] px-3 py-2.5 text-xs leading-relaxed text-[var(--foreground)]">
           {role === "venue-owner" ? (
             <>
               שם העסק והטלפון העסקי מוצגים בדף האולם ובפניות. לכל אולם יש כתובת

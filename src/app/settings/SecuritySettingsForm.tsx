@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+const labelClass = "block text-sm font-medium text-[var(--foreground)]";
+
 export default function SecuritySettingsForm() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -46,43 +48,43 @@ export default function SecuritySettingsForm() {
   }
 
   return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-      <h2 className="text-base font-semibold text-emerald-950">אבטחה — שינוי סיסמה</h2>
-      <p className="mt-1 text-xs text-neutral-600">
+    <section className="rounded-2xl border-2 border-[var(--border-soft)] bg-[var(--card)] p-6 shadow-[0_12px_40px_rgba(15,59,46,0.1)]">
+      <h2 className="text-base font-semibold text-[var(--heading)]">אבטחה — שינוי סיסמה</h2>
+      <p className="mt-1 text-xs text-[var(--muted)]">
         בחרו סיסמה חזקה שקל לכם לזכור. מינימום 6 תווים. לא ניתן להשתמש באותה סיסמה
         הנוכחית.
       </p>
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <div>
-          <label className="block text-xs text-neutral-600">סיסמה נוכחית</label>
+          <label className={labelClass}>סיסמה נוכחית</label>
           <input
             type="password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+            className="site-input mt-1 text-sm"
             required
             autoComplete="current-password"
           />
         </div>
         <div>
-          <label className="block text-xs text-neutral-600">סיסמה חדשה</label>
+          <label className={labelClass}>סיסמה חדשה</label>
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+            className="site-input mt-1 text-sm"
             required
             minLength={6}
             autoComplete="new-password"
           />
         </div>
         <div>
-          <label className="block text-xs text-neutral-600">אישור סיסמה חדשה</label>
+          <label className={labelClass}>אישור סיסמה חדשה</label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+            className="site-input mt-1 text-sm"
             required
             minLength={6}
             autoComplete="new-password"
@@ -100,7 +102,7 @@ export default function SecuritySettingsForm() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-full border border-neutral-200 bg-neutral-50 px-5 py-2 text-sm font-semibold text-emerald-950 hover:bg-neutral-100 disabled:opacity-60"
+          className="btn-secondary disabled:opacity-60"
         >
           {saving ? "מעדכן..." : "עדכון סיסמה"}
         </button>

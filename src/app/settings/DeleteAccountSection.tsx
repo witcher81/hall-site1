@@ -65,23 +65,23 @@ export default function DeleteAccountSection({ email }: Props) {
             <span className="font-semibold text-emerald-950">{email}</span> ואת הסיסמה הנוכחית.
           </p>
           <div>
-            <label className="block text-xs text-neutral-600">אימייל לאישור</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">אימייל לאישור</label>
             <input
               type="email"
               value={confirmEmail}
               onChange={(e) => setConfirmEmail(e.target.value)}
               autoComplete="off"
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+              className="site-input mt-1 text-sm"
               required
             />
           </div>
           <div>
-            <label className="block text-xs text-neutral-600">סיסמה נוכחית</label>
+            <label className="block text-sm font-medium text-[var(--foreground)]">סיסמה נוכחית</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+              className="site-input mt-1 text-sm"
               required
             />
           </div>
@@ -103,7 +103,7 @@ export default function DeleteAccountSection({ email }: Props) {
                 setConfirmEmail("");
                 setError(null);
               }}
-              className="rounded-full border border-neutral-200 bg-white px-5 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-60"
+              className="btn-secondary disabled:opacity-60"
             >
               ביטול
             </button>

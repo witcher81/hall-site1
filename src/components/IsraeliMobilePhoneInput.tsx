@@ -29,10 +29,8 @@ export default function IsraeliMobilePhoneInput({
   const digits = normalizePhoneInput(value);
   const useMobileUi = forceMobile || !digits || digits.startsWith("05");
 
-  const defaultSelect =
-    "shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2.5 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
-  const defaultInput =
-    "min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
+  const defaultSelect = "site-input shrink-0 w-auto px-2 py-2.5 text-sm";
+  const defaultInput = "site-input min-w-0 flex-1 py-2.5 text-sm";
 
   if (!useMobileUi) {
     return (
@@ -42,10 +40,7 @@ export default function IsraeliMobilePhoneInput({
         maxLength={10}
         value={value}
         onChange={(e) => onChange(normalizePhoneInput(e.target.value))}
-        className={
-          legacyInputClassName ??
-          "mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
-        }
+        className={legacyInputClassName ?? "site-input mt-1 py-2.5"}
         placeholder="03-xxxxxxx או 05xxxxxxxx"
       />
     );

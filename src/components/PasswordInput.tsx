@@ -2,8 +2,7 @@
 
 import { useId, useState } from "react";
 
-const DEFAULT_INPUT_CLASS =
-  "w-full rounded-xl border border-neutral-200 bg-white py-2 pl-11 pr-3 text-right text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40";
+const DEFAULT_INPUT_CLASS = "site-input py-2 pl-11 pr-3 text-right";
 
 function EyeIcon({ className }: { className?: string }) {
   return (
@@ -67,7 +66,7 @@ export default function PasswordInput({
 
   return (
     <div>
-      <label htmlFor={id} className="block text-xs font-medium text-neutral-600">
+      <label htmlFor={id} className="block text-sm font-medium text-[var(--foreground)]">
         {label}
       </label>
       <div className="relative mt-1">

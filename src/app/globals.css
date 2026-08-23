@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
-/* פלטה אחידה — שמנת עמוקה, ירוק עשיר, זהב רך */
+/* פלטה אחידה — שמנת עמוקה (לא בוהקת), ירוק עשיר, זהב קריא */
 :root,
 html[data-theme="classic"] {
-  --background: #e8dcc4;
-  --background-soft: #f0e4cc;
-  --card: #f4ead6;
-  --card-muted: #ebe0c8;
-  --border-soft: #d4c4a8;
+  --background: #d6c6a8;
+  --background-soft: #e2d4b8;
+  --card: #faf6ed;
+  --card-muted: #efe6d4;
+  --border-soft: #a89878;
   --foreground: #1a1a1a;
-  --muted: #5c564c;
+  --muted: #4a453c;
   --brand: #3d8b64;
-  --accent: #c9a227;
-  --accent-hover: #d4b44a;
+  --accent: #b8921f;
+  --accent-hover: #c9a227;
   --accent-contrast: #1a1408;
-  --heading: #246b4a;
+  --heading: #1e5c40;
   --header-bg: #3f6f52;
-  --header-fg: #f4ead6;
+  --header-fg: #faf6ed;
   --header-muted: #d5e4d6;
   --header-border: #345c45;
-  --header-chip: rgb(201 162 39 / 0.28);
+  --header-chip: rgb(184 146 31 / 0.32);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   color-scheme: light;
@@ -425,11 +425,11 @@ html[data-theme="night"] .dashboard-nav-user {
 
 .site-card {
   border-radius: 1rem;
-  border: 1px solid var(--border-soft);
+  border: 1.5px solid var(--border-soft);
   background: var(--card);
   box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.06),
-    0 2px 4px -2px rgb(0 0 0 / 0.05);
+    0 4px 6px -1px rgb(0 0 0 / 0.08),
+    0 2px 4px -2px rgb(0 0 0 / 0.06);
   backdrop-filter: blur(8px);
   transition:
     transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
@@ -448,19 +448,19 @@ html[data-theme="night"] .dashboard-nav-user {
 
 .site-card-padded {
   border-radius: 1rem;
-  border: 1px solid var(--border-soft);
+  border: 1.5px solid var(--border-soft);
   background: var(--card);
   padding: 1.5rem;
   box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.06),
-    0 2px 4px -2px rgb(0 0 0 / 0.05);
+    0 4px 6px -1px rgb(0 0 0 / 0.08),
+    0 2px 4px -2px rgb(0 0 0 / 0.06);
   backdrop-filter: blur(8px);
 }
 
 .site-input {
   width: 100%;
   border-radius: 0.75rem;
-  border: 1px solid var(--border-soft);
+  border: 1.5px solid var(--border-soft);
   background: var(--card-muted);
   padding: 0.5rem 0.75rem;
   color: var(--foreground);
@@ -470,9 +470,15 @@ html[data-theme="night"] .dashboard-nav-user {
     box-shadow 0.15s ease;
 }
 
+.site-input::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
 .site-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+  background: var(--card);
 }
 
 /* שדות צמודים (קידומת + מספר) — לא width:100% על כל רוחב השורה */
@@ -529,7 +535,7 @@ html[data-theme="night"] .dashboard-nav-user {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  border: 1px solid var(--border-soft);
+  border: 1.5px solid var(--border-soft);
   background: var(--card);
   padding: 0.625rem 1.5rem;
   font-size: 0.875rem;
@@ -542,7 +548,7 @@ html[data-theme="night"] .dashboard-nav-user {
 
 .btn-secondary:hover:not(:disabled) {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
 }
 
 .site-footer {
@@ -627,6 +633,38 @@ html[data-theme="classic"] .bg-white\/95 {
   background-color: var(--card) !important;
 }
 
+html[data-theme="classic"] .bg-neutral-50 {
+  background-color: var(--card-muted) !important;
+}
+
+html[data-theme="classic"] .border-neutral-200,
+html[data-theme="classic"] .border-neutral-200\/80,
+html[data-theme="classic"] .border-neutral-200\/90 {
+  border-color: var(--border-soft) !important;
+}
+
+html[data-theme="classic"] .text-neutral-500,
+html[data-theme="classic"] .text-neutral-600 {
+  color: var(--muted) !important;
+}
+
+html[data-theme="classic"] .text-neutral-700 {
+  color: color-mix(in srgb, var(--foreground) 78%, var(--muted)) !important;
+}
+
+html[data-theme="classic"] input::placeholder,
+html[data-theme="classic"] textarea::placeholder,
+html[data-theme="classic"] select::placeholder {
+  color: var(--muted) !important;
+  opacity: 0.9;
+}
+
+html[data-theme="classic"] .placeholder\:text-neutral-400::placeholder,
+html[data-theme="classic"] .placeholder\:text-\[\#9A9490\]::placeholder {
+  color: var(--muted) !important;
+  opacity: 0.9;
+}
+
 html[data-theme="classic"] .bg-emerald-950,
 html[data-theme="classic"] .hover\:bg-emerald-950:hover {
   background-color: #2f8a5f !important;
@@ -638,23 +676,23 @@ html[data-theme="classic"] .text-emerald-950 {
 
 html[data-theme="classic"] .bg-amber-400,
 html[data-theme="classic"] .bg-amber-300 {
-  background-color: #c9a227 !important;
-  color: #1a1408;
+  background-color: var(--accent) !important;
+  color: var(--accent-contrast) !important;
 }
 
 html[data-theme="classic"] .hover\:bg-amber-300:hover,
 html[data-theme="classic"] .hover\:bg-amber-400:hover {
-  background-color: #d4b44a !important;
+  background-color: var(--accent-hover) !important;
 }
 
 html[data-theme="classic"] .text-amber-400,
 html[data-theme="classic"] .text-amber-200 {
-  color: #a8841c !important;
+  color: #8f6f14 !important;
 }
 
 html[data-theme="classic"] .border-amber-400,
 html[data-theme="classic"] .border-amber-400\/60 {
-  border-color: #c9a227 !important;
+  border-color: var(--accent) !important;
 }
 
 /* כרטיסים שהיו slate כהה – עכשיו שמנת/לבן, לא כחול כהה */

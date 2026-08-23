@@ -97,7 +97,7 @@ export default function NotificationPreferencesSection() {
             type="button"
             onClick={() => void save()}
             disabled={saving}
-            className="mt-4 rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-neutral-950 hover:bg-amber-300 disabled:opacity-60"
+            className="btn-primary mt-4 disabled:opacity-60"
           >
             {saving ? "שומר..." : "שמירת העדפות"}
           </button>

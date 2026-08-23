@@ -4,6 +4,8 @@ import { useId, useState } from "react";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { isCaptchaSubmitReady } from "@/lib/turnstileClient";
 
+const labelClass = "block text-sm font-medium text-[var(--foreground)]";
+
 export default function ContactForm() {
   const nameId = useId();
   const emailId = useId();
@@ -52,7 +54,7 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-right text-sm">
       <div>
-        <label htmlFor={nameId} className="block text-xs text-neutral-600">
+        <label htmlFor={nameId} className={labelClass}>
           שם
         </label>
         <input
@@ -60,11 +62,11 @@ export default function ContactForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+          className="site-input mt-1"
         />
       </div>
       <div>
-        <label htmlFor={emailId} className="block text-xs text-neutral-600">
+        <label htmlFor={emailId} className={labelClass}>
           אימייל
         </label>
         <input
@@ -73,22 +75,22 @@ export default function ContactForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+          className="site-input mt-1"
         />
       </div>
       <div>
-        <label htmlFor={subjectId} className="block text-xs text-neutral-600">
+        <label htmlFor={subjectId} className={labelClass}>
           נושא (אופציונלי)
         </label>
         <input
           id={subjectId}
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+          className="site-input mt-1"
         />
       </div>
       <div>
-        <label htmlFor={messageId} className="block text-xs text-neutral-600">
+        <label htmlFor={messageId} className={labelClass}>
           הודעה
         </label>
         <textarea
@@ -97,7 +99,7 @@ export default function ContactForm() {
           onChange={(e) => setMessage(e.target.value)}
           required
           rows={5}
-          className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+          className="site-input mt-1"
         />
       </div>
       <TurnstileWidget onToken={setTurnstileToken} onExpire={() => setTurnstileToken("")} />
@@ -105,7 +107,7 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={sending || !isCaptchaSubmitReady(turnstileToken)}
-        className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-neutral-950 hover:bg-amber-300 disabled:opacity-60"
+        className="btn-primary disabled:opacity-60"
       >
         {sending ? "שולח..." : "שליחה"}
       </button>

@@ -124,13 +124,13 @@ export default function FreelancerProfileForm({ email, mode, initial }: Props) {
         <button
           type="submit"
           disabled={loading || hasInvalidSocialLinks || hasInvalidPhone}
-          className="rounded-full bg-amber-400 px-6 py-2.5 text-sm font-semibold text-neutral-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
+          className="btn-primary disabled:opacity-60"
         >
           {loading ? "שומר..." : copy.submitLabel}
         </button>
         <a
           href="/dashboard/freelancer"
-          className="inline-flex items-center justify-center rounded-full border border-neutral-200 bg-white px-6 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+          className="btn-secondary inline-flex items-center justify-center"
         >
           {copy.cancelLabel}
         </a>

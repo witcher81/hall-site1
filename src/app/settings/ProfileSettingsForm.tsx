@@ -4,6 +4,8 @@ import { useState } from "react";
 import IsraeliMobilePhoneInput from "@/components/IsraeliMobilePhoneInput";
 import type { SettingsUser } from "./loadSettingsUser";
 
+const labelClass = "block text-sm font-medium text-[var(--foreground)]";
+
 export default function ProfileSettingsForm({ user }: { user: SettingsUser }) {
   const [name, setName] = useState(user.name ?? "");
   const [phone, setPhone] = useState(user.phone ?? "");
@@ -36,44 +38,42 @@ export default function ProfileSettingsForm({ user }: { user: SettingsUser }) {
   }
 
   return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-[0_12px_40px_rgba(15,59,46,0.08)]">
-      <h2 className="text-base font-semibold text-emerald-950">פרטי פרופיל</h2>
-      <p className="mt-1 text-xs text-neutral-600">
+    <section className="rounded-2xl border-2 border-[var(--border-soft)] bg-[var(--card)] p-6 shadow-[0_12px_40px_rgba(15,59,46,0.1)]">
+      <h2 className="text-base font-semibold text-[var(--heading)]">פרטי פרופיל</h2>
+      <p className="mt-1 text-xs text-[var(--muted)]">
         השם והטלפון שלך עשויים להופיע בפניות ובבקשות כדי שיוכלו לחזור אליך.
       </p>
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <div>
-          <label className="block text-xs text-neutral-600">שם מלא</label>
+          <label className={labelClass}>שם מלא</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+            className="site-input mt-1 text-sm"
           />
         </div>
         <div>
-          <label className="block text-xs text-neutral-600">טלפון</label>
+          <label className={labelClass}>טלפון</label>
           <IsraeliMobilePhoneInput
             value={phone}
             onChange={setPhone}
             forceMobile={false}
-            selectClassName="shrink-0 rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
-            inputClassName="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
-            legacyInputClassName="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/40"
+            selectClassName="site-input shrink-0 w-auto px-2 py-2 text-sm"
+            inputClassName="site-input min-w-0 flex-1 py-2 text-sm"
+            legacyInputClassName="site-input mt-1 py-2 text-sm"
           />
-          <p className="mt-1 text-xs text-neutral-600">
+          <p className="mt-1 text-xs text-[var(--muted)]">
             מספר נייד: קידומת ואז 7 ספרות. קווי: הזנה ידנית מלאה.
           </p>
         </div>
         <div>
-          <label className="block text-xs text-neutral-600">
-            אימייל (לא ניתן לשינוי)
-          </label>
+          <label className={labelClass}>אימייל (לא ניתן לשינוי)</label>
           <input
             type="email"
             value={user.email}
             disabled
-            className="mt-1 w-full cursor-not-allowed rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-600"
+            className="site-input mt-1 cursor-not-allowed text-sm opacity-90"
           />
         </div>
         {message ? (
@@ -88,7 +88,7 @@ export default function ProfileSettingsForm({ user }: { user: SettingsUser }) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-neutral-950 shadow-sm hover:bg-amber-300 disabled:opacity-60"
+          className="btn-primary disabled:opacity-60"
         >
           {saving ? "שומר..." : "שמירת פרופיל"}
         </button>
