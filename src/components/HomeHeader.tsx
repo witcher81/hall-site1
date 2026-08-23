@@ -71,7 +71,7 @@ function navKeyActive(pathname: string, key: NavKey): boolean {
 }
 
 const navLinkDesktopBase =
-  "shrink-0 whitespace-nowrap rounded-full px-2 py-1.5 text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3 xl:text-sm";
+  "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3.5 xl:text-sm 2xl:px-4";
 const navLinkDesktopActiveLight =
   "bg-amber-400/35 font-semibold text-emerald-950 ring-1 ring-amber-400/55";
 const navLinkDesktopActiveNight =
@@ -224,7 +224,7 @@ export default function HomeHeader({
             EventForYou
           </Link>
           {/* ניווט אופקי רק במסכים רחבים — במובייל/טאבלט: תפריט המבורגר */}
-          <nav className="hidden min-w-0 flex-1 flex-nowrap items-center gap-x-1 xl:flex xl:gap-x-2">
+          <nav className="hidden min-w-0 flex-1 flex-nowrap items-center justify-evenly gap-x-1 xl:flex xl:gap-x-2 2xl:gap-x-3">
             <Link
               href="/halls"
               aria-current={navKeyActive(pathname, "halls") ? "page" : undefined}
@@ -318,7 +318,7 @@ export default function HomeHeader({
               <Link
                 href="/admin"
                 aria-current={adminNavActive ? "page" : undefined}
-                className={`shrink-0 whitespace-nowrap rounded-full border px-2 py-1.5 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3 xl:text-sm ${
+                className={`shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3.5 xl:text-sm 2xl:px-4 ${
                   adminNavActive
                     ? "border-amber-400 bg-amber-400 text-emerald-950"
                     : isNight
@@ -334,7 +334,7 @@ export default function HomeHeader({
                 <button
                   type="button"
                   onClick={() => setPersonalOpen((v) => !v)}
-                  className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2 py-1 text-xs font-semibold transition xl:px-3 ${
+                  className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-semibold transition xl:px-3.5 2xl:px-4 ${
                     personalOpen
                       ? "border-[#C9A227] bg-amber-400 text-neutral-950 shadow-sm"
                       : activePersonalHref
