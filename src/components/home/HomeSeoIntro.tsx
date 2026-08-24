@@ -1,9 +1,10 @@
 /**
- * SSR-visible intro — H1 + nested H2/H3 + body text in raw HTML (no client JS).
+ * SSR intro for crawlers and agents — H1 + nested H2/H3 in raw HTML.
+ * Visually hidden so the hero stays the homepage entry point for users.
  */
 export default function HomeSeoIntro() {
   return (
-    <section className="border-b border-[var(--border-soft)] bg-[var(--card)] px-4 py-10 sm:px-6 lg:px-8">
+    <section className="sr-only">
       <div className="mx-auto max-w-3xl text-right">
         <h1 className="text-2xl font-semibold text-[var(--heading)] sm:text-3xl">
           EventForYou – מקום אחד לכל האירועים
