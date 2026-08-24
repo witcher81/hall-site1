@@ -95,6 +95,7 @@ export function isMarkdownNegotiablePath(pathname: string): boolean {
     "/docs",
     "/developers",
     "/developers/versioning",
+    "/deprecation",
     "/halls",
     "/providers",
     "/packages",

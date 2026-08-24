@@ -1,5 +1,5 @@
 /**
- * SSR-visible intro — H1 + body text in raw HTML (no client JS required).
+ * SSR-visible intro — H1 + nested H2/H3 + body text in raw HTML (no client JS).
  */
 export default function HomeSeoIntro() {
   return (
@@ -8,44 +8,80 @@ export default function HomeSeoIntro() {
         <h1 className="text-2xl font-semibold text-[var(--heading)] sm:text-3xl">
           EventForYou – מקום אחד לכל האירועים
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-[var(--foreground)] sm:text-base">
-          EventForYou הוא מרקטפלייס ישראלי לאירועים: חיפוש והשוואת אולמות אירועים,
-          ספקי שירותים (צילום, DJ, קייטרינג, עיצוב ועוד) וחבילות אירוע. מחפשים
-          מסננים לפי עיר, מספר אורחים וסוג אירוע, פונים ישירות לבעלי אולמות
-          ולפרילנסרים, ומתכננים אירוע במקום אחד — בלי לקפוץ בין עשרות אתרים.
-          בעלי אולמות וספקים מפרסמים את העסק, מקבלים פניות ומנהלים פרופיל באזור
-          האישי. האתר מיועד לקהל בישראל ומציג תוכן בעברית. אפשר להתחיל בחיפוש
-          אולמות, לעבור לספקי שירותים, או לעיין בחבילות מוכנות לאירוע. EventForYou
-          מחבר בין מחפשי אולמות, בעלי אולמות וספקי שירותים על פלטפורמה אחת, כולל
-          דפי אמון (אודות, יצירת קשר, פרטיות) ותיעוד למפתחים ולסוכני AI.
-        </p>
-        <h2 className="mt-6 text-base font-semibold text-[var(--heading)]">
-          ניווט מהיר
+
+        <h2 className="mt-6 text-lg font-semibold text-[var(--heading)]">
+          מה זה EventForYou?
         </h2>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--foreground)] sm:text-base">
+          EventForYou הוא מרקטפלייס ישראלי לאירועים בכתובת hall-site1.vercel.app:
+          חיפוש והשוואת אולמות אירועים, ספקי שירותים (צילום, DJ, קייטרינג, עיצוב
+          ועוד) וחבילות אירוע. מחפשים מסננים לפי עיר, מספר אורחים וסוג אירוע,
+          פונים ישירות לבעלי אולמות ולפרילנסרים, ומתכננים אירוע במקום אחד — בלי
+          לקפוץ בין עשרות אתרים. האתר מיועד לקהל בישראל ומציג תוכן בעברית.
+        </p>
+
+        <h3 className="mt-4 text-base font-semibold text-[var(--heading)]">
+          למי זה מיועד
+        </h3>
+        <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
+          מחפשי אולמות וספקים; בעלי אולמות שמפרסמים ומקבלים פניות; ופרילנסרים
+          שמנהלים פרופיל שירותים. EventForYou מחבר בין שלושת הצדדים על פלטפורמה
+          אחת, כולל דפי אמון (אודות, יצירת קשר, פרטיות).
+        </p>
+
+        <h2 className="mt-6 text-lg font-semibold text-[var(--heading)]">
+          ניווט באתר
+        </h2>
+        <h3 className="mt-3 text-base font-semibold text-[var(--heading)]">
+          חיפוש וגילוי
+        </h3>
         <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[var(--muted)]">
-          <li>חיפוש אולמות — /halls</li>
-          <li>שירותי ספקים — /providers</li>
-          <li>חבילות אירוע — /packages</li>
-          <li>אודות — /about · יצירת קשר — /contact · פרטיות — /privacy</li>
           <li>
-            מפתחים וסוכני AI —{" "}
-            <a href="/developers" className="font-semibold text-[var(--heading)] underline">
-              /developers
-            </a>
-            {" · "}
-            <a href="/docs" className="font-semibold text-[var(--heading)] underline">
-              /docs
-            </a>
-            {" · "}
-            <a href="/api/v1" className="underline">
-              /api/v1
-            </a>
-            {" · "}
-            /llms.txt · /openapi.json · /.well-known/mcp
+            <a href="/halls" className="underline">
+              אולמות
+            </a>{" "}
+            — /halls
+          </li>
+          <li>
+            <a href="/providers" className="underline">
+              ספקים
+            </a>{" "}
+            — /providers
+          </li>
+          <li>
+            <a href="/packages" className="underline">
+              חבילות
+            </a>{" "}
+            — /packages
           </li>
         </ul>
-        <p className="mt-4 text-sm text-[var(--muted)]">
-          תיעוד API ציבורי לסוכנים ומפתחים:{" "}
+
+        <h3 className="mt-4 text-base font-semibold text-[var(--heading)]">
+          אמון וקשר
+        </h3>
+        <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-[var(--muted)]">
+          <li>
+            <a href="/about" className="underline">
+              אודות
+            </a>
+            {" · "}
+            <a href="/contact" className="underline">
+              יצירת קשר
+            </a>
+            {" · "}
+            <a href="/privacy" className="underline">
+              פרטיות
+            </a>
+          </li>
+        </ul>
+
+        <h2 className="mt-6 text-lg font-semibold text-[var(--heading)]">
+          מפתחים וסוכני AI — EventForYou
+        </h2>
+        <h3 className="mt-3 text-base font-semibold text-[var(--heading)]">
+          תיעוד ו-API
+        </h3>
+        <p className="mt-1 text-sm text-[var(--muted)]">
           <a
             href="/developers"
             className="font-semibold text-[var(--heading)] underline"
@@ -53,7 +89,10 @@ export default function HomeSeoIntro() {
             EventForYou Developers
           </a>
           {" · "}
-          <a href="/docs" className="font-semibold text-[var(--heading)] underline">
+          <a
+            href="/docs"
+            className="font-semibold text-[var(--heading)] underline"
+          >
             EventForYou API docs
           </a>
           {" · "}
@@ -64,7 +103,26 @@ export default function HomeSeoIntro() {
           <a href="/openapi.json" className="underline">
             OpenAPI
           </a>
-          .
+          {" · "}
+          <a href="/deprecation" className="underline">
+            /deprecation
+          </a>
+        </p>
+        <h3 className="mt-4 text-base font-semibold text-[var(--heading)]">
+          MCP ו-llms.txt
+        </h3>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          <a href="/llms.txt" className="underline">
+            /llms.txt
+          </a>
+          {" · "}
+          <a href="/.well-known/mcp" className="underline">
+            /.well-known/mcp
+          </a>
+          {" · "}
+          <a href="/mcp" className="underline">
+            /mcp
+          </a>
         </p>
       </div>
     </section>

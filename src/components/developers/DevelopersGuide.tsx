@@ -51,12 +51,18 @@ export default function DevelopersGuide() {
             /developers
           </a>
         </li>
-        <li>
-          <a className="underline" href={`${base}/developers/versioning`}>
-            /developers/versioning
-          </a>{" "}
-          — deprecation / Sunset policy
-        </li>
+          <li>
+            <a className="underline" href={`${base}/deprecation`}>
+              /deprecation
+            </a>{" "}
+            — Deprecation / Sunset policy
+          </li>
+          <li>
+            <a className="underline" href={`${base}/developers/versioning`}>
+              /developers/versioning
+            </a>{" "}
+            — deprecation / Sunset policy (alias)
+          </li>
         <li>
           <a className="underline" href={`${base}/.well-known/mcp`}>
             /.well-known/mcp

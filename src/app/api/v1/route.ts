@@ -19,9 +19,12 @@ export async function GET() {
         strategy: "url_path",
         current: "/api/v1",
         deprecation:
-          "Breaking changes require a new major path (/api/v2). Deprecated versions will send Deprecation and Sunset response headers when scheduled.",
+          "Breaking changes require /api/v2. See /deprecation and /api/v1/deprecation. Deprecated versions send Deprecation: true and Sunset (HTTP-date) at least 90 days before removal.",
+        policyUrl: `${base}/deprecation`,
+        policyApi: `${base}/api/v1/deprecation`,
       },
       documentation: `${base}/developers`,
+      docs: `${base}/docs`,
       openapi: `${base}/openapi.json`,
       llmsTxt: `${base}/llms.txt`,
       mcp: `${base}/mcp`,
@@ -44,6 +47,12 @@ export async function GET() {
           path: "/api/v1/health",
           operationId: "healthV1",
           description: "Liveness check for the public API",
+        },
+        {
+          method: "GET",
+          path: "/api/v1/deprecation",
+          operationId: "getDeprecationPolicyV1",
+          description: "Deprecation and Sunset policy (machine-readable)",
         },
       ],
       errors: {

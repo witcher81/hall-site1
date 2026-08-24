@@ -38,14 +38,17 @@ export function mcpDiscoveryDocument() {
     streamable_http: mcpUrl,
     handshake: {
       live: true,
+      status: "ready",
       method: "POST",
       url: mcpUrl,
+      well_known: `${base}/.well-known/mcp`,
       well_known_post: `${base}/.well-known/mcp`,
       content_type: "application/json",
       accept: "application/json",
       protocol_header: "MCP-Protocol-Version",
       initialize: {
         jsonrpc: "2.0",
+        id: 1,
         method: "initialize",
         params: {
           protocolVersion: "2024-11-05",

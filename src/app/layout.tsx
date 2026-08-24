@@ -11,6 +11,7 @@ import {
   JsonLdScript,
   buildOrganizationJsonLd,
   buildSoftwareApplicationJsonLd,
+  buildWebSiteJsonLd,
 } from "@/lib/seoJsonLd";
 import { getSiteUrl } from "@/lib/siteUrl";
 import "./globals.css";
@@ -28,7 +29,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "EventForYou – מקום אחד לכל האירועים",
+    default: "EventForYou – מקום אחד לכל האירועים | hall-site1.vercel.app",
     template: "%s | EventForYou",
   },
   description:
@@ -59,6 +60,7 @@ export default function RootLayout({
         <ThemeInit />
         <JsonLdScript data={buildOrganizationJsonLd()} />
         <JsonLdScript data={buildSoftwareApplicationJsonLd()} />
+        <JsonLdScript data={buildWebSiteJsonLd()} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

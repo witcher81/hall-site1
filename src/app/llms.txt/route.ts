@@ -39,15 +39,21 @@ Do **not** use ${SITE_BRAND} MCP/tools for authenticated admin actions, payments
 - Instructions: ${base}/llms.txt
 - Sitemap: ${base}/sitemap.xml
 - Developer docs: ${base}/developers · ${base}/docs
-- Versioning / Sunset policy: ${base}/developers/versioning
+- Versioning / Sunset policy: ${base}/deprecation · ${base}/developers/versioning · ${base}/api/v1/deprecation
 - API catalog: ${base}/api
 - API index: ${base}/api/v1
-- OpenAPI (operationIds + schemas): ${base}/openapi.json
-- MCP discovery handshake: ${base}/.well-known/mcp (POST initialize also accepted)
+- OpenAPI (operationIds + $ref schemas): ${base}/openapi.json
+- MCP discovery handshake (GET + live POST initialize): ${base}/.well-known/mcp
 - MCP JSON: ${base}/.well-known/mcp.json
 - MCP server card: ${base}/.well-known/mcp/server-card.json
 - MCP endpoint: ${base}/mcp
-- Legacy search APIs: GET ${base}/api/venues , GET ${base}/api/services/public
+
+## Brand
+
+Official product name: ${SITE_BRAND} (EventForYou). Canonical site: ${base}.
+Brand landing: ${base}/eventforyou
+Developer resources are published under EventForYou titles at /developers, /docs, /openapi.json, and /.well-known/mcp — not under the host vendor name.
+Legacy search APIs: GET ${base}/api/venues , GET ${base}/api/services/public
 
 ## Versioned REST API
 
@@ -55,19 +61,19 @@ Do **not** use ${SITE_BRAND} MCP/tools for authenticated admin actions, payments
 - GET ${base}/api/v1/health — health
 - GET ${base}/api/v1/venues — search venues (operationId: searchVenuesV1)
 - GET ${base}/api/v1/services — search services (operationId: searchServicesV1)
+- GET ${base}/api/v1/deprecation — Deprecation / Sunset policy JSON
 - Errors: application/problem+json with fields type, title, status, detail, code, hint
 
 ## How to call MCP
 
 1. GET ${base}/.well-known/mcp for discovery JSON (streamable_http endpoint)
-2. POST JSON-RPC to ${base}/mcp (initialize, tools/list, tools/call)
-3. Tools: search_halls, get_venue, search_services, get_service, get_provider, get_site_overview
+2. POST JSON-RPC initialize to ${base}/.well-known/mcp or ${base}/mcp (live handshake)
+3. tools/list then tools/call — search_halls, get_venue, search_services, get_service, get_provider, get_site_overview
 
 ## Language
 
 Primary UI language: Hebrew (he). Brand names: ${SITE_BRAND}, EventForYou.
 `;
-
   return new Response(body, {
     status: 200,
     headers: {

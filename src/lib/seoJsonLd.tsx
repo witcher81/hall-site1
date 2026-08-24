@@ -25,11 +25,16 @@ export function buildOrganizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: legal.legalName || SITE_BRAND,
-    alternateName: SITE_BRAND,
+    alternateName: [SITE_BRAND, "Event For You", "EventForYou Israel"],
     url,
     description:
       "EventForYou מחבר בין מחפשי אולמות לאירועים, בעלי אולמות וספקי שירותים בישראל — חיפוש, השוואה ופניות במקום אחד.",
     email: legal.supportEmail,
+    slogan: "מקום אחד לכל האירועים",
+    foundingLocation: {
+      "@type": "Place",
+      name: "Israel",
+    },
     contactPoint: [
       {
         "@type": "ContactPoint",
@@ -57,15 +62,21 @@ export function buildSoftwareApplicationJsonLd() {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: SITE_BRAND,
+    alternateName: "Event For You",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url,
     description:
-      "EventForYou marketplace for Israeli event halls, service providers, and packages.",
+      "EventForYou marketplace for Israeli event halls, service providers, and packages. Official site: hall-site1.vercel.app",
     offers: {
       "@type": "Offer",
       price: "0",
       priceCurrency: "ILS",
+    },
+    provider: {
+      "@type": "Organization",
+      name: SITE_BRAND,
+      url,
     },
   };
 }
