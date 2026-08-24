@@ -67,16 +67,25 @@ export default function DevelopersPage() {
           </li>
         </ul>
 
-        <h2 className="text-lg font-semibold text-[var(--heading)]">Public HTTP APIs</h2>
+        <h2 className="text-lg font-semibold text-[var(--heading)]">Public HTTP APIs (v1)</h2>
         <ul className="list-inside list-disc space-y-2" dir="ltr">
           <li>
-            <code>GET /api/venues</code> — search public venues
+            <code>GET /api/v1</code> — API index + versioning policy
           </li>
           <li>
-            <code>GET /api/services/public</code> — search public services
+            <code>GET /api/v1/venues</code> — search public venues (operationId: searchVenuesV1)
           </li>
           <li>
-            <code>GET /api/packages/[id]</code> — public package detail (when available)
+            <code>GET /api/v1/services</code> — search public services (operationId: searchServicesV1)
+          </li>
+          <li>
+            <code>GET /api/v1/health</code> — health check
+          </li>
+          <li>
+            Errors: <code>application/problem+json</code> with <code>code</code> + <code>hint</code>
+          </li>
+          <li>
+            Legacy: <code>GET /api/venues</code>, <code>GET /api/services/public</code>
           </li>
         </ul>
 

@@ -142,9 +142,18 @@ function rateLimitHeaders(
   remaining: number,
   reset: number
 ): NextResponse {
+  // Legacy headers (compat)
   res.headers.set("X-RateLimit-Limit", String(limit));
   res.headers.set("X-RateLimit-Remaining", String(remaining));
   res.headers.set("X-RateLimit-Reset", String(reset));
+  // IETF RateLimit draft / structured fields (agents prefer these)
+  res.headers.set("RateLimit-Limit", String(limit));
+  res.headers.set("RateLimit-Remaining", String(remaining));
+  res.headers.set("RateLimit-Reset", String(Math.max(0, Math.ceil((reset - Date.now()) / 1000))));
+  res.headers.set(
+    "RateLimit",
+    `"default";r=${remaining};t=${Math.max(0, Math.ceil((reset - Date.now()) / 1000))}`
+  );
   return res;
 }
 
@@ -176,14 +185,26 @@ export async function applyRateLimit(request: NextRequest): Promise<NextResponse
       return rateLimitHeaders(NextResponse.next(), limit, remaining, reset);
     }
     return NextResponse.json(
-      { error: "יותר מדי בקשות. נסה שוב בעוד רגע." },
+      {
+        type: "https://hall-site1.vercel.app/developers#error-rate_limited",
+        title: "Too Many Requests",
+        status: 429,
+        detail: "יותר מדי בקשות. נסה שוב בעוד רגע.",
+        code: "rate_limited",
+        hint: "Respect RateLimit-Remaining and Retry-After; retry after the window resets.",
+      },
       {
         status: 429,
         headers: {
+          "Content-Type": "application/problem+json; charset=utf-8",
           "Retry-After": "60",
           "X-RateLimit-Limit": String(limit),
           "X-RateLimit-Remaining": "0",
           "X-RateLimit-Reset": String(reset),
+          "RateLimit-Limit": String(limit),
+          "RateLimit-Remaining": "0",
+          "RateLimit-Reset": "60",
+          RateLimit: '"default";r=0;t=60',
         },
       }
     );
@@ -197,14 +218,26 @@ export async function applyRateLimit(request: NextRequest): Promise<NextResponse
   }
 
   return NextResponse.json(
-    { error: "יותר מדי בקשות. נסה שוב בעוד רגע." },
+    {
+      type: "https://hall-site1.vercel.app/developers#error-rate_limited",
+      title: "Too Many Requests",
+      status: 429,
+      detail: "יותר מדי בקשות. נסה שוב בעוד רגע.",
+      code: "rate_limited",
+      hint: "Respect RateLimit-Remaining and Retry-After; retry after the window resets.",
+    },
     {
       status: 429,
       headers: {
+        "Content-Type": "application/problem+json; charset=utf-8",
         "Retry-After": "60",
         "X-RateLimit-Limit": String(upLimit),
         "X-RateLimit-Remaining": "0",
         "X-RateLimit-Reset": String(reset),
+        "RateLimit-Limit": String(upLimit),
+        "RateLimit-Remaining": "0",
+        "RateLimit-Reset": "60",
+        RateLimit: '"default";r=0;t=60',
       },
     }
   );

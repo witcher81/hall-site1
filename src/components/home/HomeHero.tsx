@@ -298,13 +298,13 @@ export default function HomeHero() {
             <p className="text-xs font-semibold tracking-[0.35em] text-[#e6d08a]">
               EVENT FOR YOU
             </p>
-            <h1 className="mt-3 text-[1.85rem] font-bold leading-tight tracking-tight text-[#faf6ee] sm:mt-4 sm:text-5xl lg:text-[3.25rem]">
+            <p className="mt-3 text-[1.85rem] font-bold leading-tight tracking-tight text-[#faf6ee] sm:mt-4 sm:text-5xl lg:text-[3.25rem]">
               בונים אירוע?
               <br />
               <span className="text-[#e6d08a]">
                 מוצאים אולם, DJ, צלם, מעצב ועוד — במקום אחד
               </span>
-            </h1>
+            </p>
             <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/80 sm:mt-5 sm:text-base">
               מרקטפלייס לאירועים: חיפוש, השוואה ובקשות — בלי לקפוץ בין עשרות אתרים.
             </p>

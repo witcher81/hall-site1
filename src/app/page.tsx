@@ -12,6 +12,7 @@ import {
   DEFAULT_OG_IMAGE,
   JsonLdScript,
   buildOrganizationJsonLd,
+  buildSoftwareApplicationJsonLd,
   buildWebSiteJsonLd,
 } from "@/lib/seoJsonLd";
 import { getSiteUrl } from "@/lib/siteUrl";
@@ -54,6 +55,7 @@ export default async function Home() {
   return (
     <div className="site-page">
       <JsonLdScript data={buildOrganizationJsonLd()} />
+      <JsonLdScript data={buildSoftwareApplicationJsonLd()} />
       <JsonLdScript data={buildWebSiteJsonLd()} />
       <HomeHeader
         user={user}

@@ -118,27 +118,74 @@ function withCspNonce(req: NextRequest): NextResponse {
   return res;
 }
 
+function isPassthroughAppPath(pathname: string): boolean {
+  if (isMarkdownNegotiablePath(pathname)) return true;
+  if (
+    pathname === "/llms.txt" ||
+    pathname === "/openapi.json" ||
+    pathname === "/mcp" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml"
+  ) {
+    return true;
+  }
+  return /^(?:\/(?:api|halls|providers|services|packages|auth|dashboard|admin|settings|privacy|event-tools|event-planner|event-builder|favorites|messages|notifications|my-inquiries|my-plans|my-service-requests|trending|uploads|\.well-known)(?:\/|$))/.test(
+    pathname
+  );
+}
+
+function markdown404Body(pathname: string): string {
+  return `# 404 — EventForYou
+
+Path \`${pathname}\` does not exist.
+
+## Where to look next
+- / (home)
+- /halls (search venues)
+- /providers (search services)
+- /packages (event packages)
+- /about · /contact · /privacy
+- /developers · /api/v1 · /openapi.json
+- /llms.txt · /sitemap.xml
+- /.well-known/mcp · /mcp
+`;
+}
+
 function handleMarkdownNegotiation(request: NextRequest): NextResponse | null {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
   const pathname = request.nextUrl.pathname;
-  if (!isMarkdownNegotiablePath(pathname)) return null;
-
   const decision = negotiateHtmlOrMarkdown(request.headers.get("accept"));
-  if (decision.kind === "not_acceptable") {
+
+  if (decision.kind === "markdown") {
+    if (isMarkdownNegotiablePath(pathname)) {
+      const body = markdownForPath(pathname);
+      const res = new NextResponse(request.method === "HEAD" ? null : body, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Cache-Control": "public, max-age=120",
+        },
+      });
+      mergeVary(res, "Accept, Accept-Encoding");
+      return res;
+    }
+    if (!isPassthroughAppPath(pathname)) {
+      const body = markdown404Body(pathname);
+      const res = new NextResponse(request.method === "HEAD" ? null : body, {
+        status: 404,
+        headers: {
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Cache-Control": "no-store",
+        },
+      });
+      mergeVary(res, "Accept, Accept-Encoding");
+      return res;
+    }
+  }
+
+  if (decision.kind === "not_acceptable" && isMarkdownNegotiablePath(pathname)) {
     const res = new NextResponse("Not Acceptable", { status: 406 });
     res.headers.set("Content-Type", "text/plain; charset=utf-8");
-    mergeVary(res, "Accept, Accept-Encoding");
-    return res;
-  }
-  if (decision.kind === "markdown") {
-    const body = markdownForPath(pathname);
-    const res = new NextResponse(request.method === "HEAD" ? null : body, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/markdown; charset=utf-8",
-        "Cache-Control": "public, max-age=120",
-      },
-    });
     mergeVary(res, "Accept, Accept-Encoding");
     return res;
   }

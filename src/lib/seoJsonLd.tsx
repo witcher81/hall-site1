@@ -48,6 +48,25 @@ export function buildOrganizationJsonLd() {
   };
 }
 
+export function buildSoftwareApplicationJsonLd() {
+  const url = getSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: SITE_BRAND,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url,
+    description:
+      "EventForYou marketplace for Israeli event halls, service providers, and packages.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "ILS",
+    },
+  };
+}
+
 export function buildWebSiteJsonLd() {
   const url = getSiteUrl();
   return {

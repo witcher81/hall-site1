@@ -18,8 +18,8 @@ export default function HomePage({
 }) {
   return (
     <div className="home-page site-page">
-      <HomeHero />
       <HomeSeoIntro />
+      <HomeHero />
       <HomeHallScrollCinema />
 
       <div className="home-journey-sheet">
