@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
@@ -93,17 +94,7 @@ export default async function PublicSingleServicePage({ params }: PageProps) {
   const user = await getCurrentUser();
 
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
-    return (
-      <SitePageShell mainWidth="narrow">
-        <p className="text-sm text-neutral-800">השירות לא נמצא.</p>
-        <a
-          href="/providers"
-          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
-        >
-          חזרה לחיפוש ספקים
-        </a>
-      </SitePageShell>
-    );
+    notFound();
   }
 
   const service = await prisma.service.findUnique({
@@ -126,17 +117,7 @@ export default async function PublicSingleServicePage({ params }: PageProps) {
   });
 
   if (!service || service.provider.role !== "FREELANCER") {
-    return (
-      <SitePageShell mainWidth="narrow">
-        <p className="text-sm text-neutral-800">השירות לא נמצא.</p>
-        <a
-          href="/providers"
-          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
-        >
-          חזרה לחיפוש ספקים
-        </a>
-      </SitePageShell>
-    );
+    notFound();
   }
 
   const canView = canViewListingDetail({
@@ -148,17 +129,7 @@ export default async function PublicSingleServicePage({ params }: PageProps) {
   });
 
   if (!canView) {
-    return (
-      <SitePageShell mainWidth="narrow">
-        <p className="text-sm text-neutral-800">השירות לא נמצא.</p>
-        <a
-          href="/providers"
-          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
-        >
-          חזרה לחיפוש ספקים
-        </a>
-      </SitePageShell>
-    );
+    notFound();
   }
 
   const siblingServicesCount = await prisma.service.count({

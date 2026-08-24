@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SitePageHeader from "@/components/layout/SitePageHeader";
@@ -89,17 +90,7 @@ export default async function ProviderPage({ params }: PageProps) {
   const providerId = Number(userId);
 
   if (!Number.isInteger(providerId) || providerId <= 0) {
-    return (
-      <SitePageShell mainWidth="narrow">
-        <p className="text-sm text-neutral-800">ספק לא נמצא.</p>
-        <a
-          href="/providers"
-          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
-        >
-          חזרה לחיפוש ספקים
-        </a>
-      </SitePageShell>
-    );
+    notFound();
   }
 
   const provider = await prisma.user.findUnique({
@@ -117,17 +108,7 @@ export default async function ProviderPage({ params }: PageProps) {
   });
 
   if (!provider) {
-    return (
-      <SitePageShell mainWidth="narrow">
-        <p className="text-sm text-neutral-800">ספק לא נמצא.</p>
-        <a
-          href="/providers"
-          className="mt-4 inline-block text-sm font-semibold text-emerald-950 hover:underline"
-        >
-          חזרה לחיפוש ספקים
-        </a>
-      </SitePageShell>
-    );
+    notFound();
   }
 
   const services = await prisma.service.findMany({

@@ -17,11 +17,13 @@ export default function SiteFooter() {
         <a href={`mailto:${legal.supportEmail}`}>{legal.supportEmail}</a>
       </p>
       <p className="mt-3 flex flex-wrap justify-center gap-x-6 gap-y-2">
+        <Link href="/about">אודות</Link>
         <Link href="/terms">תנאי שימוש</Link>
         <Link href="/privacy">פרטיות</Link>
         <Link href="/cookies">עוגיות</Link>
         <Link href="/accessibility">נגישות</Link>
         <Link href="/contact">יצירת קשר</Link>
+        <Link href="/developers">Developers</Link>
         <CookieSettingsLink />
       </p>
     </footer>

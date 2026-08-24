@@ -1,6 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { applyRateLimit } from "@/lib/rateLimit";
+import {
+  isMarkdownNegotiablePath,
+  negotiateHtmlOrMarkdown,
+} from "@/lib/acceptMarkdown";
+import { markdownForPath } from "@/lib/publicMarkdown";
 
 /** Webhooks ו־SSE — לא לחסום בגלל חיבורים חוזרים */
 const SKIP_PREFIXES = [
@@ -8,7 +13,8 @@ const SKIP_PREFIXES = [
   "/api/realtime/stream",
 ] as const;
 const CORS_METHODS = "GET,POST,PUT,PATCH,DELETE,OPTIONS";
-const CORS_ALLOWED_HEADERS = "Content-Type, Authorization";
+const CORS_ALLOWED_HEADERS =
+  "Content-Type, Authorization, Accept, MCP-Protocol-Version, Mcp-Method, Mcp-Name";
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
@@ -43,6 +49,22 @@ function isAllowedCorsOrigin(req: NextRequest): boolean {
   return getAllowedOrigins().has(origin);
 }
 
+function mergeVary(res: NextResponse, value: string): void {
+  const existing = res.headers.get("Vary");
+  if (!existing) {
+    res.headers.set("Vary", value);
+    return;
+  }
+  const parts = new Set(
+    existing.split(",").map((s) => s.trim()).filter(Boolean)
+  );
+  for (const v of value.split(",")) {
+    const t = v.trim();
+    if (t) parts.add(t);
+  }
+  res.headers.set("Vary", Array.from(parts).join(", "));
+}
+
 function applyCorsHeaders(req: NextRequest, res: NextResponse): NextResponse {
   const origin = readOrigin(req);
   if (!origin) return res;
@@ -51,7 +73,7 @@ function applyCorsHeaders(req: NextRequest, res: NextResponse): NextResponse {
   res.headers.set("Access-Control-Allow-Credentials", "true");
   res.headers.set("Access-Control-Allow-Methods", CORS_METHODS);
   res.headers.set("Access-Control-Allow-Headers", CORS_ALLOWED_HEADERS);
-  res.headers.set("Vary", "Origin");
+  mergeVary(res, "Origin");
   return res;
 }
 
@@ -92,16 +114,50 @@ function withCspNonce(req: NextRequest): NextResponse {
   requestHeaders.set("x-nonce", nonce);
   const res = NextResponse.next({ request: { headers: requestHeaders } });
   res.headers.set("Content-Security-Policy", buildCsp(nonce));
+  mergeVary(res, "Accept, Accept-Encoding");
   return res;
+}
+
+function handleMarkdownNegotiation(request: NextRequest): NextResponse | null {
+  if (request.method !== "GET" && request.method !== "HEAD") return null;
+  const pathname = request.nextUrl.pathname;
+  if (!isMarkdownNegotiablePath(pathname)) return null;
+
+  const decision = negotiateHtmlOrMarkdown(request.headers.get("accept"));
+  if (decision.kind === "not_acceptable") {
+    const res = new NextResponse("Not Acceptable", { status: 406 });
+    res.headers.set("Content-Type", "text/plain; charset=utf-8");
+    mergeVary(res, "Accept, Accept-Encoding");
+    return res;
+  }
+  if (decision.kind === "markdown") {
+    const body = markdownForPath(pathname);
+    const res = new NextResponse(request.method === "HEAD" ? null : body, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/markdown; charset=utf-8",
+        "Cache-Control": "public, max-age=120",
+      },
+    });
+    mergeVary(res, "Accept, Accept-Encoding");
+    return res;
+  }
+  return null;
 }
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const applyCsp = IS_PRODUCTION && !isApiPath(pathname);
 
-  // נתיבי דפים (לא API): רק הזרקת CSP מבוסס-nonce
+  // נתיבי דפים (לא API): markdown negotiation + CSP
   if (!isApiPath(pathname)) {
-    if (!applyCsp) return NextResponse.next();
+    const md = handleMarkdownNegotiation(request);
+    if (md) return md;
+    if (!applyCsp) {
+      const res = NextResponse.next();
+      mergeVary(res, "Accept, Accept-Encoding");
+      return res;
+    }
     return withCspNonce(request);
   }
 

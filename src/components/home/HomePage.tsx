@@ -5,6 +5,7 @@ import HomeHallScrollCinema from "./HomeHallScrollCinema";
 import HomeHero from "./HomeHero";
 import HomeHowItWorks from "./HomeHowItWorks";
 import HomePackagesCta from "./HomePackagesCta";
+import HomeSeoIntro from "./HomeSeoIntro";
 import HomeSiteFooter from "./HomeSiteFooter";
 import HomeTopProviders from "./HomeTopProviders";
 
@@ -18,6 +19,7 @@ export default function HomePage({
   return (
     <div className="home-page site-page">
       <HomeHero />
+      <HomeSeoIntro />
       <HomeHallScrollCinema />
 
       <div className="home-journey-sheet">

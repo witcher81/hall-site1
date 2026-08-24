@@ -31,6 +31,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "he_IL",
     siteName: "EventForYou",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
+        width: 1200,
+        height: 630,
+        alt: "EventForYou",
+      },
+    ],
   },
 };
 

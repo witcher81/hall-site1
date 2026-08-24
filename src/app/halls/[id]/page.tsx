@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
@@ -109,17 +110,7 @@ export default async function HallPublicPage({
   const venueId = Number(id);
 
   if (!Number.isInteger(venueId) || venueId <= 0) {
-    return (
-      <SitePageShell mainWidth="narrow">
-        <p className="text-sm text-neutral-800">מזהה אולם לא תקין.</p>
-        <a
-          href="/halls"
-          className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
-        >
-          חזרה לחיפוש אולמות
-        </a>
-      </SitePageShell>
-    );
+    notFound();
   }
 
   const venue = await prisma.venue.findUnique({
@@ -174,17 +165,7 @@ export default async function HallPublicPage({
   });
 
   if (!venue) {
-    return (
-      <SitePageShell mainWidth="narrow">
-        <p className="text-sm text-neutral-800">האולם לא נמצא.</p>
-        <a
-          href="/halls"
-          className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
-        >
-          חזרה לחיפוש אולמות
-        </a>
-      </SitePageShell>
-    );
+    notFound();
   }
 
   const canView = canViewListingDetail({
@@ -196,17 +177,7 @@ export default async function HallPublicPage({
   });
 
   if (!canView) {
-    return (
-      <SitePageShell mainWidth="narrow">
-        <p className="text-sm text-neutral-800">האולם לא נמצא.</p>
-        <a
-          href="/halls"
-          className="mt-4 inline-block text-sm font-medium text-emerald-950 underline-offset-4 hover:underline"
-        >
-          חזרה לחיפוש אולמות
-        </a>
-      </SitePageShell>
-    );
+    notFound();
   }
 
   const galleryImageUrls = venue.galleryImageUrls
