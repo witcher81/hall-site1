@@ -12,6 +12,11 @@ describe("acceptMarkdown", () => {
     });
   });
 
+  it("serves HTML for */* and missing Accept (crawlers/curl)", () => {
+    expect(negotiateHtmlOrMarkdown("*/*")).toEqual({ kind: "html" });
+    expect(negotiateHtmlOrMarkdown(null)).toEqual({ kind: "html" });
+  });
+
   it("prefers html for typical browser Accept", () => {
     expect(
       negotiateHtmlOrMarkdown(

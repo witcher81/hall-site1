@@ -71,9 +71,15 @@ Use this page for technical help, listing questions, privacy inquiries, or repor
 `,
     "/privacy": `# Privacy — ${SITE_BRAND}
 
-Full privacy policy: ${base}/privacy
+${SITE_BRAND} (EventForYou) respects your privacy. This policy explains what data we collect when you use the Israeli event marketplace (venues, services, packages), how it is used, and how to request access, correction, or deletion.
+
+We collect account details (name, email, role), listing content you publish, inquiries and messages you send, and technical usage data such as login cookies and page metrics. We use this information to operate accounts, show search results, send notifications, prevent abuse (including rate limits), and improve the service.
+
+Inquiry details are shared only with the relevant venue owner or provider. Infrastructure vendors (hosting, database, email, error reporting) receive only what they need. We do not sell personal information. Account data is kept while the account is active or as required for security, disputes, and law.
+
 Privacy requests: ${base}/privacy/request
 Contact: ${base}/contact
+Full HTML policy: ${base}/privacy
 `,
     "/terms": `# Terms of use — ${SITE_BRAND}
 
@@ -89,19 +95,24 @@ Accessibility statement: ${base}/accessibility
 `,
     "/developers": `# ${SITE_BRAND} Developers (EventForYou)
 
-Public developer and AI-agent resources for ${SITE_BRAND}.
+Public developer and AI-agent resources for ${SITE_BRAND} at hall-site1.vercel.app.
 
+- Docs: ${base}/docs
+- Developers: ${base}/developers
+- Versioning / deprecation: ${base}/developers/versioning
 - llms.txt: ${base}/llms.txt
 - OpenAPI (operationIds + schemas): ${base}/openapi.json
+- API catalog: ${base}/api
 - API index (v1): ${base}/api/v1
 - Venues API: GET ${base}/api/v1/venues
 - Services API: GET ${base}/api/v1/services
 - Health: GET ${base}/api/v1/health
 - MCP discovery handshake: ${base}/.well-known/mcp
+- MCP JSON: ${base}/.well-known/mcp.json
+- MCP server card: ${base}/.well-known/mcp/server-card.json
 - MCP endpoint (Streamable HTTP): ${base}/mcp
-- Legacy: GET ${base}/api/venues , GET ${base}/api/services/public
 
-Errors use application/problem+json with machine-readable code and hint. Versioning is URL path based (/api/v1); breaking changes require /api/v2.
+Public GET endpoints require no API key. Errors use application/problem+json. Versioning is URL path based (/api/v1); breaking changes require /api/v2. Deprecated versions send Deprecation and Sunset headers.
 `,
     "/halls": `# Search venues — ${SITE_BRAND}
 
@@ -123,8 +134,9 @@ Browse packages: ${base}/packages
 `,
   };
 
+  const key = pathname === "/docs" ? "/developers" : pathname;
   return (
-    pages[pathname] ??
+    pages[key] ??
     `# ${SITE_BRAND}\n\nSee ${base}${pathname} or ${base}/llms.txt\n`
   );
 }

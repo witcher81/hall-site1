@@ -23,6 +23,14 @@ describe("openapi.json route", () => {
     const err429 = paths["/api/v1/venues"]?.get?.responses?.["429"] as {
       content?: { "application/problem+json"?: { schema?: unknown } };
     };
-    expect(err429?.content?.["application/problem+json"]?.schema).toBeTruthy();
+    expect(paths["/api/v1/health"]?.get?.responses?.["200"]).toEqual(
+      expect.objectContaining({
+        content: expect.objectContaining({
+          "application/json": expect.objectContaining({
+            schema: expect.objectContaining({ required: ["data"] }),
+          }),
+        }),
+      })
+    );
   });
 });

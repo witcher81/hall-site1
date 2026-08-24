@@ -1,5 +1,6 @@
 import { getSiteUrl } from "@/lib/siteUrl";
 import { SITE_BRAND } from "@/lib/siteBrand";
+import { v1ResponseHeaders } from "@/lib/apiVersionHeaders";
 import { problemResponse } from "@/lib/apiProblem";
 
 export const runtime = "nodejs";
@@ -62,10 +63,7 @@ export async function GET() {
       },
     },
     {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "API-Version": "1",
-      },
+      headers: v1ResponseHeaders(),
     }
   );
 }

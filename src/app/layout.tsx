@@ -6,6 +6,12 @@ import CookieConsentProvider from "@/components/consent/CookieConsentProvider";
 import GlobalThemeToggle from "@/components/GlobalThemeToggle";
 import ThemeInit from "@/components/ThemeInit";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import {
+  DEFAULT_OG_IMAGE,
+  JsonLdScript,
+  buildOrganizationJsonLd,
+  buildSoftwareApplicationJsonLd,
+} from "@/lib/seoJsonLd";
 import { getSiteUrl } from "@/lib/siteUrl";
 import "./globals.css";
 
@@ -33,7 +39,7 @@ export const metadata: Metadata = {
     siteName: "EventForYou",
     images: [
       {
-        url: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
+        url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "EventForYou",
@@ -51,6 +57,8 @@ export default function RootLayout({
     <html lang="he" dir="rtl" data-theme="classic">
       <head>
         <ThemeInit />
+        <JsonLdScript data={buildOrganizationJsonLd()} />
+        <JsonLdScript data={buildSoftwareApplicationJsonLd()} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

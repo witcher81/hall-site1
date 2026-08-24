@@ -23,4 +23,14 @@ describe("publicMarkdown", () => {
     expect(md).toContain("Support email");
     expect(md.length).toBeGreaterThan(200);
   });
+
+  it("returns substantial privacy markdown", () => {
+    const md = markdownForPath("/privacy");
+    expect(md).toContain("Privacy");
+    expect(md.length).toBeGreaterThan(500);
+  });
+
+  it("aliases /docs to developers markdown", () => {
+    expect(markdownForPath("/docs")).toContain("/api/v1");
+  });
 });

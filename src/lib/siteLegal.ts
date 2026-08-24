@@ -10,6 +10,7 @@ export type SiteLegalInfo = {
   privacyEmail: string;
   accessibilityEmail: string;
   contactAddress: string | null;
+  contactPhone: string | null;
   /** true when public emails are not configured yet */
   isPlaceholder: boolean;
 };
@@ -34,6 +35,7 @@ export function getSiteLegalInfo(): SiteLegalInfo {
   const accessibilityEmail =
     publicEmail(process.env.SITE_ACCESSIBILITY_EMAIL) ?? supportEmail;
   const contactAddress = trimOrNull(process.env.SITE_CONTACT_ADDRESS);
+  const contactPhone = trimOrNull(process.env.SITE_CONTACT_PHONE);
 
   return {
     legalName,
@@ -41,6 +43,7 @@ export function getSiteLegalInfo(): SiteLegalInfo {
     privacyEmail,
     accessibilityEmail,
     contactAddress,
+    contactPhone,
     isPlaceholder: false,
   };
 }

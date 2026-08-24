@@ -20,6 +20,7 @@ const problemSchema = {
 
 const venueSchema = {
   type: "object",
+  required: ["id", "name"],
   properties: {
     id: { type: "integer" },
     name: { type: "string" },
@@ -33,6 +34,7 @@ const venueSchema = {
 
 const serviceSchema = {
   type: "object",
+  required: ["id", "name", "providerId"],
   properties: {
     id: { type: "integer" },
     name: { type: "string" },
@@ -50,7 +52,7 @@ export function GET() {
       title: `${SITE_BRAND} Public API`,
       version: "1.0.0",
       summary: `${SITE_BRAND} versioned public HTTP API for venues and services`,
-      description: `Read-only public API for ${SITE_BRAND} (EventForYou). Versioning uses URL paths (/api/v1). Breaking changes require /api/v2. Errors use application/problem+json (RFC 9457 style) with a stable machine-readable code and optional hint. Docs: ${base}/developers`,
+      description: `Read-only public API for ${SITE_BRAND} (EventForYou). Versioning uses URL paths (/api/v1). Breaking changes require /api/v2. Active responses send Deprecation: false, API-Version: 1, and Link rel=deprecation to ${base}/developers/versioning. When a version is scheduled for removal, Deprecation: true and a Sunset HTTP-date are sent at least 90 days in advance. Errors use application/problem+json (RFC 9457 style) with a stable machine-readable code and optional hint. Docs: ${base}/docs`,
       contact: {
         name: `${SITE_BRAND} Support`,
         url: `${base}/contact`,
@@ -79,10 +81,48 @@ export function GET() {
                 "application/json": {
                   schema: {
                     type: "object",
+                    required: [
+                      "name",
+                      "apiVersion",
+                      "versioning",
+                      "endpoints",
+                      "errors",
+                    ],
                     properties: {
                       name: { type: "string" },
                       apiVersion: { type: "string" },
-                      endpoints: { type: "array", items: { type: "object" } },
+                      versioning: {
+                        type: "object",
+                        required: ["strategy", "current", "deprecation"],
+                        properties: {
+                          strategy: { type: "string" },
+                          current: { type: "string" },
+                          deprecation: { type: "string" },
+                        },
+                      },
+                      documentation: { type: "string", format: "uri" },
+                      openapi: { type: "string", format: "uri" },
+                      endpoints: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          required: ["method", "path", "operationId", "description"],
+                          properties: {
+                            method: { type: "string" },
+                            path: { type: "string" },
+                            operationId: { type: "string" },
+                            description: { type: "string" },
+                          },
+                        },
+                      },
+                      errors: {
+                        type: "object",
+                        required: ["contentType", "schema"],
+                        properties: {
+                          contentType: { type: "string" },
+                          schema: { type: "object" },
+                        },
+                      },
                     },
                   },
                 },
@@ -110,9 +150,11 @@ export function GET() {
                 "application/json": {
                   schema: {
                     type: "object",
+                    required: ["data"],
                     properties: {
                       data: {
                         type: "object",
+                        required: ["ok", "service", "apiVersion"],
                         properties: {
                           ok: { type: "boolean" },
                           service: { type: "string" },
@@ -122,6 +164,12 @@ export function GET() {
                     },
                   },
                 },
+              },
+            },
+            "429": {
+              description: "Rate limited",
+              content: {
+                "application/problem+json": { schema: problemSchema },
               },
             },
           },

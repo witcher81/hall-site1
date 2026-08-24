@@ -24,6 +24,7 @@ export default function SiteFooter() {
         <Link href="/accessibility">נגישות</Link>
         <Link href="/contact">יצירת קשר</Link>
         <Link href="/developers">Developers</Link>
+        <Link href="/docs">API docs</Link>
         <CookieSettingsLink />
       </p>
     </footer>

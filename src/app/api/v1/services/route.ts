@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { searchPublicProviders } from "@/lib/publicProvidersSearch";
+import { v1ResponseHeaders } from "@/lib/apiVersionHeaders";
 import { problemResponse } from "@/lib/apiProblem";
 
 export const runtime = "nodejs";
@@ -20,11 +21,7 @@ export async function GET(req: NextRequest) {
         },
       },
       {
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Deprecation": "false",
-          "API-Version": "1",
-        },
+        headers: v1ResponseHeaders(),
       }
     );
   } catch {

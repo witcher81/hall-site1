@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
 import Link from "next/link";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
+
+export const metadata: Metadata = {
+  title: "מדיניות פרטיות — EventForYou",
+  description:
+    "מדיניות הפרטיות של EventForYou: איסוף מידע, שימוש, שיתוף, שמירה וזכויות לפי תיקון 13.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default async function PrivacyPage() {
   const legal = getSiteLegalInfo();
@@ -13,8 +21,10 @@ export default async function PrivacyPage() {
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
         <p>
-          אנו מכבדים את פרטיותכם. מסמך זה מתאר אילו נתונים נאספים בעת שימוש ב-{legal.legalName}{" "}
-          וכיצד הם משמשים.
+          מדיניות זו חלה על משתמשי EventForYou — מחפשי אולמות, בעלי אולמות וספקי
+          שירותים — באתר hall-site1.vercel.app ובשירותים הנלווים. מטרתה לאפשר
+          הבנה ברורה של עיבוד מידע אישי, כולל פניות בין משתמשים, נתוני חשבון
+          ומדדים טכניים הנחוצים להפעלת המרקטפלייס ולאבטחתו.
         </p>
         <h2 className="text-base font-semibold text-emerald-950">נתונים שנאספים</h2>
         <ul className="list-disc space-y-1 pr-5">

@@ -1,3 +1,5 @@
+import { v1ResponseHeaders } from "@/lib/apiVersionHeaders";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -7,11 +9,6 @@ export async function GET() {
     {
       data: { ok: true, service: "eventforyou-public-api", apiVersion: "1" },
     },
-    {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "API-Version": "1",
-      },
-    }
+    { headers: v1ResponseHeaders() }
   );
 }

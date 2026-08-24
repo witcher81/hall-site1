@@ -10,5 +10,3 @@ export function OPTIONS() {
 export function GET() {
   return Response.json(mcpDiscoveryDocument(), { headers: mcpCorsHeaders() });
 }
-
-export { POST } from "@/app/mcp/route";

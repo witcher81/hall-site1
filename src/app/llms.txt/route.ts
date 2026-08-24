@@ -38,10 +38,14 @@ Do **not** use ${SITE_BRAND} MCP/tools for authenticated admin actions, payments
 - Human browse: ${base}/halls , ${base}/providers , ${base}/packages
 - Instructions: ${base}/llms.txt
 - Sitemap: ${base}/sitemap.xml
-- Developer docs: ${base}/developers
+- Developer docs: ${base}/developers · ${base}/docs
+- Versioning / Sunset policy: ${base}/developers/versioning
+- API catalog: ${base}/api
 - API index: ${base}/api/v1
 - OpenAPI (operationIds + schemas): ${base}/openapi.json
-- MCP discovery handshake: ${base}/.well-known/mcp
+- MCP discovery handshake: ${base}/.well-known/mcp (POST initialize also accepted)
+- MCP JSON: ${base}/.well-known/mcp.json
+- MCP server card: ${base}/.well-known/mcp/server-card.json
 - MCP endpoint: ${base}/mcp
 - Legacy search APIs: GET ${base}/api/venues , GET ${base}/api/services/public
 

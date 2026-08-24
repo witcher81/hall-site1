@@ -44,6 +44,8 @@ export function problemResponse(
     status,
     headers: {
       "Content-Type": "application/problem+json; charset=utf-8",
+      "API-Version": "1",
+      Deprecation: "false",
       ...headers,
     },
   });

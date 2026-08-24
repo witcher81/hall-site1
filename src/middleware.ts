@@ -129,7 +129,7 @@ function isPassthroughAppPath(pathname: string): boolean {
   ) {
     return true;
   }
-  return /^(?:\/(?:api|halls|providers|services|packages|auth|dashboard|admin|settings|privacy|event-tools|event-planner|event-builder|favorites|messages|notifications|my-inquiries|my-plans|my-service-requests|trending|uploads|\.well-known)(?:\/|$))/.test(
+  return /^(?:\/(?:api|docs|halls|providers|services|packages|auth|dashboard|admin|settings|privacy|event-tools|event-planner|event-builder|favorites|messages|notifications|my-inquiries|my-plans|my-service-requests|trending|uploads|\.well-known)(?:\/|$))/.test(
     pathname
   );
 }
@@ -145,7 +145,7 @@ Path \`${pathname}\` does not exist.
 - /providers (search services)
 - /packages (event packages)
 - /about · /contact · /privacy
-- /developers · /api/v1 · /openapi.json
+- /developers · /docs · /api/v1 · /openapi.json
 - /llms.txt · /sitemap.xml
 - /.well-known/mcp · /mcp
 `;

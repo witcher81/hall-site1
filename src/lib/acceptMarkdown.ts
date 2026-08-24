@@ -55,34 +55,27 @@ export type NegotiationResult =
   | { kind: "not_acceptable" };
 
 /**
- * Prefer markdown only when its q is strictly greater than html,
- * or equal and listed with higher precedence after sort.
+ * Serve markdown only when text/markdown is explicit.
+ * Wildcards (* / *) must NOT count as markdown — otherwise curl and many
+ * crawlers receive a markdown stub with no H1/JSON-LD.
  */
 export function negotiateHtmlOrMarkdown(
   acceptHeader: string | null
 ): NegotiationResult {
   const ranges = parseAccept(acceptHeader);
-  const qMd = qualityFor(ranges, "text", "markdown");
   const qHtml = qualityFor(ranges, "text", "html");
   const qStar = qualityFor(ranges, "*", "*");
+  const explicitMd = ranges.filter(
+    (r) => r.type === "text" && r.subtype === "markdown" && r.q > 0
+  );
+  const qMd = explicitMd.length ? Math.max(...explicitMd.map((r) => r.q)) : 0;
 
   if (qMd === 0 && qHtml === 0 && qStar === 0) {
     return { kind: "not_acceptable" };
   }
 
-  if (qMd > 0 && qMd >= qHtml && qMd >= qStar) {
-    // If client sent Accept: text/markdown (possibly with */*;q=0.1)
-    // and markdown ranks first among positive, serve markdown.
-    const firstPositive = ranges.find((r) => r.q > 0);
-    if (
-      firstPositive &&
-      matches(firstPositive, "text", "markdown") &&
-      qMd >= qHtml
-    ) {
-      return { kind: "markdown" };
-    }
-    if (qMd > qHtml) return { kind: "markdown" };
-  }
+  if (qMd > 0 && qMd > qHtml) return { kind: "markdown" };
+  if (qMd > 0 && qHtml === 0 && qStar === 0) return { kind: "markdown" };
 
   if (qHtml > 0 || qStar > 0) return { kind: "html" };
   if (qMd > 0) return { kind: "markdown" };
@@ -99,7 +92,9 @@ export function isMarkdownNegotiablePath(pathname: string): boolean {
     "/terms",
     "/cookies",
     "/accessibility",
+    "/docs",
     "/developers",
+    "/developers/versioning",
     "/halls",
     "/providers",
     "/packages",

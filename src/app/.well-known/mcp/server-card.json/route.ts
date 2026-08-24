@@ -1,4 +1,4 @@
-import { mcpCorsHeaders, mcpDiscoveryDocument } from "@/lib/mcpDiscovery";
+import { mcpCorsHeaders, mcpServerCard } from "@/lib/mcpDiscovery";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,7 +8,5 @@ export function OPTIONS() {
 }
 
 export function GET() {
-  return Response.json(mcpDiscoveryDocument(), { headers: mcpCorsHeaders() });
+  return Response.json(mcpServerCard(), { headers: mcpCorsHeaders() });
 }
-
-export { POST } from "@/app/mcp/route";

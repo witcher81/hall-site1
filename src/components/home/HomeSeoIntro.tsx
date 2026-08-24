@@ -15,7 +15,9 @@ export default function HomeSeoIntro() {
           ולפרילנסרים, ומתכננים אירוע במקום אחד — בלי לקפוץ בין עשרות אתרים.
           בעלי אולמות וספקים מפרסמים את העסק, מקבלים פניות ומנהלים פרופיל באזור
           האישי. האתר מיועד לקהל בישראל ומציג תוכן בעברית. אפשר להתחיל בחיפוש
-          אולמות, לעבור לספקי שירותים, או לעיין בחבילות מוכנות לאירוע.
+          אולמות, לעבור לספקי שירותים, או לעיין בחבילות מוכנות לאירוע. EventForYou
+          מחבר בין מחפשי אולמות, בעלי אולמות וספקי שירותים על פלטפורמה אחת, כולל
+          דפי אמון (אודות, יצירת קשר, פרטיות) ותיעוד למפתחים ולסוכני AI.
         </p>
         <h2 className="mt-6 text-base font-semibold text-[var(--heading)]">
           ניווט מהיר
@@ -31,7 +33,15 @@ export default function HomeSeoIntro() {
               /developers
             </a>
             {" · "}
-            /llms.txt · /openapi.json · /.well-known/mcp · /api/v1
+            <a href="/docs" className="font-semibold text-[var(--heading)] underline">
+              /docs
+            </a>
+            {" · "}
+            <a href="/api/v1" className="underline">
+              /api/v1
+            </a>
+            {" · "}
+            /llms.txt · /openapi.json · /.well-known/mcp
           </li>
         </ul>
         <p className="mt-4 text-sm text-[var(--muted)]">
@@ -41,6 +51,10 @@ export default function HomeSeoIntro() {
             className="font-semibold text-[var(--heading)] underline"
           >
             EventForYou Developers
+          </a>
+          {" · "}
+          <a href="/docs" className="font-semibold text-[var(--heading)] underline">
+            EventForYou API docs
           </a>
           {" · "}
           <a href="/api/v1" className="underline">
