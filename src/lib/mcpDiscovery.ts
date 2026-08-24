@@ -11,30 +11,57 @@ const CORS = {
     "Content-Type, Accept, MCP-Protocol-Version, Mcp-Method, Mcp-Name",
 } as const;
 
-export function mcpCorsHeaders(): Record<string, string> {
-  return { ...CORS };
+export function mcpCorsHeaders(extra?: Record<string, string>): Record<string, string> {
+  return { ...CORS, ...extra };
 }
 
-/** SEP-1960-style discovery document + live handshake instructions. */
-export function mcpDiscoveryDocument() {
+const PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2024-11-05"] as const;
+
+/**
+ * Official MCP server card (matches is-agentic / MCP Registry shape).
+ * Served at /.well-known/mcp, /server.json, and /.well-known/mcp/server-card.json.
+ */
+export function mcpServerCard() {
   const base = getSiteUrl();
   const mcpUrl = `${base}/mcp`;
   return {
+    $schema: "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
+    name: "com.eventforyou/public-mcp",
+    title: `${SITE_BRAND} Public MCP`,
+    description:
+      "Read-only EventForYou tools: search halls/venues, freelancer services, providers, and site overview. No auth required.",
+    version: "1.0.0",
+    websiteUrl: base,
+    remotes: [
+      {
+        type: "streamable-http",
+        url: mcpUrl,
+        supportedProtocolVersions: [...PROTOCOL_VERSIONS],
+      },
+    ],
+  };
+}
+
+/** @deprecated Prefer mcpServerCard — kept for tests that expect handshake.live */
+export function mcpDiscoveryDocument() {
+  const card = mcpServerCard();
+  const base = getSiteUrl();
+  const mcpUrl = `${base}/mcp`;
+  return {
+    ...card,
     protocol: "mcp",
     mcp_version: "2025-11-25",
     transport: "streamable-http",
-    server_name: `${SITE_BRAND} Public MCP`,
-    server_version: "1.0.0",
+    server_name: card.title,
+    server_version: card.version,
     product: SITE_BRAND,
     product_aliases: ["EventForYou"],
-    endpoints: [
-      {
-        url: mcpUrl,
-        transport: "streamable-http",
-        capabilities: ["tools"],
-        auth: { type: "none" },
-      },
-    ],
+    endpoints: card.remotes.map((r) => ({
+      url: r.url,
+      transport: r.type,
+      capabilities: ["tools"],
+      auth: { type: "none" },
+    })),
     streamable_http: mcpUrl,
     handshake: {
       live: true,
@@ -42,16 +69,16 @@ export function mcpDiscoveryDocument() {
       method: "POST",
       url: mcpUrl,
       well_known: `${base}/.well-known/mcp`,
-      well_known_post: `${base}/.well-known/mcp`,
+      well_known_post: `${base}/mcp`,
       content_type: "application/json",
-      accept: "application/json",
+      accept: "application/json, text/event-stream",
       protocol_header: "MCP-Protocol-Version",
       initialize: {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "agent", version: "1.0.0" },
         },
@@ -78,27 +105,29 @@ export function mcpDiscoveryDocument() {
   };
 }
 
-export function mcpServerCard() {
+export function mcpRegistryManifest() {
+  const card = mcpServerCard();
+  return {
+    $schema: "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+    name: card.name,
+    title: card.title,
+    description: card.description,
+    version: card.version,
+    websiteUrl: card.websiteUrl,
+    remotes: card.remotes.map(({ type, url }) => ({ type, url })),
+  };
+}
+
+export function aiCatalogDocument() {
   const base = getSiteUrl();
   return {
-    $schema: "https://modelcontextprotocol.io/schemas/server-card/v1.0",
-    version: "1.0",
-    protocolVersion: "2024-11-05",
-    serverInfo: {
-      name: `${SITE_BRAND} Public MCP`,
-      version: "1.0.0",
-      description: `Read-only EventForYou tools: search halls, services, and site overview.`,
-      homepage: `${base}/developers`,
-    },
-    transport: {
-      type: "streamable-http",
-      url: `${base}/mcp`,
-    },
-    capabilities: {
-      tools: true,
-      resources: false,
-      prompts: false,
-    },
-    authentication: { required: false },
+    specVersion: "1.0",
+    entries: [
+      {
+        identifier: `urn:air:hall-site1.vercel.app:mcp:eventforyou`,
+        type: "application/mcp-server-card+json",
+        url: `${base}/.well-known/mcp/server-card.json`,
+      },
+    ],
   };
 }

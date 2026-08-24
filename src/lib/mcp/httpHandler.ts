@@ -29,21 +29,52 @@ function jsonRpcError(
   };
 }
 
+function prefersSse(accept: string | null): boolean {
+  if (!accept) return false;
+  const lower = accept.toLowerCase();
+  const sse = lower.includes("text/event-stream");
+  const json = lower.includes("application/json");
+  if (sse && !json) return true;
+  if (sse && json) {
+    // Prefer SSE when listed first or explicitly with higher q (is-agentic style).
+    const sseIdx = lower.indexOf("text/event-stream");
+    const jsonIdx = lower.indexOf("application/json");
+    return sseIdx >= 0 && (jsonIdx < 0 || sseIdx <= jsonIdx);
+  }
+  return false;
+}
+
+function sseMessage(payload: unknown): string {
+  return `event: message\ndata: ${JSON.stringify(payload)}\n\n`;
+}
+
 async function handleMessage(msg: JsonRpcRequest) {
   const id = (msg.id ?? null) as JsonRpcId;
   const method = typeof msg.method === "string" ? msg.method : "";
 
   if (method === "initialize" || method === "server/discover") {
+    const requested =
+      typeof msg.params?.protocolVersion === "string"
+        ? msg.params.protocolVersion
+        : "2025-11-25";
+    const protocolVersion = [
+      "2025-11-25",
+      "2025-06-18",
+      "2024-11-05",
+    ].includes(requested)
+      ? requested
+      : "2025-11-25";
+
     return jsonRpcResult(id, {
-      protocolVersion: "2024-11-05",
-      capabilities: { tools: {} },
+      protocolVersion,
+      capabilities: { tools: { listChanged: true } },
       serverInfo: {
-        name: `${SITE_BRAND}-public-mcp`,
+        name: "com.eventforyou/public-mcp",
         version: "1.0.0",
         title: `${SITE_BRAND} Public MCP`,
       },
       instructions:
-        "Read-only EventForYou tools. Call tools/list then tools/call. No auth required.",
+        "Read-only EventForYou tools. Call tools/list then tools/call. No auth required. Docs: /developers",
     });
   }
 
@@ -83,14 +114,29 @@ async function handleMessage(msg: JsonRpcRequest) {
   return jsonRpcError(id, -32601, `Method not found: ${method}`);
 }
 
-/** Streamable HTTP JSON-RPC POST (shared by /mcp and /.well-known/mcp). */
+/** Streamable HTTP JSON-RPC POST (JSON or SSE). */
 export async function handleMcpPost(req: NextRequest): Promise<NextResponse> {
-  const cors = mcpCorsHeaders();
+  const useSse = prefersSse(req.headers.get("accept"));
+  const cors = mcpCorsHeaders(
+    useSse
+      ? {
+          "Content-Type": "text/event-stream; charset=utf-8",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        }
+      : undefined
+  );
 
   let body: unknown;
   try {
     body = await req.json();
   } catch {
+    if (useSse) {
+      return new NextResponse(sseMessage(jsonRpcError(null, -32700, "Parse error")), {
+        status: 400,
+        headers: cors,
+      });
+    }
     return NextResponse.json(jsonRpcError(null, -32700, "Parse error"), {
       status: 400,
       headers: cors,
@@ -109,12 +155,19 @@ export async function handleMcpPost(req: NextRequest): Promise<NextResponse> {
     if (out != null) responses.push(out);
   }
 
-  if (Array.isArray(body)) {
-    return NextResponse.json(responses, { headers: cors });
-  }
-
   if (responses.length === 0) {
     return new NextResponse(null, { status: 202, headers: cors });
+  }
+
+  if (useSse) {
+    const streamBody = Array.isArray(body)
+      ? responses.map(sseMessage).join("")
+      : sseMessage(responses[0]);
+    return new NextResponse(streamBody, { status: 200, headers: cors });
+  }
+
+  if (Array.isArray(body)) {
+    return NextResponse.json(responses, { headers: cors });
   }
 
   return NextResponse.json(responses[0], { headers: cors });

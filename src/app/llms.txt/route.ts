@@ -38,21 +38,23 @@ Do **not** use ${SITE_BRAND} MCP/tools for authenticated admin actions, payments
 - Human browse: ${base}/halls , ${base}/providers , ${base}/packages
 - Instructions: ${base}/llms.txt
 - Sitemap: ${base}/sitemap.xml
-- Developer docs: ${base}/developers · ${base}/docs
+- Developer docs: ${base}/developers · ${base}/docs · ${base}/developers/vercel
 - Versioning / Sunset policy: ${base}/deprecation · ${base}/developers/versioning · ${base}/api/v1/deprecation
 - API catalog: ${base}/api
 - API index: ${base}/api/v1
-- OpenAPI (operationIds + $ref schemas): ${base}/openapi.json
-- MCP discovery handshake (GET + live POST initialize): ${base}/.well-known/mcp
-- MCP JSON: ${base}/.well-known/mcp.json
-- MCP server card: ${base}/.well-known/mcp/server-card.json
-- MCP endpoint: ${base}/mcp
+- OpenAPI (operationIds + typed schemas): ${base}/openapi.json
+- MCP server card (official): ${base}/.well-known/mcp
+- MCP Registry manifest: ${base}/server.json
+- MCP server-card copy: ${base}/.well-known/mcp/server-card.json
+- AI catalog: ${base}/.well-known/ai-catalog.json
+- MCP Streamable HTTP endpoint: ${base}/mcp
 
 ## Brand
 
 Official product name: ${SITE_BRAND} (EventForYou). Canonical site: ${base}.
 Brand landing: ${base}/eventforyou
-Developer resources are published under EventForYou titles at /developers, /docs, /openapi.json, and /.well-known/mcp — not under the host vendor name.
+Hosted on Vercel at hall-site1.vercel.app — developer map: ${base}/developers/vercel
+Developer resources are published under EventForYou titles at /developers, /docs, /openapi.json, and /.well-known/mcp.
 Legacy search APIs: GET ${base}/api/venues , GET ${base}/api/services/public
 
 ## Versioned REST API
@@ -66,15 +68,14 @@ Legacy search APIs: GET ${base}/api/venues , GET ${base}/api/services/public
 
 ## How to call MCP
 
-1. GET ${base}/.well-known/mcp for discovery JSON (streamable_http endpoint)
-2. POST JSON-RPC initialize to ${base}/.well-known/mcp or ${base}/mcp (live handshake)
+1. GET ${base}/.well-known/mcp for the official MCP server card (remotes.streamable-http)
+2. POST JSON-RPC initialize to ${base}/mcp (Accept: application/json or text/event-stream)
 3. tools/list then tools/call — search_halls, get_venue, search_services, get_service, get_provider, get_site_overview
 
 ## Language
 
 Primary UI language: Hebrew (he). Brand names: ${SITE_BRAND}, EventForYou.
-`;
-  return new Response(body, {
+`;  return new Response(body, {
     status: 200,
     headers: {
       "Content-Type": "text/plain; charset=utf-8",

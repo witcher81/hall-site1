@@ -123,6 +123,7 @@ function isPassthroughAppPath(pathname: string): boolean {
   if (
     pathname === "/llms.txt" ||
     pathname === "/openapi.json" ||
+    pathname === "/server.json" ||
     pathname === "/mcp" ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml"

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleMcpPost } from "@/lib/mcp/httpHandler";
-import { mcpCorsHeaders, mcpDiscoveryDocument } from "@/lib/mcpDiscovery";
+import { mcpCorsHeaders, mcpServerCard } from "@/lib/mcpDiscovery";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,12 +10,14 @@ export function OPTIONS() {
 }
 
 /**
- * Live MCP discovery + handshake surface.
- * GET → discovery manifest; POST → JSON-RPC initialize / tools (same as /mcp).
+ * Official MCP server card (GET) + optional live JSON-RPC handshake (POST).
+ * Shape matches MCP Registry / is-agentic well-known discovery.
  */
 export function GET() {
-  return NextResponse.json(mcpDiscoveryDocument(), {
-    headers: mcpCorsHeaders(),
+  return NextResponse.json(mcpServerCard(), {
+    headers: mcpCorsHeaders({
+      "Content-Type": "application/json; charset=utf-8",
+    }),
   });
 }
 

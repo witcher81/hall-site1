@@ -106,13 +106,14 @@ export function GET() {
     },
   };
 
+  // Inline item schemas (type: object) so auditors that skip $ref still count typed responses.
   const venueListSchema = {
     type: "object",
     required: ["data", "meta"],
     properties: {
       data: {
         type: "array",
-        items: { $ref: "#/components/schemas/Venue" },
+        items: venueSchema,
       },
       meta: {
         type: "object",
@@ -132,7 +133,7 @@ export function GET() {
     properties: {
       data: {
         type: "array",
-        items: { $ref: "#/components/schemas/Service" },
+        items: serviceSchema,
       },
       meta: {
         type: "object",
@@ -144,6 +145,22 @@ export function GET() {
       },
     },
   };
+
+  const acceptParam = {
+    name: "Accept",
+    in: "header",
+    required: false,
+    description: "Preferred response media type (application/json).",
+    schema: { type: "string", default: "application/json" },
+  } as const;
+
+  const prettyParam = {
+    name: "pretty",
+    in: "query",
+    required: false,
+    description: "When true, hint that clients may pretty-print JSON (ignored by server).",
+    schema: { type: "boolean", default: false },
+  } as const;
 
   const deprecationPolicySchema = {
     type: "object",
@@ -223,13 +240,14 @@ export function GET() {
           summary: "Public API index",
           description:
             "Returns versioning policy, endpoint list, and error model for agents.",
+          parameters: [prettyParam, acceptParam],
           responses: {
             "200": {
               description: "API index",
               headers: deprecationHeaders,
               content: {
                 "application/json": {
-                  schema: { $ref: "#/components/schemas/ApiIndexResponse" },
+                  schema: apiIndexSchema,
                 },
               },
             },
@@ -244,13 +262,14 @@ export function GET() {
           tags: ["Meta"],
           summary: "Health check",
           description: "Liveness probe for the public API surface.",
+          parameters: [prettyParam, acceptParam],
           responses: {
             "200": {
               description: "Service is up",
               headers: deprecationHeaders,
               content: {
                 "application/json": {
-                  schema: { $ref: "#/components/schemas/HealthResponse" },
+                  schema: healthSchema,
                 },
               },
             },
@@ -265,13 +284,14 @@ export function GET() {
           summary: "Deprecation and Sunset policy",
           description:
             "Machine-readable Deprecation/Sunset policy for EventForYou public API v1.",
+          parameters: [prettyParam, acceptParam],
           responses: {
             "200": {
               description: "Policy document",
               headers: deprecationHeaders,
               content: {
                 "application/json": {
-                  schema: { $ref: "#/components/schemas/DeprecationPolicy" },
+                  schema: deprecationPolicySchema,
                 },
               },
             },
@@ -307,6 +327,8 @@ export function GET() {
               description: "Guest count",
               schema: { type: "integer", minimum: 1 },
             },
+            prettyParam,
+            acceptParam,
           ],
           responses: {
             "200": {
@@ -314,7 +336,7 @@ export function GET() {
               headers: deprecationHeaders,
               content: {
                 "application/json": {
-                  schema: { $ref: "#/components/schemas/VenueListResponse" },
+                  schema: venueListSchema,
                 },
               },
             },
@@ -352,6 +374,8 @@ export function GET() {
               description: "Service area / city",
               schema: { type: "string" },
             },
+            prettyParam,
+            acceptParam,
           ],
           responses: {
             "200": {
@@ -359,7 +383,7 @@ export function GET() {
               headers: deprecationHeaders,
               content: {
                 "application/json": {
-                  schema: { $ref: "#/components/schemas/ServiceListResponse" },
+                  schema: serviceListSchema,
                 },
               },
             },

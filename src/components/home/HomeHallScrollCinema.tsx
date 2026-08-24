@@ -156,7 +156,7 @@ export default function HomeHallScrollCinema() {
                 <p className="home-journey-eyebrow">
                   {ch.code} — {ch.label}
                 </p>
-                <h2 className="mt-2 text-2xl font-bold text-white">{ch.title}</h2>
+                <p className="mt-2 text-2xl font-bold text-white">{ch.title}</p>
                 <p className="mt-2 text-sm text-white/75">{ch.text}</p>
               </div>
             </article>
@@ -237,9 +237,9 @@ export default function HomeHallScrollCinema() {
                   <p className="home-journey-eyebrow">
                     {ch.code} — {ch.label}
                   </p>
-                  <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
+                  <p className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
                     {ch.title}
-                  </h2>
+                  </p>
                   <p className="mt-4 max-w-md text-sm leading-relaxed text-white/78 sm:text-base">
                     {ch.text}
                   </p>

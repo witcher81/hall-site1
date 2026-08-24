@@ -1,12 +1,12 @@
+import { NextResponse } from "next/server";
 import { mcpCorsHeaders, mcpDiscoveryDocument } from "@/lib/mcpDiscovery";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export function OPTIONS() {
-  return new Response(null, { status: 204, headers: mcpCorsHeaders() });
-}
-
+/** Compatibility alias — official card is at /.well-known/mcp */
 export function GET() {
-  return Response.json(mcpDiscoveryDocument(), { headers: mcpCorsHeaders() });
+  return NextResponse.json(mcpDiscoveryDocument(), {
+    headers: mcpCorsHeaders(),
+  });
 }

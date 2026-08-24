@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import { markdownForPath } from "@/lib/publicMarkdown";
 
 describe("publicMarkdown", () => {
-  it("returns homepage markdown with brand and agent links", () => {
+  it("returns homepage markdown with nested headings", () => {
     const md = markdownForPath("/");
     expect(md).toContain("EventForYou");
     expect(md).toContain("/llms.txt");
     expect(md).toContain("/.well-known/mcp");
     expect(md).toContain("/api/v1");
+    expect(md).toMatch(/^# /m);
+    expect(md).toMatch(/^## /m);
+    expect(md).toMatch(/^### /m);
     expect(md.length).toBeGreaterThan(500);
   });
 

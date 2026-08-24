@@ -58,10 +58,27 @@ export default function DevelopersGuide() {
             — Deprecation / Sunset policy
           </li>
           <li>
+            <a className="underline" href={`${base}/developers/vercel`}>
+              /developers/vercel
+            </a>{" "}
+            — EventForYou on Vercel (host + developer map)
+          </li>
+          <li>
             <a className="underline" href={`${base}/developers/versioning`}>
               /developers/versioning
             </a>{" "}
             — deprecation / Sunset policy (alias)
+          </li>
+          <li>
+            <a className="underline" href={`${base}/server.json`}>
+              /server.json
+            </a>{" "}
+            — MCP Registry manifest
+          </li>
+          <li>
+            <a className="underline" href={`${base}/.well-known/ai-catalog.json`}>
+              /.well-known/ai-catalog.json
+            </a>
           </li>
         <li>
           <a className="underline" href={`${base}/.well-known/mcp`}>

@@ -96,6 +96,10 @@ export default function HomeSeoIntro() {
             EventForYou API docs
           </a>
           {" · "}
+          <a href="/developers/vercel" className="underline">
+            EventForYou on Vercel
+          </a>
+          {" · "}
           <a href="/api/v1" className="underline">
             /api/v1
           </a>
@@ -118,6 +122,10 @@ export default function HomeSeoIntro() {
           {" · "}
           <a href="/.well-known/mcp" className="underline">
             /.well-known/mcp
+          </a>
+          {" · "}
+          <a href="/server.json" className="underline">
+            /server.json
           </a>
           {" · "}
           <a href="/mcp" className="underline">
