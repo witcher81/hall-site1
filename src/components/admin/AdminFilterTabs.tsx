@@ -30,11 +30,7 @@ export default function AdminFilterTabs({
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(tab.id)}
-            className={`rounded-lg border px-3.5 py-1.5 text-xs font-medium transition ${
-              selected
-                ? "border-emerald-950 bg-emerald-950 text-white"
-                : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
-            }`}
+            className={`admin-filter-pill${selected ? " is-active" : ""}`}
           >
             {tab.label}
           </button>

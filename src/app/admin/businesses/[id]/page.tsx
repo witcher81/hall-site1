@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import BusinessDetailClient from "./BusinessDetailClient";
+import UserDetailClient from "@/components/admin/UserDetailClient";
 
 export const metadata = { title: "פרטי עסק — ניהול" };
 
@@ -9,5 +9,11 @@ export default async function AdminBusinessDetailPage({ params }: Props) {
   const { id } = await params;
   const userId = Number(id);
   if (!Number.isInteger(userId) || userId <= 0) notFound();
-  return <BusinessDetailClient userId={userId} />;
+  return (
+    <UserDetailClient
+      userId={userId}
+      backHref="/admin/businesses"
+      backLabel="חזרה לעסקים חדשים"
+    />
+  );
 }

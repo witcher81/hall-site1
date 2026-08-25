@@ -8,28 +8,20 @@ type Props = {
 export default function AdminStatCard({ label, value, hint, href }: Props) {
   const inner = (
     <>
-      <p className="text-xs font-medium text-neutral-600">{label}</p>
-      <p className="mt-1 text-3xl font-semibold tabular-nums text-emerald-950">
-        {value}
-      </p>
-      {hint ? <p className="mt-1 text-xs text-neutral-500">{hint}</p> : null}
+      <span className="admin-stat-card__accent" aria-hidden />
+      <p className="admin-stat-card__label">{label}</p>
+      <p className="admin-stat-card__value">{value.toLocaleString("he-IL")}</p>
+      {hint ? <p className="admin-stat-card__hint">{hint}</p> : null}
     </>
   );
 
   if (href) {
     return (
-      <a
-        href={href}
-        className="block rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50/30"
-      >
+      <a href={href} className="admin-stat-card">
         {inner}
       </a>
     );
   }
 
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-      {inner}
-    </div>
-  );
+  return <div className="admin-stat-card">{inner}</div>;
 }

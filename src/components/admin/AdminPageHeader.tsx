@@ -12,20 +12,18 @@ export default function AdminPageHeader({
   backLabel = "חזרה",
 }: Props) {
   return (
-    <header className="mb-6 text-right">
+    <header className="mb-5 text-right">
       {backHref ? (
         <a
           href={backHref}
-          className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-emerald-900 hover:underline"
+          className="mb-2 inline-flex items-center gap-1 text-sm font-semibold text-[var(--heading)] hover:underline"
         >
           <span aria-hidden>→</span>
           {backLabel}
         </a>
       ) : null}
-      <h2 className="text-xl font-semibold text-emerald-950 sm:text-2xl">{title}</h2>
-      {description ? (
-        <p className="mt-1 max-w-2xl text-sm text-neutral-600">{description}</p>
-      ) : null}
+      <h2 className="admin-page-title">{title}</h2>
+      {description ? <p className="admin-page-desc">{description}</p> : null}
     </header>
   );
 }

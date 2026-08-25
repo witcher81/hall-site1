@@ -1,5 +1,5 @@
 import { isAdminEmail } from "@/lib/admin";
-import { buildAdminTabs } from "@/lib/adminUi";
+import { buildAdminNav } from "@/lib/adminUi";
 import { getAdminDashboardStats } from "@/lib/adminDashboardStats";
 import { requireVerifiedSession } from "@/lib/requireSession";
 import { redirect } from "next/navigation";
@@ -21,7 +21,7 @@ export default async function AdminLayout({
 
   return (
     <SitePageShell mainWidth="wide">
-      <AdminShell adminName={displayName} tabs={buildAdminTabs(stats)}>
+      <AdminShell adminName={displayName} nav={buildAdminNav(stats)}>
         {children}
       </AdminShell>
     </SitePageShell>

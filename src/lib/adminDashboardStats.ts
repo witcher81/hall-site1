@@ -3,6 +3,7 @@ import { ListingModerationStatus } from "@/lib/listingModerationTypes";
 
 const RECENT_LIVE_DAYS = 7;
 const WORK_QUEUE_LIMIT = 10;
+const RECENT_SIGNUPS_LIMIT = 12;
 
 export type AdminDashboardStats = {
   pendingVenues: number;
@@ -12,6 +13,14 @@ export type AdminDashboardStats = {
   openReports: number;
   blockedUsers: number;
   newBusinessUsers: number;
+  totalUsers: number;
+  totalSeekers: number;
+  totalVenueOwners: number;
+  totalFreelancers: number;
+  liveVenues: number;
+  liveServices: number;
+  newUsersThisWeek: number;
+  unverifiedUsers: number;
 };
 
 export type AdminWorkQueueItem = {
@@ -22,9 +31,22 @@ export type AdminWorkQueueItem = {
   meta: string;
 };
 
+export type AdminRecentSignup = {
+  id: number;
+  name: string | null;
+  email: string;
+  role: string;
+  createdAt: Date;
+  emailVerified: boolean;
+  isBlocked: boolean;
+};
+
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
   const since = new Date();
   since.setDate(since.getDate() - RECENT_LIVE_DAYS);
+
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
 
   const [
     pendingVenues,
@@ -34,6 +56,14 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     openReports,
     blockedUsers,
     newBusinessUsers,
+    totalUsers,
+    totalSeekers,
+    totalVenueOwners,
+    totalFreelancers,
+    liveVenues,
+    liveServices,
+    newUsersThisWeek,
+    unverifiedUsers,
   ] = await Promise.all([
     prisma.venue.count({
       where: { moderationStatus: ListingModerationStatus.PENDING },
@@ -62,6 +92,18 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
         adminReviewedAt: null,
       },
     }),
+    prisma.user.count(),
+    prisma.user.count({ where: { role: "SEEKER" } }),
+    prisma.user.count({ where: { role: "VENUE_OWNER" } }),
+    prisma.user.count({ where: { role: "FREELANCER" } }),
+    prisma.venue.count({
+      where: { moderationStatus: ListingModerationStatus.APPROVED },
+    }),
+    prisma.service.count({
+      where: { moderationStatus: ListingModerationStatus.APPROVED },
+    }),
+    prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
+    prisma.user.count({ where: { emailVerified: false } }),
   ]);
 
   return {
@@ -72,7 +114,31 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     openReports,
     blockedUsers,
     newBusinessUsers,
+    totalUsers,
+    totalSeekers,
+    totalVenueOwners,
+    totalFreelancers,
+    liveVenues,
+    liveServices,
+    newUsersThisWeek,
+    unverifiedUsers,
   };
+}
+
+export async function getAdminRecentSignups(): Promise<AdminRecentSignup[]> {
+  return prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    take: RECENT_SIGNUPS_LIMIT,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      emailVerified: true,
+      isBlocked: true,
+    },
+  });
 }
 
 export async function getAdminWorkQueue(): Promise<AdminWorkQueueItem[]> {
