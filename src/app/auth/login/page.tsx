@@ -16,6 +16,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const afterLogin = safeInternalPath(searchParams.get("redirect"));
   const isCheckout = searchParams.get("checkout") === "1";
+  const isDevManage = searchParams.get("dev_manage") === "1";
   const emailId = useId();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +102,12 @@ function LoginForm() {
             התחברו כדי להשלים את ההזמנה שמילאתם כאורח.
           </p>
         ) : null}
+        {isDevManage ? (
+          <p className="auth-alert-info mt-2">
+            מצב דיבאג: התחברו או הירשמו כמשתמש חדש — החשבון יתווסף לרשימת «החלף
+            משתמש» ותהיו מחוברים אליו.
+          </p>
+        ) : null}
         <a href="/" className="auth-back-link mt-3">
           <span aria-hidden>←</span>
           <span>חזרה לדף הבית</span>
@@ -156,13 +163,28 @@ function LoginForm() {
             <a
               href={
                 afterLogin
-                  ? `/auth/register?redirect=${encodeURIComponent(afterLogin)}`
-                  : "/auth/register"
+                  ? `/auth/register?redirect=${encodeURIComponent(afterLogin)}${
+                      isDevManage ? "&dev_manage=1" : ""
+                    }`
+                  : isDevManage
+                    ? "/auth/register?dev_manage=1"
+                    : "/auth/register"
               }
               className="font-semibold text-emerald-950 hover:underline"
             >
               הרשמה
             </a>
+            {isDevManage ? (
+              <>
+                {" · "}
+                <a
+                  href="/auth/register/business?dev_manage=1"
+                  className="font-semibold text-emerald-950 hover:underline"
+                >
+                  הרשמת עסק
+                </a>
+              </>
+            ) : null}
           </p>
         </form>
       </main>

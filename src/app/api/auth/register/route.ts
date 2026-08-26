@@ -158,6 +158,10 @@ export async function POST(req: NextRequest) {
         { status: 201 }
       );
       setSessionCookieOnResponse(res, token);
+      const { claimDevManagedUserOnResponse } = await import(
+        "@/lib/devManageSession"
+      );
+      await claimDevManagedUserOnResponse(res, user.id);
       return res;
     }
 

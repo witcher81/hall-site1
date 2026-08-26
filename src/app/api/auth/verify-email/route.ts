@@ -89,6 +89,10 @@ export async function POST(req: NextRequest) {
       });
       setSessionCookieOnResponse(res, jwt);
       clearPendingVerificationCookieOnResponse(res);
+      const { claimDevManagedUserOnResponse } = await import(
+        "@/lib/devManageSession"
+      );
+      await claimDevManagedUserOnResponse(res, user.id);
       return res;
     }
 
@@ -128,6 +132,10 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ success: true, user: authUser });
     setSessionCookieOnResponse(res, jwt);
     clearPendingVerificationCookieOnResponse(res);
+    const { claimDevManagedUserOnResponse } = await import(
+      "@/lib/devManageSession"
+    );
+    await claimDevManagedUserOnResponse(res, user.id);
     return res;
   } catch (error) {
     console.error("verify-email error:", error);

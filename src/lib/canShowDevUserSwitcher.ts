@@ -23,12 +23,9 @@ export async function getDevUserSwitchContext(
   }
   const link = await prisma.devManagedUser.findFirst({
     where: { managedUserId: session.id },
-    select: {
-      adminUserId: true,
-      managed: { select: { phone: true } },
-    },
+    select: { adminUserId: true },
   });
-  if (!link || link.managed.phone != null) return null;
+  if (!link) return null;
   return { adminUserId: link.adminUserId, canCreateManagedUsers: false };
 }
 

@@ -107,6 +107,10 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
     setSessionCookieOnResponse(res, token);
+    const { claimDevManagedUserOnResponse } = await import(
+      "@/lib/devManageSession"
+    );
+    await claimDevManagedUserOnResponse(res, user.id);
     return res;
   } catch (error) {
     console.error("Login error:", error);

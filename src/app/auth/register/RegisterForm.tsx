@@ -47,6 +47,7 @@ export default function RegisterForm({
   const searchParams = useSearchParams();
   const afterRegister = safeInternalPath(searchParams.get("redirect"));
   const isCheckout = searchParams.get("checkout") === "1";
+  const isDevManage = searchParams.get("dev_manage") === "1";
   const nameId = useId();
   const emailId = useId();
   const phonePrefixId = useId();
@@ -155,6 +156,12 @@ export default function RegisterForm({
             ב־BETA.
           </p>
         ) : null}
+        {isDevManage ? (
+          <p className="auth-alert-info mt-2">
+            מצב דיבאג: אחרי ההרשמה החשבון יתווסף לרשימת «החלף משתמש» ותהיו
+            מחוברים אליו.
+          </p>
+        ) : null}
         {variant === "business" ? (
           <p className="mt-2 text-sm leading-relaxed text-neutral-600">
             בחרו סוג עסק, צרו חשבון, ואחרי אימות המייל תעברו למלא פרופיל — זה
@@ -176,7 +183,11 @@ export default function RegisterForm({
               פרופיל עסקי.
             </p>
             <a
-              href="/auth/register/business"
+              href={
+                isDevManage
+                  ? "/auth/register/business?dev_manage=1"
+                  : "/auth/register/business"
+              }
               className="btn-secondary mt-3 flex w-full justify-center"
             >
               הרשמת בעל אולם או ספק שירותים
@@ -188,7 +199,7 @@ export default function RegisterForm({
           <p className="mt-4 text-sm text-neutral-700">
             מחפשים אולם לאירוע?{" "}
             <a
-              href="/auth/register"
+              href={isDevManage ? "/auth/register?dev_manage=1" : "/auth/register"}
               className="font-semibold text-emerald-950 underline underline-offset-2"
             >
               הרשמה כמחפש
@@ -363,8 +374,12 @@ export default function RegisterForm({
             <a
               href={
                 isCheckout && afterRegister
-                  ? `/auth/login?redirect=${encodeURIComponent(afterRegister)}&checkout=1`
-                  : "/auth/login"
+                  ? `/auth/login?redirect=${encodeURIComponent(afterRegister)}&checkout=1${
+                      isDevManage ? "&dev_manage=1" : ""
+                    }`
+                  : isDevManage
+                    ? "/auth/login?dev_manage=1"
+                    : "/auth/login"
               }
               className="font-semibold text-emerald-950 hover:underline"
             >
