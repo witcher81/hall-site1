@@ -423,6 +423,224 @@ html[data-theme="night"] .dashboard-nav-user {
   padding-bottom: 2.5rem;
 }
 
+/* —— פאנל עסקי (בעל אולם / פרילנסר) —— */
+.biz-dashboard {
+  color: var(--foreground);
+}
+
+.biz-kpi-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+}
+
+.biz-kpi-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid var(--border-soft);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent) 7%, var(--card)) 0%,
+    var(--card) 100%
+  );
+  padding: 1rem 1.05rem;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.biz-kpi-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-soft));
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgb(15 61 46 / 0.08);
+}
+
+.biz-kpi-card__accent {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #c9a227, #167a4f);
+}
+
+.biz-kpi-card--amber .biz-kpi-card__accent {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+}
+
+.biz-kpi-card--rose .biz-kpi-card__accent {
+  background: linear-gradient(180deg, #f43f5e, #e11d48);
+}
+
+.biz-kpi-card--emerald .biz-kpi-card__accent {
+  background: linear-gradient(180deg, #34d399, #059669);
+}
+
+.biz-kpi-card__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.biz-kpi-card__value {
+  margin-top: 0.35rem;
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--heading);
+}
+
+.biz-kpi-card__hint {
+  margin-top: 0.35rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.biz-panel {
+  border-radius: 1.15rem;
+  border: 1px solid var(--border-soft);
+  background: var(--card);
+  padding: 1.15rem 1.1rem;
+  box-shadow: 0 10px 28px rgb(15 61 46 / 0.05);
+}
+
+.biz-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.biz-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.55rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    filter 0.15s ease;
+}
+
+.biz-btn--primary {
+  border: 0;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1a1408;
+  box-shadow: 0 8px 20px rgb(245 158 11 / 0.28);
+}
+
+.biz-btn--primary:hover {
+  filter: brightness(1.05);
+}
+
+.biz-btn--ghost {
+  border: 1px solid var(--border-soft);
+  background: var(--card-muted);
+  color: var(--heading);
+}
+
+.biz-btn--ghost:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-soft));
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+
+.biz-list-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border-soft);
+  background: var(--card-muted);
+  padding: 0.85rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.biz-list-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-soft));
+  background: color-mix(in srgb, var(--accent) 5%, var(--card));
+  transform: translateX(-2px);
+}
+
+.biz-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.biz-tag--amber {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.biz-tag--rose {
+  background: #ffe4e6;
+  color: #9f1239;
+}
+
+.biz-tag--emerald {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.biz-tag--neutral {
+  background: color-mix(in srgb, var(--accent) 10%, var(--card-muted));
+  color: var(--heading);
+}
+
+.biz-empty {
+  border-radius: 1rem;
+  border: 1px dashed var(--border-soft);
+  background: var(--card-muted);
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.biz-empty__title {
+  font-weight: 700;
+  color: var(--heading);
+}
+
+.biz-empty__desc {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.biz-listing-card {
+  display: block;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid var(--border-soft);
+  background: var(--card-muted);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.biz-listing-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-soft));
+  box-shadow: 0 10px 24px rgb(15 61 46 / 0.08);
+}
+
 .site-card {
   border-radius: 1rem;
   border: 1.5px solid var(--border-soft);

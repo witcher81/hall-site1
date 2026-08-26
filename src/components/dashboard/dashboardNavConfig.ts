@@ -21,27 +21,32 @@ export const DASHBOARD_NAV: Record<DashboardRole, DashboardNavConfig> = {
     links: [
       {
         href: "/dashboard/freelancer",
-        label: "השירותים שלי",
+        label: "סקירה",
         isActive: (pathname) =>
           pathname === "/dashboard/freelancer" ||
           pathname.startsWith("/dashboard/freelancer/services"),
       },
       {
         href: "/dashboard/freelancer/requests",
-        label: "בקשות שהתקבלו",
+        label: "בקשות",
         isActive: (pathname) =>
           pathname.startsWith("/dashboard/freelancer/requests"),
+      },
+      {
+        href: "/messages",
+        label: "הודעות",
+        isActive: (pathname) => pathname.startsWith("/messages"),
+      },
+      {
+        href: "/notifications",
+        label: "התראות",
+        isActive: (pathname) => pathname.startsWith("/notifications"),
       },
       {
         href: "/dashboard/freelancer/profile",
         label: "פרופיל",
         isActive: (pathname) =>
           pathname.startsWith("/dashboard/freelancer/profile"),
-      },
-      {
-        href: "/messages",
-        label: "הודעות",
-        isActive: (pathname) => pathname.startsWith("/messages"),
       },
     ],
   },
@@ -52,7 +57,7 @@ export const DASHBOARD_NAV: Record<DashboardRole, DashboardNavConfig> = {
     links: [
       {
         href: "/dashboard/venue-owner",
-        label: "האולמות שלי",
+        label: "סקירה",
         isActive: (pathname) =>
           pathname === "/dashboard/venue-owner" ||
           pathname.startsWith("/dashboard/venue-owner/venues"),
@@ -70,15 +75,20 @@ export const DASHBOARD_NAV: Record<DashboardRole, DashboardNavConfig> = {
           pathname.startsWith("/dashboard/venue-owner/packages"),
       },
       {
+        href: "/messages",
+        label: "הודעות",
+        isActive: (pathname) => pathname.startsWith("/messages"),
+      },
+      {
+        href: "/notifications",
+        label: "התראות",
+        isActive: (pathname) => pathname.startsWith("/notifications"),
+      },
+      {
         href: "/dashboard/venue-owner/profile",
         label: "פרופיל",
         isActive: (pathname) =>
           pathname.startsWith("/dashboard/venue-owner/profile"),
-      },
-      {
-        href: "/messages",
-        label: "הודעות",
-        isActive: (pathname) => pathname.startsWith("/messages"),
       },
     ],
   },

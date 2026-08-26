@@ -1,5 +1,4 @@
 import { getCurrentUser } from "@/lib/auth";
-import { isVenueOwnerBusinessProfileIncomplete } from "@/lib/businessProfile";
 import { redirect } from "next/navigation";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -12,45 +11,26 @@ export default async function VenueOwnerDashboardPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "VENUE_OWNER") redirect("/auth/login");
 
-  const { dbUser, venues, recentInquiries } = await getVenueOwnerDashboardData(user.id);
-
-  const profileIncomplete = dbUser
-    ? isVenueOwnerBusinessProfileIncomplete(dbUser)
-    : true;
+  const data = await getVenueOwnerDashboardData(user.id);
 
   return (
     <>
       <DashboardPageHero
         role="venue-owner"
-        title="אזור אישי – בעל/ת אולם"
-        description="ניהול פרופיל ויצירת אולמות."
+        title="מרכז שליטה – בעל/ת אולם"
+        description="פניות, הודעות, התראות וניהול האולמות — במקום אחד."
       />
       <DashboardMain>
-        {profileIncomplete ? (
-        <div className="mt-6 rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-right text-sm text-amber-950">
-          <p className="font-semibold">השלימו את הפרופיל העסקי</p>
-          <p className="mt-1 text-xs">
-            חסרים שם עסק, טלפון אישי או טלפון עסקי — מחפשים רואים פרטי קשר חלקיים.{" "}
-            <a href="/dashboard/venue-owner/profile" className="font-semibold underline">
-              לעריכת פרופיל
-            </a>
-          </p>
-        </div>
-      ) : null}
-
-      <VenueOwnerDashboardClient
-        initial={{
-          user: dbUser
-            ? {
-                name: dbUser.name,
-                email: dbUser.email,
-                phone: dbUser.phone,
-              }
-            : null,
-          venues,
-          recentInquiries,
-        }}
-      />
+        <VenueOwnerDashboardClient
+          initial={{
+            venues: data.venues,
+            profileIncomplete: data.profileIncomplete,
+            kpis: data.kpis,
+            attention: data.attention,
+            activity: data.activity,
+            quickActions: data.quickActions,
+          }}
+        />
       </DashboardMain>
     </>
   );

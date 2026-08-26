@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import BusinessDashboardShell from "@/components/dashboard/BusinessDashboardShell";
 import ListingModerationBadge from "@/components/ListingModerationBadge";
 import ListingPromoBadges from "@/components/ListingPromoBadges";
 import { isBoostActive } from "@/lib/listingBoost";
+import type {
+  DashboardActivityItem,
+  DashboardAttentionItem,
+  DashboardKpi,
+  DashboardQuickAction,
+} from "@/components/dashboard/businessDashboardTypes";
 
 type Venue = {
   id: number;
@@ -23,104 +29,73 @@ type Venue = {
   boostExpiresAt?: string | Date | null;
 };
 
-type RecentInquiry = {
-  id: number;
-  status: string;
-  createdAt: string;
-  venue: { id: number; name: string };
-  user: { name: string | null; email: string };
-};
-
 type Props = {
   initial: {
-    user: { name: string | null; email: string; phone: string | null } | null;
     venues: Venue[];
-    recentInquiries: RecentInquiry[];
+    profileIncomplete: boolean;
+    kpis: DashboardKpi[];
+    attention: DashboardAttentionItem[];
+    activity: DashboardActivityItem[];
+    quickActions: DashboardQuickAction[];
   };
 };
 
-const INQUIRY_STATUS: Record<string, string> = {
-  NEW: "חדשה",
-  READ: "נצפתה",
-  REPLIED: "נענתה",
-  APPROVED: "אושרה",
-  REJECTED: "נדחתה",
-  CANCELLED: "בוטלה",
-};
-
 export default function VenueOwnerDashboardClient({ initial }: Props) {
-  const [venues] = useState<Venue[]>(initial.venues);
-  const recentInquiries = initial.recentInquiries;
+  const { venues, profileIncomplete, kpis, attention, activity, quickActions } =
+    initial;
 
   return (
-    <section className="mt-6 text-right text-sm text-neutral-900">
-      {recentInquiries.length > 0 ? (
-        <div className="mb-8 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold text-emerald-950">פניות אחרונות</h2>
-            <a
-              href="/dashboard/venue-owner/inquiries"
-              className="text-xs font-semibold text-emerald-950 underline"
-            >
-              כל הפניות →
-            </a>
-          </div>
-          <ul className="mt-3 space-y-2">
-            {recentInquiries.map((q) => (
-              <li key={q.id}>
-                <a
-                  href={`/dashboard/venue-owner/inquiries/${q.id}`}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2 transition hover:border-amber-300"
-                >
-                  <span className="min-w-0 truncate">
-                    <span className="font-medium text-emerald-950">{q.venue.name}</span>
-                    <span className="mr-2 text-[11px] text-neutral-600">
-                      {q.user.name || q.user.email}
-                    </span>
-                  </span>
-                  <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold">
-                    {INQUIRY_STATUS[q.status] ?? q.status}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="text-right">
-          <div className="mb-2 h-1 w-10 rounded-full bg-amber-400" aria-hidden />
-          <h2 className="text-xl font-semibold text-emerald-950">האולמות שלך</h2>
-          <p className="mt-1 text-xs text-neutral-600">
-            כאן תראה את כל האולמות שיצרת במערכת.
-          </p>
-        </div>
+    <BusinessDashboardShell
+      kpis={kpis}
+      attention={attention}
+      activity={activity}
+      quickActions={quickActions}
+      activityViewAllHref="/dashboard/venue-owner/inquiries"
+      activityViewAllLabel="כל הפניות ←"
+      listingsTitle="האולמות שלך"
+      listingsDescription="ניהול פרסומים, תמונות, מחירים וזמינות."
+      listingsAction={
         <a
           href="/dashboard/venue-owner/venues/new"
-          className="inline-flex justify-center rounded-full bg-amber-400 px-5 py-2.5 text-sm font-semibold text-neutral-950 shadow-[0_10px_28px_rgba(0,0,0,0.18)] transition hover:bg-amber-300"
+          className="biz-btn biz-btn--primary"
         >
           יצירת אולם חדש
         </a>
-      </div>
-
+      }
+      profileWarning={
+        profileIncomplete ? (
+          <div className="rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-right text-sm text-amber-950">
+            <p className="font-semibold">השלימו את הפרופיל העסקי</p>
+            <p className="mt-1 text-xs">
+              חסרים שם עסק, טלפון אישי או טלפון עסקי — מחפשים רואים פרטי קשר חלקיים.{" "}
+              <a
+                href="/dashboard/venue-owner/profile"
+                className="font-semibold underline"
+              >
+                לעריכת פרופיל
+              </a>
+            </p>
+          </div>
+        ) : null
+      }
+    >
       {venues.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-[#C9A227]/50 bg-white/80 p-8 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
-          <p className="text-sm font-medium text-emerald-950">עדיין לא יצרת אולמות.</p>
-          <p className="mt-2 text-xs text-neutral-600">
-            לחץ על &quot;יצירת אולם חדש&quot; כדי להוסיף את האולם הראשון שלך.
+        <div className="biz-empty">
+          <p className="biz-empty__title">עדיין לא יצרת אולמות</p>
+          <p className="biz-empty__desc">
+            לחצו על «יצירת אולם חדש» כדי להוסיף את האולם הראשון.
           </p>
         </div>
       ) : (
-        <div className="mt-8 space-y-4">
+        <div className="space-y-3">
           {venues.map((v) => (
             <a
               key={v.id}
               href={`/dashboard/venue-owner/venues/${v.id}`}
-              className="block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_12px_40px_rgba(15,59,46,0.07)] transition hover:border-amber-400/60 hover:shadow-md"
+              className="biz-listing-card"
             >
               <div className="flex gap-4 p-4">
-                <div className="h-20 w-28 shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-[#F5EFE3]">
+                <div className="h-20 w-28 shrink-0 overflow-hidden rounded-xl border border-[var(--border-soft)] bg-[var(--card)]">
                   {v.coverImageUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -129,50 +104,59 @@ export default function VenueOwnerDashboardClient({ initial }: Props) {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-2xl text-[#B0A99A]">
+                    <div className="flex h-full items-center justify-center text-2xl text-[var(--muted)]">
                       🏛
                     </div>
                   )}
                 </div>
                 <div className="min-w-0 flex-1 text-right">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-semibold text-emerald-950">
+                    <p className="font-semibold text-[var(--heading)]">
                       {v.name}
-                      <span className="font-normal text-neutral-600"> · {v.city}</span>
+                      <span className="font-normal text-[var(--muted)]">
+                        {" "}
+                        · {v.city}
+                      </span>
                     </p>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <ListingPromoBadges
                         active={isBoostActive(v.boostExpiresAt)}
                         compact
                       />
-                      <ListingModerationBadge status={v.moderationStatus} note={v.moderationNote} />
+                      <ListingModerationBadge
+                        status={v.moderationStatus}
+                        note={v.moderationNote}
+                      />
                     </div>
                   </div>
-                  <p className="mt-0.5 text-xs text-neutral-600">{v.address}</p>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">{v.address}</p>
                   {(v.minGuests != null || v.maxGuests != null) && (
-                    <p className="mt-0.5 text-xs text-neutral-600">
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">
                       קיבולת: {v.minGuests ?? "?"}–{v.maxGuests ?? "?"} אורחים
                     </p>
                   )}
                   {(v.minPrice != null || v.maxPrice != null) && (
-                    <p className="mt-0.5 text-xs text-neutral-600">
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">
                       מחיר למנה: {v.minPrice ?? "?"}–{v.maxPrice ?? "?"} ₪
                     </p>
                   )}
                   {(v.hallRentalMin != null || v.hallRentalMax != null) && (
-                    <p className="mt-0.5 text-xs text-neutral-600">
-                      השכרת אולם: {v.hallRentalMin ?? "?"}–{v.hallRentalMax ?? "?"} ₪
+                    <p className="mt-0.5 text-xs text-[var(--muted)]">
+                      השכרת אולם: {v.hallRentalMin ?? "?"}–{v.hallRentalMax ?? "?"}{" "}
+                      ₪
                     </p>
                   )}
-                  {v.description && (
-                    <p className="mt-1 line-clamp-2 text-xs text-neutral-600">{v.description}</p>
-                  )}
+                  {v.description ? (
+                    <p className="mt-1 line-clamp-2 text-xs text-[var(--muted)]">
+                      {v.description}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </a>
           ))}
         </div>
       )}
-    </section>
+    </BusinessDashboardShell>
   );
 }
