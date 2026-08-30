@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "יש להתחבר כדי לשלוח בקשה" }, { status: 401 });
   }
   if (user.role !== "SEEKER") {
-    return NextResponse.json({ error: "רק מחפש אולמות יכול לשלוח בקשות לספקים" }, { status: 403 });
+    return NextResponse.json({ error: "רק מחפש יכול לשלוח בקשות לספקים" }, { status: 403 });
   }
   const verifyBlock = emailVerificationGuard(user);
   if (verifyBlock) return verifyBlock;

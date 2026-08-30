@@ -1405,7 +1405,7 @@ export default function VenuePublicView({
           </div>
         ) : user.role !== "SEEKER" ? (
           <p className="mt-4 text-sm text-neutral-600">
-            שליחת פנייה זמינה למחפשי אולמות (חשבון &quot;מחפש&quot;).
+            שליחת פנייה זמינה למחפשים (חשבון &quot;מחפש&quot;).
           </p>
         ) : (
           <div className="mt-5 grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">

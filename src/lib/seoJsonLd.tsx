@@ -28,7 +28,7 @@ export function buildOrganizationJsonLd() {
     alternateName: [SITE_BRAND, "Event For You", "EventForYou Israel"],
     url,
     description:
-      "EventForYou מחבר בין מחפשי אולמות לאירועים, בעלי אולמות וספקי שירותים בישראל — חיפוש, השוואה ופניות במקום אחד.",
+      "EventForYou מחבר בין מחפשים לאירוע (אולמות ו/או ספקי שירותים), בעלי אולמות ופרילנסרים בישראל — חיפוש, השוואה ופניות במקום אחד.",
     email: legal.supportEmail,
     slogan: "מקום אחד לכל האירועים",
     foundingLocation: {
@@ -89,7 +89,7 @@ export function buildWebSiteJsonLd() {
     name: SITE_BRAND,
     url,
     description:
-      "חיפוש אולמות לאירועים, חתונות ובר מצווה. מחבר בין מחפשי אולמות, בעלי אולמות וספקי שירותים.",
+      "חיפוש אולמות וספקי שירותים לאירועים. מחבר בין מחפשים, בעלי אולמות ופרילנסרים.",
     inLanguage: "he-IL",
     potentialAction: {
       "@type": "SearchAction",

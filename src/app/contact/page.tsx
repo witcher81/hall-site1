@@ -17,7 +17,7 @@ export default async function ContactPage() {
       <article className="space-y-4 text-right text-sm leading-relaxed text-[var(--foreground)]">
         <h1 className="site-page-title">יצירת קשר — {SITE_BRAND}</h1>
         <p>
-          פניות, תלונות, שאלות ותמיכה עבור משתמשי {SITE_BRAND} — מחפשי אולמות,
+          פניות, תלונות, שאלות ותמיכה עבור משתמשי {SITE_BRAND} — מחפשים,
           בעלי אולמות וספקי שירותים. אפשר לכתוב ישירות לאימייל או למלא את הטופס
           למטה. נשתדל לחזור אליכם בהקדם האפשרי בימי עסקים. EventForYou הוא
           מרקטפלייס ישראלי לאירועים: חיפוש אולמות, ספקי שירותים וחבילות אירוע.

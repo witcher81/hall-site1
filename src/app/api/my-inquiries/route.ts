@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
-/** רשימת הפניות ששלחתי (מחפש אולמות) */
+/** רשימת הפניות ששלחתי (מחפש) */
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) {

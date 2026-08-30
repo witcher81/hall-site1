@@ -21,7 +21,7 @@ export default async function PrivacyPage() {
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
         <p>
-          מדיניות זו חלה על משתמשי EventForYou — מחפשי אולמות, בעלי אולמות וספקי
+          מדיניות זו חלה על משתמשי EventForYou — מחפשים, בעלי אולמות וספקי
           שירותים — באתר hall-site1.vercel.app ובשירותים הנלווים. מטרתה לאפשר
           הבנה ברורה של עיבוד מידע אישי, כולל פניות בין משתמשים, נתוני חשבון
           ומדדים טכניים הנחוצים להפעלת המרקטפלייס ולאבטחתו.

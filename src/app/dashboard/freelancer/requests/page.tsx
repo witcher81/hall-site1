@@ -9,7 +9,7 @@ export default async function FreelancerRequestsPage() {
       <DashboardPageHero
         role="freelancer"
         title="בקשות שהתקבלו"
-        description="בקשות ממחפשי אולמות לשירותים שלך — הצעת מחיר חדשה, מענה והודעות."
+        description="בקשות ממחפשים לשירותים שלך — הצעת מחיר חדשה, מענה והודעות."
       />
       <DashboardMain width="wide">
         <Suspense

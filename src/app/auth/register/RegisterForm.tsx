@@ -148,7 +148,7 @@ export default function RegisterForm({
       <main className="mx-auto max-w-md px-4 py-12">
         <p className="auth-kicker">EVENT FOR YOU</p>
         <h1 className="auth-page-title">
-          {variant === "business" ? "הרשמת בעל עסק" : "הרשמה למחפשי אולמות"}
+          {variant === "business" ? "הרשמת בעל עסק" : "הרשמה למחפשים"}
         </h1>
         {isCheckout ? (
           <p className="auth-alert-info mt-2">
@@ -197,7 +197,7 @@ export default function RegisterForm({
 
         {variant === "business" ? (
           <p className="mt-4 text-sm text-neutral-700">
-            מחפשים אולם לאירוע?{" "}
+            מחפשים אולם או ספק לאירוע?{" "}
             <a
               href={isDevManage ? "/auth/register?dev_manage=1" : "/auth/register"}
               className="font-semibold text-emerald-950 underline underline-offset-2"
@@ -238,7 +238,7 @@ export default function RegisterForm({
             </div>
           ) : isCheckout ? (
             <div className="auth-alert-info">
-              סוג חשבון: <strong>מחפש אולמות</strong> (נדרש להשלמת הזמנה)
+              סוג חשבון: <strong>מחפש</strong> (אולמות, ספקים או שניהם — נדרש להשלמת הזמנה)
             </div>
           ) : null}
 

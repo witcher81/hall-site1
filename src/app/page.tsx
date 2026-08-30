@@ -20,7 +20,7 @@ import { getSiteUrl } from "@/lib/siteUrl";
 export const metadata: Metadata = {
   title: "EventForYou – מקום אחד לכל האירועים",
   description:
-    "חיפוש אולמות לאירועים, חתונות ובר מצווה. מחבר בין מחפשי אולמות, בעלי אולמות וספקי שירותים.",
+    "חיפוש אולמות וספקי שירותים לאירועים. מחבר בין מחפשים, בעלי אולמות ופרילנסרים.",
   alternates: {
     canonical: "/",
   },
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     url: getSiteUrl(),
     title: "EventForYou – מקום אחד לכל האירועים",
     description:
-      "חיפוש אולמות לאירועים, חתונות ובר מצווה. מחבר בין מחפשי אולמות, בעלי אולמות וספקי שירותים.",
+      "חיפוש אולמות וספקי שירותים לאירועים. מחבר בין מחפשים, בעלי אולמות ופרילנסרים.",
     images: [
       {
         url: DEFAULT_OG_IMAGE,

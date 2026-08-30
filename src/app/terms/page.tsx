@@ -14,7 +14,7 @@ export default async function TermsPage() {
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
         <p>
           ברוכים הבאים ל-{legal.legalName}. השימוש באתר מהווה הסכמה לתנאים אלה. האתר מספק פלטפורמה
-          לחיבור בין מחפשי אולמות, בעלי אולמות וספקי שירותים לאירועים — איננו צד לחוזה בין
+          לחיבור בין מחפשים, בעלי אולמות וספקי שירותים לאירועים — איננו צד לחוזה בין
           המשתמשים.
         </p>
         <h2 className="text-base font-semibold text-emerald-950">הרשמה וחשבון</h2>

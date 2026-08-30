@@ -577,7 +577,7 @@ export default function MessagesClient({
               </>
             ) : (
               <p>
-                שיחות יופיעו כאשר <strong>מחפש אולמות</strong> יפתח איתכם צ&apos;אט מעמוד האולם או השירות.
+                שיחות יופיעו כאשר <strong>מחפש</strong> יפתח איתכם צ&apos;אט מעמוד האולם או השירות.
               </p>
             )}
           </div>

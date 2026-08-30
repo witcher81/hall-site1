@@ -79,7 +79,7 @@ export default function InquiriesListClient({ initial }: Props) {
   if (inquiries.length === 0) {
     return (
       <div className="mt-6 rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
-        עדיין לא התקבלו בקשות הזמנה. בקשות ממחפשי אולמות יופיעו כאן.
+        עדיין לא התקבלו בקשות הזמנה. בקשות ממחפשים יופיעו כאן.
       </div>
     );
   }

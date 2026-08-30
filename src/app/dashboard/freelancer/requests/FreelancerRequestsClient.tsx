@@ -192,7 +192,7 @@ export default function FreelancerRequestsClient() {
 
       {requests.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
-          עדיין לא התקבלו בקשות. בקשות ממחפשי אולמות יופיעו כאן.
+          עדיין לא התקבלו בקשות. בקשות ממחפשים יופיעו כאן.
         </div>
       ) : (
         <>

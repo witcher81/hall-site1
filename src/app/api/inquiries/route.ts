@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
   const verifyBlock = emailVerificationGuard(user);
   if (verifyBlock) return verifyBlock;
   if (user.role !== "SEEKER") {
-    return NextResponse.json({ error: "שליחת פנייה זמינה למחפשי אולמות בלבד" }, { status: 403 });
+    return NextResponse.json({ error: "שליחת פנייה זמינה למחפשים בלבד" }, { status: 403 });
   }
 
   const body = await req.json().catch(() => ({}));

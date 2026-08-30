@@ -15,7 +15,7 @@ export async function sendWelcomeEmail(input: {
       ? "בעל/ת אולם"
       : input.role === "FREELANCER"
         ? "ספק/ית שירות"
-        : "מחפש/ת אולמות";
+        : "מחפש/ת";
 
   const safeName = input.name?.trim() ? escapeHtml(input.name.trim()) : "";
   const greetingHtml = safeName ? `שלום ${safeName},` : "שלום,";

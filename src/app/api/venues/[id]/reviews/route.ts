@@ -49,7 +49,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
   }
   if (user.role !== "SEEKER") {
     return NextResponse.json(
-      { error: "רק מחפשי אולמות יכולים לכתוב ביקורות" },
+      { error: "רק מחפשים יכולים לכתוב ביקורות" },
       { status: 403 }
     );
   }

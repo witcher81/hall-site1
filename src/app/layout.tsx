@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: "%s | EventForYou",
   },
   description:
-    "חיפוש אולמות לאירועים, חתונות ובר מצווה. מחבר בין מחפשי אולמות, בעלי אולמות וספקי שירותים.",
+    "חיפוש אולמות וספקי שירותים לאירועים. מחבר בין מחפשים, בעלי אולמות ופרילנסרים.",
   openGraph: {
     type: "website",
     locale: "he_IL",
