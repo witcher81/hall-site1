@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { requireAdminApi } from "@/lib/requireAdmin";
 import { prisma } from "@/lib/prisma";
 import { applyListingModerationDecision } from "@/lib/listingModerationService";
+import {
+  deleteServiceById,
+  deleteVenueById,
+} from "@/lib/deleteUserAccount";
 import {
   ListingModerationStatus,
   LISTING_TYPE_LABELS,
@@ -251,4 +256,69 @@ export async function PATCH(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(req: NextRequest) {
+  const { denied } = await requireAdminApi();
+  if (denied) return denied;
+
+  const body = await req.json().catch(() => ({}));
+  const listingType = parseListingType(
+    typeof body.listingType === "string" ? body.listingType.trim() : null
+  );
+  const listingId = Number(body.listingId);
+  const confirmName =
+    typeof body.confirmName === "string" ? body.confirmName.trim() : "";
+
+  if (!listingType || !Number.isInteger(listingId) || listingId <= 0) {
+    return NextResponse.json({ error: "נתונים לא תקינים" }, { status: 400 });
+  }
+
+  try {
+    if (listingType === "VENUE") {
+      const venue = await prisma.venue.findUnique({
+        where: { id: listingId },
+        select: { id: true, name: true },
+      });
+      if (!venue) {
+        return NextResponse.json({ error: "אולם לא נמצא" }, { status: 404 });
+      }
+      if (!confirmName || confirmName !== venue.name) {
+        return NextResponse.json(
+          { error: "יש להקליד את שם האולם לאישור המחיקה" },
+          { status: 400 }
+        );
+      }
+      await deleteVenueById(venue.id);
+      return NextResponse.json({ ok: true, deletedId: venue.id });
+    }
+
+    const service = await prisma.service.findUnique({
+      where: { id: listingId },
+      select: { id: true, name: true },
+    });
+    if (!service) {
+      return NextResponse.json({ error: "שירות לא נמצא" }, { status: 404 });
+    }
+    if (!confirmName || confirmName !== service.name) {
+      return NextResponse.json(
+        { error: "יש להקליד את שם השירות לאישור המחיקה" },
+        { status: 400 }
+      );
+    }
+    await deleteServiceById(service.id);
+    return NextResponse.json({ ok: true, deletedId: service.id });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003") {
+      return NextResponse.json(
+        {
+          error:
+            "לא ניתן למחוק — עדיין יש נתונים מקושרים. נסו שוב או פנו לתמיכה.",
+        },
+        { status: 409 }
+      );
+    }
+    console.error("admin delete listing:", e);
+    return NextResponse.json({ error: "המחיקה נכשלה" }, { status: 500 });
+  }
 }

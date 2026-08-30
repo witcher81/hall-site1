@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-async function deleteVenueWithRelations(
+export async function deleteVenueWithRelations(
   tx: Prisma.TransactionClient,
   venueId: number
 ): Promise<void> {
@@ -10,10 +10,11 @@ async function deleteVenueWithRelations(
   await tx.venueReview.deleteMany({ where: { venueId } });
   await tx.venueAvailability.deleteMany({ where: { venueId } });
   await tx.conversation.deleteMany({ where: { venueId } });
+  // EventPackage, VenueGalleryImage, VenuePageView: onDelete Cascade
   await tx.venue.delete({ where: { id: venueId } });
 }
 
-async function deleteServiceWithRelations(
+export async function deleteServiceWithRelations(
   tx: Prisma.TransactionClient,
   serviceId: number
 ): Promise<void> {
@@ -51,6 +52,7 @@ export async function deleteUserAccount(userId: number): Promise<void> {
     await tx.favorite.deleteMany({ where: { userId } });
     await tx.venueReview.deleteMany({ where: { userId } });
     await tx.serviceReview.deleteMany({ where: { userId } });
+    await tx.negotiationOffer.deleteMany({ where: { authorUserId: userId } });
 
     const conversations = await tx.conversation.findMany({
       where: {
@@ -66,5 +68,17 @@ export async function deleteUserAccount(userId: number): Promise<void> {
     await tx.message.deleteMany({ where: { senderId: userId } });
 
     await tx.user.delete({ where: { id: userId } });
+  });
+}
+
+export async function deleteVenueById(venueId: number): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await deleteVenueWithRelations(tx, venueId);
+  });
+}
+
+export async function deleteServiceById(serviceId: number): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await deleteServiceWithRelations(tx, serviceId);
   });
 }

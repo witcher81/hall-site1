@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminErrorBanner from "@/components/admin/AdminErrorBanner";
 import AdminConfirmDialog from "@/components/admin/AdminConfirmDialog";
+import AdminTwoStepDeleteDialog from "@/components/admin/AdminTwoStepDeleteDialog";
 import ListingModerationBadge from "@/components/ListingModerationBadge";
 
 type ContentItem = {
@@ -44,6 +45,7 @@ export default function ContentDetailClient({
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirmTakeDown, setConfirmTakeDown] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -91,6 +93,30 @@ export default function ContentDetailClient({
       return;
     }
     void load();
+  }
+
+  async function deleteListing() {
+    if (!item) return;
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/admin/content", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        listingType,
+        listingId,
+        confirmName: item.name,
+      }),
+    });
+    const data = await res.json().catch(() => null);
+    setBusy(false);
+    if (!res.ok) {
+      setConfirmDelete(false);
+      setError(data?.error || "המחיקה נכשלה");
+      return;
+    }
+    router.push(backHref);
+    router.refresh();
   }
 
   if (loading) return <p className="text-sm text-neutral-600">טוען…</p>;
@@ -199,6 +225,14 @@ export default function ContentDetailClient({
         ) : null}
         <button
           type="button"
+          disabled={busy}
+          onClick={() => setConfirmDelete(true)}
+          className="rounded-xl border border-red-300 bg-red-50 px-5 py-3 text-sm font-semibold text-red-900 hover:bg-red-100 disabled:opacity-50"
+        >
+          מחק {item.listingTypeLabel} לצמיתות
+        </button>
+        <button
+          type="button"
           onClick={() => router.push(backHref)}
           className="rounded-xl border border-neutral-200 px-5 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
         >
@@ -215,6 +249,25 @@ export default function ContentDetailClient({
         busy={busy}
         onConfirm={() => void decide("REJECTED")}
         onCancel={() => setConfirmTakeDown(false)}
+      />
+
+      <AdminTwoStepDeleteDialog
+        open={confirmDelete}
+        title={`למחוק את «${item.name}»?`}
+        step1Message={
+          listingType === "VENUE"
+            ? "יימחקו האולם, הפניות, הביקורות והחבילות הקשורות אליו."
+            : "יימחקו השירות, הבקשות והביקורות הקשורות אליו."
+        }
+        confirmPhrase={item.name}
+        confirmPhraseLabel={
+          listingType === "VENUE"
+            ? "הקלידו את שם האולם לאישור"
+            : "הקלידו את שם השירות לאישור"
+        }
+        busy={busy}
+        onConfirm={() => void deleteListing()}
+        onCancel={() => setConfirmDelete(false)}
       />
     </div>
   );

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { requireAdminApi } from "@/lib/requireAdmin";
 import { prisma } from "@/lib/prisma";
+import { isAdminEmail } from "@/lib/admin";
+import { deleteUserAccount } from "@/lib/deleteUserAccount";
 
 export const runtime = "nodejs";
 
@@ -185,4 +188,65 @@ export async function PATCH(req: NextRequest) {
   });
 
   return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(req: NextRequest) {
+  const { denied, user: admin } = await requireAdminApi();
+  if (denied) return denied;
+
+  const body = await req.json().catch(() => ({}));
+  const id = Number(body.id);
+  const confirmEmail =
+    typeof body.confirmEmail === "string" ? body.confirmEmail.trim() : "";
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return NextResponse.json({ error: "מזהה לא תקין" }, { status: 400 });
+  }
+
+  const target = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, email: true, name: true },
+  });
+  if (!target) {
+    return NextResponse.json({ error: "משתמש לא נמצא" }, { status: 404 });
+  }
+
+  if (isAdminEmail(target.email)) {
+    return NextResponse.json(
+      { error: "לא ניתן למחוק חשבון אדמין" },
+      { status: 403 }
+    );
+  }
+
+  if (admin && target.id === admin.id) {
+    return NextResponse.json(
+      { error: "לא ניתן למחוק את החשבון המחובר כרגע" },
+      { status: 403 }
+    );
+  }
+
+  if (!confirmEmail || confirmEmail.toLowerCase() !== target.email.toLowerCase()) {
+    return NextResponse.json(
+      { error: "יש להקליד את כתובת האימייל של המשתמש לאישור המחיקה" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    await deleteUserAccount(target.id);
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003") {
+      return NextResponse.json(
+        {
+          error:
+            "לא ניתן למחוק — עדיין יש נתונים מקושרים. נסו שוב או פנו לתמיכה.",
+        },
+        { status: 409 }
+      );
+    }
+    console.error("admin delete user:", e);
+    return NextResponse.json({ error: "מחיקת המשתמש נכשלה" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, deletedId: target.id });
 }

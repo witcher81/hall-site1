@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminErrorBanner from "@/components/admin/AdminErrorBanner";
 import AdminConfirmDialog from "@/components/admin/AdminConfirmDialog";
+import AdminTwoStepDeleteDialog from "@/components/admin/AdminTwoStepDeleteDialog";
 import ListingModerationBadge from "@/components/ListingModerationBadge";
 import { ROLE_LABELS } from "@/lib/adminUi";
 
@@ -50,6 +51,7 @@ export default function UserDetailClient({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -99,6 +101,26 @@ export default function UserDetailClient({
       return;
     }
     void load();
+  }
+
+  async function deleteUser() {
+    if (!user) return;
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: userId, confirmEmail: user.email }),
+    });
+    const data = await res.json().catch(() => null);
+    setBusy(false);
+    if (!res.ok) {
+      setConfirmDelete(false);
+      setError(data?.error || "מחיקת המשתמש נכשלה");
+      return;
+    }
+    router.push(backHref);
+    router.refresh();
   }
 
   if (loading) {
@@ -301,6 +323,14 @@ export default function UserDetailClient({
         )}
         <button
           type="button"
+          disabled={busy}
+          onClick={() => setConfirmDelete(true)}
+          className="admin-btn admin-btn--danger"
+        >
+          מחק משתמש לצמיתות
+        </button>
+        <button
+          type="button"
           onClick={() => router.push(backHref)}
           className="admin-btn admin-btn--ghost"
         >
@@ -317,6 +347,17 @@ export default function UserDetailClient({
         busy={busy}
         onConfirm={() => void blockUser(true)}
         onCancel={() => setConfirmBlock(false)}
+      />
+
+      <AdminTwoStepDeleteDialog
+        open={confirmDelete}
+        title={`למחוק את ${user.name?.trim() || user.email}?`}
+        step1Message="יימחקו החשבון, האולמות/השירותים, הפניות, ההודעות וכל הנתונים הקשורים."
+        confirmPhrase={user.email}
+        confirmPhraseLabel="הקלידו את האימייל לאישור"
+        busy={busy}
+        onConfirm={() => void deleteUser()}
+        onCancel={() => setConfirmDelete(false)}
       />
     </div>
   );
