@@ -5,6 +5,7 @@ import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/passwordResetEmail";
 import { sendWelcomeEmail } from "@/lib/welcomeEmail";
+import { welcomeDestinationHref } from "@/lib/welcomeDestination";
 
 type RegisterPostCreatePayload = {
   userId: number;
@@ -54,7 +55,9 @@ export async function executeJob(jobType: string, payload: unknown): Promise<voi
         type: "WELCOME",
         title: "ברוכים הבאים ל־EventForYou",
         body: `החשבון נוצר בהצלחה (${roleLabel}). אפשר להתחיל לעדכן פרופיל ולפעול במערכת.`,
-        href: "/",
+        href: welcomeDestinationHref(
+          typeof p.role === "string" ? p.role : "SEEKER"
+        ),
       });
 
       if (typeof p.email === "string" && p.email.trim()) {

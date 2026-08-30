@@ -1,6 +1,7 @@
 import { requireVerifiedSession } from "@/lib/requireSession";
 import { prisma } from "@/lib/prisma";
 import { sanitizeInternalAppHref } from "@/lib/safeHref";
+import { resolveNotificationHref } from "@/lib/welcomeDestination";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import NotificationsClient from "./NotificationsClient";
@@ -17,7 +18,13 @@ export default async function NotificationsPage() {
   });
   const notifications = rows.map((n) => ({
     ...n,
-    href: sanitizeInternalAppHref(n.href),
+    href: sanitizeInternalAppHref(
+      resolveNotificationHref({
+        type: n.type,
+        href: n.href,
+        userRole: user.role,
+      })
+    ),
   }));
 
   return (
