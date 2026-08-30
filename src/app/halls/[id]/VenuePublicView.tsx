@@ -187,6 +187,15 @@ function formatMealPriceRange(
   maxPrice: number | null
 ): string | null {
   if (minPrice == null && maxPrice == null) return null;
+  if (minPrice != null && maxPrice != null && minPrice === maxPrice) {
+    return `₪${minPrice.toLocaleString("he-IL")} למנה`;
+  }
+  if (minPrice != null && maxPrice == null) {
+    return `₪${minPrice.toLocaleString("he-IL")} למנה`;
+  }
+  if (minPrice == null && maxPrice != null) {
+    return `₪${maxPrice.toLocaleString("he-IL")} למנה`;
+  }
   return `₪${minPrice ?? "?"}–${maxPrice ?? "?"} למנה`;
 }
 
@@ -197,7 +206,12 @@ function formatHallRentalRange(
   if (min == null && max == null) return null;
   const fmt = (n: number | null | undefined) =>
     n != null ? n.toLocaleString("he-IL") : "?";
-  return `₪${fmt(min ?? max)}–${fmt(max ?? min)} השכרת אולם`;
+  const lo = min ?? max;
+  const hi = max ?? min;
+  if (lo != null && hi != null && lo === hi) {
+    return `₪${fmt(lo)} השכרת אולם`;
+  }
+  return `₪${fmt(lo)}–${fmt(hi)} השכרת אולם`;
 }
 
 function mergeProfileWithVenueDefaults(

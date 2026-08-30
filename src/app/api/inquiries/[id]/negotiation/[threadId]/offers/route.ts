@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { assertThreadAccess, assertThreadOpenForNegotiation } from "@/lib/negotiationAuth";
 import { parseNegotiationOfferAmounts } from "@/lib/negotiationFormat";
 import { notifyNewOffer } from "@/lib/negotiationOfferActions";
+import {
+  assertCanCreateExactQuote,
+  loadThreadCatalogBounds,
+} from "@/lib/negotiationPricingRules";
+import { prisma } from "@/lib/prisma";
 import {
   USER_INPUT_MAX,
   badRequest,
@@ -44,9 +48,25 @@ export async function POST(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: open.error }, { status: open.status });
   }
 
+  const loaded = await loadThreadCatalogBounds(threadId);
+  if (!loaded.ok) {
+    return NextResponse.json({ error: loaded.error }, { status: 404 });
+  }
+
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const amounts = parseNegotiationOfferAmounts(body);
   if (!amounts.ok) return badRequest(amounts.error);
+
+  const quoteGate = assertCanCreateExactQuote({
+    role: access.role,
+    catalog: loaded.catalog,
+    threadStatus: loaded.thread.status,
+    seekerReQuoteRequestedAt: loaded.thread.seekerReQuoteRequestedAt,
+    offers: loaded.offers,
+    amountMinNis: amounts.amountMinNis,
+    amountMaxNis: amounts.amountMaxNis,
+  });
+  if (!quoteGate.ok) return badRequest(quoteGate.error);
 
   const msgRes = validateOptionalLongText(
     body.message,
@@ -55,27 +75,15 @@ export async function POST(req: NextRequest, context: RouteContext) {
   );
   if (!msgRes.ok) return badRequest(msgRes.error);
 
-  const respondsToOfferId =
-    body.respondsToOfferId != null ? Number(body.respondsToOfferId) : null;
-  if (
-    respondsToOfferId != null &&
-    (!Number.isInteger(respondsToOfferId) || respondsToOfferId <= 0)
-  ) {
-    return badRequest("הצעה לתגובה לא תקינה");
-  }
-
   const offer = await prisma.negotiationOffer.create({
     data: {
       threadId,
       authorUserId: user.id,
       authorRole: access.role,
-      amountMinNis: amounts.amountMinNis,
-      amountMaxNis: amounts.amountMaxNis,
+      amountMinNis: quoteGate.exactAmount,
+      amountMaxNis: quoteGate.exactAmount,
       message: msgRes.value,
-      respondsToOfferId:
-        respondsToOfferId && Number.isInteger(respondsToOfferId)
-          ? respondsToOfferId
-          : null,
+      respondsToOfferId: null,
       status: "PENDING",
     },
   });

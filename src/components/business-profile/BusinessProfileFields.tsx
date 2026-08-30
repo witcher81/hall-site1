@@ -29,8 +29,6 @@ type Props = {
 const input = "site-input mt-1 py-2.5";
 const inputReadOnly =
   "site-input mt-1 cursor-not-allowed bg-[var(--card-muted)] py-2.5 text-[var(--muted)] opacity-90";
-const mobileSelect = "site-input shrink-0 w-auto py-2.5 px-2";
-const mobileRest = "site-input min-w-0 flex-1 py-2.5";
 const sectionClass =
   "space-y-4 rounded-2xl border border-[var(--border-soft)] bg-[var(--card)] p-5 shadow-[0_8px_28px_rgba(15,59,46,0.08)]";
 const sectionTitle = "text-sm font-semibold text-[var(--heading)]";
@@ -126,8 +124,6 @@ export default function BusinessProfileFields({
             value={values.phone}
             onChange={(phone) => onChange({ phone })}
             forceMobile
-            selectClassName={mobileSelect}
-            inputClassName={mobileRest}
           />
           <p className={hintClass}>
             בחרו קידומת והזינו 7 ספרות (סה״כ 10 ספרות כולל 0). משמש גיבוי ליצירת
@@ -255,27 +251,29 @@ export default function BusinessProfileFields({
 
         <div>
           <label htmlFor="biz-phone" className={labelClass}>
-            <RequiredMark show={isOnboarding && role === "venue-owner"} />
-            טלפון עסקי
+            טלפון עסקי{" "}
+            <span className="font-normal text-[var(--muted)]">(אופציונלי)</span>
           </label>
           <input
             id="biz-phone"
             type="tel"
             inputMode="numeric"
             maxLength={10}
+            dir="ltr"
             value={values.businessPhone}
             onChange={(e) =>
               onChange({ businessPhone: normalizePhoneInput(e.target.value) })
             }
-            className={input}
-            placeholder="03-xxxxxxx או 05xxxxxxxx"
+            className={`${input} text-left`}
+            placeholder="0501234567"
           />
           <p className={hintClass}>{hints.businessPhone}</p>
         </div>
 
         <div>
           <label htmlFor="biz-address" className={labelClass}>
-            כתובת / אזור (כללי)
+            כתובת / אזור (כללי){" "}
+            <span className="font-normal text-[var(--muted)]">(אופציונלי)</span>
           </label>
           <input
             id="biz-address"

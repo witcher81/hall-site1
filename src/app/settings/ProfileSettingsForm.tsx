@@ -59,8 +59,6 @@ export default function ProfileSettingsForm({ user }: { user: SettingsUser }) {
             value={phone}
             onChange={setPhone}
             forceMobile={false}
-            selectClassName="site-input shrink-0 w-auto px-2 py-2 text-sm"
-            inputClassName="site-input min-w-0 flex-1 py-2 text-sm"
             legacyInputClassName="site-input mt-1 py-2 text-sm"
           />
           <p className="mt-1 text-xs text-[var(--muted)]">

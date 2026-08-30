@@ -1,6 +1,11 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
+import {
+  buildNegotiationPricingFlags,
+  resolveServiceCatalogPricing,
+  resolveVenueThreadCatalogPricing,
+} from "@/lib/catalogPricingMode";
 import { ensureThreadsForInquiry, threadKindFromDb } from "@/lib/negotiationThreads";
 import type {
   NegotiationAuthorRole,
@@ -9,6 +14,8 @@ import type {
   NegotiationThreadStatus,
   NegotiationTimelineItem,
 } from "@/lib/negotiationTypes";
+import type { StoredServiceChoice } from "@/lib/venueInquiryAmenities";
+import { parseEventTypesList } from "@/lib/venueEditFormParse";
 
 function mapOfferStatus(raw: string): NegotiationOfferStatus {
   const s = raw.toUpperCase();
@@ -28,6 +35,20 @@ function mapThreadStatus(raw: string): NegotiationThreadStatus {
   return "OPEN";
 }
 
+function parseServiceChoicesJson(raw: string | null): StoredServiceChoice[] {
+  if (!raw?.trim()) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item): item is StoredServiceChoice =>
+        typeof item === "object" && item != null && "id" in item && "label" in item
+    );
+  } catch {
+    return [];
+  }
+}
+
 export async function buildNegotiationHub(
   inquiryId: number,
   currentUserId: number,
@@ -39,12 +60,36 @@ export async function buildNegotiationHub(
   const inquiry = await prisma.inquiry.findUnique({
     where: { id: inquiryId },
     include: {
-      venue: { select: { name: true } },
+      venue: {
+        select: {
+          name: true,
+          minPrice: true,
+          maxPrice: true,
+          hallRentalMin: true,
+          hallRentalMax: true,
+          eventTypes: true,
+          eventTypeProfilesJson: true,
+        },
+      },
     },
   });
   if (!inquiry) {
     return { inquiryId, threads: [], currentUserId, currentUserRole };
   }
+
+  const serviceChoices = parseServiceChoicesJson(inquiry.serviceChoicesJson);
+  const eventTypes = parseEventTypesList(inquiry.venue.eventTypes);
+  const venueCatalog = resolveVenueThreadCatalogPricing({
+    hallRentalMin: inquiry.venue.hallRentalMin,
+    hallRentalMax: inquiry.venue.hallRentalMax,
+    venueMinPrice: inquiry.venue.minPrice,
+    venueMaxPrice: inquiry.venue.maxPrice,
+    guestCount: inquiry.guestCount,
+    eventType: inquiry.eventType,
+    eventTypeProfilesJson: inquiry.venue.eventTypeProfilesJson,
+    eventTypes,
+    serviceChoices,
+  });
 
   const threads = await prisma.negotiationThread.findMany({
     where: {
@@ -65,6 +110,9 @@ export async function buildNegotiationHub(
         select: {
           id: true,
           name: true,
+          minPrice: true,
+          maxPrice: true,
+          providerId: true,
           provider: { select: { businessName: true, name: true } },
         },
       },
@@ -141,6 +189,37 @@ export async function buildNegotiationHub(
 
     const accepted = t.offers.find((o) => o.status === "ACCEPTED");
 
+    const catalog =
+      kind === "VENUE"
+        ? venueCatalog
+        : resolveServiceCatalogPricing(
+            t.service?.minPrice ?? null,
+            t.service?.maxPrice ?? null
+          );
+
+    const isProviderForThread =
+      kind === "VENUE"
+        ? currentUserRole === "VENUE_OWNER"
+        : currentUserRole === "FREELANCER" &&
+          t.service?.providerId === currentUserId;
+
+    const pricingFlags = buildNegotiationPricingFlags({
+      pricingMode: catalog.pricingMode,
+      catalogMin: catalog.catalogMin,
+      catalogMax: catalog.catalogMax,
+      exactAmount:
+        catalog.pricingMode === "fixed"
+          ? catalog.exactAmount
+          : accepted
+            ? (accepted.amountMinNis ?? accepted.amountMaxNis)
+            : null,
+      threadStatus: t.status,
+      seekerReQuoteRequestedAt: t.seekerReQuoteRequestedAt,
+      offers: t.offers,
+      currentUserRole,
+      isProviderForThread,
+    });
+
     return {
       id: t.id,
       kind,
@@ -160,6 +239,13 @@ export async function buildNegotiationHub(
             message: accepted.message,
           }
         : null,
+      ...pricingFlags,
+      exactAmount:
+        catalog.pricingMode === "fixed"
+          ? catalog.exactAmount
+          : accepted
+            ? (accepted.amountMinNis ?? accepted.amountMaxNis)
+            : null,
     };
   });
 

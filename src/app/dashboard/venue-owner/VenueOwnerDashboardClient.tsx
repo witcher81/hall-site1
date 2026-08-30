@@ -67,7 +67,7 @@ export default function VenueOwnerDashboardClient({ initial }: Props) {
           <div className="rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-right text-sm text-amber-950">
             <p className="font-semibold">השלימו את הפרופיל העסקי</p>
             <p className="mt-1 text-xs">
-              חסרים שם עסק, טלפון אישי או טלפון עסקי — מחפשים רואים פרטי קשר חלקיים.{" "}
+              חסרים שם עסק או טלפון אישי — מחפשים עלולים לראות פרטי קשר חלקיים.{" "}
               <a
                 href="/dashboard/venue-owner/profile"
                 className="font-semibold underline"

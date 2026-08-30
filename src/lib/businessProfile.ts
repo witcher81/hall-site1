@@ -12,14 +12,9 @@ export type BusinessProfileValues = {
 
 export function isVenueOwnerBusinessProfileIncomplete(user: {
   businessName?: string | null;
-  businessPhone?: string | null;
   phone?: string | null;
 }): boolean {
-  return (
-    !user.businessName?.trim() ||
-    !user.businessPhone?.trim() ||
-    !user.phone?.trim()
-  );
+  return !user.businessName?.trim() || !user.phone?.trim();
 }
 
 export function isFreelancerBusinessProfileIncomplete(user: {
@@ -89,9 +84,9 @@ export const BUSINESS_PROFILE_PUBLIC_HINTS: Record<
   "venue-owner": {
     businessName: "שם המותג / העסק — מזהה אתכם מול מחפשים (לכל אולם יש כתובת משלו).",
     businessPhone:
-      "מספר שיוצג בדף האולם ובפניות. אם לא מולא — יוצג הטלפון האישי.",
+      "אופציונלי — מספר שיוצג בדף האולם ובפניות. אם לא מולא יוצג הטלפון האישי.",
     businessAddress:
-      "כתובת כללית של העסק (עיר/אזור). לא מחליפה את כתובת כל אולם.",
+      "אופציונלי — כתובת כללית של העסק (עיר/אזור). לא מחליפה את כתובת כל אולם.",
     businessBio: "תיאור קצר על העסק — אופציונלי.",
     profileImage: "לוגו או תמונה של העסק — אופציונלי.",
   },
@@ -99,9 +94,9 @@ export const BUSINESS_PROFILE_PUBLIC_HINTS: Record<
     businessName:
       "השם הראשי בכרטיסי שירות ובחיפוש — למשל «סטודיו XYZ» או «DJ דני».",
     businessPhone:
-      "טלפון ליצירת קשר מעמוד השירות. מומלץ קו נפרד אם יש.",
+      "אופציונלי — טלפון ליצירת קשר מעמוד השירות. מומלץ קו נפרד אם יש.",
     businessAddress:
-      "אזור שירות או עיר — מופיע בראש עמוד הספק הציבורי.",
+      "אופציונלי — אזור שירות או עיר — מופיע בראש עמוד הספק הציבורי.",
     businessBio:
       "2–4 משפטים על מי אתם, מה מציעים, ולמי מתאים — מופיע בראש עמוד הספק.",
     profileImage:

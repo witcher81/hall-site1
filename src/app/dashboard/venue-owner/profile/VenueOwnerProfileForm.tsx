@@ -37,10 +37,6 @@ export default function VenueOwnerProfileForm({ email, mode, initial }: Props) {
         setError("נא למלא טלפון אישי");
         return;
       }
-      if (!form.businessPhone.trim()) {
-        setError("נא למלא טלפון עסקי");
-        return;
-      }
     }
     setLoading(true);
     setError(null);

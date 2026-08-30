@@ -21,13 +21,15 @@ export default function NegotiationAcceptedSummary({
   }, [inquiryId]);
 
   const accepted = hub?.threads.filter(
-    (t) => t.status === "DEAL_ACCEPTED" && t.acceptedOffer
+    (t) =>
+      (t.status === "DEAL_ACCEPTED" && t.acceptedOffer) ||
+      (t.pricingMode === "fixed" && t.exactAmount != null)
   );
   if (!accepted?.length) return null;
 
   return (
     <div className="mt-4 rounded-xl border border-emerald-300 bg-gradient-to-l from-emerald-50 to-amber-50/40 px-4 py-3">
-      <p className="text-xs font-semibold text-emerald-950">הצעות מחיר שאושרו</p>
+      <p className="text-xs font-semibold text-emerald-950">מחירים שאושרו</p>
       <ul className="mt-2 space-y-1 text-xs text-neutral-800">
         {accepted.map((t) => (
           <li key={t.id}>
@@ -37,12 +39,14 @@ export default function NegotiationAcceptedSummary({
                   t.acceptedOffer.amountMinNis,
                   t.acceptedOffer.amountMaxNis
                 )}`
-              : ""}
+              : t.exactAmount != null
+                ? ` — ₪${t.exactAmount.toLocaleString("he-IL")}`
+                : ""}
           </li>
         ))}
       </ul>
       <p className="mt-2 text-[10px] text-neutral-600">
-        לאישור סופי של התאריך באולם — המשיכו למטה בהצעות המחיר או המתינו לאישור בעל האולם.
+        לאישור סופי של התאריך באולם — המשיכו למטה או המתינו לאישור בעל האולם.
       </p>
     </div>
   );

@@ -29,9 +29,6 @@ export default function IsraeliMobilePhoneInput({
   const digits = normalizePhoneInput(value);
   const useMobileUi = forceMobile || !digits || digits.startsWith("05");
 
-  const defaultSelect = "site-input shrink-0 w-auto px-2 py-2.5 text-sm";
-  const defaultInput = "site-input min-w-0 flex-1 py-2.5 text-sm";
-
   if (!useMobileUi) {
     return (
       <input
@@ -49,9 +46,9 @@ export default function IsraeliMobilePhoneInput({
   const { prefix, rest } = splitIsraeliMobilePhone(value);
 
   return (
-    <div className="mt-1 flex flex-row gap-2" dir="ltr">
+    <div className="site-input-group mt-1 flex flex-row-reverse items-stretch gap-2">
       <select
-        className={selectClassName ?? defaultSelect}
+        className={selectClassName ?? "site-input site-input--prefix"}
         value={prefix}
         aria-label="קידומת נייד"
         onChange={(e) =>
@@ -68,12 +65,13 @@ export default function IsraeliMobilePhoneInput({
         type="tel"
         inputMode="numeric"
         maxLength={7}
-        className={inputClassName ?? defaultInput}
+        className={inputClassName ?? "site-input site-input--grow"}
         value={rest}
         onChange={(e) =>
           onChange(composeIsraeliMobilePhone(prefix, e.target.value))
         }
         placeholder="1234567"
+        aria-label="מספר נייד ללא קידומת"
       />
     </div>
   );

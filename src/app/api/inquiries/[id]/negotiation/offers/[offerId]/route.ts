@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { assertOfferAccess, assertThreadOpenForNegotiation } from "@/lib/negotiationAuth";
 import {
   acceptNegotiationOffer,
   rejectNegotiationOffer,
 } from "@/lib/negotiationOfferActions";
-import { parseNegotiationOfferAmounts } from "@/lib/negotiationFormat";
-import { notifyNewOffer } from "@/lib/negotiationOfferActions";
-import {
-  USER_INPUT_MAX,
-  badRequest,
-  validateOptionalLongText,
-} from "@/lib/userInputValidation";
+import { badRequest } from "@/lib/userInputValidation";
 
 export const runtime = "nodejs";
 
@@ -54,6 +47,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     typeof body.action === "string" ? body.action.trim().toLowerCase() : "";
 
   if (action === "accept") {
+    if (access.role !== "SEEKER") {
+      return badRequest("רק המבקש יכול לאשר ציטוט מחיר");
+    }
     const result = await acceptNegotiationOffer({
       offerId,
       actorUserId: user.id,
@@ -64,6 +60,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   }
 
   if (action === "reject") {
+    if (access.role !== "SEEKER") {
+      return badRequest("רק המבקש יכול לדחות ציטוט מחיר");
+    }
     const result = await rejectNegotiationOffer({
       offerId,
       actorUserId: user.id,
@@ -73,56 +72,9 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
   }
 
   if (action === "counter") {
-    const amounts = parseNegotiationOfferAmounts(body);
-    if (!amounts.ok) return badRequest(amounts.error);
-
-    const msgRes = validateOptionalLongText(
-      body.message,
-      USER_INPUT_MAX.INQUIRY_MESSAGE,
-      "הערה להצעה"
+    return badRequest(
+      "הצעות נגדיות אינן זמינות — הספק שולח מחיר מדויק; ניתן לבקש ציטוט מחדש פעם אחת"
     );
-    if (!msgRes.ok) return badRequest(msgRes.error);
-
-    await prisma.negotiationOffer.update({
-      where: { id: offerId },
-      data: { status: "SUPERSEDED" },
-    });
-
-    const counter = await prisma.negotiationOffer.create({
-      data: {
-        threadId: access.thread.id,
-        authorUserId: user.id,
-        authorRole: access.role,
-        amountMinNis: amounts.amountMinNis,
-        amountMaxNis: amounts.amountMaxNis,
-        message: msgRes.value,
-        respondsToOfferId: offerId,
-        status: "PENDING",
-      },
-    });
-
-    await notifyNewOffer({
-      threadId: access.thread.id,
-      inquiryId,
-      actorUserId: user.id,
-      actorName: user.name,
-    });
-
-    return NextResponse.json({
-      ok: true,
-      offer: {
-        type: "offer",
-        id: counter.id,
-        authorUserId: counter.authorUserId,
-        authorRole: counter.authorRole,
-        amountMinNis: counter.amountMinNis,
-        amountMaxNis: counter.amountMaxNis,
-        message: counter.message,
-        status: counter.status,
-        respondsToOfferId: counter.respondsToOfferId,
-        createdAt: counter.createdAt.toISOString(),
-      },
-    });
   }
 
   return badRequest("פעולה לא נתמכת");

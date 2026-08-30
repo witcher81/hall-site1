@@ -505,12 +505,20 @@ function VenueResultCard({
 
         {(v.minPrice != null || v.maxPrice != null) && (
           <p className="mt-2 text-xs font-medium text-emerald-950">
-            ₪ {v.minPrice ?? "?"}–{v.maxPrice ?? "?"} למנה
+            {v.minPrice != null &&
+            v.maxPrice != null &&
+            v.minPrice === v.maxPrice
+              ? `₪ ${v.minPrice} למנה`
+              : `₪ ${v.minPrice ?? "?"}–${v.maxPrice ?? "?"} למנה`}
           </p>
         )}
         {(v.hallRentalMin != null || v.hallRentalMax != null) && (
           <p className="mt-0.5 text-xs text-neutral-600">
-            השכרת אולם: ₪ {v.hallRentalMin ?? "?"}–{v.hallRentalMax ?? "?"}
+            {v.hallRentalMin != null &&
+            v.hallRentalMax != null &&
+            v.hallRentalMin === v.hallRentalMax
+              ? `השכרת אולם: ₪ ${v.hallRentalMin}`
+              : `השכרת אולם: ₪ ${v.hallRentalMin ?? "?"}–${v.hallRentalMax ?? "?"}`}
           </p>
         )}
         {(v.minGuests != null || v.maxGuests != null) && (

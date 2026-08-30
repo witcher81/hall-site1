@@ -1,3 +1,5 @@
+import type { CatalogPricingMode } from "@/lib/catalogPricingMode";
+
 /** סוגי שרשור הצעות מחיר */
 export type NegotiationThreadKind = "VENUE" | "SUPPLIER";
 
@@ -50,6 +52,16 @@ export type NegotiationThreadView = {
     amountMaxNis: number | null;
     message: string | null;
   } | null;
+  pricingMode: CatalogPricingMode;
+  catalogMin: number | null;
+  catalogMax: number | null;
+  exactAmount: number | null;
+  reQuoteUsed: boolean;
+  reQuoteAllowed: boolean;
+  canProviderQuote: boolean;
+  canSeekerRequestReQuote: boolean;
+  canSeekerDecide: boolean;
+  pendingProviderOfferId: number | null;
 };
 
 export type NegotiationHubView = {

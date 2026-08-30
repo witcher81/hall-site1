@@ -1,4 +1,5 @@
 import { formatNisRange } from "./inquiryCostEstimate";
+import { getCatalogPricingMode } from "./catalogPricingMode";
 
 export type CheckoutLineItem = {
   id: string;
@@ -58,11 +59,21 @@ type InquiryCheckoutInput = {
     city: string | null;
     minPrice: number | null;
     maxPrice: number | null;
+    hallRentalMin?: number | null;
+    hallRentalMax?: number | null;
   };
 };
 
+export type InquiryCheckoutPricingOverride = {
+  /** מחיר מדויק שאושר בשרשור האולם */
+  acceptedExactAmount?: number | null;
+  /** סכום קטלוג קבוע מחושב (כשאין התמקחות) */
+  fixedCatalogAmount?: number | null;
+};
+
 export function inquiryToCheckoutSummary(
-  inquiry: InquiryCheckoutInput
+  inquiry: InquiryCheckoutInput,
+  override?: InquiryCheckoutPricingOverride
 ): CheckoutOrderSummary {
   const meta: CheckoutOrderSummary["meta"] = [];
   if (inquiry.preferredDate) {
@@ -81,23 +92,38 @@ export function inquiryToCheckoutSummary(
     meta.push({ label: "עיר", value: inquiry.venue.city });
   }
 
+  const hallMin = inquiry.venue.hallRentalMin ?? inquiry.venue.minPrice;
+  const hallMax =
+    inquiry.venue.hallRentalMax ?? inquiry.venue.maxPrice ?? hallMin;
+  const hallMode = getCatalogPricingMode(hallMin, hallMax);
+
+  const exact =
+    override?.acceptedExactAmount ??
+    override?.fixedCatalogAmount ??
+    (hallMode === "fixed" ? hallMin : null);
+
   const lineItems: CheckoutLineItem[] = [
     {
       id: "venue-base",
-      label: "אולם — הערכת מחיר",
-      amountMin: inquiry.venue.minPrice,
-      amountMax: inquiry.venue.maxPrice,
-      note: "המחיר הסופי ייקבע לאחר אישור בעל האולם",
+      label: exact != null ? "אולם — מחיר סופי" : "אולם — הערכת מחיר",
+      amountMin: exact ?? hallMin,
+      amountMax: exact ?? hallMax,
+      note:
+        exact != null
+          ? override?.acceptedExactAmount != null
+            ? "לפי ציטוט שאושר"
+            : "מחיר קבוע מהקטלוג"
+          : "המחיר הסופי ייקבע לאחר ציטוט מדויק מבעל האולם",
     },
   ];
 
-  const totalMin = inquiry.venue.minPrice;
+  const totalMin = exact ?? hallMin;
   const totalMax =
-    inquiry.venue.maxPrice != null &&
-    inquiry.venue.minPrice != null &&
-    inquiry.venue.maxPrice !== inquiry.venue.minPrice
-      ? inquiry.venue.maxPrice
-      : inquiry.venue.minPrice;
+    exact != null
+      ? exact
+      : hallMax != null && hallMin != null && hallMax !== hallMin
+        ? hallMax
+        : hallMin;
 
   return {
     kind: "venue-inquiry",
