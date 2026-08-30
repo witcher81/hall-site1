@@ -277,7 +277,8 @@ header.dashboard-nav {
 }
 
 .dashboard-nav-user {
-  color: var(--header-muted);
+  color: var(--header-fg);
+  opacity: 0.92;
 }
 
 html[data-theme="night"] .dashboard-nav-brand {
@@ -328,13 +329,13 @@ html[data-theme="night"] .dashboard-nav-user {
   display: inline-flex;
   align-items: center;
   border-radius: 9999px;
-  border: 1px solid rgb(201 162 39 / 0.45);
-  background: rgb(251 191 36 / 0.16);
+  border: 1px solid #b8860b;
+  background: #f0c14b;
   padding: 0.2rem 0.65rem;
   font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #92640a;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #1a1408;
 }
 
 .dashboard-nav-home {
@@ -996,12 +997,30 @@ html[data-theme="classic"] header.dashboard-nav {
 }
 
 html[data-theme="classic"] header.site-header .text-emerald-950,
-html[data-theme="classic"] header.site-header .hover\:text-emerald-950:hover {
+html[data-theme="classic"] header.site-header .hover\:text-emerald-950:hover,
+html[data-theme="classic"] header.dashboard-nav .text-emerald-950,
+html[data-theme="classic"] header.dashboard-nav .hover\:text-emerald-950:hover {
   color: var(--header-fg) !important;
 }
 
-html[data-theme="classic"] header.site-header .text-emerald-950\/80 {
+html[data-theme="classic"] header.site-header .text-emerald-950\/80,
+html[data-theme="classic"] header.dashboard-nav .text-emerald-950\/80 {
   color: var(--header-muted) !important;
+}
+
+/* כפתור מצב תצוגה בבר כהה — טקסט בהיר תמיד */
+html[data-theme="classic"] header.dashboard-nav button[title="מצב תצוגה"],
+html[data-theme="classic"] header.site-header button[title="מצב תצוגה"] {
+  border-color: rgb(255 255 255 / 0.35) !important;
+  background: rgb(255 255 255 / 0.14) !important;
+  color: #f7fffb !important;
+}
+
+html[data-theme="classic"] header.dashboard-nav button[title="מצב תצוגה"]:hover,
+html[data-theme="classic"] header.site-header button[title="מצב תצוגה"]:hover {
+  border-color: rgb(255 255 255 / 0.5) !important;
+  background: rgb(255 255 255 / 0.22) !important;
+  color: #ffffff !important;
 }
 
 header.site-header .site-header-brand {
@@ -1343,9 +1362,10 @@ html[data-theme="night"] .dashboard-main .text-neutral-600 {
 }
 
 html[data-theme="night"] .dashboard-nav-badge {
-  border-color: rgb(56 189 248 / 0.35);
-  background: rgb(56 189 248 / 0.12);
-  color: #bae6fd;
+  border-color: #38bdf8;
+  background: #0ea5e9;
+  color: #041018;
+  font-weight: 800;
 }
 
 html[data-theme="night"] .venue-hero-band {
