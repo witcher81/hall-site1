@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   applyAccessibilityPrefs,
@@ -10,6 +11,10 @@ import {
   saveAccessibilityPrefs,
   type AccessibilityPrefs,
 } from "@/lib/accessibilityPrefs";
+import {
+  contextShortcutsForPath,
+  UNIVERSAL_SITE_SHORTCUTS,
+} from "@/lib/siteNavShortcuts";
 
 function AccessibilityIcon({ className }: { className?: string }) {
   return (
@@ -47,6 +52,7 @@ const PANEL_EXIT_MS = 220;
 
 export default function AccessibilityWidget() {
   const panelId = useId();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   /** נשאר ב־DOM בזמן אנימציית סגירה */
   const [mounted, setMounted] = useState(false);
@@ -146,6 +152,33 @@ export default function AccessibilityWidget() {
         ? "גדול"
         : "גדול מאוד";
 
+  const contextShortcuts = contextShortcutsForPath(pathname);
+
+  function ShortcutButton({
+    href,
+    label,
+    hint,
+  }: {
+    href: string;
+    label: string;
+    hint?: string;
+  }) {
+    return (
+      <Link
+        href={href}
+        onClick={() => setOpen(false)}
+        className="flex w-full flex-col rounded-xl border-2 border-emerald-800/25 bg-emerald-50 px-3 py-3 text-right transition hover:border-emerald-800/45 hover:bg-emerald-100/80"
+      >
+        <span className="text-sm font-bold text-emerald-950">{label}</span>
+        {hint ? (
+          <span className="mt-0.5 text-[11px] leading-snug text-emerald-900/75">
+            {hint}
+          </span>
+        ) : null}
+      </Link>
+    );
+  }
+
   return (
     <div
       ref={rootRef}
@@ -157,7 +190,7 @@ export default function AccessibilityWidget() {
           role="dialog"
           aria-modal="true"
           aria-label="תפריט נגישות"
-          className={`a11y-widget-panel mb-3 w-[min(100vw-2rem,20rem)] rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-xl ${
+          className={`a11y-widget-panel mb-3 w-[min(100vw-2rem,22rem)] rounded-2xl border border-neutral-200 bg-white p-4 text-right shadow-xl ${
             entered ? "a11y-widget-panel--open" : ""
           }`}
         >
@@ -165,7 +198,7 @@ export default function AccessibilityWidget() {
             <div>
               <p className="text-sm font-bold text-emerald-950">נגישות</p>
               <p className="mt-0.5 text-xs text-neutral-600">
-                התאמות תצוגה לכל המבקרים באתר
+                התאמות תצוגה וקיצורי דרך לכל האתר
               </p>
             </div>
             <button
@@ -175,6 +208,39 @@ export default function AccessibilityWidget() {
             >
               סגור
             </button>
+          </div>
+
+          <div className="mb-3 space-y-2 border-b border-neutral-100 pb-3">
+            <p className="text-xs font-bold text-emerald-950">קיצורי דרך</p>
+            <ShortcutButton href="/" label="דף הבית" hint="חזרה לעמוד הראשי" />
+            {contextShortcuts.length > 0 ? (
+              <>
+                <p className="pt-1 text-[10px] font-semibold text-neutral-500">
+                  בעמוד הנוכחי
+                </p>
+                {contextShortcuts.map((item) => (
+                  <ShortcutButton
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    hint={item.hint}
+                  />
+                ))}
+              </>
+            ) : null}
+            <p className="pt-1 text-[10px] font-semibold text-neutral-500">
+              בכל האתר
+            </p>
+            {UNIVERSAL_SITE_SHORTCUTS.filter((item) => item.href !== "/").map(
+              (item) => (
+                <ShortcutButton
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  hint={item.hint}
+                />
+              )
+            )}
           </div>
 
           <div className="space-y-2">

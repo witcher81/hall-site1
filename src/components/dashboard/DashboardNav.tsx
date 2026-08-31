@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   DASHBOARD_NAV,
   type DashboardRole,
@@ -18,6 +19,9 @@ export default function DashboardNav({
   user: User;
 }) {
   const config = DASHBOARD_NAV[role];
+  const pathname = usePathname();
+  const panelOverviewActive =
+    pathname === config.base || pathname === `${config.base}/`;
   const displayName = user?.name?.trim() || user?.email || "";
   const showHeaderThemeToggle = useHeaderThemeToggleVisible();
 
@@ -25,15 +29,31 @@ export default function DashboardNav({
     <header className="dashboard-nav sticky top-0 z-[500] backdrop-blur-md">
       <div className="mx-auto max-w-[1600px] px-3 sm:px-4 lg:px-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3">
-          <div className="flex min-w-0 shrink-0 items-center gap-2 xl:gap-3">
+          <div className="flex min-w-0 shrink-0 flex-wrap items-center gap-2 xl:gap-3">
             <Link
-              href={config.base}
+              href="/"
               className="dashboard-nav-brand text-lg font-bold tracking-tight transition"
-              aria-label={`${config.badge} — סקירה`}
+              aria-label="EventForYou — דף הבית"
             >
               EventForYou
             </Link>
-            <span className="dashboard-nav-badge">{config.badge}</span>
+            <Link
+              href={config.base}
+              className="dashboard-nav-badge transition hover:brightness-105"
+              aria-label={`${config.badge} — סקירה`}
+            >
+              {config.badge}
+            </Link>
+            <Link href="/" className="dashboard-nav-home">
+              דף הבית
+            </Link>
+            <Link
+              href={config.base}
+              className="dashboard-nav-panel"
+              aria-current={panelOverviewActive ? "page" : undefined}
+            >
+              מרכז שליטה
+            </Link>
           </div>
 
           <div className="mr-auto flex shrink-0 items-center gap-2 sm:gap-3">

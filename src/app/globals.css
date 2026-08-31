@@ -355,6 +355,33 @@ html[data-theme="night"] .dashboard-nav-user {
   background: rgb(251 191 36 / 0.12);
 }
 
+.dashboard-nav-panel {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid #b8860b;
+  background: rgb(251 191 36 / 0.22);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1a1408;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    filter 0.15s ease;
+}
+
+.dashboard-nav-panel:hover {
+  filter: brightness(1.05);
+  background: rgb(251 191 36 / 0.35);
+}
+
+.dashboard-nav-panel[aria-current="page"] {
+  background: #f0c14b;
+  border-color: #b8860b;
+  box-shadow: 0 0 0 1px rgb(184 134 11 / 0.25);
+}
+
 .dashboard-hero {
   position: relative;
   padding: 1.1rem 0 1.5rem;
@@ -1354,6 +1381,22 @@ html[data-theme="night"] .dashboard-nav-home {
 html[data-theme="night"] .dashboard-nav-home:hover {
   border-color: rgb(56 189 248 / 0.45);
   background: rgb(56 189 248 / 0.1);
+}
+
+html[data-theme="night"] .dashboard-nav-panel {
+  border-color: rgb(201 162 39 / 0.65);
+  background: rgb(201 162 39 / 0.18);
+  color: #f5e6a8;
+}
+
+html[data-theme="night"] .dashboard-nav-panel:hover {
+  background: rgb(201 162 39 / 0.28);
+}
+
+html[data-theme="night"] .dashboard-nav-panel[aria-current="page"] {
+  background: rgb(201 162 39 / 0.42);
+  border-color: rgb(201 162 39 / 0.85);
+  color: #fff;
 }
 
 html[data-theme="night"] .dashboard-main label,

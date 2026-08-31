@@ -10,6 +10,7 @@ import RealtimeEventBridge from "./RealtimeEventBridge";
 import ThemeToggle from "./ThemeToggle";
 import { useSiteTheme } from "./ThemeProvider";
 import { useHeaderThemeToggleVisible } from "@/lib/useThemeToggleDock";
+import { businessPanelForRole } from "@/lib/siteNavShortcuts";
 
 type User = {
   id: number;
@@ -156,6 +157,11 @@ export default function HomeHeader({
     return getActivePersonalHref(pathname, links);
   }, [pathname, user?.role]);
   const adminNavActive = pathname.startsWith("/admin");
+  const businessPanel = businessPanelForRole(user?.role);
+  const businessPanelNavActive = businessPanel
+    ? pathname === businessPanel.href ||
+      pathname.startsWith(`${businessPanel.href}/`)
+    : false;
   const canUseMessages =
     user &&
     (user.role === "SEEKER" ||
@@ -327,6 +333,21 @@ export default function HomeHeader({
                 }`}
               >
                 פאנל ניהול
+              </Link>
+            ) : null}
+            {businessPanel ? (
+              <Link
+                href={businessPanel.href}
+                aria-current={businessPanelNavActive ? "page" : undefined}
+                className={`shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A227] xl:px-3.5 xl:text-sm 2xl:px-4 ${
+                  businessPanelNavActive
+                    ? "border-amber-400 bg-amber-400 text-emerald-950"
+                    : isNight
+                      ? "border-amber-400/60 bg-amber-400/15 text-[#F5E6A8] hover:bg-amber-400/25"
+                      : "border-amber-500/50 bg-amber-400/25 text-amber-950 hover:bg-amber-400/35"
+                }`}
+              >
+                {businessPanel.label}
               </Link>
             ) : null}
             {user && personalLinks.length > 0 && (
@@ -601,6 +622,20 @@ export default function HomeHeader({
                   onClick={() => setMobileNavOpen(false)}
                 >
                   פאנל ניהול
+                </Link>
+              ) : null}
+              {businessPanel ? (
+                <Link
+                  href={businessPanel.href}
+                  aria-current={businessPanelNavActive ? "page" : undefined}
+                  className={`${navLinkMobileBase} font-semibold ${
+                    businessPanelNavActive
+                      ? "bg-amber-400/25 text-emerald-950 ring-1 ring-amber-400/60"
+                      : "text-amber-900 hover:bg-amber-50"
+                  }`}
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  {businessPanel.label}
                 </Link>
               ) : null}
               {personalLinks.length > 0 ? (
