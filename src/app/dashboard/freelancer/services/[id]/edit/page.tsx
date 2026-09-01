@@ -23,7 +23,7 @@ export default async function ServiceEditPage({
   });
 
   if (!service) {
-    redirect("/dashboard/freelancer");
+    redirect("/dashboard/freelancer/services");
   }
 
   return (

@@ -15,6 +15,16 @@ export type SiteLegalInfo = {
   isPlaceholder: boolean;
 };
 
+/** פרטי עסק לטיוטה משפטית — יש למלא לפני פרסום סופי */
+export type LegalPlaceholders = {
+  businessLegalName: string;
+  businessIdTypeAndNumber: string;
+  businessAddress: string;
+  supportEmail: string;
+  privacyEmail: string;
+  governingCity: string;
+};
+
 function trimOrNull(v: string | undefined): string | null {
   const t = v?.trim();
   return t && t.length > 0 ? t : null;
@@ -45,5 +55,22 @@ export function getSiteLegalInfo(): SiteLegalInfo {
     contactAddress,
     contactPhone,
     isPlaceholder: false,
+  };
+}
+
+export function getLegalPlaceholders(): LegalPlaceholders {
+  const legal = getSiteLegalInfo();
+  return {
+    businessLegalName:
+      trimOrNull(process.env.BUSINESS_LEGAL_NAME) ?? "{{BUSINESS_LEGAL_NAME}}",
+    businessIdTypeAndNumber:
+      trimOrNull(process.env.BUSINESS_ID_TYPE_AND_NUMBER) ??
+      "{{BUSINESS_ID_TYPE_AND_NUMBER}}",
+    businessAddress:
+      legal.contactAddress ?? "{{BUSINESS_ADDRESS}}",
+    supportEmail: legal.supportEmail,
+    privacyEmail: legal.privacyEmail,
+    governingCity:
+      trimOrNull(process.env.GOVERNING_CITY) ?? "{{GOVERNING_CITY}}",
   };
 }

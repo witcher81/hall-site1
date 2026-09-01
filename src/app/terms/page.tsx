@@ -1,80 +1,40 @@
+import type { Metadata } from "next";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
+import TermsContent from "@/components/legal/TermsContent";
 import Link from "next/link";
-import { getSiteLegalInfo } from "@/lib/siteLegal";
+import { LEGAL_LAST_UPDATED_HE } from "@/lib/legal/constants";
+import { getLegalPlaceholders, getSiteLegalInfo } from "@/lib/siteLegal";
+
+export const metadata: Metadata = {
+  title: "תנאי שימוש — EventForYou",
+  description:
+    "תנאי השימוש של EventForYou: פלטפורמת תיווך לאולמות וספקי אירועים, עמלת פלטפורמה, פניות והתקשרות בין משתמשים.",
+  alternates: { canonical: "/terms" },
+};
 
 export default async function TermsPage() {
   const legal = getSiteLegalInfo();
+  const p = getLegalPlaceholders();
+
   return (
     <SitePageShell mainWidth="legal">
+      {/* טיוטה משפטית — לאישור עו״ד לפני פרסום סופי */}
       <h1 className="site-page-title">תנאי שימוש</h1>
-      <p className="mt-2 text-xs text-neutral-600">עודכן: אוגוסט 2026</p>
+      <p className="mt-2 text-xs text-neutral-600">עודכן: {LEGAL_LAST_UPDATED_HE}</p>
       <SiteLegalNotice show={legal.isPlaceholder} />
 
-      <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
-        <p>
-          ברוכים הבאים ל-{legal.legalName}. השימוש באתר מהווה הסכמה לתנאים אלה. האתר מספק פלטפורמה
-          לחיבור בין מחפשים, בעלי אולמות וספקי שירותים לאירועים — איננו צד לחוזה בין
-          המשתמשים.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">הרשמה וחשבון</h2>
-        <p>
-          אתם אחראים לדיוק הפרטים שמסרתם ולשמירה על סודיות הסיסמה. אסור להשתמש בחשבון
-          למטרות מטעות, הונאה או פגיעה במשתמשים אחרים.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">תוכן ופרסומים</h2>
-        <p>
-          בעלי אולמות וספקים אחראים לתוכן שמפרסמים (תמונות, מחירים, זמינות). אנו רשאים
-          להסיר תוכן שמפר תנאים אלה או את החוק.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">פניות והזמנות</h2>
-        <p>
-          שליחת בקשת הזמנה דרך האתר אינה מהווה תשלום או חוזה מחייב מצדכם. בעל האולם רשאי
-          לאשר או לדחות את הבקשה; אישור האולם באתר מהווה הצעה מחייבת מצד האולם לשמור את
-          התאריך שסוכם, אך אינו כולל סליקה או תשלום אוטומטי — כל תשלום, מקדמה וחוזה נעשים
-          ישירות ביניכם. מענה אוטומטי מהאולם אינו נחשב לאישור הזמנה.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">הגבלת אחריות</h2>
-        <p>
-          האתר מסופק «כמות שהוא». לא נהיה אחראים לנזק עקיף או לתוצאות של בחירת אולם/ספק,
-          למעט ככל שהדין מחייב אחרת.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">מחירים, תשלומים ועמלת פלטפורמה</h2>
-        <p>
-          המחירים, הזמינות ותנאי ההתקשרות שמציגים אולמות וספקים הם באחריותם. המחיר הסופי,
-          מועד התשלום, מקדמה, ביטול ומע״מ ייקבעו בהסכמה ישירה בין הצדדים, אלא אם יוצג אחרת
-          במפורש באתר.
-        </p>
-        <p>
-          ההרשמה והפרסום הבסיסי באתר הם ללא עלות. על כל עסקה שהושלמה בין לקוח לבין בעל אולם
-          או ספק שירותים ושנוצרה דרך הפלטפורמה (פנייה, בקשה או משא ומתן באתר שהסתיימו בעסקה),
-          EventForYou גובה עמלת פלטפורמה בשיעור של 10% מסכום העסקה. העמלה חלה על בעל האולם או
-          על הספק (לפי העניין), ולא על פנייה או בקשה שלא הפכו לעסקה. פירוט נוסף לגבי מע״מ,
-          מועד החיוב ואופן התשלום יוצג באתר או יימסר לצד הרלוונטי; שינוי בשיעור העמלה יפורסם
-          מראש ולא יחול רטרואקטיבית על עסקה שכבר נסגרה.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">שינויים בתנאים</h2>
-        <p>
-          אנו רשאים לעדכן תנאים אלה מעת לעת. שינוי מהותי, ובפרט שינוי בעמלת פלטפורמה או בדרך
-          התשלום, יפורסם מראש באתר ויחול רק בהתאם לדין ולהסכמה הנדרשת.
-        </p>
-        <p>
-          שאלות:{" "}
-          {legal.supportEmail ? (
-            <a href={`mailto:${legal.supportEmail}`} className="text-emerald-950 underline">
-              {legal.supportEmail}
-            </a>
-          ) : (
-            <Link href="/contact" className="text-emerald-950 underline">
-              טופס יצירת קשר
-            </Link>
-          )}
-        </p>
+      <div className="site-card-padded prose prose-sm mt-8 max-w-none text-sm leading-relaxed text-neutral-800">
+        <TermsContent p={p} />
       </div>
 
       <p className="mt-10 text-xs">
         <Link href="/privacy" className="font-medium text-emerald-950 underline">
           מדיניות פרטיות
+        </Link>
+        {" · "}
+        <Link href="/cookies" className="font-medium text-emerald-950 underline">
+          עוגיות
         </Link>
         {" · "}
         <Link href="/accessibility" className="font-medium text-emerald-950 underline">

@@ -209,7 +209,7 @@ export async function getFreelancerDashboardData(providerId: number) {
     {
       label: "שירותים פעילים",
       value: services.length,
-      href: "/dashboard/freelancer",
+      href: "/dashboard/freelancer/services",
       tone: "emerald",
     },
   ];
@@ -220,6 +220,7 @@ export async function getFreelancerDashboardData(providerId: number) {
       label: "הוספת שירות חדש",
       primary: true,
     },
+    { href: "/dashboard/freelancer/services", label: "השירותים שלי" },
     { href: "/dashboard/freelancer/requests", label: "כל הבקשות" },
     { href: "/messages", label: "הודעות" },
     { href: "/notifications", label: "התראות" },

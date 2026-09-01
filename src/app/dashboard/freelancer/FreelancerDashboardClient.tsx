@@ -1,10 +1,9 @@
 "use client";
 
 import BusinessDashboardShell from "@/components/dashboard/BusinessDashboardShell";
-import ListingModerationBadge from "@/components/ListingModerationBadge";
-import ListingPromoBadges from "@/components/ListingPromoBadges";
-import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
-import { isBoostActive } from "@/lib/listingBoost";
+import FreelancerServicesList, {
+  type FreelancerServiceListItem,
+} from "./FreelancerServicesList";
 import type {
   DashboardActivityItem,
   DashboardAttentionItem,
@@ -12,23 +11,9 @@ import type {
   DashboardQuickAction,
 } from "@/components/dashboard/businessDashboardTypes";
 
-type Service = {
-  id: number;
-  name: string;
-  category: string | null;
-  shortDescription: string | null;
-  coverImageUrl: string | null;
-  description: string | null;
-  minPrice: number | null;
-  maxPrice: number | null;
-  moderationStatus: string;
-  moderationNote: string | null;
-  boostExpiresAt?: string | Date | null;
-};
-
 type Props = {
   initial: {
-    services: Service[];
+    services: FreelancerServiceListItem[];
     profileIncomplete: boolean;
     kpis: DashboardKpi[];
     attention: DashboardAttentionItem[];
@@ -36,6 +21,8 @@ type Props = {
     quickActions: DashboardQuickAction[];
   };
 };
+
+const PREVIEW_LIMIT = 3;
 
 export default function FreelancerDashboardClient({ initial }: Props) {
   const {
@@ -46,6 +33,7 @@ export default function FreelancerDashboardClient({ initial }: Props) {
     activity,
     quickActions,
   } = initial;
+  const count = services.length;
 
   return (
     <BusinessDashboardShell
@@ -55,15 +43,23 @@ export default function FreelancerDashboardClient({ initial }: Props) {
       quickActions={quickActions}
       activityViewAllHref="/dashboard/freelancer/requests"
       activityViewAllLabel="כל הבקשות ←"
-      listingsTitle="השירותים שלך"
+      listingsTitle={`השירותים שלך (${count})`}
       listingsDescription="ניהול פרסומים, תמונות, מחירים וקידום."
       listingsAction={
-        <a
-          href="/dashboard/freelancer/services/new"
-          className="biz-btn biz-btn--primary"
-        >
-          הוספת שירות חדש
-        </a>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="/dashboard/freelancer/services"
+            className="biz-btn"
+          >
+            לכל השירותים ←
+          </a>
+          <a
+            href="/dashboard/freelancer/services/new"
+            className="biz-btn biz-btn--primary"
+          >
+            הוספת שירות חדש
+          </a>
+        </div>
       }
       profileWarning={
         profileIncomplete ? (
@@ -82,89 +78,21 @@ export default function FreelancerDashboardClient({ initial }: Props) {
         ) : null
       }
     >
-      {services.length === 0 ? (
-        <div className="biz-empty">
-          <p className="biz-empty__title">עדיין לא הוספת שירותים</p>
-          <p className="biz-empty__desc">
-            לחצו על «הוספת שירות חדש» כדי להוסיף את השירות הראשון.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {services.map((s) => {
-            const blurb = mergeFreelancerServiceDescriptionForForm(
-              s.shortDescription,
-              s.description
-            );
-            return (
-              <a
-                key={s.id}
-                href={`/dashboard/freelancer/services/${s.id}`}
-                className="biz-listing-card"
-              >
-                <div className="p-4">
-                  {s.coverImageUrl ? (
-                    <div className="mb-3 overflow-hidden rounded-xl">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={s.coverImageUrl}
-                        alt={s.name}
-                        className="h-28 w-full object-cover"
-                        draggable={false}
-                      />
-                    </div>
-                  ) : null}
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1 text-right">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-semibold text-[var(--heading)]">
-                          {s.name}
-                          {s.category ? (
-                            <span className="text-[var(--muted)]">
-                              {" "}
-                              · {s.category}
-                            </span>
-                          ) : null}
-                        </p>
-                        <ListingPromoBadges
-                          active={isBoostActive(s.boostExpiresAt)}
-                          compact
-                        />
-                        <ListingModerationBadge
-                          status={s.moderationStatus}
-                          note={s.moderationNote}
-                        />
-                      </div>
-                      {blurb ? (
-                        <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-[var(--muted)]">
-                          {blurb}
-                        </p>
-                      ) : null}
-                      {(s.minPrice != null || s.maxPrice != null) && (
-                        <p className="mt-0.5 text-xs text-[var(--muted)]">
-                          {s.minPrice != null &&
-                          s.maxPrice != null &&
-                          s.minPrice === s.maxPrice ? (
-                            <>מחיר: {s.minPrice} ₪</>
-                          ) : (
-                            <>
-                              טווח מחירים: {s.minPrice ?? "?"}–{s.maxPrice ?? "?"}{" "}
-                              ₪
-                            </>
-                          )}
-                        </p>
-                      )}
-                    </div>
-                    <span className="biz-btn biz-btn--primary shrink-0">
-                      לצפייה
-                    </span>
-                  </div>
-                </div>
-              </a>
-            );
-          })}
-        </div>
-      )}
+      <FreelancerServicesList
+        services={services}
+        limit={PREVIEW_LIMIT}
+        emptyDescription="עברו לדף השירותים או לחצו על «הוספת שירות חדש» כדי להתחיל."
+      />
+      {count > PREVIEW_LIMIT ? (
+        <p className="mt-3 text-center text-sm">
+          <a
+            href="/dashboard/freelancer/services"
+            className="font-semibold text-[var(--accent)] underline"
+          >
+            עוד {count - PREVIEW_LIMIT} שירותים — לכל השירותים ←
+          </a>
+        </p>
+      ) : null}
     </BusinessDashboardShell>
   );
 }

@@ -35,7 +35,7 @@ function personalAreaLinks(role: string | undefined): { href: string; label: str
         { href: "/dashboard/venue-owner/inquiries", label: "פניות שהתקבלו" },
       ];
     case "FREELANCER":
-      return [{ href: "/dashboard/freelancer", label: "השירותים שלי" }];
+      return [{ href: "/dashboard/freelancer/services", label: "השירותים שלי" }];
     default:
       return [];
   }

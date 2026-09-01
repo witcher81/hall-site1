@@ -119,7 +119,7 @@ export default function ServiceDetailsClient({
         { method: "DELETE" }
       );
       if (res.ok) {
-        router.push("/dashboard/freelancer");
+        router.push("/dashboard/freelancer/services");
         router.refresh();
         return;
       }
@@ -166,7 +166,7 @@ export default function ServiceDetailsClient({
             {deleting ? "מוחק..." : "מחיקה"}
           </button>
           <a
-            href="/dashboard/freelancer"
+            href="/dashboard/freelancer/services"
             className="text-sm text-neutral-600 underline-offset-4 hover:text-emerald-950 hover:underline"
           >
             חזרה

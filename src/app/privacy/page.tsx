@@ -1,76 +1,31 @@
 import type { Metadata } from "next";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
+import PrivacyContent from "@/components/legal/PrivacyContent";
 import Link from "next/link";
-import { getSiteLegalInfo } from "@/lib/siteLegal";
+import { LEGAL_LAST_UPDATED_HE } from "@/lib/legal/constants";
+import { getLegalPlaceholders, getSiteLegalInfo } from "@/lib/siteLegal";
 
 export const metadata: Metadata = {
   title: "מדיניות פרטיות — EventForYou",
   description:
-    "מדיניות הפרטיות של EventForYou: איסוף מידע, שימוש, שיתוף, שמירה וזכויות לפי תיקון 13.",
+    "מדיניות הפרטיות של EventForYou: איסוף מידע, שימוש, שיתוף, שמירה וזכויות לפי חוק הגנת הפרטיות ותיקון 13.",
   alternates: { canonical: "/privacy" },
 };
 
 export default async function PrivacyPage() {
   const legal = getSiteLegalInfo();
+  const p = getLegalPlaceholders();
+
   return (
     <SitePageShell mainWidth="legal">
+      {/* טיוטה משפטית — לאישור עו״ד לפני פרסום סופי */}
       <h1 className="site-page-title">מדיניות פרטיות</h1>
-      <p className="mt-2 text-xs text-neutral-600">עודכן: אוגוסט 2026</p>
+      <p className="mt-2 text-xs text-neutral-600">עודכן: {LEGAL_LAST_UPDATED_HE}</p>
       <SiteLegalNotice show={legal.isPlaceholder} />
 
-      <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">
-        <p>
-          מדיניות זו חלה על משתמשי EventForYou — מחפשים, בעלי אולמות וספקי
-          שירותים — באתר hall-site1.vercel.app ובשירותים הנלווים. מטרתה לאפשר
-          הבנה ברורה של עיבוד מידע אישי, כולל פניות בין משתמשים, נתוני חשבון
-          ומדדים טכניים הנחוצים להפעלת המרקטפלייס ולאבטחתו.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">נתונים שנאספים</h2>
-        <ul className="list-disc space-y-1 pr-5">
-          <li>פרטי הרשמה (שם, אימייל, תפקיד במערכת)</li>
-          <li>תוכן שמפרסמים (אולמות, שירותים, הודעות, פניות)</li>
-          <li>נתוני שימוש טכניים (עוגיות התחברות, מדדי צפייה מעורבת בעמודים)</li>
-        </ul>
-        <h2 className="text-base font-semibold text-emerald-950">שימוש במידע</h2>
-        <p>
-          להפעלת החשבון, הצגת תוצאות חיפוש, התראות, מניעת שימוש לרעה (כולל הגבלת קצב בקשות),
-          ושיפור השירות.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">שיתוף מידע וספקי שירות</h2>
-        <p>
-          פרטים שמוזנים בפנייה או בבקשה מועברים לצד השני הרלוונטי בלבד — למשל לבעל האולם או
-          לספק שאליו פניתם. אנו עשויים להיעזר בספקי תשתית לצורך אחסון, מסד נתונים, שליחת דוא״ל,
-          מניעת שימוש לרעה, מדידת שימוש ודיווח שגיאות; הם מקבלים רק מידע הנחוץ להפעלת השירות.
-          איננו מוכרים מידע אישי.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">שמירה ומחיקה</h2>
-        <p>
-          מידע בחשבון נשמר כל עוד החשבון פעיל או כל עוד הוא נדרש לצורך מתן השירות, אבטחה,
-          טיפול במחלוקות ועמידה בחובות לפי דין. אפשר לבקש מחיקה, עיון או תיקון באמצעות טופס
-          הפרטיות; חלק מהמידע עשוי להישמר לתקופה מוגבלת אם הדין מחייב זאת.
-        </p>
-        <h2 className="text-base font-semibold text-emerald-950">זכויותיכם (תיקון 13)</h2>
-        <p>
-          ניתן לעדכן פרטים בדף ההגדרות, לנהל עוגיות, ולמחוק חשבון באופן עצמי (דורש אימות
-          סיסמה). לבקשת עיון, תיקון או מחיקת מידע —{" "}
-          <Link href="/privacy/request" className="font-medium text-emerald-950 underline">
-            טופס בקשה לפי תיקון 13
-          </Link>
-          .
-        </p>
-        <p>
-          יצירת קשר:{" "}
-          {legal.privacyEmail ? (
-            <a href={`mailto:${legal.privacyEmail}`} className="text-emerald-950 underline">
-              {legal.privacyEmail}
-            </a>
-          ) : (
-            <Link href="/contact" className="text-emerald-950 underline">
-              טופס יצירת קשר
-            </Link>
-          )}
-        </p>
+      <div className="site-card-padded prose prose-sm mt-8 max-w-none text-sm leading-relaxed text-neutral-800">
+        <PrivacyContent p={p} />
       </div>
 
       <p className="mt-10 text-xs">

@@ -30,6 +30,7 @@ const LEGAL_LINKS = [
   { href: "/about", label: "אודות" },
   { href: "/privacy", label: "פרטיות" },
   { href: "/terms", label: "תנאי שימוש" },
+  { href: "/cookies", label: "עוגיות" },
   { href: "/contact", label: "יצירת קשר" },
 ] as const;
 

@@ -20,6 +20,7 @@ export function dashboardHeaderShortcuts(
   if (role === "freelancer") {
     return [
       { href: "/dashboard/freelancer", label: "סקירה — אזור ספק" },
+      { href: "/dashboard/freelancer/services", label: "השירותים שלי" },
       { href: "/dashboard/freelancer/requests", label: "בקשות שהתקבלו" },
       { href: "/dashboard/freelancer/profile", label: "פרופיל ספק" },
       { href: "/messages", label: "הודעות" },

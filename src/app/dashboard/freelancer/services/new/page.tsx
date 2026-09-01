@@ -217,7 +217,7 @@ export default function NewServicePage() {
         return;
       }
 
-      router.push("/dashboard/freelancer");
+      router.push("/dashboard/freelancer/services");
       router.refresh();
     } catch {
       setError("שגיאה בלתי צפויה");
@@ -234,7 +234,7 @@ export default function NewServicePage() {
         role="freelancer"
         title="הוספת שירות חדש"
         description="כאן ממלאים רק פרטי השירות עצמו. שם המותג, תיאור עליי, טלפון ורשתות — בפרופיל העסקי."
-        backHref="/dashboard/freelancer"
+        backHref="/dashboard/freelancer/services"
         backLabel="חזרה לשירותים שלי"
       />
       <DashboardMain width="narrow">
@@ -563,7 +563,7 @@ export default function NewServicePage() {
         <div className="flex justify-end gap-3 pt-2">
           <button
             type="button"
-            onClick={() => router.push("/dashboard/freelancer")}
+            onClick={() => router.push("/dashboard/freelancer/services")}
             className="rounded-full border border-neutral-200 bg-neutral-50 px-5 py-2 text-xs font-medium text-emerald-950 hover:bg-neutral-50"
           >
             ביטול

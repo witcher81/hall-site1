@@ -34,7 +34,7 @@ export default async function ServiceDetailsPage({
           לא נמצא שירות עם מזהה זה השייך לחשבון שלך.
         </p>
         <a
-          href="/dashboard/freelancer"
+          href="/dashboard/freelancer/services"
           className="mt-4 inline-block text-sm font-semibold text-emerald-950 underline-offset-4 hover:underline"
         >
           חזרה לשירותים שלי
@@ -53,7 +53,7 @@ export default async function ServiceDetailsPage({
         role="freelancer"
         title={service.name}
         description={service.category ?? undefined}
-        backHref="/dashboard/freelancer"
+        backHref="/dashboard/freelancer/services"
         backLabel="חזרה לשירותים"
       />
       <DashboardMain width="narrow">
