@@ -46,8 +46,9 @@ function LoginForm() {
 
       const role = data?.user?.role as string | undefined;
       const needsVerify = data?.requiresEmailVerification === true;
+      const isFreelancer = role === "FREELANCER" && Boolean(data?.user);
 
-      if (needsVerify) {
+      if (needsVerify && !isFreelancer) {
         if (typeof data?.emailSent === "boolean") {
           try {
             sessionStorage.setItem(

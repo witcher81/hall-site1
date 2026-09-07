@@ -10,7 +10,7 @@ export type CheckoutLineItem = {
 };
 
 export type CheckoutOrderSummary = {
-  kind: "venue-inquiry";
+  kind: "venue-inquiry" | "service-request";
   title: string;
   subtitle?: string;
   meta: Array<{ label: string; value: string }>;
@@ -19,7 +19,9 @@ export type CheckoutOrderSummary = {
   totalMax: number | null;
   depositPercent: number;
   inquiryId?: number;
+  serviceRequestId?: number;
   venueId?: number;
+  serviceId?: number;
 };
 
 export function formatCheckoutAmount(
@@ -32,6 +34,10 @@ export function formatCheckoutAmount(
 /** דף סליקה להזמנת אולם לפי מזהה פנייה */
 export function inquiryCheckoutHref(inquiryId: number): string {
   return `/checkout?inquiryId=${inquiryId}`;
+}
+
+export function serviceRequestCheckoutHref(serviceRequestId: number): string {
+  return `/checkout?serviceRequestId=${serviceRequestId}`;
 }
 
 export function depositAmounts(
@@ -131,6 +137,79 @@ export function inquiryToCheckoutSummary(
     venueId: inquiry.venueId,
     title: inquiry.venue.name,
     subtitle: `הזמנה #${inquiry.id}`,
+    meta,
+    lineItems,
+    totalMin,
+    totalMax,
+    depositPercent: 20,
+  };
+}
+
+type ServiceCheckoutInput = {
+  id: number;
+  serviceId: number;
+  eventType: string | null;
+  preferredDate: string | null;
+  service: {
+    name: string;
+    category: string | null;
+    minPrice: number | null;
+    maxPrice: number | null;
+  };
+};
+
+export function serviceRequestToCheckoutSummary(
+  sr: ServiceCheckoutInput,
+  override?: InquiryCheckoutPricingOverride
+): CheckoutOrderSummary {
+  const meta: CheckoutOrderSummary["meta"] = [];
+  if (sr.preferredDate) {
+    meta.push({ label: "תאריך אירוע", value: sr.preferredDate });
+  }
+  if (sr.eventType) {
+    meta.push({ label: "סוג אירוע", value: sr.eventType });
+  }
+  if (sr.service.category) {
+    meta.push({ label: "קטגוריה", value: sr.service.category });
+  }
+
+  const min = sr.service.minPrice;
+  const max = sr.service.maxPrice ?? min;
+  const mode = getCatalogPricingMode(min, max);
+  const exact =
+    override?.acceptedExactAmount ??
+    override?.fixedCatalogAmount ??
+    (mode === "fixed" ? min : null);
+
+  const lineItems: CheckoutLineItem[] = [
+    {
+      id: "service-base",
+      label: exact != null ? "שירות — מחיר סופי" : "שירות — הערכת מחיר",
+      amountMin: exact ?? min,
+      amountMax: exact ?? max,
+      note:
+        exact != null
+          ? override?.acceptedExactAmount != null
+            ? "לפי ציטוט שאושר"
+            : "מחיר קבוע מהקטלוג"
+          : "המחיר הסופי ייקבע לאחר ציטוט מהספק",
+    },
+  ];
+
+  const totalMin = exact ?? min;
+  const totalMax =
+    exact != null
+      ? exact
+      : max != null && min != null && max !== min
+        ? max
+        : min;
+
+  return {
+    kind: "service-request",
+    serviceRequestId: sr.id,
+    serviceId: sr.serviceId,
+    title: sr.service.name,
+    subtitle: `בקשה #${sr.id}`,
     meta,
     lineItems,
     totalMin,

@@ -33,7 +33,6 @@ export type PublicProviderServiceItem = {
     id: number;
     name: string | null;
     businessName: string | null;
-    businessPhone: string | null;
     socialLinksJson: string | null;
   };
 };
@@ -87,7 +86,6 @@ export async function searchPublicProviders(
           id: true,
           name: true,
           businessName: true,
-          businessPhone: true,
           socialLinksJson: true,
         },
       },

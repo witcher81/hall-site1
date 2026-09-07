@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import ServiceRequestMessageBody from "@/components/service-requests/ServiceRequestMessageBody";
 import { formatInquiryPreferredDateForDisplay } from "@/lib/inquiryMessageDisplay";
+import Link from "next/link";
+import {
+  canSeekerPayServiceRequest,
+  serviceRequestStatusLabel,
+} from "@/lib/serviceRequestStatus";
+import { serviceRequestCheckoutHref } from "@/lib/checkoutDisplay";
 
 type Req = {
   id: number;
@@ -24,7 +30,11 @@ type Req = {
   };
 };
 
-export default function MyServiceRequestsClient() {
+export default function MyServiceRequestsClient({
+  bookingPaymentsEnabled = false,
+}: {
+  bookingPaymentsEnabled?: boolean;
+}) {
   const [requests, setRequests] = useState<Req[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -80,18 +90,18 @@ export default function MyServiceRequestsClient() {
               </p>
               <span
                 className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  r.status === "NEW"
-                    ? "bg-[#FFF9E6] text-emerald-950"
-                    : r.status === "REPLIED"
-                      ? "bg-emerald-100 text-emerald-900"
-                      : "bg-neutral-50 text-neutral-600"
+                  r.status === "PAID"
+                    ? "bg-emerald-600 text-white"
+                    : r.status === "CANCELLED_BY_PROVIDER"
+                      ? "bg-orange-100 text-orange-900"
+                      : r.status === "NEW"
+                        ? "bg-[#FFF9E6] text-emerald-950"
+                        : r.status === "REPLIED"
+                          ? "bg-emerald-100 text-emerald-900"
+                          : "bg-neutral-50 text-neutral-600"
                 }`}
               >
-                {r.status === "NEW"
-                  ? "חדש"
-                  : r.status === "READ"
-                    ? "נקרא"
-                    : "נענה"}
+                {serviceRequestStatusLabel(r.status)}
               </span>
             </div>
             {(r.eventType || r.preferredDate) && (
@@ -125,6 +135,14 @@ export default function MyServiceRequestsClient() {
             <p className="mt-1 text-xs text-neutral-600">
               נשלח ב־{new Date(r.createdAt).toLocaleDateString("he-IL")}
             </p>
+            {bookingPaymentsEnabled && canSeekerPayServiceRequest(r.status) && (
+              <Link
+                href={serviceRequestCheckoutHref(r.id)}
+                className="mt-3 inline-flex rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-neutral-950 shadow-sm transition hover:bg-amber-300"
+              >
+                לתשלום מאובטח
+              </Link>
+            )}
           </article>
         );
       })}

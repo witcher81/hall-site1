@@ -2,6 +2,7 @@ import { requireVerifiedSession } from "@/lib/requireSession";
 import { redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
+import { isBookingPaymentsEnabled } from "@/lib/bookingPaymentConfig";
 import MyServiceRequestsClient from "./MyServiceRequestsClient";
 
 export default async function MyServiceRequestsPage() {
@@ -14,7 +15,9 @@ export default async function MyServiceRequestsPage() {
         title="הבקשות שלי לספקים"
         description="בקשות ששלחת לספקי שירותים. כאן תראה סטטוס ותשובת הספק."
       />
-      <MyServiceRequestsClient />
+      <MyServiceRequestsClient
+        bookingPaymentsEnabled={isBookingPaymentsEnabled()}
+      />
     </SitePageShell>
   );
 }

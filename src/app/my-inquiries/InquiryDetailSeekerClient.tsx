@@ -26,6 +26,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { InquiryRebookSnapshot } from "@/lib/inquiryRebook";
 import { inquiryCheckoutHref } from "@/lib/checkoutDisplay";
+import BookingAlternativesPanel from "@/components/booking/BookingAlternativesPanel";
 
 export type SeekerInquiryDetail = {
   id: number;
@@ -57,8 +58,12 @@ export type SeekerInquiryDetail = {
 
 export default function InquiryDetailSeekerClient({
   inquiry,
+  bookingPaymentsEnabled = false,
+  cancelledPaymentId = null,
 }: {
   inquiry: SeekerInquiryDetail;
+  bookingPaymentsEnabled?: boolean;
+  cancelledPaymentId?: number | null;
 }) {
   const router = useRouter();
   const [cancelPending, setCancelPending] = useState(false);
@@ -154,9 +159,9 @@ export default function InquiryDetailSeekerClient({
                   href={inquiryCheckoutHref(inquiry.id)}
                   className="inline-flex items-center justify-center rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-neutral-950 shadow-sm transition hover:bg-amber-300"
                 >
-                  סיכום הזמנה (BETA)
+                  {bookingPaymentsEnabled ? "לתשלום מאובטח" : "סיכום הזמנה (BETA)"}
                 </Link>
-              ) : canSeekerPreviewCheckout(inquiry.status) ? (
+              ) : canSeekerPreviewCheckout(inquiry.status) && !bookingPaymentsEnabled ? (
                 <Link
                   href={inquiryCheckoutHref(inquiry.id)}
                   className="inline-flex items-center justify-center rounded-full border border-amber-400/60 bg-amber-50/80 px-4 py-2 text-xs font-semibold text-emerald-950 transition hover:border-amber-400"
@@ -210,6 +215,31 @@ export default function InquiryDetailSeekerClient({
               </div>
             ))}
           </div>
+
+          {status === "PAID" && (
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-xs">
+              <p className="font-medium text-emerald-900">
+                ההזמנה שולמה — סגורה מבחינתך. רשת הביטחון של EventForYou פעילה.
+              </p>
+            </div>
+          )}
+
+          {status === "CANCELLED_BY_PROVIDER" && (
+            <>
+              <p className="mt-4 rounded-xl border border-orange-200 bg-orange-50/80 px-4 py-3 text-xs text-orange-950">
+                בעל האולם ביטל את ההזמנה לאחר התשלום. הכסף יוחזר לחשבונך.
+                {inquiry.ownerNote ? ` הערה: ${inquiry.ownerNote}` : ""}
+              </p>
+              {cancelledPaymentId != null && (
+                <BookingAlternativesPanel paymentId={cancelledPaymentId} />
+              )}
+              <InquirySeekerRebookPanel
+                venueId={inquiry.venueId}
+                snapshot={rebookSnapshot}
+                showDateChange
+              />
+            </>
+          )}
 
           {status === "APPROVED" && (
             <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-xs">

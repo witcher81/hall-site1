@@ -109,7 +109,7 @@ export async function getFreelancerDashboardData(providerId: number) {
     attention.push({
       id: "profile-incomplete",
       title: "השלימו את פרופיל הספק",
-      subtitle: "חסרים שם מותג או טלפון — מחפשים רואים פרטים חלקיים",
+      subtitle: "חסרים שם מותג או טלפון — נדרשים לניהול החשבון ולפניות דרך האתר",
       href: "/dashboard/freelancer/profile",
       badge: "פרופיל",
       tone: "amber",

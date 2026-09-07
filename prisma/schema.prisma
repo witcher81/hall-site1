@@ -39,6 +39,10 @@ model User {
   businessBio     String?
   /// JSON: מערך { platform, url } לרשתות חברתיות (פרילנסרים)
   socialLinksJson String?
+  /// Stripe Connect — קבלת תשלומי הזמנות ישירות לחשבון העסק
+  stripeConnectAccountId String? @unique
+  stripeConnectChargesEnabled Boolean @default(false)
+  stripeConnectOnboardingComplete Boolean @default(false)
   venues        Venue[]
   services      Service[]
   inquiriesSent     Inquiry[]
@@ -229,8 +233,13 @@ model Inquiry {
   supplierMessage String?
   /// הערות נפרדות לכל ספק — JSON: [{ serviceId, serviceName, message }]
   supplierMessagesJson String?
-  status        String   @default("NEW") // NEW, READ, REPLIED, APPROVED, REJECTED
+  status        String   @default("NEW") // NEW, READ, REPLIED, APPROVED, REJECTED, CANCELLED, PAID, CANCELLED_BY_PROVIDER
   ownerNote     String?  // הערה/תשובה מבעל האולם
+  /// סכום ששולם / מוסכם לתשלום (ש״ח)
+  agreedAmountNis Int?
+  paidAt        DateTime?
+  /// סיבת ביטול מצד בעל האולם אחרי תשלום
+  providerCancelReason String?
   repliedAt     DateTime? // מתי סומן כנענה
   /// נשלח מענה מהתבנית האוטומטית של האולם
   autoReplyApplied Boolean @default(false)
@@ -246,6 +255,7 @@ model Inquiry {
 
   negotiationThreads NegotiationThread[]
   serviceRequests    ServiceRequest[]
+  payments           Payment[]
 
   @@index([userId, venueId])
   @@index([venueId, createdAt])
@@ -316,17 +326,43 @@ model Payment {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   stripeSessionId String?  @unique
   stripePaymentId String?
+  stripeRefundId  String?
   amountNis       Int
+  platformFeeNis  Int?
   purpose         String
   venueId         Int?
   serviceId       Int?
-  status          String   @default("PENDING")
+  inquiryId       Int?
+  inquiry         Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  serviceRequestId Int?
+  serviceRequest  ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+  providerUserId  Int?
+  status          String   @default("PENDING") // PENDING, COMPLETED, REFUNDED, FAILED
   createdAt       DateTime @default(now())
   completedAt     DateTime?
+  refundedAt      DateTime?
+  bookingCancellation BookingCancellation?
 
   @@index([userId, createdAt])
   @@index([venueId])
   @@index([serviceId])
+  @@index([inquiryId])
+  @@index([serviceRequestId])
+}
+
+/// ביטול הזמנה ששולמה — סיבה חובה + אלטרנטיבות
+model BookingCancellation {
+  id                Int      @id @default(autoincrement())
+  paymentId         Int      @unique
+  payment           Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  cancelledByUserId Int
+  reason            String
+  targetType        String   // venue | service
+  targetId          Int
+  alternativesJson  String?
+  createdAt         DateTime @default(now())
+
+  @@index([targetType, targetId])
 }
 
 model Service {
@@ -556,12 +592,16 @@ model ServiceRequest {
   /// מספר אורחים — חובה לבקשות לשירותי אוכל/קייטרינג
   guestCount   Int?
   message      String
-  status       String   @default("NEW") // NEW, READ, REPLIED
+  status       String   @default("NEW") // NEW, READ, REPLIED, CANCELLED, PAID, CANCELLED_BY_PROVIDER
   providerNote String?
+  agreedAmountNis Int?
+  paidAt       DateTime?
+  providerCancelReason String?
   repliedAt    DateTime?
   createdAt    DateTime @default(now())
 
   negotiationThread NegotiationThread?
+  payments        Payment[]
 
   @@index([inquiryId])
   @@index([userId, createdAt])

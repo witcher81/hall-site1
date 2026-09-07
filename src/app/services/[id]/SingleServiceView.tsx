@@ -45,7 +45,6 @@ type Provider = {
   id: number;
   name: string | null;
   businessName: string | null;
-  businessPhone: string | null;
   businessAddress: string | null;
   businessBio: string | null;
   profileImageUrl: string | null;

@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import { BETA_PAYMENT_BANNER } from "@/lib/betaPayments";
+import {
+  BOOKING_SAFETY_NET_BULLETS,
+  BOOKING_SAFETY_NET_HEADLINE,
+  BOOKING_OFF_PLATFORM_WARNING,
+} from "@/lib/bookingSafetyNet";
 import {
   type CheckoutOrderSummary,
   depositAmounts,
@@ -17,10 +23,21 @@ type CheckoutUser = {
 export default function CheckoutClient({
   user,
   order,
+  bookingPaymentsEnabled,
+  payAmountNis,
+  canPay,
+  payBlockedReason,
 }: {
   user: CheckoutUser;
   order: CheckoutOrderSummary;
+  bookingPaymentsEnabled: boolean;
+  payAmountNis: number | null;
+  canPay: boolean;
+  payBlockedReason?: string | null;
 }) {
+  const [payPending, setPayPending] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+
   const deposit = depositAmounts(
     order.totalMin,
     order.totalMax,
@@ -28,7 +45,41 @@ export default function CheckoutClient({
   );
   const backHref = order.inquiryId
     ? `/my-inquiries/${order.inquiryId}`
-    : "/my-inquiries";
+    : order.serviceRequestId
+      ? "/my-service-requests"
+      : "/my-inquiries";
+
+  const exactTotal =
+    payAmountNis ??
+    (order.totalMin != null &&
+    order.totalMax != null &&
+    order.totalMin === order.totalMax
+      ? order.totalMin
+      : null);
+
+  async function startPayment() {
+    if (!order.inquiryId && !order.serviceRequestId) return;
+    setPayError(null);
+    setPayPending(true);
+    try {
+      const url = order.inquiryId
+        ? `/api/inquiries/${order.inquiryId}/checkout`
+        : `/api/service-requests/${order.serviceRequestId}/checkout`;
+      const res = await fetch(url, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.url) {
+        setPayError(
+          typeof data?.error === "string"
+            ? data.error
+            : "לא ניתן לפתוח תשלום כרגע. נסו שוב."
+        );
+        return;
+      }
+      window.location.href = data.url;
+    } finally {
+      setPayPending(false);
+    }
+  }
 
   return (
     <>
@@ -42,14 +93,31 @@ export default function CheckoutClient({
       </p>
       <SitePageHeader
         title="סיכום הזמנה"
-        description="האתר ב־BETA — אין סליקה באתר כרגע. הסיכום להמחשה בלבד."
+        description={
+          bookingPaymentsEnabled
+            ? "תשלום מאובטח דרך EventForYou — רשת ביטחון פעילה"
+            : "האתר ב־BETA — אין סליקה באתר כרגע. הסיכום להמחשה בלבד."
+        }
       />
 
-      <div className="mb-6 rounded-2xl border border-amber-200/90 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
-        <strong className="font-semibold">BETA</strong>
-        {" — "}
-        {BETA_PAYMENT_BANNER}
-      </div>
+      {!bookingPaymentsEnabled && (
+        <div className="mb-6 rounded-2xl border border-amber-200/90 bg-amber-50/80 px-4 py-3 text-sm text-amber-950">
+          <strong className="font-semibold">BETA</strong>
+          {" — "}
+          {BETA_PAYMENT_BANNER}
+        </div>
+      )}
+
+      {bookingPaymentsEnabled && (
+        <div className="mb-6 rounded-2xl border border-emerald-200/90 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-950">
+          <p className="font-semibold">{BOOKING_SAFETY_NET_HEADLINE}</p>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-xs leading-relaxed">
+            {BOOKING_SAFETY_NET_BULLETS.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start">
         <aside className="site-card-padded space-y-4 text-right">
@@ -100,47 +168,96 @@ export default function CheckoutClient({
 
           <div className="space-y-2 border-t border-neutral-200 pt-3 text-sm">
             <div className="flex justify-between gap-3 font-semibold text-emerald-950">
-              <span>סה״כ משוער</span>
+              <span>{exactTotal != null ? "סה״כ לתשלום" : "סה״כ משוער"}</span>
               <span className="tabular-nums">
-                {formatCheckoutAmount(order.totalMin, order.totalMax)}
+                {exactTotal != null
+                  ? `₪${exactTotal.toLocaleString("he-IL")}`
+                  : formatCheckoutAmount(order.totalMin, order.totalMax)}
               </span>
             </div>
-            <div className="flex justify-between gap-3 text-neutral-700">
-              <span>מקדמה משוערת ({order.depositPercent}%)</span>
-              <span className="tabular-nums font-medium">
-                {formatCheckoutAmount(deposit.min, deposit.max)}
-              </span>
-            </div>
-            <p className="text-[11px] leading-relaxed text-neutral-500">
-              הסכומים להמחשה. תיאום התשלום מול האולם — מחוץ לאתר, עד שהסליקה
-              תיפתח.
-            </p>
+            {!bookingPaymentsEnabled && (
+              <>
+                <div className="flex justify-between gap-3 text-neutral-700">
+                  <span>מקדמה משוערת ({order.depositPercent}%)</span>
+                  <span className="tabular-nums font-medium">
+                    {formatCheckoutAmount(deposit.min, deposit.max)}
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-neutral-500">
+                  הסכומים להמחשה. תיאום התשלום מול הספק — מחוץ לאתר, עד שהסליקה
+                  תיפתח.
+                </p>
+              </>
+            )}
           </div>
         </aside>
 
         <section className="site-card-padded space-y-4 text-right">
           <h2 className="text-base font-semibold text-emerald-950">תשלום</h2>
-          <p className="text-sm leading-relaxed text-neutral-700">
-            {BETA_PAYMENT_BANNER}
-          </p>
-          <p className="text-xs text-neutral-600">
-            חשבון: {user.name?.trim() || user.email}
-          </p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Link href={backHref} className="btn-primary text-center">
-              חזרה להזמנה
-            </Link>
-            <Link
-              href={
-                order.venueId
-                  ? `/messages?venueId=${order.venueId}`
-                  : "/messages"
-              }
-              className="rounded-full border border-neutral-200 bg-white px-6 py-2.5 text-center text-sm font-semibold text-emerald-950 hover:border-amber-400/60"
-            >
-              הודעה לאולם
-            </Link>
-          </div>
+
+          {bookingPaymentsEnabled ? (
+            <>
+              <p className="text-sm leading-relaxed text-neutral-700">
+                {BOOKING_SAFETY_NET_HEADLINE}. התשלום מתבצע בכרטיס אשראי דרך
+                Stripe — בטוח ומאובטח.
+              </p>
+              <p className="text-xs text-amber-900/90">{BOOKING_OFF_PLATFORM_WARNING}</p>
+              <p className="text-xs text-neutral-600">
+                חשבון: {user.name?.trim() || user.email}
+              </p>
+              {payBlockedReason && !canPay && (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                  {payBlockedReason}
+                </p>
+              )}
+              {payError && (
+                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800" role="alert">
+                  {payError}
+                </p>
+              )}
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <Link href={backHref} className="btn-primary text-center">
+                  חזרה להזמנה
+                </Link>
+                {canPay && exactTotal != null && (
+                  <button
+                    type="button"
+                    onClick={startPayment}
+                    disabled={payPending}
+                    className="rounded-full bg-amber-400 px-6 py-2.5 text-center text-sm font-bold text-neutral-950 shadow-md transition hover:bg-amber-300 disabled:opacity-60"
+                  >
+                    {payPending
+                      ? "פותח תשלום..."
+                      : `שלם ₪${exactTotal.toLocaleString("he-IL")}`}
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm leading-relaxed text-neutral-700">
+                {BETA_PAYMENT_BANNER}
+              </p>
+              <p className="text-xs text-neutral-600">
+                חשבון: {user.name?.trim() || user.email}
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <Link href={backHref} className="btn-primary text-center">
+                  חזרה להזמנה
+                </Link>
+                <Link
+                  href={
+                    order.venueId
+                      ? `/messages?venueId=${order.venueId}`
+                      : "/messages"
+                  }
+                  className="rounded-full border border-neutral-200 bg-white px-6 py-2.5 text-center text-sm font-semibold text-emerald-950 hover:border-amber-400/60"
+                >
+                  שלח הודעה
+                </Link>
+              </div>
+            </>
+          )}
         </section>
       </div>
     </>

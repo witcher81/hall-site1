@@ -8,6 +8,7 @@ import { parseSocialLinksJson } from "@/lib/socialLinks";
 import { redirect } from "next/navigation";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import StripeConnectCard from "@/components/booking/StripeConnectCard";
 import FreelancerProfileForm from "./FreelancerProfileForm";
 
 export default async function FreelancerProfilePage() {
@@ -45,7 +46,8 @@ export default async function FreelancerProfilePage() {
         title={copy.title}
         description={copy.description}
       />
-      <DashboardMain width="narrow" className="max-w-xl">
+      <DashboardMain width="narrow" className="max-w-xl space-y-4">
+        <StripeConnectCard dashboardHref="/dashboard/stripe-connect" />
         <FreelancerProfileForm
           email={dbUser.email}
           mode={mode}

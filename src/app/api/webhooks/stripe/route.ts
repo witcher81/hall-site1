@@ -6,6 +6,8 @@ import {
   SERVICE_BOOST_DAYS,
   VENUE_BOOST_DAYS,
 } from "@/lib/venueBoostConfig";
+import { fulfillBookingPayment } from "@/lib/bookingPaymentFulfillment";
+import { PAYMENT_PURPOSE } from "@/lib/bookingPaymentConfig";
 
 export const runtime = "nodejs";
 
@@ -63,6 +65,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, ignored: true });
     }
 
+    if (
+      purpose === PAYMENT_PURPOSE.VENUE_BOOKING ||
+      purpose === PAYMENT_PURPOSE.SERVICE_BOOKING
+    ) {
+      await fulfillBookingPayment(paymentId, stripePaymentId);
+      return NextResponse.json({ received: true });
+    }
+
     if (purpose === "venue_boost") {
       const venueId = Number(session.metadata?.venueId);
       if (
@@ -106,7 +116,10 @@ export async function POST(req: NextRequest) {
         where: { id: serviceId },
         select: { boostExpiresAt: true },
       });
-      const expires = nextBoostExpiry(service?.boostExpiresAt, SERVICE_BOOST_DAYS);
+      const expires = nextBoostExpiry(
+        service?.boostExpiresAt,
+        SERVICE_BOOST_DAYS
+      );
       await prisma.$transaction([
         prisma.service.update({
           where: { id: serviceId },

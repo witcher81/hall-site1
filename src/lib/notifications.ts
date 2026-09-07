@@ -20,7 +20,9 @@ type CreateNotificationInput = {
     | "LISTING_SERVICE_REJECTED"
     | "ADMIN_NEW_BUSINESS_USER"
     | "ADMIN_NEW_LISTING"
-    | "WELCOME";
+    | "WELCOME"
+    | "BOOKING_PAID"
+    | "BOOKING_CANCELLED_REFUND";
   title: string;
   body?: string | null;
   href?: string | null;

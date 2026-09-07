@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import DashboardMain from "@/components/dashboard/DashboardMain";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import StripeConnectCard from "@/components/booking/StripeConnectCard";
 import VenueOwnerProfileForm from "./VenueOwnerProfileForm";
 
 export default async function VenueOwnerProfilePage() {
@@ -41,7 +42,8 @@ export default async function VenueOwnerProfilePage() {
         title={copy.title}
         description={copy.description}
       />
-      <DashboardMain width="narrow" className="max-w-xl">
+      <DashboardMain width="narrow" className="max-w-xl space-y-4">
+        <StripeConnectCard dashboardHref="/dashboard/stripe-connect" />
         <VenueOwnerProfileForm
           email={dbUser.email}
           mode={mode}

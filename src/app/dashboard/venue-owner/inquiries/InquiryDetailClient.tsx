@@ -9,6 +9,7 @@ import InquiryServiceChoicesFromSeeker, {
 import {
   canOwnerApprove,
   canOwnerCancelApproved,
+  canOwnerCancelPaid,
   canOwnerReject,
   inquiryStatusBadgeClass,
   inquiryStatusLabelOwner,
@@ -17,6 +18,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ProviderCancelPaidModal from "@/components/booking/ProviderCancelPaidModal";
 
 export type VenueOwnerInquiryDetail = {
   id: number;
@@ -282,7 +284,9 @@ export default function InquiryDetailClient({ initial }: Props) {
             ? "border-[#C9A227]/45 bg-[#FFFCF5]"
             : status === "APPROVED"
               ? "border-emerald-200/90 bg-gradient-to-b from-emerald-50/95 to-white"
-              : status === "REJECTED"
+              : status === "PAID"
+                ? "border-emerald-300/90 bg-gradient-to-b from-emerald-50 to-white"
+                : status === "REJECTED"
                 ? "border-red-200/80 bg-gradient-to-b from-red-50/40 to-white"
                 : status === "REPLIED"
                   ? "border-sky-200/80 bg-gradient-to-b from-sky-50/40 to-white"
@@ -415,6 +419,34 @@ export default function InquiryDetailClient({ initial }: Props) {
                   <p className="text-[10px] text-neutral-600">
                     אישור יסמן את התאריך כתפוס בלוח הזמינות.
                   </p>
+                </div>
+              )}
+
+              {status === "PAID" && (
+                <div className="w-full space-y-2">
+                  <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs font-medium text-emerald-900">
+                    ההזמנה שולמה דרך האתר — התאריך שמור בלוח.
+                  </p>
+                  <Link
+                    href={`/dashboard/venue-owner/venues/${q.venueId}`}
+                    className="block rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-center text-xs font-semibold text-emerald-900 hover:bg-emerald-100/80"
+                  >
+                    ללוח זמינות האולם →
+                  </Link>
+                  {canOwnerCancelPaid(q.status) && (
+                    <ProviderCancelPaidModal
+                      title="ביטול הזמנה ששולמה"
+                      description="הלקוח יקבל החזר מלא ויראה את סיבת הביטול. פעולה זו אינה הפיכה."
+                      cancelUrl={`/api/venue-owner/inquiries/${q.id}/cancel-paid`}
+                      onSuccess={() => {
+                        setInquiry((prev) => ({
+                          ...prev,
+                          status: "CANCELLED_BY_PROVIDER",
+                        }));
+                        router.refresh();
+                      }}
+                    />
+                  )}
                 </div>
               )}
 

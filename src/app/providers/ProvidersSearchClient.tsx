@@ -41,7 +41,6 @@ type Service = {
     id: number;
     name: string | null;
     businessName: string | null;
-    businessPhone: string | null;
     socialLinksJson: string | null;
   };
 };

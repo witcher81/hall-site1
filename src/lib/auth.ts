@@ -258,13 +258,14 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       where: { id: subId },
     });
     if (!user || user.isBlocked) return null;
-    if (!user.emailVerified && isEmailVerificationRequired()) return null;
+    const emailVerified =
+      user.emailVerified || !isEmailVerificationRequired();
     return {
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
-      emailVerified: user.emailVerified || !isEmailVerificationRequired(),
+      emailVerified,
     };
   } catch {
     return null;

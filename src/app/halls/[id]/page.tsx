@@ -157,8 +157,7 @@ export default async function HallPublicPage({
       },
       owner: {
         select: {
-          businessPhone: true,
-          phone: true,
+          id: true,
         },
       },
     },
@@ -346,10 +345,6 @@ export default async function HallPublicPage({
           coverImageUrl: venue.coverImageUrl,
           galleryImageUrls,
           galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
-          ownerContactPhone:
-            venue.owner?.businessPhone?.trim() ||
-            venue.owner?.phone?.trim() ||
-            null,
           packages: venuePackages.length > 0 ? venuePackages : undefined,
         }}
       />

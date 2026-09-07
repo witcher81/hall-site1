@@ -66,7 +66,7 @@ export default function FreelancerDashboardClient({ initial }: Props) {
           <div className="rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-right text-sm text-amber-950">
             <p className="font-semibold">השלימו את פרופיל הספק</p>
             <p className="mt-1 text-xs">
-              חסרים שם מותג או טלפון — מחפשים רואים פרטים חלקיים.{" "}
+              חסרים שם מותג או טלפון — נדרשים לניהול החשבון ולפניות דרך האתר.{" "}
               <a
                 href="/dashboard/freelancer/profile"
                 className="font-semibold underline"

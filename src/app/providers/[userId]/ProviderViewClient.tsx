@@ -15,7 +15,6 @@ type Provider = {
   id: number;
   name: string | null;
   businessName: string | null;
-  businessPhone: string | null;
   businessAddress: string | null;
   businessBio: string | null;
   profileImageUrl: string | null;
@@ -81,14 +80,6 @@ export default function ProviderViewClient({
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">
                 {provider.businessAddress ? (
                   <span>אזור: {provider.businessAddress}</span>
-                ) : null}
-                {provider.businessPhone ? (
-                  <a
-                    href={`tel:${provider.businessPhone}`}
-                    className="font-semibold text-emerald-950 underline decoration-amber-400/50"
-                  >
-                    {provider.businessPhone}
-                  </a>
                 ) : null}
               </div>
             </div>

@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import InquiryDetailSeekerClient from "../InquiryDetailSeekerClient";
+import { isBookingPaymentsEnabled, PAYMENT_PURPOSE } from "@/lib/bookingPaymentConfig";
 
 export default async function MyInquiryDetailPage({
   params,
@@ -38,6 +39,21 @@ export default async function MyInquiryDetailPage({
 
   if (!inquiry) notFound();
 
+  let cancelledPaymentId: number | null = null;
+  if (inquiry.status === "CANCELLED_BY_PROVIDER") {
+    const payment = await prisma.payment.findFirst({
+      where: {
+        inquiryId: inquiry.id,
+        userId: user.id,
+        purpose: PAYMENT_PURPOSE.VENUE_BOOKING,
+        status: "REFUNDED",
+      },
+      orderBy: { refundedAt: "desc" },
+      select: { id: true },
+    });
+    cancelledPaymentId = payment?.id ?? null;
+  }
+
   return (
     <SitePageShell mainWidth="narrow">
       <SitePageHeader
@@ -45,6 +61,8 @@ export default async function MyInquiryDetailPage({
         description="סטטוס בקשת ההזמנה שלך לאולם."
       />
       <InquiryDetailSeekerClient
+        bookingPaymentsEnabled={isBookingPaymentsEnabled()}
+        cancelledPaymentId={cancelledPaymentId}
         inquiry={{
           id: inquiry.id,
           venueId: inquiry.venueId,

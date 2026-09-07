@@ -8,9 +8,11 @@ import ServiceRequestEventContextCard from "@/components/service-requests/Servic
 import { formatInquiryPreferredDateForDisplay } from "@/lib/inquiryMessageDisplay";
 import type { ServiceRequestEventContext } from "@/lib/serviceRequestEventContext";
 import {
+  isServiceRequestPaid,
   serviceRequestCancelledDetail,
   serviceRequestStatusLabel,
 } from "@/lib/serviceRequestStatus";
+import ProviderCancelPaidModal from "@/components/booking/ProviderCancelPaidModal";
 
 type Req = {
   id: number;
@@ -299,7 +301,7 @@ export default function FreelancerRequestsClient() {
                         הצעת מחיר חדשה
                       </button>
                     ) : null}
-                    {!cancelled && (
+                    {!cancelled && !isServiceRequestPaid(r.status) && (
                       <button
                         type="button"
                         onClick={() => declineRequest(r.id)}
@@ -400,6 +402,28 @@ export default function FreelancerRequestsClient() {
                         ביטול
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {r.status === "PAID" && (
+                  <div className="mt-3 space-y-2">
+                    <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs font-medium text-emerald-900">
+                      הבקשה שולמה דרך האתר — ההזמנה סגורה מבחינת הלקוח.
+                    </p>
+                    <ProviderCancelPaidModal
+                      title="ביטול בקשה ששולמה"
+                      description="הלקוח יקבל החזר מלא ויראה את סיבת הביטול. פעולה זו אינה הפיכה."
+                      cancelUrl={`/api/freelancer/service-requests/${r.id}/cancel-paid`}
+                      onSuccess={() => {
+                        setRequests((prev) =>
+                          prev.map((item) =>
+                            item.id === r.id
+                              ? { ...item, status: "CANCELLED_BY_PROVIDER" }
+                              : item
+                          )
+                        );
+                      }}
+                    />
                   </div>
                 )}
 

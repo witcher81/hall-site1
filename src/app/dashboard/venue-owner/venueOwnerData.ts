@@ -121,7 +121,7 @@ export async function getVenueOwnerDashboardData(ownerId: number) {
     attention.push({
       id: "profile-incomplete",
       title: "השלימו את הפרופיל העסקי",
-      subtitle: "חסרים פרטי קשר או שם עסק — מחפשים רואים פרופיל חלקי",
+      subtitle: "חסרים פרטי קשר או שם עסק — נדרשים לניהול החשבון ולפניות דרך האתר",
       href: "/dashboard/venue-owner/profile",
       badge: "פרופיל",
       tone: "amber",

@@ -8,7 +8,9 @@ export type InquiryStatus =
   | "REPLIED"
   | "APPROVED"
   | "REJECTED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "PAID"
+  | "CANCELLED_BY_PROVIDER";
 
 const VALID_STATUSES = new Set<string>([
   "NEW",
@@ -17,6 +19,8 @@ const VALID_STATUSES = new Set<string>([
   "APPROVED",
   "REJECTED",
   "CANCELLED",
+  "PAID",
+  "CANCELLED_BY_PROVIDER",
 ]);
 
 export function normalizeInquiryStatus(raw: string | null | undefined): InquiryStatus {
@@ -36,12 +40,22 @@ export function inquiryPreferredDateToUtc(raw: string | null | undefined): Date 
 
 export function isTerminalInquiryStatus(status: string): boolean {
   const s = normalizeInquiryStatus(status);
-  return s === "APPROVED" || s === "REJECTED" || s === "CANCELLED";
+  return (
+    s === "APPROVED" ||
+    s === "REJECTED" ||
+    s === "CANCELLED" ||
+    s === "PAID" ||
+    s === "CANCELLED_BY_PROVIDER"
+  );
 }
 
 export function isInquiryRejectedOrCancelled(status: string): boolean {
   const s = normalizeInquiryStatus(status);
-  return s === "REJECTED" || s === "CANCELLED";
+  return (
+    s === "REJECTED" ||
+    s === "CANCELLED" ||
+    s === "CANCELLED_BY_PROVIDER"
+  );
 }
 
 export function canOwnerApprove(status: string): boolean {
@@ -63,13 +77,23 @@ export function canSeekerCancel(status: string): boolean {
   );
 }
 
+export function canOwnerCancelPaid(status: string): boolean {
+  return normalizeInquiryStatus(status) === "PAID";
+}
+
 export function canOwnerCancelApproved(status: string): boolean {
   return normalizeInquiryStatus(status) === "APPROVED";
 }
 
-/** מחפש יכול לפתוח דף תשלום (מקדמה) — אחרי אישור האולם */
+/** מחפש יכול לפתוח דף תשלום — אחרי אישור (legacy) או כשיש מחיר מוכן (pay-first) */
 export function canSeekerCheckout(status: string): boolean {
-  return normalizeInquiryStatus(status) === "APPROVED";
+  const s = normalizeInquiryStatus(status);
+  return s === "APPROVED" || s === "NEW" || s === "READ" || s === "REPLIED";
+}
+
+/** כבר שולם — אין תשלום נוסף */
+export function isInquiryPaid(status: string): boolean {
+  return normalizeInquiryStatus(status) === "PAID";
 }
 
 /** תצוגה מקדימה של דף התשלום לפני אישור */
@@ -87,6 +111,10 @@ export function inquiryStatusLabelSeeker(status: string): string {
       return "נצפתה — ממתין לאישור";
     case "APPROVED":
       return "אושרה";
+    case "PAID":
+      return "שולם — ההזמנה סגורה";
+    case "CANCELLED_BY_PROVIDER":
+      return "בוטלה — הוחזר תשלום";
     case "REJECTED":
       return "נדחתה";
     case "CANCELLED":
@@ -107,6 +135,10 @@ export function inquiryStatusLabelOwner(status: string): string {
       return "נקראה";
     case "APPROVED":
       return "אושרה";
+    case "PAID":
+      return "שולם — ההזמנה סגורה";
+    case "CANCELLED_BY_PROVIDER":
+      return "בוטלה — הוחזר תשלום";
     case "REJECTED":
       return "נדחתה";
     case "CANCELLED":
@@ -127,6 +159,10 @@ export function inquiryStatusBadgeClass(status: string): string {
       return "bg-sky-50 text-sky-900";
     case "APPROVED":
       return "bg-emerald-100 text-emerald-900";
+    case "PAID":
+      return "bg-emerald-600 text-white";
+    case "CANCELLED_BY_PROVIDER":
+      return "bg-orange-100 text-orange-900";
     case "REJECTED":
       return "bg-red-50 text-red-800";
     case "CANCELLED":
@@ -153,7 +189,40 @@ export function inquirySeekerProgressSteps(status: string): InquiryStatusStep[] 
   const submitted = true;
   const viewed = s !== "NEW";
   const decided =
-    s === "APPROVED" || s === "REJECTED" || s === "CANCELLED";
+    s === "APPROVED" ||
+    s === "REJECTED" ||
+    s === "CANCELLED" ||
+    s === "PAID" ||
+    s === "CANCELLED_BY_PROVIDER";
+
+  if (s === "CANCELLED_BY_PROVIDER") {
+    return [
+      { id: "submitted", label: "נשלחה", done: true, active: false },
+      { id: "viewed", label: "נצפתה", done: true, active: false },
+      { id: "paid", label: "שולם", done: true, active: false },
+      {
+        id: "cancelled_provider",
+        label: "בוטלה — הוחזר",
+        done: true,
+        active: true,
+        variant: "danger",
+      },
+    ];
+  }
+
+  if (s === "PAID") {
+    return [
+      { id: "submitted", label: "נשלחה", done: true, active: false },
+      { id: "viewed", label: "נצפתה", done: true, active: false },
+      {
+        id: "paid",
+        label: "שולם — סגור",
+        done: true,
+        active: true,
+        variant: "success",
+      },
+    ];
+  }
 
   if (s === "CANCELLED") {
     return [
