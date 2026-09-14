@@ -7,7 +7,7 @@ import { SITE_BRAND } from "@/lib/siteBrand";
 export const metadata: Metadata = {
   title: `EventForYou official site — halls, services, packages`,
   description:
-    "Official EventForYou website (hall-site1.vercel.app): Israeli event marketplace for venues, freelancers, and packages. Developer docs, OpenAPI, and MCP.",
+    "Official EventForYou website: Israeli event marketplace for venues, freelancers, and packages. Developer docs, OpenAPI, and MCP.",
   alternates: { canonical: "/eventforyou" },
 };
 

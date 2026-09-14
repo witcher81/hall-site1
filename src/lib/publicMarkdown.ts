@@ -1,15 +1,8 @@
 import { SITE_BRAND } from "@/lib/siteBrand";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 function siteUrl(): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  }
-  const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  if (productionHost) {
-    const host = productionHost.replace(/\/$/, "");
-    return host.startsWith("http") ? host : `https://${host}`;
-  }
-  return "https://hall-site1.vercel.app";
+  return getSiteUrl();
 }
 
 function supportEmail(): string {
@@ -28,7 +21,7 @@ export function markdownForPath(pathname: string): string {
   const pages: Record<string, string> = {
     "/": `# ${SITE_BRAND} (EventForYou)
 
-Israeli event marketplace hosted at hall-site1.vercel.app: venues (halls), freelancers/services, and event packages.
+Israeli event marketplace (${SITE_BRAND}): venues (halls), freelancers/services, and event packages.
 
 ## What is ${SITE_BRAND}?
 
@@ -119,7 +112,7 @@ Accessibility statement: ${base}/accessibility
 `,
     "/developers": `# ${SITE_BRAND} Developers (EventForYou)
 
-Public developer and AI-agent resources for ${SITE_BRAND} at hall-site1.vercel.app (Vercel).
+Public developer and AI-agent resources for ${SITE_BRAND} (${base}).
 
 - Docs: ${base}/docs
 - Developers: ${base}/developers

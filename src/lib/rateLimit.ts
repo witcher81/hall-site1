@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { isProductionRuntime } from "@/lib/isProduction";
 import { getUpstashRedisConfig } from "@/lib/upstashEnv";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 type LimiterKind = "api" | "auth" | "heavy" | "sensitive" | "analytics";
 
@@ -186,7 +187,7 @@ export async function applyRateLimit(request: NextRequest): Promise<NextResponse
     }
     return NextResponse.json(
       {
-        type: "https://hall-site1.vercel.app/developers#error-rate_limited",
+        type: `${getSiteUrl()}/developers#error-rate_limited`,
         title: "Too Many Requests",
         status: 429,
         detail: "יותר מדי בקשות. נסה שוב בעוד רגע.",
@@ -219,7 +220,7 @@ export async function applyRateLimit(request: NextRequest): Promise<NextResponse
 
   return NextResponse.json(
     {
-      type: "https://hall-site1.vercel.app/developers#error-rate_limited",
+      type: `${getSiteUrl()}/developers#error-rate_limited`,
       title: "Too Many Requests",
       status: 429,
       detail: "יותר מדי בקשות. נסה שוב בעוד רגע.",

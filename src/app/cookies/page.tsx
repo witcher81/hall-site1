@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import SitePageShell from "@/components/layout/SitePageShell";
 import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
 import CookieSettingsLink from "@/components/consent/CookieSettingsLink";
 import Link from "next/link";
 import { LEGAL_LAST_UPDATED_HE } from "@/lib/legal/constants";
 import { getLegalPlaceholders, getSiteLegalInfo } from "@/lib/siteLegal";
+
+export const metadata: Metadata = {
+  title: "מדיניות עוגיות",
+  description:
+    "מדיניות עוגיות של EventForYou — אילו עוגיות בשימוש וכיצד לנהל הסכמה.",
+  alternates: { canonical: "/cookies" },
+};
 
 export default async function CookiesPage() {
   const legal = getSiteLegalInfo();

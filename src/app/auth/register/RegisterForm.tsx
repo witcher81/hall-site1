@@ -48,13 +48,19 @@ export default function RegisterForm({
   const afterRegister = safeInternalPath(searchParams.get("redirect"));
   const isCheckout = searchParams.get("checkout") === "1";
   const isDevManage = searchParams.get("dev_manage") === "1";
+  const roleParam = searchParams.get("role");
   const nameId = useId();
   const emailId = useId();
   const phonePrefixId = useId();
   const phoneDigitsId = useId();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [businessRole, setBusinessRole] = useState<"" | BusinessRole>("");
+  const [businessRole, setBusinessRole] = useState<"" | BusinessRole>(() => {
+    if (roleParam === "FREELANCER" || roleParam === "VENUE_OWNER") {
+      return roleParam;
+    }
+    return "";
+  });
   const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileReset, setTurnstileReset] = useState(0);
@@ -169,8 +175,8 @@ export default function RegisterForm({
         ) : null}
         {variant === "business" ? (
           <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-            בחרו סוג עסק, צרו חשבון, ואחרי אימות המייל תעברו למלא פרופיל — זה
-            שלב 2.
+            שלב 1 מתוך 2: יצירת חשבון. אחר כך תמלאו פרופיל עסקי. פרסום בסיסי חינם ·
+            עמלה 10% רק על עסקה שנסגרה · בלי כרטיס אשראי.
           </p>
         ) : null}
         <a href="/" className="auth-back-link mt-3">
@@ -184,8 +190,8 @@ export default function RegisterForm({
               יש לכם עסק?
             </p>
             <p className="mt-1 text-sm leading-relaxed text-neutral-700">
-              בעלי אולמות וספקי שירותים — הרשמה נפרדת, ואחרי אימות המייל ממלאים
-              פרופיל עסקי.
+              בעלי אולמות וספקי שירותים — הרשמה נפרדת, פרסום בסיסי חינם, ואז
+              השלמת פרופיל עסקי.
             </p>
             <a
               href={
@@ -216,6 +222,16 @@ export default function RegisterForm({
           onSubmit={handleSubmit}
           className="site-card-padded mt-6 space-y-4 text-right"
         >
+          {variant === "business" ? (
+            <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/70 px-3 py-2.5 text-xs leading-relaxed text-emerald-950">
+              <p className="font-semibold">שלב 1 מתוך 2 — יצירת חשבון</p>
+              <ul className="mt-1 list-inside list-disc space-y-0.5 text-neutral-700">
+                <li>פרסום בסיסי חינם</li>
+                <li>עמלה 10% רק על עסקה שנסגרה (לא על לידים)</li>
+                <li>בלי כרטיס אשראי</li>
+              </ul>
+            </div>
+          ) : null}
           {variant === "business" ? (
             <div>
               <p className="block text-xs font-medium text-neutral-600">
@@ -308,14 +324,19 @@ export default function RegisterForm({
                 autoComplete="tel-national"
                 required
                 minLength={7}
-                maxLength={7}
-                pattern="[0-9]{7}"
-                placeholder="7 ספרות"
+                maxLength={10}
+                placeholder="7 ספרות או מספר מלא"
                 aria-label="מספר טלפון נייד ללא קידומת"
                 className="site-input site-input--grow"
                 onInput={(e) => {
                   const el = e.currentTarget;
-                  el.value = el.value.replace(/\D/g, "").slice(0, 7);
+                  const digits = el.value.replace(/\D/g, "");
+                  // הדבקת מספר מלא — משאירים עד 10 ספרות; אחרת 7
+                  if (digits.startsWith("05") && digits.length > 7) {
+                    el.value = digits.slice(0, 10);
+                  } else {
+                    el.value = digits.slice(0, 7);
+                  }
                 }}
               />
             </div>

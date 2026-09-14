@@ -16,7 +16,11 @@ const STEPS = [
   },
 ] as const;
 
-export default function HomeHowItWorks() {
+export default function HomeHowItWorks({
+  publishedProviderCount = 0,
+}: {
+  publishedProviderCount?: number;
+}) {
   return (
     <section>
       <div className="home-surface-panel mx-auto max-w-6xl p-8 sm:p-10">
@@ -26,6 +30,11 @@ export default function HomeHowItWorks() {
         <p className="mt-2 text-center text-sm text-neutral-600">
           שלושה שלבים פשוטים לתכנון אירוע מסודר
         </p>
+        {publishedProviderCount > 0 ? (
+          <p className="mt-3 text-center text-sm font-semibold text-emerald-900">
+            {publishedProviderCount.toLocaleString("he-IL")} ספקים נרשמו
+          </p>
+        ) : null}
         <ol className="mt-10 grid gap-8 sm:grid-cols-3">
           {STEPS.map((step) => (
             <li key={step.n} className="text-center">

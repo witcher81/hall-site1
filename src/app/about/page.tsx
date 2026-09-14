@@ -3,6 +3,7 @@ import Link from "next/link";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { getLegalPlaceholders, getSiteLegalInfo } from "@/lib/siteLegal";
 import { SITE_BRAND } from "@/lib/siteBrand";
+import { buildWhatsAppUrl } from "@/lib/whatsappContact";
 
 export const metadata: Metadata = {
   title: `אודות ${SITE_BRAND}`,
@@ -14,6 +15,10 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   const legal = getSiteLegalInfo();
   const p = getLegalPlaceholders();
+  const waUrl = buildWhatsAppUrl(
+    legal.contactWhatsApp,
+    `שלום, פנייה מדף האודות ב-${SITE_BRAND}`
+  );
 
   return (
     <SitePageShell>
@@ -33,6 +38,14 @@ export default function AboutPage() {
           ישירות דרך הפלטפורמה. הכל בעברית, עם דגש על חוויית שימוש נקייה ונגישה.
         </p>
 
+        <h2 className="text-lg font-semibold text-[var(--heading)]">מי אנחנו</h2>
+        <p>
+          {SITE_BRAND} נבנה על ידי צוות ישראלי קטן שמתמקד במוצר אחד: לפשט את
+          תכנון האירוע — חיפוש, השוואה ופנייה במקום אחד, בלי רעש מיותר. אנחנו
+          משפרים את הפלטפורמה לפי פידבק אמיתי ממחפשים ומספקים, ושומרים על מודל
+          מתווך שקוף: פרסום בסיסי ללא עלות מראש, ועמלה רק כשנסגרת עסקה דרך האתר.
+        </p>
+
         <h2 className="text-lg font-semibold text-[var(--heading)]">למי זה מיועד</h2>
         <ul className="list-inside list-disc space-y-1 text-[var(--muted)]">
           <li>מחפשים לאירוע — אולמות, ספקים או שניהם (חתונות, בר/בת מצווה, אירועים פרטיים ועסקיים)</li>
@@ -42,18 +55,29 @@ export default function AboutPage() {
 
         <h2 className="text-lg font-semibold text-[var(--heading)]">פרטי העסק</h2>
         <dl className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50/80 p-4 text-sm">
-          <div>
-            <dt className="font-semibold text-[var(--heading)]">שם משפטי</dt>
-            <dd className="text-[var(--muted)]">{p.businessLegalName}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-[var(--heading)]">מספר זיהוי (ח.פ. / ע.מ.)</dt>
-            <dd className="text-[var(--muted)]">{p.businessIdTypeAndNumber}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-[var(--heading)]">כתובת</dt>
-            <dd className="text-[var(--muted)]">{p.businessAddress}</dd>
-          </div>
+          {p.businessLegalName ? (
+            <div>
+              <dt className="font-semibold text-[var(--heading)]">שם משפטי</dt>
+              <dd className="text-[var(--muted)]">{p.businessLegalName}</dd>
+            </div>
+          ) : (
+            <div>
+              <dt className="font-semibold text-[var(--heading)]">שם המותג</dt>
+              <dd className="text-[var(--muted)]">{SITE_BRAND}</dd>
+            </div>
+          )}
+          {p.businessIdTypeAndNumber ? (
+            <div>
+              <dt className="font-semibold text-[var(--heading)]">מספר זיהוי (ח.פ. / ע.מ.)</dt>
+              <dd className="text-[var(--muted)]">{p.businessIdTypeAndNumber}</dd>
+            </div>
+          ) : null}
+          {p.businessAddress ? (
+            <div>
+              <dt className="font-semibold text-[var(--heading)]">כתובת</dt>
+              <dd className="text-[var(--muted)]">{p.businessAddress}</dd>
+            </div>
+          ) : null}
           {legal.contactPhone ? (
             <div>
               <dt className="font-semibold text-[var(--heading)]">טלפון</dt>
@@ -63,6 +87,21 @@ export default function AboutPage() {
                   href={`tel:${legal.contactPhone.replace(/\s/g, "")}`}
                 >
                   {legal.contactPhone}
+                </a>
+              </dd>
+            </div>
+          ) : null}
+          {waUrl ? (
+            <div>
+              <dt className="font-semibold text-[var(--heading)]">WhatsApp</dt>
+              <dd>
+                <a
+                  className="text-[var(--heading)] underline"
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  שליחת הודעה
                 </a>
               </dd>
             </div>

@@ -7,7 +7,7 @@ import { getSiteUrl } from "@/lib/siteUrl";
 export const metadata: Metadata = {
   title: `EventForYou on Vercel — developer resources, API, OpenAPI, MCP`,
   description:
-    "EventForYou (hall-site1.vercel.app) developer resources on Vercel: public REST API, OpenAPI, MCP server card, llms.txt, auth and webhook notes.",
+    "EventForYou developer resources on Vercel: public REST API, OpenAPI, MCP server card, llms.txt, auth and webhook notes.",
   alternates: { canonical: "/developers/vercel" },
 };
 
@@ -25,8 +25,8 @@ export default function EventForYouOnVercelPage() {
         </h1>
         <p dir="ltr" className="text-left text-[var(--muted)]">
           This is the EventForYou product (Israeli event marketplace) deployed on
-          Vercel at <strong>hall-site1.vercel.app</strong>. Developer resources
-          below belong to EventForYou, not to the Vercel platform itself.
+          Vercel at <strong>{base.replace(/^https?:\/\//, "")}</strong>. Developer
+          resources below belong to EventForYou, not to the Vercel platform itself.
         </p>
 
         <h2 className="text-lg font-semibold text-[var(--heading)]">

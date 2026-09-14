@@ -1,14 +1,23 @@
+import type { Metadata } from "next";
 import SitePageShell from "@/components/layout/SitePageShell";
 import Link from "next/link";
 import SiteLegalNotice from "@/components/layout/SiteLegalNotice";
+import { LEGAL_LAST_UPDATED_HE } from "@/lib/legal/constants";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
+
+export const metadata: Metadata = {
+  title: "הצהרת נגישות",
+  description:
+    "הצהרת נגישות של EventForYou — התאמות לנגישות דיגיטלית ודרכי פנייה.",
+  alternates: { canonical: "/accessibility" },
+};
 
 export default async function AccessibilityPage() {
   const legal = getSiteLegalInfo();
   return (
     <SitePageShell mainWidth="legal">
       <h1 className="site-page-title">הצהרת נגישות</h1>
-      <p className="mt-2 text-xs text-neutral-600">עודכן: אוגוסט 2026</p>
+      <p className="mt-2 text-xs text-neutral-600">עודכן: {LEGAL_LAST_UPDATED_HE}</p>
       <SiteLegalNotice show={legal.isPlaceholder} />
 
       <div className="site-card-padded prose prose-sm mt-8 max-w-none space-y-4 text-sm leading-relaxed text-neutral-800">

@@ -272,12 +272,12 @@ export async function buildSuggestedPackages(
             label: slot.label,
             kind: "venue",
             id: null,
-            name: "לא נמצא אולם מתאים באזור",
+            name: "חסר במאגר — נעדכן כשיהיו אולמות",
             href: `/halls?eventType=${encodeURIComponent(eventType)}${area ? `&city=${encodeURIComponent(area)}` : ""}`,
             priceFrom: null,
             priceTo: null,
             missing: true,
-            note: "נסו אזור אחר או הרחיבו חיפוש",
+            note: "חסר במאגר — נעדכן כשיהיו ספקים",
           });
           continue;
         }
@@ -305,7 +305,7 @@ export async function buildSuggestedPackages(
           label: slot.label,
           kind: "service",
           id: null,
-          name: `לא נמצא עדיין: ${slot.label}`,
+          name: `חסר במאגר: ${slot.label}`,
           href: `/providers?category=${encodeURIComponent(slot.category)}${
             slot.secondary
               ? `&secondary=${encodeURIComponent(slot.secondary)}`
@@ -314,7 +314,9 @@ export async function buildSuggestedPackages(
           priceFrom: null,
           priceTo: null,
           missing: true,
-          note: slot.required ? "מומלץ להשלים" : "אופציונלי",
+          note: slot.required
+            ? "חסר במאגר — נעדכן כשיהיו ספקים"
+            : "אופציונלי · חסר במאגר כרגע",
         });
         continue;
       }

@@ -11,8 +11,8 @@ export default function DevelopersGuide() {
         {SITE_BRAND} (EventForYou) — Developers, API & AI agents
       </h1>
       <p dir="ltr" className="text-left text-[var(--muted)]">
-        Public developer resources for EventForYou at hall-site1.vercel.app: REST API
-        docs, OpenAPI, auth (none required for public read), webhooks (inbound, private),
+        Public developer resources for EventForYou ({base}): REST API docs,
+        OpenAPI, auth (none required for public read), webhooks (inbound, private),
         and MCP server. No API key for machine-readable docs and public search.
       </p>
 

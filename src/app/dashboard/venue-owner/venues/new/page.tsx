@@ -1386,7 +1386,9 @@ export default function NewVenuePage() {
                                 פרטי חתונה בלבד
                               </p>
                               <p className="mb-2 text-[11px] leading-relaxed text-rose-900/80">
-                                בטופס פנייה לחתונה יופיעו כאן סוגי החופה. חובה לסמן לפחות אחד: חופה בחוץ או חופה מקורה.
+                                בטופס פנייה לחתונה יופיעו כאן סוגי החופה.{" "}
+                                <span className="font-bold">שדה חובה *</span> —
+                                סמנו לפחות אחד לפני שמירה: חופה בחוץ או חופה מקורה.
                               </p>
                               <div className="grid gap-2 sm:grid-cols-2">
                             {(

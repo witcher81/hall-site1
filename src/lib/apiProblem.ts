@@ -2,6 +2,8 @@
  * RFC 9457-ish problem details + stable error codes for public API agents.
  */
 
+import { getSiteUrl } from "@/lib/siteUrl";
+
 export type ApiProblem = {
   type: string;
   title: string;
@@ -21,7 +23,7 @@ export function problemJson(
   instance?: string
 ): ApiProblem {
   return {
-    type: `https://hall-site1.vercel.app/developers#error-${code}`,
+    type: `${getSiteUrl()}/developers#error-${code}`,
     title,
     status,
     detail,

@@ -25,9 +25,10 @@ import { parseServiceCategorySelections } from "@/lib/freelancerServiceCategorie
 import { saveServiceImageFile } from "@/lib/serviceImageUpload";
 import {
   logListingSubmittedForReview,
-  moderationFieldsForNewListing,
-  moderationFieldsForOwnerEdit,
+  moderationFieldsForServiceCreate,
+  moderationFieldsForServiceOwnerEdit,
 } from "@/lib/listingModerationService";
+import { getServiceListingReadiness } from "@/lib/serviceListingReadiness";
 import { notifyAdminsNewListing } from "@/lib/notifyAdminsNewListing";
 import {
   USER_INPUT_MAX,
@@ -296,12 +297,25 @@ export async function POST(req: NextRequest) {
     if (saved) galleryImageUrls.push(saved);
   }
 
+  const shortDescription = deriveServiceShortDescription(descCheck.value);
+  const finalMenuJson = serviceUsesCatalogEditor(catCheck.value) ? menuJson : null;
+  const readiness = getServiceListingReadiness({
+    category: catCheck.value,
+    serviceArea: areaCheck.value,
+    shortDescription,
+    description: descCheck.value,
+    coverImageUrl,
+    minPrice: resolvedPrices.minPrice,
+    maxPrice: resolvedPrices.maxPrice,
+    menuJson: finalMenuJson,
+  });
+
   const service = await prisma.service.create({
     data: {
       providerId: user.id,
       name: nameCheck.value,
       category: catCheck.value,
-      shortDescription: deriveServiceShortDescription(descCheck.value),
+      shortDescription,
       description: descCheck.value,
       serviceArea: areaCheck.value,
       experienceYears,
@@ -311,14 +325,14 @@ export async function POST(req: NextRequest) {
       includesTravel,
       includesEquipment,
       customIncludesJson,
-      menuJson: serviceUsesCatalogEditor(catCheck.value) ? menuJson : null,
+      menuJson: finalMenuJson,
       includesNote,
       coverImageUrl,
       galleryImageUrls:
         galleryImageUrls.length > 0 ? JSON.stringify(galleryImageUrls) : null,
       minPrice: resolvedPrices.minPrice,
       maxPrice: resolvedPrices.maxPrice,
-      ...moderationFieldsForNewListing(),
+      ...moderationFieldsForServiceCreate(readiness.ready),
     },
   });
 
@@ -549,12 +563,27 @@ export async function PUT(req: NextRequest) {
     galleryImageUrls = current.length > 0 ? JSON.stringify(current) : null;
   }
 
+  const shortDescriptionPut = deriveServiceShortDescription(descCheckPut.value);
+  const finalMenuJsonPut = serviceUsesCatalogEditor(catCheckPut.value)
+    ? menuJson
+    : null;
+  const readinessPut = getServiceListingReadiness({
+    category: catCheckPut.value,
+    serviceArea: areaCheckPut.value,
+    shortDescription: shortDescriptionPut,
+    description: descCheckPut.value,
+    coverImageUrl,
+    minPrice: resolvedPricesPut.minPrice,
+    maxPrice: resolvedPricesPut.maxPrice,
+    menuJson: finalMenuJsonPut,
+  });
+
   const service = await prisma.service.update({
     where: { id },
     data: {
       name: nameCheckPut.value,
       category: catCheckPut.value,
-      shortDescription: deriveServiceShortDescription(descCheckPut.value),
+      shortDescription: shortDescriptionPut,
       description: descCheckPut.value,
       serviceArea: areaCheckPut.value,
       experienceYears,
@@ -564,16 +593,19 @@ export async function PUT(req: NextRequest) {
       includesTravel,
       includesEquipment,
       customIncludesJson,
-      menuJson: serviceUsesCatalogEditor(catCheckPut.value) ? menuJson : null,
+      menuJson: finalMenuJsonPut,
       includesNote,
       coverImageUrl,
       galleryImageUrls,
       minPrice: resolvedPricesPut.minPrice,
       maxPrice: resolvedPricesPut.maxPrice,
-      ...moderationFieldsForOwnerEdit({
-        moderationStatus: existing.moderationStatus,
-        contentRevision: existing.contentRevision,
-      }),
+      ...moderationFieldsForServiceOwnerEdit(
+        {
+          moderationStatus: existing.moderationStatus,
+          contentRevision: existing.contentRevision,
+        },
+        readinessPut.ready
+      ),
     },
   });
 

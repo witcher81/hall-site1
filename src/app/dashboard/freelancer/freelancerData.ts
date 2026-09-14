@@ -5,6 +5,10 @@ import {
 } from "@/lib/unreadCounts";
 import { isFreelancerBusinessProfileIncomplete } from "@/lib/businessProfile";
 import { serviceRequestStatusLabel } from "@/lib/serviceRequestStatus";
+import {
+  getServiceListingReadiness,
+  type ServiceReadinessCheck,
+} from "@/lib/serviceListingReadiness";
 import type {
   DashboardActivityItem,
   DashboardAttentionItem,
@@ -12,6 +16,20 @@ import type {
   DashboardQuickAction,
 } from "@/components/dashboard/businessDashboardTypes";
 import { formatDashboardDate } from "@/components/dashboard/businessDashboardTypes";
+
+export type FreelancerOnboardingChecklist = {
+  percent: number;
+  doneCount: number;
+  total: number;
+  items: Array<{ id: string; label: string; done: boolean; href: string }>;
+};
+
+function profilePhoneOk(dbUser: {
+  phone: string | null;
+  businessPhone: string | null;
+}): boolean {
+  return Boolean(dbUser.businessPhone?.trim() || dbUser.phone?.trim());
+}
 
 export async function getFreelancerDashboardData(providerId: number) {
   const [dbUser, services] = await Promise.all([
@@ -116,6 +134,29 @@ export async function getFreelancerDashboardData(providerId: number) {
     });
   }
 
+  const primaryService = services[0] ?? null;
+  const serviceReady = primaryService
+    ? getServiceListingReadiness(primaryService)
+    : null;
+  const incompleteServices = services.filter(
+    (s) => !getServiceListingReadiness(s).ready
+  );
+  if (incompleteServices.length > 0) {
+    const first = incompleteServices[0];
+    attention.push({
+      id: "service-mvp-incomplete",
+      title:
+        incompleteServices.length === 1
+          ? `השלימו את «${first.name}» לפרסום`
+          : `${incompleteServices.length} שירותים ממתינים להשלמה`,
+      subtitle:
+        "נדרשים: קטגוריה, אזור שירות, מחיר/חבילה, תמונה ראשית ותיאור קצר",
+      href: `/dashboard/freelancer/services/${first.id}/edit`,
+      badge: "פרסום",
+      tone: "amber",
+    });
+  }
+
   if (unreadMessages > 0) {
     attention.push({
       id: "unread-messages",
@@ -183,6 +224,10 @@ export async function getFreelancerDashboardData(providerId: number) {
     })),
   ].slice(0, 8);
 
+  const publishedCount = services.filter(
+    (s) => s.moderationStatus === "APPROVED"
+  ).length;
+
   const kpis: DashboardKpi[] = [
     {
       label: "בקשות חדשות",
@@ -207,9 +252,13 @@ export async function getFreelancerDashboardData(providerId: number) {
       tone: unreadNotifications > 0 ? "amber" : "default",
     },
     {
-      label: "שירותים פעילים",
-      value: services.length,
+      label: "שירותים מפורסמים",
+      value: publishedCount,
       href: "/dashboard/freelancer/services",
+      hint:
+        services.length > publishedCount
+          ? `${services.length - publishedCount} בהשלמה`
+          : undefined,
       tone: "emerald",
     },
   ];
@@ -227,16 +276,66 @@ export async function getFreelancerDashboardData(providerId: number) {
     { href: "/dashboard/freelancer/profile", label: "פרופיל ספק" },
   ];
 
+  const brandOk = Boolean(dbUser?.businessName?.trim());
+  const phoneOk = dbUser ? profilePhoneOk(dbUser) : false;
+  const hasService = services.length > 0;
+  const serviceChecks: ServiceReadinessCheck[] = serviceReady?.checks ?? [
+    { id: "category", label: "קטגוריית שירות", done: false },
+    { id: "serviceArea", label: "אזור שירות", done: false },
+    { id: "price", label: "מחיר או חבילה אחת לפחות", done: false },
+    { id: "coverImage", label: "תמונה ראשית", done: false },
+    { id: "description", label: "תיאור קצר", done: false },
+  ];
+  const serviceEditHref = primaryService
+    ? `/dashboard/freelancer/services/${primaryService.id}/edit`
+    : "/dashboard/freelancer/services/new";
+
+  const onboardingItems: FreelancerOnboardingChecklist["items"] = [
+    {
+      id: "brand",
+      label: "שם מותג / עסק",
+      done: brandOk,
+      href: "/dashboard/freelancer/profile",
+    },
+    {
+      id: "phone",
+      label: "טלפון ליצירת קשר",
+      done: phoneOk,
+      href: "/dashboard/freelancer/profile",
+    },
+    {
+      id: "service",
+      label: "שירות אחד לפחות",
+      done: hasService,
+      href: "/dashboard/freelancer/services/new",
+    },
+    ...serviceChecks.map((c) => ({
+      id: c.id,
+      label: c.label,
+      done: hasService && c.done,
+      href: serviceEditHref,
+    })),
+  ];
+  const onboardingDone = onboardingItems.filter((i) => i.done).length;
+  const onboarding: FreelancerOnboardingChecklist = {
+    items: onboardingItems,
+    doneCount: onboardingDone,
+    total: onboardingItems.length,
+    percent: Math.round((onboardingDone / onboardingItems.length) * 100),
+  };
+
   return {
     dbUser,
     services,
     profileIncomplete,
+    onboarding,
     stats: {
       newRequestCount,
       openRequestCount,
       unreadMessages,
       unreadNotifications,
       serviceCount: services.length,
+      publishedCount,
     },
     kpis,
     attention: attention.slice(0, 10),

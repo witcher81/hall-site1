@@ -25,6 +25,7 @@ export default async function FreelancerDashboardPage() {
           initial={{
             services: data.services,
             profileIncomplete: data.profileIncomplete,
+            onboarding: data.onboarding,
             kpis: data.kpis,
             attention: data.attention,
             activity: data.activity,

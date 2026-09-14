@@ -49,8 +49,8 @@ export default function BusinessesListClient() {
   return (
     <div className="space-y-4">
       <AdminPageHeader
-        title="עסקים חדשים לבדיקה"
-        description="לחצו על עסק כדי לראות פרטים, פרסומים ופעולות."
+        title="עסקים חדשים (תור לצוות)"
+        description="סימון פנימי לצוות בלבד — לא חוסם את בעל העסק מלפרסם. לחצו לעסק לפרטים ופעולות."
       />
 
       {error ? <AdminErrorBanner message={error} onRetry={() => void load()} /> : null}
@@ -77,7 +77,7 @@ export default function BusinessesListClient() {
                     dateStyle: "medium",
                     timeStyle: "short",
                   })}${listingCount > 0 ? ` · ${listingCount} פרסומים` : " · בלי פרסום עדיין"}`}
-                  badge="לבדיקה"
+                  badge="חדש לצוות"
                   badgeTone="amber"
                 />
               </li>

@@ -1,9 +1,16 @@
 import { requireVerifiedSession } from "@/lib/requireSession";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import FavoritesClient from "./FavoritesClient";
+
+export const metadata: Metadata = {
+  title: "המועדפים שלי",
+  description: "אולמות ושירותים ששמרת ב-EventForYou.",
+  robots: { index: false, follow: false },
+};
 
 export default async function FavoritesPage() {
   const user = await requireVerifiedSession("/favorites");

@@ -219,7 +219,7 @@ export default function AdminUsersClient() {
                         {(u.role === "VENUE_OWNER" || u.role === "FREELANCER") &&
                         !u.adminReviewedAt &&
                         !u.isBlocked ? (
-                          <span className="admin-tag admin-tag--pending">לבדיקה</span>
+                          <span className="admin-tag admin-tag--pending">חדש לצוות</span>
                         ) : null}
                       </div>
                     </td>

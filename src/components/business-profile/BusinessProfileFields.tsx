@@ -7,7 +7,8 @@ import {
   type BusinessProfileRole,
   type BusinessProfileValues,
 } from "@/lib/businessProfile";
-import { isValidIsraeliPhone, normalizePhoneInput } from "@/lib/phone";
+import { isValidIsraeliMobilePhone } from "@/lib/israeliPhone";
+import { formatIsraeliMobileDisplay } from "@/lib/phone";
 import type { SocialLink } from "@/lib/socialLinks";
 import { useId, useRef, useState } from "react";
 
@@ -129,7 +130,7 @@ export default function BusinessProfileFields({
             בחרו קידומת והזינו 7 ספרות (סה״כ 10 ספרות כולל 0). משמש גיבוי ליצירת
             קשר אם לא הוזן טלפון עסקי.
           </p>
-          {values.phone.trim() && !isValidIsraeliPhone(values.phone) ? (
+          {values.phone.trim() && !isValidIsraeliMobilePhone(values.phone) ? (
             <p className="mt-1 text-xs text-red-700">מספר לא תקין</p>
           ) : null}
         </div>
@@ -254,20 +255,18 @@ export default function BusinessProfileFields({
             טלפון עסקי{" "}
             <span className="font-normal text-[var(--muted)]">(אופציונלי)</span>
           </label>
-          <input
-            id="biz-phone"
-            type="tel"
-            inputMode="numeric"
-            maxLength={10}
-            dir="ltr"
+          <IsraeliMobilePhoneInput
             value={values.businessPhone}
-            onChange={(e) =>
-              onChange({ businessPhone: normalizePhoneInput(e.target.value) })
-            }
-            className={`${input} text-left`}
-            placeholder="0501234567"
+            onChange={(businessPhone) => onChange({ businessPhone })}
+            forceMobile
           />
-          <p className={hintClass}>{hints.businessPhone}</p>
+          {values.businessPhone.trim() ? (
+            <p className={`${hintClass} tabular-nums`} dir="ltr">
+              לתצוגה: {formatIsraeliMobileDisplay(values.businessPhone)}
+            </p>
+          ) : (
+            <p className={hintClass}>{hints.businessPhone}</p>
+          )}
         </div>
 
         <div>

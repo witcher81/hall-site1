@@ -67,7 +67,7 @@ export function buildSoftwareApplicationJsonLd() {
     operatingSystem: "Web",
     url,
     description:
-      "EventForYou marketplace for Israeli event halls, service providers, and packages. Official site: hall-site1.vercel.app",
+      `EventForYou marketplace for Israeli event halls, service providers, and packages. Official site: ${url}`,
     offers: {
       "@type": "Offer",
       price: "0",

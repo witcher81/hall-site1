@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import PasswordInput from "@/components/PasswordInput";
 import { isCaptchaSubmitReady } from "@/lib/turnstileClient";
+import { defaultPathAfterAuth } from "@/lib/postAuthRedirect";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -79,8 +80,10 @@ function LoginForm() {
         router.push(`/auth/verify-email${verifyQ}`);
       } else if (afterLogin) {
         router.push(afterLogin);
+      } else if (data?.needsBusinessOnboarding === true) {
+        router.push(defaultPathAfterAuth(role));
       } else if (role === "VENUE_OWNER") {
-        router.push("/dashboard/venue-owner/profile");
+        router.push("/dashboard/venue-owner");
       } else if (role === "FREELANCER") {
         router.push("/dashboard/freelancer");
       } else {

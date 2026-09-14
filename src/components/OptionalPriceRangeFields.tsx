@@ -143,11 +143,11 @@ export default function OptionalPriceRangeFields({
         <div>
           {singleLabel ? <p className={titleClass}>{singleLabel}</p> : null}
           <input
-            type="number"
-            min={0}
+            type="text"
+            inputMode="numeric"
             value={singleValue}
             onChange={(e) => {
-              const v = e.target.value;
+              const v = e.target.value.replace(/[^\d]/g, "");
               onChange(v, v);
             }}
             className={inputClassName}
@@ -173,10 +173,12 @@ export default function OptionalPriceRangeFields({
                 {minLabel}
               </label>
               <input
-                type="number"
-                min={0}
+                type="text"
+                inputMode="numeric"
                 value={minPrice}
-                onChange={(e) => onChange(e.target.value, maxPrice)}
+                onChange={(e) =>
+                  onChange(e.target.value.replace(/[^\d]/g, ""), maxPrice)
+                }
                 className={inputClassName}
                 placeholder="150"
               />
@@ -186,10 +188,12 @@ export default function OptionalPriceRangeFields({
                 {maxLabel}
               </label>
               <input
-                type="number"
-                min={0}
+                type="text"
+                inputMode="numeric"
                 value={maxPrice}
-                onChange={(e) => onChange(minPrice, e.target.value)}
+                onChange={(e) =>
+                  onChange(minPrice, e.target.value.replace(/[^\d]/g, ""))
+                }
                 className={inputClassName}
                 placeholder="350"
               />

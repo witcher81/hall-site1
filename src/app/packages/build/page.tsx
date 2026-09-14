@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
 import PackageSuggestClient from "./PackageSuggestClient";
 
 export const runtime = "nodejs";
+
+export const metadata: Metadata = {
+  title: "בניית חבילת אירוע",
+  description:
+    "בחרו סוג אירוע, אזור ומספר אורחים — EventForYou מרכיב הצעת אולם וספקים.",
+  alternates: { canonical: "/packages/build" },
+};
 
 export default function PackageBuildPage() {
   return (

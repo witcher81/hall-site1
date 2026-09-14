@@ -29,7 +29,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "EventForYou – מקום אחד לכל האירועים | hall-site1.vercel.app",
+    default: "EventForYou – מקום אחד לכל האירועים",
     template: "%s | EventForYou",
   },
   description:

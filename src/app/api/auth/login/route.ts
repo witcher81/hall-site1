@@ -15,6 +15,10 @@ import { sendEmailVerificationForUser, verificationEmailClientPayload } from "@/
 import { validateEmail, validateLoginPassword } from "@/lib/userInputValidation";
 import { USER_FACING_GENERIC, USER_FACING_LOGIN_INVALID } from "@/lib/userFacingErrors";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import {
+  isFreelancerBusinessProfileIncomplete,
+  isVenueOwnerBusinessProfileIncomplete,
+} from "@/lib/businessProfile";
 
 export async function POST(req: NextRequest) {
   try {
@@ -75,6 +79,13 @@ export async function POST(req: NextRequest) {
       emailVerified,
     };
 
+    const needsBusinessOnboarding =
+      user.role === "FREELANCER"
+        ? isFreelancerBusinessProfileIncomplete(user)
+        : user.role === "VENUE_OWNER"
+          ? isVenueOwnerBusinessProfileIncomplete(user)
+          : false;
+
     if (!emailVerified) {
       await setPendingVerificationCookie(user.id);
 
@@ -94,6 +105,7 @@ export async function POST(req: NextRequest) {
           {
             user: authUser,
             requiresEmailVerification: true,
+            needsBusinessOnboarding,
             email: user.email,
             ...emailPayload,
           },
@@ -112,6 +124,7 @@ export async function POST(req: NextRequest) {
       const res = NextResponse.json(
         {
           requiresEmailVerification: true,
+          needsBusinessOnboarding,
           email: user.email,
           ...emailPayload,
         },
@@ -125,7 +138,11 @@ export async function POST(req: NextRequest) {
     await setSessionCookie(token);
 
     const res = NextResponse.json(
-      { user: authUser, requiresEmailVerification: false },
+      {
+        user: authUser,
+        requiresEmailVerification: false,
+        needsBusinessOnboarding,
+      },
       { status: 200 }
     );
     setSessionCookieOnResponse(res, token);

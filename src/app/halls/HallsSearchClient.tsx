@@ -36,6 +36,7 @@ import VenueTypeSelect from "@/components/VenueTypeSelect";
 import HallsMapSection from "@/components/HallsMapSection";
 import type { MapVenue } from "@/components/VenuesMapClient";
 import LoginPromptModal from "@/components/LoginPromptModal";
+import { stashPendingFavorite } from "@/lib/pendingFavorites";
 import VenueOfferProductsSection from "@/components/VenueOfferProductsSection";
 import { hasFunctionalConsent } from "@/lib/cookieConsent";
 import type { PublicVenueListItem } from "@/lib/publicVenuesSearch";
@@ -414,6 +415,7 @@ function VenueResultCard({
             e.preventDefault();
             e.stopPropagation();
             if (!userLoggedIn) {
+              stashPendingFavorite({ type: "venue", id: v.id });
               onGuestFavorite?.();
               return;
             }
@@ -1445,24 +1447,42 @@ export default function HallsSearchClient({
       {loading ? (
         <HallsResultsSkeleton />
       ) : venues.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-8 text-center text-sm text-neutral-600 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
-          <p>
-            {form.city.trim()
-              ? `אין עדיין אולמות ב${form.city.trim()}. נסו עיר אחרת או הסירו את סינון העיר.`
-              : "לא נמצאו אולמות לפי הסינון. נסה לשנות פרמטרים או להשאיר שדות ריקים."}
+        <div className="rounded-2xl border border-dashed border-amber-300/60 bg-amber-50/50 p-8 text-center text-sm text-neutral-700 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
+          <p className="font-semibold text-emerald-950">
+            הקטלוג בבנייה — בעלי אולמות מוזמנים להצטרף
           </p>
-          {searchParams.toString() ? (
-            <p className="mt-2 text-xs text-neutral-500">
-              ייתכן שחיפוש קודם נשמר בדפדפן ומסנן תוצאות.
-            </p>
-          ) : null}
-          <button
-            type="button"
-            onClick={clearAllFilters}
-            className="btn-primary mt-4 px-6 py-2 text-sm"
-          >
-            נקה את כל הסינון
-          </button>
+          <p className="mt-2 leading-relaxed">
+            {form.city.trim()
+              ? `עדיין אין אולמות ב${form.city.trim()}. אפשר לנסות עיר אחרת, או להירשם כבעל אולם.`
+              : "עדיין אין אולמות בחיפוש. פרסום בסיסי חינם — עמלה רק על עסקה שנסגרה."}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <a
+              href="/for-venues"
+              className="inline-flex rounded-full bg-amber-400 px-5 py-2.5 text-sm font-bold text-neutral-950 hover:bg-amber-300"
+            >
+              לבעלי אולמות
+            </a>
+            <a
+              href="/auth/register/business?role=VENUE_OWNER"
+              className="inline-flex rounded-full border border-emerald-950/25 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-950 hover:border-amber-400/60"
+            >
+              הרשמה כבעל אולם
+            </a>
+            <a
+              href="/for-freelancers"
+              className="inline-flex rounded-full border border-emerald-950/25 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-950 hover:border-amber-400/60"
+            >
+              גם לספקי שירותים
+            </a>
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="inline-flex rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50"
+            >
+              נקה סינון
+            </button>
+          </div>
         </div>
       ) : (
         <>

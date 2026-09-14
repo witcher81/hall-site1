@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { CatalogTemplate } from "@/lib/serviceCategoryTemplates";
+import { formatDurationHoursHe } from "@/lib/hebrewPlural";
 import {
   catalogPackageUsesPerGuestMultiplier,
   estimatePackageTotal,
@@ -411,7 +412,7 @@ export default function ServiceMenuPublicSection({
                             </div>
                             {pkg.durationHours != null ? (
                               <p className="mt-1 text-[10px] text-neutral-500">
-                                משך: {pkg.durationHours} שעות
+                                {formatDurationHoursHe(pkg.durationHours)}
                               </p>
                             ) : null}
                             {pkg.description?.trim() ? (

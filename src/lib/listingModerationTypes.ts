@@ -40,7 +40,7 @@ export function isListingPubliclyVisible(
 }
 
 export const LISTING_MODERATION_LABELS: Record<ListingModerationStatusValue, string> = {
-  PENDING: "ממתין לאישור",
+  PENDING: "טרם פורסם",
   APPROVED: "מפורסם",
   REJECTED: "נדחה",
 };

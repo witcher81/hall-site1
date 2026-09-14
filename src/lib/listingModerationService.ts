@@ -66,6 +66,65 @@ export function moderationFieldsForOwnerEdit(
   };
 }
 
+/** שירות חדש: מפורסם רק כש־MVP מושלם */
+export function moderationFieldsForServiceCreate(isReady: boolean): Pick<
+  Prisma.ServiceCreateInput,
+  | "moderationStatus"
+  | "submittedForReviewAt"
+  | "contentRevision"
+  | "moderationNote"
+  | "moderatedAt"
+  | "moderatedByUserId"
+> {
+  if (isReady) return moderationFieldsForNewListing();
+  const now = new Date();
+  return {
+    moderationStatus: ListingModerationStatus.PENDING,
+    submittedForReviewAt: now,
+    contentRevision: 1,
+    moderationNote:
+      "השלימו קטגוריה, אזור שירות, מחיר/חבילה, תמונה ראשית ותיאור קצר לפני פרסום.",
+    moderatedAt: null,
+    moderatedByUserId: null,
+  };
+}
+
+/** עריכת שירות: לא מפורסם בלי MVP; REJECTED נשאר עד השלמה */
+export function moderationFieldsForServiceOwnerEdit(
+  current: {
+    moderationStatus: string;
+    contentRevision: number;
+  },
+  isReady: boolean
+): Pick<
+  Prisma.ServiceUpdateInput,
+  | "moderationStatus"
+  | "submittedForReviewAt"
+  | "contentRevision"
+  | "moderationNote"
+  | "moderatedAt"
+  | "moderatedByUserId"
+> {
+  if (!isReady) {
+    const now = new Date();
+    const wasLive =
+      current.moderationStatus === ListingModerationStatus.APPROVED ||
+      current.moderationStatus === ListingModerationStatus.REJECTED;
+    return {
+      moderationStatus: ListingModerationStatus.PENDING,
+      submittedForReviewAt: now,
+      contentRevision: wasLive
+        ? current.contentRevision + 1
+        : current.contentRevision,
+      moderationNote:
+        "השלימו קטגוריה, אזור שירות, מחיר/חבילה, תמונה ראשית ותיאור קצר לפני פרסום.",
+      moderatedAt: null,
+      moderatedByUserId: null,
+    };
+  }
+  return moderationFieldsForOwnerEdit(current);
+}
+
 async function recordModerationEvent(input: {
   listingType: ListingType;
   listingId: number;

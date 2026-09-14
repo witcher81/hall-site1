@@ -2,23 +2,25 @@
  * SSR intro for crawlers and agents — H1 + nested H2/H3 in raw HTML.
  * Visually hidden so the hero stays the homepage entry point for users.
  */
+import { SITE_BRAND } from "@/lib/siteBrand";
+
 export default function HomeSeoIntro() {
   return (
     <section className="sr-only">
       <div className="mx-auto max-w-3xl text-right">
         <h1 className="text-2xl font-semibold text-[var(--heading)] sm:text-3xl">
-          EventForYou – מקום אחד לכל האירועים
+          {SITE_BRAND} – מקום אחד לכל האירועים
         </h1>
 
         <h2 className="mt-6 text-lg font-semibold text-[var(--heading)]">
-          מה זה EventForYou?
+          מה זה {SITE_BRAND}?
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-[var(--foreground)] sm:text-base">
-          EventForYou הוא מרקטפלייס ישראלי לאירועים בכתובת hall-site1.vercel.app:
-          חיפוש והשוואת אולמות אירועים, ספקי שירותים (צילום, DJ, קייטרינג, עיצוב
-          ועוד) וחבילות אירוע. מחפשים מסננים לפי עיר, מספר אורחים וסוג אירוע,
-          פונים ישירות לבעלי אולמות ולפרילנסרים, ומתכננים אירוע במקום אחד — בלי
-          לקפוץ בין עשרות אתרים. האתר מיועד לקהל בישראל ומציג תוכן בעברית.
+          {SITE_BRAND} הוא מרקטפלייס ישראלי לאירועים: חיפוש והשוואת אולמות
+          אירועים, ספקי שירותים (צילום, DJ, קייטרינג, עיצוב ועוד) וחבילות אירוע.
+          מחפשים מסננים לפי עיר, מספר אורחים וסוג אירוע, פונים ישירות לבעלי
+          אולמות ולפרילנסרים, ומתכננים אירוע במקום אחד — בלי לקפוץ בין עשרות
+          אתרים. האתר מיועד לקהל בישראל ומציג תוכן בעברית.
         </p>
 
         <h3 className="mt-4 text-base font-semibold text-[var(--heading)]">
@@ -26,8 +28,8 @@ export default function HomeSeoIntro() {
         </h3>
         <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
           מחפשים (אולמות, ספקים או שניהם); בעלי אולמות שמפרסמים ומקבלים פניות;
-          ופרילנסרים שמנהלים פרופיל שירותים. EventForYou מחבר בין שלושת הצדדים על
-          פלטפורמה אחת, כולל דפי אמון (אודות, יצירת קשר, פרטיות).
+          ופרילנסרים שמנהלים פרופיל שירותים. {SITE_BRAND} מחבר בין שלושת הצדדים
+          על פלטפורמה אחת, כולל דפי אמון (אודות, יצירת קשר, פרטיות).
         </p>
 
         <h2 className="mt-6 text-lg font-semibold text-[var(--heading)]">

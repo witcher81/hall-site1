@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import SitePageShell from "@/components/layout/SitePageShell";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
 import { SITE_BRAND } from "@/lib/siteBrand";
+import { buildWhatsAppUrl } from "@/lib/whatsappContact";
 import ContactForm from "./ContactForm";
 
 export const metadata: Metadata = {
@@ -12,6 +13,10 @@ export const metadata: Metadata = {
 
 export default async function ContactPage() {
   const legal = getSiteLegalInfo();
+  const waUrl = buildWhatsAppUrl(
+    legal.contactWhatsApp,
+    `שלום, פנייה מטופס יצירת קשר ב-${SITE_BRAND}`
+  );
   return (
     <SitePageShell mainWidth="narrow">
       <article className="space-y-4 text-right text-sm leading-relaxed text-[var(--foreground)]">
@@ -65,7 +70,34 @@ export default async function ContactPage() {
           >
             {legal.supportEmail}
           </a>
-          {legal.contactAddress ? ` · כתובת: ${legal.contactAddress}` : " · פעילות בישראל"}
+          {legal.contactPhone ? (
+            <>
+              {" · "}
+              טלפון:{" "}
+              <a
+                href={`tel:${legal.contactPhone.replace(/\s/g, "")}`}
+                className="font-semibold text-[var(--heading)] underline underline-offset-2"
+              >
+                {legal.contactPhone}
+              </a>
+            </>
+          ) : null}
+          {waUrl ? (
+            <>
+              {" · "}
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[var(--heading)] underline underline-offset-2"
+              >
+                WhatsApp
+              </a>
+            </>
+          ) : null}
+          {legal.contactAddress
+            ? ` · כתובת: ${legal.contactAddress}`
+            : " · פעילות בישראל"}
           . מידע נוסף על החברה:{" "}
           <a href="/about" className="underline">
             אודות

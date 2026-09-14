@@ -72,11 +72,16 @@ const textarea =
   "mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-[11px] leading-relaxed text-neutral-900 outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40";
 
 function parsePriceInput(v: string): number | null {
-  const t = v.trim();
-  if (!t) return null;
-  const n = Number(t);
+  const digits = v.replace(/[^\d]/g, "");
+  if (!digits) return null;
+  const n = Number(digits);
   if (!Number.isFinite(n) || n < 0) return null;
   return Math.trunc(n);
+}
+
+function digitsFieldValue(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return "";
+  return String(Math.trunc(n));
 }
 
 function itemPriceSingleLabel(pricing: ServiceMenuItemPricing): string {
@@ -700,9 +705,9 @@ export default function ServiceCatalogEditor({
                   className="mt-2"
                 >
                   <input
-                    type="number"
-                    min={0}
-                    value={pkg.durationHours ?? ""}
+                    type="text"
+                    inputMode="numeric"
+                    value={digitsFieldValue(pkg.durationHours)}
                     onChange={(e) =>
                       updatePackage(index, {
                         durationHours: parsePriceInput(e.target.value),

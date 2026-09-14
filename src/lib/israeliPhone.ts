@@ -1,33 +1,37 @@
 /**
  * טלפון נייד ישראלי: קידומות 050–059 בלבד.
- * אחרי כל קידומת מגוינות בדיוק 7 ספרות (ללא מקפים).
+ * אחרי כל קידומת בדיוק 7 ספרות (ללא מקפים).
  */
 
-export const ISRAELI_MOBILE_PREFIXES: readonly string[] = [
-  "050",
-  "051",
-  "052",
-  "053",
-  "054",
-  "055",
-  "056",
-  "057",
-  "058",
-  "059",
-];
+import {
+  ISRAELI_MOBILE_PREFIXES,
+  composeIsraeliMobilePhone,
+  normalizePhoneInput,
+  splitIsraeliMobilePhone,
+  formatIsraeliMobileDisplay,
+} from "@/lib/phone";
 
-export function normalizeIsraeliPhoneDigits(input: string): string {
-  return input.replace(/\D/g, "");
-}
+export {
+  ISRAELI_MOBILE_PREFIXES,
+  normalizePhoneInput as normalizeIsraeliPhoneDigits,
+  splitIsraeliMobilePhone,
+  formatIsraeliMobileDisplay,
+};
 
 /** בודק מספר נייד מלא (רק ספרות), למשל 0501234567 */
 export function isValidIsraeliMobilePhone(fullDigits: string): boolean {
-  const d = normalizeIsraeliPhoneDigits(fullDigits);
+  const d = normalizePhoneInput(fullDigits);
   return ISRAELI_MOBILE_PREFIXES.some(
     (p) => d.startsWith(p) && d.length === p.length + 7
   );
 }
 
+/** בונה מספר מלא מקידומת + 7 ספרות; תומך בהדבקת מספר מלא לשדה הספרות */
 export function buildIsraeliPhone(prefix: string, sevenDigits: string): string {
-  return prefix + normalizeIsraeliPhoneDigits(sevenDigits).slice(0, 7);
+  const digits = normalizePhoneInput(sevenDigits);
+  if (digits.length >= 9 && digits.startsWith("05")) {
+    const full = normalizePhoneInput(digits);
+    if (isValidIsraeliMobilePhone(full)) return full;
+  }
+  return composeIsraeliMobilePhone(prefix, digits);
 }

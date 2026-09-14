@@ -130,7 +130,7 @@ function isPassthroughAppPath(pathname: string): boolean {
   ) {
     return true;
   }
-  return /^(?:\/(?:api|docs|halls|providers|services|packages|auth|dashboard|admin|settings|privacy|event-tools|event-planner|event-builder|favorites|messages|notifications|my-inquiries|my-plans|my-service-requests|trending|uploads|\.well-known)(?:\/|$))/.test(
+  return /^(?:\/(?:api|docs|halls|providers|services|packages|auth|dashboard|admin|settings|privacy|terms|about|contact|cookies|accessibility|help|join|for-freelancers|for-venues|for-business|business|event-tools|event-planner|event-builder|favorites|messages|notifications|my-inquiries|my-plans|my-service-requests|trending|uploads|checkout|\.well-known)(?:\/|$))/.test(
     pathname
   );
 }

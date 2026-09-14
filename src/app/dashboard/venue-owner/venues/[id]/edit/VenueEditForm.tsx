@@ -995,7 +995,10 @@ export default function VenueEditForm({
             <p className="mb-2 text-[11px] leading-relaxed text-[#5C564C]">
               <span className="font-semibold text-[#1d4ed8]">סיכה כחולה עם «א»</span> — מיקום האולם.{" "}
               <span className="font-semibold text-[#c2410c]">סיכה כתומה עם «ח»</span> — חניה (כשבוחרים
-              סוג שדורש סימון במפה).
+              «בקרבת מקום» או «חניון»).{" "}
+              <strong className="text-neutral-800">איך מסמנים:</strong> אחרי בחירת סוג
+              החניה — לחצו על המפה במקום החניה; תופיע סיכה כתומה. אפשר לגרור או ללחוץ שוב
+              כדי לעדכן.
             </p>
             <div className="mb-3 rounded-lg border border-[#E8D5C4] bg-white/80 px-3 py-2">
               <p className="mb-2 text-xs font-semibold text-neutral-600">
@@ -1443,7 +1446,9 @@ export default function VenueEditForm({
                                 פרטי חתונה בלבד
                               </p>
                               <p className="mb-2 text-[11px] leading-relaxed text-rose-900/80">
-                                חובה לסמן לפחות אחד: חופה בחוץ או חופה מקורה.
+                                <span className="font-bold text-rose-950">שדה חובה *</span>{" "}
+                                — סמנו לפחות אחד לפני שמירה: חופה בחוץ או חופה מקורה.
+                                בלי זה לא ניתן לשמור פרופיל חתונה.
                               </p>
                               <div className="grid gap-2 sm:grid-cols-2">
                             {(
@@ -1551,7 +1556,8 @@ export default function VenueEditForm({
                 className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-950 hover:file:bg-[#E5C96B]"
               />
               <p className="mt-1 text-[11px] text-neutral-600">
-                להחליף: בחר תמונה חדשה. לא בוחרים – נשארת התמונה הקיימת.
+                להחליף: בחרו תמונה חדשה (JPG / PNG / WebP · מומלץ לפחות 1200×800).
+                לא בוחרים — נשארת התמונה הקיימת.
               </p>
             </div>
             <div>

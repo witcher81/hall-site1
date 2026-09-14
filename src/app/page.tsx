@@ -5,6 +5,7 @@ import { loadDevSwitcherUsers } from "@/lib/devSwitcherData";
 import {
   getHomeFeaturedVenues,
   getHomeTopServices,
+  getPublishedProviderCount,
 } from "@/lib/homePageData";
 import HomeHeader from "@/components/HomeHeader";
 import HomePage from "@/components/home/HomePage";
@@ -47,10 +48,12 @@ export default async function Home() {
   const user = await getCurrentUser();
   const devSwitcher = await loadDevSwitcherUsers(user);
 
-  const [featuredVenues, topServices] = await Promise.all([
-    getHomeFeaturedVenues(6),
-    getHomeTopServices(8),
-  ]);
+  const [featuredVenues, topServices, publishedProviderCount] =
+    await Promise.all([
+      getHomeFeaturedVenues(6),
+      getHomeTopServices(8),
+      getPublishedProviderCount(),
+    ]);
 
   return (
     <div className="site-page">
@@ -65,7 +68,11 @@ export default async function Home() {
         isAdmin={isAdminEmail(user?.email)}
       />
       <main id="main-content" tabIndex={-1}>
-        <HomePage featuredVenues={featuredVenues} topServices={topServices} />
+        <HomePage
+          featuredVenues={featuredVenues}
+          topServices={topServices}
+          publishedProviderCount={publishedProviderCount}
+        />
       </main>
     </div>
   );

@@ -80,7 +80,11 @@ export default function FreelancerProfileForm({ email, mode, initial }: Props) {
         setLoading(false);
         return;
       }
-      router.push("/dashboard/freelancer");
+      if (mode === "onboarding") {
+        router.push("/dashboard/freelancer/services/new");
+      } else {
+        router.push("/dashboard/freelancer");
+      }
       router.refresh();
     } catch {
       setError("שגיאה בלתי צפויה");

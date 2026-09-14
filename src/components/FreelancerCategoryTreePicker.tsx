@@ -139,6 +139,12 @@ export default function FreelancerCategoryTreePicker({
                 <button
                   type="button"
                   onClick={() => {
+                    if (primaryValue || secondaryValues.length > 0) {
+                      const ok = window.confirm(
+                        "מחיקת קטגוריות עלולה למחוק חבילות ותמחור שמקושרים אליהן. להמשיך?"
+                      );
+                      if (!ok) return;
+                    }
                     onChange({ primary: "", secondaries: [] });
                     setExpandedPrimary("");
                     setQuery("");

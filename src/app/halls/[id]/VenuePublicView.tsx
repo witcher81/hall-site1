@@ -17,6 +17,10 @@ import ListingPromoBadges from "@/components/ListingPromoBadges";
 import ShareButton from "@/components/ShareButton";
 import LoginPromptModal from "@/components/LoginPromptModal";
 import {
+  stashPendingFavorite,
+  takePendingFavorite,
+} from "@/lib/pendingFavorites";
+import {
   galleryCategoryLabel,
   galleryCategoryMatchesFilter,
   normalizeGalleryCategory,
@@ -570,6 +574,19 @@ export default function VenuePublicView({
 
   const showInquiryCta = !user || user.role === "SEEKER";
 
+  useEffect(() => {
+    if (!user || user.role !== "SEEKER" || isFavorite) return;
+    const pending = takePendingFavorite();
+    if (!pending || pending.type !== "venue" || pending.id !== venue.id) return;
+    void fetch("/api/favorites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ venueId: venue.id }),
+    }).then((res) => {
+      if (res.ok) setIsFavorite(true);
+    });
+  }, [user, venue.id, isFavorite]);
+
   const scrollToInquirySection = () => {
     document.getElementById("venue-inquiry")?.scrollIntoView({
       behavior: "smooth",
@@ -1078,7 +1095,10 @@ export default function VenuePublicView({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setLoginPromptOpen(true)}
+                    onClick={() => {
+                      stashPendingFavorite({ type: "venue", id: venue.id });
+                      setLoginPromptOpen(true);
+                    }}
                     className="rounded-full border border-transparent p-2.5 text-neutral-600 transition hover:border-neutral-200 hover:text-red-600"
                     title="שמירה למועדפים — נדרשת התחברות"
                     aria-label="שמירה למועדפים"

@@ -2,6 +2,7 @@
 
 import FoodDietaryOptionsEditor from "@/components/FoodDietaryOptionsEditor";
 import FoodPricingModeChooser from "@/components/FoodPricingModeChooser";
+import HebrewFileInput from "@/components/HebrewFileInput";
 import ServiceCatalogEditor from "@/components/ServiceCatalogEditor";
 import ServiceIncludesEditor from "@/components/ServiceIncludesEditor";
 import DashboardMain from "@/components/dashboard/DashboardMain";
@@ -494,11 +495,12 @@ export default function NewServicePage() {
           <p className="mt-0.5 text-[11px] text-neutral-600">
             זו תמונת השער של השירות — היא תוצג ראשונה בכרטיס ובדף השירות.
           </p>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
-            className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-neutral-950 hover:file:bg-[#E5C96B]"
+          <HebrewFileInput
+            id="service-cover-new"
+            accept="image/jpeg,image/png,image/webp"
+            buttonLabel="בחירת תמונת שער"
+            helperText="JPG / PNG / WebP · מומלץ לפחות 1200×800 · חשוב לתצוגה בכרטיס"
+            onChange={(files) => setCoverImage(files?.[0] ?? null)}
           />
           {coverPreview && (
             <img src={coverPreview} alt="preview" className="mt-2 h-28 w-28 rounded-xl object-cover" />
@@ -512,16 +514,16 @@ export default function NewServicePage() {
           <p className="mt-0.5 text-[11px] text-neutral-600">
             כאן מעלים דוגמאות של עבודות, תוצרים או דברים שאתה נותן במסגרת השירות.
           </p>
-          <input
-            type="file"
-            accept="image/*"
+          <HebrewFileInput
+            id="service-gallery-new"
+            accept="image/jpeg,image/png,image/webp"
             multiple
-            onChange={(e) => {
-              const files = e.target.files;
+            buttonLabel="בחירת תמונות לגלריה"
+            helperText="אופציונלי · JPG / PNG / WebP · אפשר לבחור כמה קבצים"
+            onChange={(files) => {
               if (!files) return;
               setGalleryImages((prev) => [...prev, ...Array.from(files)]);
             }}
-            className="mt-1 w-full text-xs text-neutral-800 file:mr-3 file:rounded-full file:border-0 file:bg-emerald-950 file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-emerald-900"
           />
           {galleryImages.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-3">

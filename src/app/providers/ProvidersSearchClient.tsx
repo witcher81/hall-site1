@@ -368,32 +368,38 @@ export default function ProvidersSearchClient({
       {loading ? (
         <p className="py-8 text-center text-sm text-neutral-600">טוען תוצאות…</p>
       ) : services.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-8 text-center text-sm text-neutral-600">
-          {active ? (
-            <>
-              <p className="font-medium text-emerald-950">
-                {form.secondary.trim()
-                  ? `אין עדיין «${form.secondary.trim()}» באתר`
-                  : form.category.trim()
-                    ? `אין עדיין ספקים ב«${form.category.trim()}»`
-                    : "לא נמצאו שירותים לפי הסינון"}
-              </p>
-              <p className="mt-2">
-                נסו קטגוריה אחרת או טווח מחיר, או לחצו «נקה סינון».
-              </p>
-            </>
-          ) : (
-            <p>לא נמצאו שירותים. נסו לשנות פרמטרים.</p>
-          )}
-          {active ? (
-            <button
-              type="button"
-              onClick={clearAllFilters}
-              className="btn-primary mt-4 px-6 py-2 text-sm"
+        <div className="rounded-2xl border border-dashed border-amber-300/70 bg-amber-50/60 p-8 text-center text-sm text-neutral-700">
+          <p className="font-semibold text-emerald-950">
+            אנחנו בשלב הקמה — הצטרפו כספק ראשונים
+            {form.category.trim() ? ` ב«${form.category.trim()}»` : " בקטגוריה"}
+          </p>
+          <p className="mt-2 leading-relaxed">
+            פרסום בסיסי חינם. עמלה 10% רק על עסקה שנסגרה — לא על לידים. בלי כרטיס
+            אשראי.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <a
+              href="/auth/register/business?role=FREELANCER"
+              className="inline-flex rounded-full bg-amber-400 px-5 py-2.5 text-sm font-bold text-neutral-950 hover:bg-amber-300"
             >
-              נקה את כל הסינון
-            </button>
-          ) : null}
+              הרשמה כספק
+            </a>
+            <a
+              href="/for-freelancers"
+              className="inline-flex rounded-full border border-emerald-950/25 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-950 hover:border-amber-400/60"
+            >
+              למה להצטרף
+            </a>
+            {active ? (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="inline-flex rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50"
+              >
+                נקה סינון
+              </button>
+            ) : null}
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

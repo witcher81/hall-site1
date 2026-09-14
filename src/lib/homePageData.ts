@@ -179,3 +179,17 @@ export async function getHomeTopServices(limit = 8): Promise<HomeTopService[]> {
 
   return scored.slice(0, limit).map(({ sortScore: _s, ...rest }) => rest);
 }
+
+/** מספר ספקים עם לפחות שירות מפורסם — לתצוגת אמון בדף הבית */
+export async function getPublishedProviderCount(): Promise<number> {
+  try {
+    return await prisma.user.count({
+      where: {
+        role: "FREELANCER",
+        services: { some: approvedListingWhere() },
+      },
+    });
+  } catch {
+    return 0;
+  }
+}

@@ -11,7 +11,7 @@ export default function HomePackagesCta() {
           אומרים איזה אירוע, איפה וכמה אורחים — ומקבלים חבילות מוכנות: אולם +
           ספקים שמתאימים (למשל יום הולדת עם מפעיל).
         </p>
-        <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-3">
           <Link
             href="/packages/build"
             className="inline-flex rounded-full bg-neutral-900 px-7 py-3 text-sm font-bold text-amber-200 transition hover:bg-emerald-950"
@@ -23,6 +23,12 @@ export default function HomePackagesCta() {
             className="inline-flex rounded-full border border-neutral-300 bg-white/80 px-7 py-3 text-sm font-semibold text-neutral-800 transition hover:bg-white"
           >
             קטלוג חבילות
+          </Link>
+          <Link
+            href="/for-freelancers"
+            className="inline-flex rounded-full border border-amber-300 bg-amber-50 px-7 py-3 text-sm font-semibold text-emerald-950 transition hover:bg-amber-100"
+          >
+            ספקים — הצטרפו חינם
           </Link>
         </div>
       </div>

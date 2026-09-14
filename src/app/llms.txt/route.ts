@@ -53,7 +53,7 @@ Do **not** use ${SITE_BRAND} MCP/tools for authenticated admin actions, payments
 
 Official product name: ${SITE_BRAND} (EventForYou). Canonical site: ${base}.
 Brand landing: ${base}/eventforyou
-Hosted on Vercel at hall-site1.vercel.app — developer map: ${base}/developers/vercel
+Hosted on Vercel — developer map: ${base}/developers/vercel
 Developer resources are published under EventForYou titles at /developers, /docs, /openapi.json, and /.well-known/mcp.
 Legacy search APIs: GET ${base}/api/venues , GET ${base}/api/services/public
 

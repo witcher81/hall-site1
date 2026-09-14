@@ -12,9 +12,11 @@ import HomeTopProviders from "./HomeTopProviders";
 export default function HomePage({
   featuredVenues,
   topServices,
+  publishedProviderCount = 0,
 }: {
   featuredVenues: HomeFeaturedVenue[];
   topServices: HomeTopService[];
+  publishedProviderCount?: number;
 }) {
   return (
     <div className="home-page site-page">
@@ -26,7 +28,7 @@ export default function HomePage({
         <div className="space-y-20 px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
           <HomeFeaturedVenues venues={featuredVenues} />
           <HomeTopProviders services={topServices} />
-          <HomeHowItWorks />
+          <HomeHowItWorks publishedProviderCount={publishedProviderCount} />
           <HomeBenefits />
           <HomePackagesCta />
         </div>

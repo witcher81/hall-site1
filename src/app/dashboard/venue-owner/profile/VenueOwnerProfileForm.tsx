@@ -58,7 +58,11 @@ export default function VenueOwnerProfileForm({ email, mode, initial }: Props) {
         setLoading(false);
         return;
       }
-      router.push("/dashboard/venue-owner");
+      if (mode === "onboarding") {
+        router.push("/dashboard/venue-owner/venues/new");
+      } else {
+        router.push("/dashboard/venue-owner");
+      }
       router.refresh();
     } catch {
       setError("שגיאה בלתי צפויה");

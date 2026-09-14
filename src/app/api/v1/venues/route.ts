@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { searchPublicVenues } from "@/lib/publicVenuesSearch";
 import { v1ResponseHeaders } from "@/lib/apiVersionHeaders";
 import { problemResponse } from "@/lib/apiProblem";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
       "venues_search_failed",
       "Venue search failed",
       "The public venue search could not be completed.",
-      "Retry shortly, or browse https://hall-site1.vercel.app/halls"
+      `Retry shortly, or browse ${getSiteUrl()}/halls`
     );
   }
 }

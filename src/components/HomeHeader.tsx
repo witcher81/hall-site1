@@ -48,11 +48,21 @@ type NavKey =
   | "favorites"
   | "eventTools"
   | "messages"
-  | "notifications";
+  | "notifications"
+  | "join";
 
 function navKeyActive(pathname: string, key: NavKey): boolean {
   if (key === "halls") {
     return pathname === "/halls" || pathname.startsWith("/halls/");
+  }
+  if (key === "join") {
+    return (
+      pathname === "/for-freelancers" ||
+      pathname === "/for-venues" ||
+      pathname === "/join" ||
+      pathname === "/for-business" ||
+      pathname === "/business"
+    );
   }
   if (key === "providers")
     return pathname === "/providers" || pathname.startsWith("/providers/");
@@ -264,6 +274,19 @@ export default function HomeHeader({
             >
               חבילות אירוע
             </Link>
+            {!user ? (
+              <Link
+                href="/for-freelancers"
+                aria-current={navKeyActive(pathname, "join") ? "page" : undefined}
+                className={`${navLinkDesktopBase} ${
+                  navKeyActive(pathname, "join")
+                    ? navLinkDesktopActive
+                    : navLinkDesktopIdle
+                }`}
+              >
+                הצטרפות לספקים
+              </Link>
+            ) : null}
             {user?.role === "SEEKER" && (
               <>
                 <Link
@@ -566,6 +589,16 @@ export default function HomeHeader({
               >
                 חבילות אירוע
               </Link>
+              {!user ? (
+                <Link
+                  href="/for-freelancers"
+                  aria-current={navKeyActive(pathname, "join") ? "page" : undefined}
+                  className={`${navLinkMobileBase} ${navKeyActive(pathname, "join") ? navLinkMobileActive : navLinkMobileIdle}`}
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  הצטרפות לספקים
+                </Link>
+              ) : null}
               {user?.role === "SEEKER" ? (
                 <>
                   <Link

@@ -16,6 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/halls",
     "/providers",
     "/packages",
+    "/packages/build",
+    "/for-freelancers",
+    "/for-venues",
+    "/event-tools",
     "/about",
     "/developers",
     "/docs",
@@ -32,7 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${base}${path}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
-    priority: path === "" ? 1 : 0.8,
+    priority:
+      path === ""
+        ? 1
+        : path === "/for-freelancers" ||
+            path === "/for-venues" ||
+            path === "/packages/build"
+          ? 0.75
+          : 0.8,
   }));
 
   try {

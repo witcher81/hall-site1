@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { searchPublicProviders } from "@/lib/publicProvidersSearch";
 import { v1ResponseHeaders } from "@/lib/apiVersionHeaders";
 import { problemResponse } from "@/lib/apiProblem";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
       "services_search_failed",
       "Service search failed",
       "The public service search could not be completed.",
-      "Retry shortly, or browse https://hall-site1.vercel.app/providers"
+      `Retry shortly, or browse ${getSiteUrl()}/providers`
     );
   }
 }

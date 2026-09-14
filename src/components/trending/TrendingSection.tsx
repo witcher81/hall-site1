@@ -57,11 +57,7 @@ export default function TrendingSection() {
   }, []);
 
   if (loading) {
-    return (
-      <section className="rounded-2xl border border-neutral-200/80 bg-white/90 p-6 text-right shadow-sm">
-        <p className="text-sm text-neutral-600">טוען טרנדינג השבוע…</p>
-      </section>
-    );
+    return null;
   }
 
   if (venues.length === 0 && providers.length === 0) {

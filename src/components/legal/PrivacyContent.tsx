@@ -18,11 +18,19 @@ export default function PrivacyContent({ p }: Props) {
       <LegalSection title="1. מי אחראי על המידע">
         <p>
           אחראי/ת על המידע (בעל מאגר המידע לצורך מדיניות זו):{" "}
-          <strong>{p.businessLegalName}</strong>
-          <br />
-          מספר זיהוי: <strong>{p.businessIdTypeAndNumber}</strong>
-          <br />
-          כתובת: <strong>{p.businessAddress}</strong>
+          <strong>{p.businessLegalName ?? SITE_BRAND}</strong>
+          {p.businessIdTypeAndNumber ? (
+            <>
+              <br />
+              מספר זיהוי: <strong>{p.businessIdTypeAndNumber}</strong>
+            </>
+          ) : null}
+          {p.businessAddress ? (
+            <>
+              <br />
+              כתובת: <strong>{p.businessAddress}</strong>
+            </>
+          ) : null}
           <br />
           דוא״ל לפניות פרטיות:{" "}
           <a href={`mailto:${p.privacyEmail}`} className="text-emerald-950 underline">
@@ -109,11 +117,12 @@ export default function PrivacyContent({ p }: Props) {
           </li>
           <li>
             לאחר מחיקת חשבון — מידע עשוי להימחק או להישמר באנונימיזציה, למעט מידע שנדרש
-            לשמירה לפי דין, לטיפול במחלוקות, לאבטחה או לגביית עמלות — לתקופה סבירה (
-            {"{{DATA_RETENTION_DISPUTES}}"} — יש להשלים).
+            לשמירה לפי דין, לטיפול במחלוקות, לאבטחה או לגביית עמלות — לתקופה סבירה
+            {p.dataRetentionDisputes ? ` (${p.dataRetentionDisputes})` : ""}.
           </li>
           <li>
-            לוגים טכניים ונתוני אבטחה — בדרך כלל עד {"{{LOG_RETENTION_DAYS}}"} ימים (טיוטה).
+            לוגים טכניים ונתוני אבטחה — בדרך כלל לתקופה סבירה לצורך אבטחה ותפעול
+            {p.logRetentionDays ? ` (עד כ־${p.logRetentionDays} ימים)` : ""}.
           </li>
           <li>
             עוגיות והעדפות — לפי{" "}

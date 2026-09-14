@@ -7,6 +7,10 @@ import SocialLinksRow from "@/components/SocialLinksRow";
 import ListingPromoBadges from "@/components/ListingPromoBadges";
 import ShareButton from "@/components/ShareButton";
 import LoginPromptModal from "@/components/LoginPromptModal";
+import {
+  stashPendingFavorite,
+  takePendingFavorite,
+} from "@/lib/pendingFavorites";
 import { mergeFreelancerServiceDescriptionForForm } from "@/lib/freelancerServiceDescription";
 import {
   getPrimaryCategoryDescription,
@@ -118,6 +122,21 @@ export default function SingleServiceView({
     null
   );
   const [menuChoices, setMenuChoices] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    if (!seekerLoggedIn || isFavorite) return;
+    const pending = takePendingFavorite();
+    if (!pending || pending.type !== "service" || pending.id !== service.id) {
+      return;
+    }
+    void fetch("/api/service-favorites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ serviceId: service.id }),
+    }).then((res) => {
+      if (res.ok) setIsFavorite(true);
+    });
+  }, [seekerLoggedIn, service.id, isFavorite]);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const providerName = provider.businessName || provider.name || "ספק";
@@ -527,7 +546,10 @@ export default function SingleServiceView({
               ) : (
                 <button
                   type="button"
-                  onClick={() => setLoginPromptOpen(true)}
+                  onClick={() => {
+                    stashPendingFavorite({ type: "service", id: service.id });
+                    setLoginPromptOpen(true);
+                  }}
                   className="rounded-full border border-transparent p-2.5 text-neutral-600 transition hover:border-neutral-200 hover:text-red-600"
                   aria-label="שמירה למועדפים"
                   title="שמירה למועדפים — נדרשת התחברות"
@@ -547,31 +569,52 @@ export default function SingleServiceView({
 
           {categoryParsed.primary ? (
             <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-emerald-950 px-3 py-1 text-sm font-semibold text-white">
-                  {categoryParsed.primary}
-                </span>
-                {categoryParsed.secondaries.map((sec) => (
-                  <span
-                    key={sec}
-                    className="rounded-full border border-[#C9A227]/50 bg-neutral-50 px-3 py-1 text-sm font-semibold text-emerald-950"
-                  >
-                    {sec}
-                  </span>
-                ))}
-                {dietaryOptions.map((opt) => (
-                  <span
-                    key={`diet-${opt}`}
-                    className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-950"
-                  >
-                    {opt}
-                  </span>
-                ))}
-              </div>
+              <p className="text-[11px] font-semibold tracking-wide text-neutral-500">
+                קטגוריה ראשית
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-emerald-950 sm:text-xl">
+                {categoryParsed.primary}
+              </h2>
               {primaryCategoryDescription ? (
-                <p className="mt-2 text-xs leading-relaxed text-neutral-800">
+                <p className="mt-1.5 text-sm leading-relaxed text-neutral-700">
                   {primaryCategoryDescription}
                 </p>
+              ) : null}
+              {categoryParsed.secondaries.length > 0 ||
+              dietaryOptions.length > 0 ? (
+                <div className="mt-3 border-t border-neutral-100 pt-3">
+                  {categoryParsed.secondaries.length > 0 ? (
+                    <>
+                      <p className="text-[11px] font-semibold text-neutral-500">
+                        תחומי שירות
+                      </p>
+                      <ul className="mt-2 flex flex-wrap gap-2">
+                        {categoryParsed.secondaries.map((sec) => (
+                          <li key={sec}>
+                            <span className="inline-block rounded-full border border-[#C9A227]/50 bg-neutral-50 px-3 py-1 text-xs font-semibold text-emerald-950">
+                              {sec}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+                  {dietaryOptions.length > 0 ? (
+                    <ul
+                      className={`flex flex-wrap gap-2 ${
+                        categoryParsed.secondaries.length > 0 ? "mt-2" : ""
+                      }`}
+                    >
+                      {dietaryOptions.map((opt) => (
+                        <li key={`diet-${opt}`}>
+                          <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-950">
+                            {opt}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           ) : null}
@@ -965,7 +1008,9 @@ export default function SingleServiceView({
                 ? "שולח..."
                 : seekerLoggedIn
                   ? "שליחת בקשה"
-                  : "אישור והמשך ליצירת חשבון"}
+                  : currentUserId
+                    ? "שליחת בקשה דורשת חשבון מחפש"
+                    : "אישור והמשך ליצירת חשבון"}
             </button>
           </form>
         ) : (

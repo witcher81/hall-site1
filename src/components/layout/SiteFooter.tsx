@@ -2,6 +2,7 @@ import Link from "next/link";
 import CookieSettingsLink from "@/components/consent/CookieSettingsLink";
 import { getSiteLegalInfo } from "@/lib/siteLegal";
 import { SITE_BRAND } from "@/lib/siteBrand";
+import { buildWhatsAppUrl } from "@/lib/whatsappContact";
 
 const DISCOVER_LINKS = [
   { href: "/halls", label: "אולמות" },
@@ -14,16 +15,17 @@ const DISCOVER_LINKS = [
 const HELP_LINKS = [
   { href: "/about", label: "אודות" },
   { href: "/contact", label: "יצירת קשר" },
+  { href: "/help", label: "עזרה" },
   { href: "/accessibility", label: "נגישות" },
   { href: "/cookies", label: "עוגיות" },
-  { href: "/developers", label: "מפתחים" },
 ] as const;
 
 const BUSINESS_LINKS = [
-  { href: "/auth/register/business", label: "הרשמת בעל אולם / ספק" },
+  { href: "/for-freelancers", label: "לספקי שירותים" },
+  { href: "/for-venues", label: "לבעלי אולמות" },
+  { href: "/auth/register/business?role=FREELANCER", label: "הרשמת ספק" },
+  { href: "/auth/register/business?role=VENUE_OWNER", label: "הרשמת בעל אולם" },
   { href: "/auth/login", label: "התחברות" },
-  { href: "/dashboard/venue-owner", label: "אזור בעל אולם" },
-  { href: "/dashboard/freelancer", label: "אזור ספק" },
 ] as const;
 
 const LEGAL_LINKS = [
@@ -37,6 +39,10 @@ const LEGAL_LINKS = [
 export default function SiteFooter() {
   const legal = getSiteLegalInfo();
   const year = new Date().getFullYear();
+  const waUrl = buildWhatsAppUrl(
+    legal.contactWhatsApp,
+    `שלום, פנייה מאתר ${SITE_BRAND}`
+  );
 
   return (
     <footer className="site-footer-pro">
@@ -55,6 +61,14 @@ export default function SiteFooter() {
                   <br />
                   <a href={`tel:${legal.contactPhone.replace(/\s/g, "")}`}>
                     {legal.contactPhone}
+                  </a>
+                </>
+              ) : null}
+              {waUrl ? (
+                <>
+                  <br />
+                  <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                    WhatsApp
                   </a>
                 </>
               ) : null}

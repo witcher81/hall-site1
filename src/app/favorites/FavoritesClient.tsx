@@ -88,19 +88,23 @@ export default function FavoritesClient({
 
       {totalCount === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-[#C9A227]/45 bg-white/90 p-10 text-center text-sm text-neutral-600 shadow-[0_8px_30px_rgba(15,59,46,0.06)]">
-          <p className="font-medium text-emerald-950">עדיין לא שמרת פריטים למועדפים.</p>
-          <div className="mt-4 flex flex-wrap justify-center gap-4">
-            <a
-              href="/halls"
-              className="font-semibold text-emerald-950 underline-offset-4 hover:underline"
-            >
-              חיפוש אולמות →
-            </a>
+          <p className="font-medium text-emerald-950">עדיין אין מועדפים שמורים.</p>
+          <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+            לחצו על הלב בדף אולם או שירות כדי לשמור לכאן. המועדפים נשמרים בחשבון
+            שלכם אחרי התחברות — אפשר לחזור אליהם בכל זמן.
+          </p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
             <a
               href="/providers"
-              className="font-semibold text-emerald-950 underline-offset-4 hover:underline"
+              className="inline-flex min-h-[40px] items-center rounded-full bg-amber-400 px-4 text-sm font-semibold text-neutral-950 hover:bg-amber-300"
             >
-              חיפוש ספקים →
+              חיפוש ספקים
+            </a>
+            <a
+              href="/halls"
+              className="inline-flex min-h-[40px] items-center rounded-full border border-emerald-950/20 px-4 text-sm font-semibold text-emerald-950 hover:bg-emerald-50"
+            >
+              חיפוש אולמות
             </a>
           </div>
         </div>

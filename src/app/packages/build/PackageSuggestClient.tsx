@@ -197,10 +197,15 @@ export default function PackageSuggestClient() {
 
           {packages.length === 0 ? (
             <p className="rounded-2xl border border-neutral-200 bg-white p-5 text-sm text-neutral-700 shadow-sm">
-              עדיין אין מספיק אולמות/ספקים באזור הזה. נסו אזור אחר, או חפשו ידנית
-              ב־
+              חסר במאגר באזור הזה — נעדכן כשיהיו אולמות וספקים מתאימים. בינתיים
+              אפשר לחפש ידנית ב־
               <Link href="/halls" className="font-semibold underline">
                 אולמות
+              </Link>
+              {" "}
+              או{" "}
+              <Link href="/providers" className="font-semibold underline">
+                ספקים
               </Link>
               .
             </p>

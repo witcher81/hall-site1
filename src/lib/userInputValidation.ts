@@ -99,7 +99,7 @@ export function validateIsraeliPhoneRegister(
     return { ok: false, error: "מספר טלפון לא תקין" };
   }
   const prefix = prefixRaw.trim();
-  if (!ISRAELI_MOBILE_PREFIXES.includes(prefix)) {
+  if (!(ISRAELI_MOBILE_PREFIXES as readonly string[]).includes(prefix)) {
     return { ok: false, error: "נא לבחור קידומת נייד תקנית (050–059)" };
   }
   const full = buildIsraeliPhone(prefix, digitsRaw);

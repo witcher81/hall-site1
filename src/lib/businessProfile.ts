@@ -38,8 +38,8 @@ export function getBusinessProfilePageCopy(
       return {
         title: "השלימו את פרופיל העסק",
         description:
-          "לפני יצירת אולמות, מלאו פרטי קשר ומה שיוצג למחפשים. אפשר לעדכן בכל עת.",
-        submitLabel: "שמירה והמשך לאזור האולמות",
+          "לפני יצירת אולם, מלאו פרטי קשר ומה שיוצג למחפשים. אחרי השמירה תעברו ליצירת האולם הראשון.",
+        submitLabel: "שמירה והמשך ליצירת אולם",
         cancelLabel: "דלג לעכשיו",
       };
     }
@@ -55,9 +55,9 @@ export function getBusinessProfilePageCopy(
   if (mode === "onboarding") {
     return {
       title: "השלימו את פרופיל הספק",
-      description:
-        "מלאו לפחות שם מותג וטלפון — כך תופיעו בחיפוש ובעמוד הספק. אפשר להוסיף פרטים נוספים אחר כך.",
-      submitLabel: "שמירה והמשך לשירותים",
+        description:
+          "מלאו לפחות שם מותג וטלפון. אחרי השמירה תעברו ישר ליצירת השירות הראשון.",
+        submitLabel: "שמירה והמשך ליצירת שירות",
       cancelLabel: "דלג לעכשיו",
     };
   }

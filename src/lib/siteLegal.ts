@@ -11,18 +11,28 @@ export type SiteLegalInfo = {
   accessibilityEmail: string;
   contactAddress: string | null;
   contactPhone: string | null;
+  /** WhatsApp number (same format as phone); falls back to contactPhone */
+  contactWhatsApp: string | null;
   /** true when public emails are not configured yet */
   isPlaceholder: boolean;
 };
 
-/** פרטי עסק לטיוטה משפטית — יש למלא לפני פרסום סופי */
+/**
+ * פרטי עסק לטיוטה משפטית.
+ * ערכים חסרים = null — אסור להציג {{TOKEN}} ב־UI.
+ */
 export type LegalPlaceholders = {
-  businessLegalName: string;
-  businessIdTypeAndNumber: string;
-  businessAddress: string;
+  businessLegalName: string | null;
+  businessIdTypeAndNumber: string | null;
+  businessAddress: string | null;
   supportEmail: string;
   privacyEmail: string;
-  governingCity: string;
+  governingCity: string | null;
+  commissionReportDays: string | null;
+  commissionPaymentTerms: string | null;
+  commissionNoticeDays: string | null;
+  dataRetentionDisputes: string | null;
+  logRetentionDays: string | null;
 };
 
 function trimOrNull(v: string | undefined): string | null {
@@ -46,6 +56,8 @@ export function getSiteLegalInfo(): SiteLegalInfo {
     publicEmail(process.env.SITE_ACCESSIBILITY_EMAIL) ?? supportEmail;
   const contactAddress = trimOrNull(process.env.SITE_CONTACT_ADDRESS);
   const contactPhone = trimOrNull(process.env.SITE_CONTACT_PHONE);
+  const contactWhatsApp =
+    trimOrNull(process.env.SITE_WHATSAPP) ?? contactPhone;
 
   return {
     legalName,
@@ -54,6 +66,7 @@ export function getSiteLegalInfo(): SiteLegalInfo {
     accessibilityEmail,
     contactAddress,
     contactPhone,
+    contactWhatsApp,
     isPlaceholder: false,
   };
 }
@@ -61,16 +74,34 @@ export function getSiteLegalInfo(): SiteLegalInfo {
 export function getLegalPlaceholders(): LegalPlaceholders {
   const legal = getSiteLegalInfo();
   return {
-    businessLegalName:
-      trimOrNull(process.env.BUSINESS_LEGAL_NAME) ?? "{{BUSINESS_LEGAL_NAME}}",
-    businessIdTypeAndNumber:
-      trimOrNull(process.env.BUSINESS_ID_TYPE_AND_NUMBER) ??
-      "{{BUSINESS_ID_TYPE_AND_NUMBER}}",
-    businessAddress:
-      legal.contactAddress ?? "{{BUSINESS_ADDRESS}}",
+    businessLegalName: trimOrNull(process.env.BUSINESS_LEGAL_NAME),
+    businessIdTypeAndNumber: trimOrNull(
+      process.env.BUSINESS_ID_TYPE_AND_NUMBER
+    ),
+    businessAddress: legal.contactAddress,
     supportEmail: legal.supportEmail,
     privacyEmail: legal.privacyEmail,
     governingCity:
-      trimOrNull(process.env.GOVERNING_CITY) ?? "{{GOVERNING_CITY}}",
+      trimOrNull(process.env.GOVERNING_CITY) ?? "תל אביב-יפו",
+    commissionReportDays:
+      trimOrNull(process.env.COMMISSION_REPORT_DAYS) ?? "14",
+    commissionPaymentTerms:
+      trimOrNull(process.env.COMMISSION_PAYMENT_TERMS) ?? "שוטף + 30",
+    commissionNoticeDays:
+      trimOrNull(process.env.COMMISSION_NOTICE_DAYS) ?? "30",
+    dataRetentionDisputes:
+      trimOrNull(process.env.DATA_RETENTION_DISPUTES) ??
+      "עד 7 שנים לפי דין",
+    logRetentionDays: trimOrNull(process.env.LOG_RETENTION_DAYS) ?? "90",
   };
+}
+
+/** תצוגה בטוחה — אף פעם לא מחזיר {{...}} */
+export function legalDisplayOrFallback(
+  value: string | null | undefined,
+  fallback: string
+): string {
+  const t = value?.trim();
+  if (!t || /^\{\{[A-Z0-9_]+\}\}$/.test(t)) return fallback;
+  return t;
 }

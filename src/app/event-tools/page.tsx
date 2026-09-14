@@ -1,12 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import SitePageShell from "@/components/layout/SitePageShell";
+
+export const metadata: Metadata = {
+  title: "כלי תכנון אירוע",
+  description:
+    "צ׳קליסט, תוכניות אירוע ובניית חבילה — כלים לתכנון אירוע ב-EventForYou.",
+  alternates: { canonical: "/event-tools" },
+};
 
 const tools = [
   {
     href: "/my-plans",
     title: "תוכניות אירוע",
-    description: "שמירת תוכניות ב-DB עם תקציב, אזור וקישור לאולם ולספקים.",
+    description:
+      "שמירת תוכניות עם תקציב, אזור וקישור לאולם ולספקים — במקום אחד.",
     icon: "📋",
   },
   {
