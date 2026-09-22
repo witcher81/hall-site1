@@ -8,14 +8,14 @@ import {
 import { FREELANCER_CATEGORY_GROUPS } from "@/lib/freelancerServiceCategories";
 
 describe("serviceCategorySpec", () => {
-  it("maps all secondaries (131)", () => {
+  it("maps all secondaries (132)", () => {
     const map = buildSecondaryTemplateMap();
     const count = FREELANCER_CATEGORY_GROUPS.reduce(
       (sum, g) => sum + g.services.length,
       0
     );
-    expect(count).toBe(131);
-    expect(Object.keys(map)).toHaveLength(131);
+    expect(count).toBe(132);
+    expect(Object.keys(map)).toHaveLength(132);
   });
 
   it("maps marriage proposals to planning template", () => {

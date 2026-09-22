@@ -39,6 +39,12 @@ export const HOME_MARKETPLACE_CATEGORIES: HomeCategoryItem[] = [
     icon: "catering",
   },
   {
+    id: "restaurant-events",
+    label: "מסעדות לאירועים",
+    href: `/providers?category=${encodeURIComponent("אוכל ומשקאות")}&secondary=${encodeURIComponent("מסעדה לאירועים")}`,
+    icon: "catering",
+  },
+  {
     id: "singer",
     label: "זמרים",
     href: `/providers?category=${encodeURIComponent("מוזיקה ובמה")}&secondary=${encodeURIComponent("זמר/ת לאירוע")}`,

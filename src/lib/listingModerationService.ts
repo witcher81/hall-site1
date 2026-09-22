@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
 import { publishMessage } from "@/lib/messagingQueue";
+import { SERVICE_INCOMPLETE_MODERATION_NOTE } from "@/lib/serviceListingReadiness";
 import {
   ListingModerationSource,
   ListingModerationStatus,
@@ -82,8 +83,7 @@ export function moderationFieldsForServiceCreate(isReady: boolean): Pick<
     moderationStatus: ListingModerationStatus.PENDING,
     submittedForReviewAt: now,
     contentRevision: 1,
-    moderationNote:
-      "השלימו קטגוריה, אזור שירות, מחיר/חבילה, תמונה ראשית ותיאור קצר לפני פרסום.",
+    moderationNote: SERVICE_INCOMPLETE_MODERATION_NOTE,
     moderatedAt: null,
     moderatedByUserId: null,
   };
@@ -116,8 +116,7 @@ export function moderationFieldsForServiceOwnerEdit(
       contentRevision: wasLive
         ? current.contentRevision + 1
         : current.contentRevision,
-      moderationNote:
-        "השלימו קטגוריה, אזור שירות, מחיר/חבילה, תמונה ראשית ותיאור קצר לפני פרסום.",
+      moderationNote: SERVICE_INCOMPLETE_MODERATION_NOTE,
       moderatedAt: null,
       moderatedByUserId: null,
     };
@@ -185,7 +184,7 @@ async function notifyOwnerOnDecision(input: {
   if (input.status === ListingModerationStatus.REJECTED) {
     const reason = input.note?.trim()
       ? ` סיבה: ${input.note.trim()}`
-      : " ערכו לפי ההערות ושלחו שוב לבדיקה.";
+      : " ערכו לפי ההערות ועדכנו את הפרסום.";
     await createNotification({
       userId: input.ownerUserId,
       type:

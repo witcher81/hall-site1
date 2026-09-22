@@ -146,7 +146,7 @@ export default function UserDetailClient({
     ROLE_LABELS[user.role] ?? user.role,
     user.isBlocked ? "חסום" : null,
     !user.emailVerified ? "אימייל לא מאומת" : null,
-    needsReview ? "ממתין לבדיקה" : isBusiness && user.adminReviewedAt ? "נבדק" : null,
+    needsReview ? "לסקירה" : isBusiness && user.adminReviewedAt ? "נסקר" : null,
   ].filter(Boolean);
 
   return (
@@ -173,7 +173,7 @@ export default function UserDetailClient({
           <span className="admin-tag admin-tag--ok">אימייל מאומת</span>
         )}
         {needsReview ? (
-          <span className="admin-tag admin-tag--pending">ממתין לבדיקה</span>
+          <span className="admin-tag admin-tag--pending">לסקירה</span>
         ) : null}
       </div>
 

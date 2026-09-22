@@ -49,16 +49,16 @@ export default function BusinessesListClient() {
   return (
     <div className="space-y-4">
       <AdminPageHeader
-        title="עסקים חדשים (תור לצוות)"
-        description="סימון פנימי לצוות בלבד — לא חוסם את בעל העסק מלפרסם. לחצו לעסק לפרטים ופעולות."
+        title="עסקים חדשים"
+        description="סקירת עסקים שנרשמו לאחרונה. אין שער אישור — פרסומים עולים לאוויר אחרי השלמת פרטים (בלי אישור צוות)."
       />
 
       {error ? <AdminErrorBanner message={error} onRetry={() => void load()} /> : null}
 
       {!error && users.length === 0 ? (
         <AdminEmptyState
-          title="אין עסקים חדשים לבדיקה"
-          description="כשמישהו נרשם כבעל אולם או פרילנסר — יופיע כאן."
+          title="אין עסקים חדשים בתור"
+          description="עסקים חדשים מסומנים אוטומטית — הרשימה מציגה רק מי שטרם סומן (legacy)."
         />
       ) : null}
 
@@ -77,7 +77,7 @@ export default function BusinessesListClient() {
                     dateStyle: "medium",
                     timeStyle: "short",
                   })}${listingCount > 0 ? ` · ${listingCount} פרסומים` : " · בלי פרסום עדיין"}`}
-                  badge="חדש לצוות"
+                  badge="לסקירה"
                   badgeTone="amber"
                 />
               </li>

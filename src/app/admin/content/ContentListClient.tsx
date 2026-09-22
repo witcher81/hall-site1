@@ -75,7 +75,7 @@ export default function ContentListClient() {
         tabs={[
           { id: "APPROVED", label: "באוויר" },
           { id: "REJECTED", label: "הוסר" },
-          { id: "PENDING", label: "ממתין (ישן)" },
+          { id: "PENDING", label: "טרם פורסם" },
           { id: "ALL", label: "הכל" },
         ]}
       />

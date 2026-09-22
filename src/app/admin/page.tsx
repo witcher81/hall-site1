@@ -86,7 +86,7 @@ export default async function AdminHomePage() {
             href="/admin/content"
           />
           <AdminStatCard
-            label="עסקים לבדיקה"
+            label="עסקים לסקירה"
             value={stats.newBusinessUsers}
             href="/admin/businesses"
           />

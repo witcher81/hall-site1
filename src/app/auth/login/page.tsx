@@ -45,11 +45,12 @@ function LoginForm() {
         return;
       }
 
-      const role = data?.user?.role as string | undefined;
+      const role =
+        (data?.user?.role as string | undefined) ||
+        (data?.role as string | undefined);
       const needsVerify = data?.requiresEmailVerification === true;
-      const isFreelancer = role === "FREELANCER" && Boolean(data?.user);
 
-      if (needsVerify && !isFreelancer) {
+      if (needsVerify) {
         if (typeof data?.emailSent === "boolean") {
           try {
             sessionStorage.setItem(
@@ -74,10 +75,18 @@ function LoginForm() {
             /* ignore */
           }
         }
-        const verifyQ = afterLogin
-          ? `?redirect=${encodeURIComponent(afterLogin)}`
-          : "";
-        router.push(`/auth/verify-email${verifyQ}`);
+        const redirectTarget =
+          afterLogin ||
+          (data?.needsBusinessOnboarding === true
+            ? defaultPathAfterAuth(role)
+            : role === "VENUE_OWNER"
+              ? "/dashboard/venue-owner"
+              : role === "FREELANCER"
+                ? "/dashboard/freelancer"
+                : "/");
+        router.push(
+          `/auth/verify-email?redirect=${encodeURIComponent(redirectTarget)}`
+        );
       } else if (afterLogin) {
         router.push(afterLogin);
       } else if (data?.needsBusinessOnboarding === true) {

@@ -97,35 +97,13 @@ export async function POST(req: NextRequest) {
 
       const emailPayload = verificationEmailClientPayload(emailSend);
 
-      // פרילנסרים מקבלים סשן גם לפני אימות — כדי לאפשר יצירת שירות
-      if (user.role === "FREELANCER") {
-        const token = createSessionToken(authUser);
-        await setSessionCookie(token);
-        const res = NextResponse.json(
-          {
-            user: authUser,
-            requiresEmailVerification: true,
-            needsBusinessOnboarding,
-            email: user.email,
-            ...emailPayload,
-          },
-          { status: 200 }
-        );
-        setSessionCookieOnResponse(res, token);
-        setPendingVerificationCookieOnResponse(res, user.id);
-        const { claimDevManagedUserOnResponse } = await import(
-          "@/lib/devManageSession"
-        );
-        await claimDevManagedUserOnResponse(res, user.id);
-        return res;
-      }
-
       await clearSessionCookie();
       const res = NextResponse.json(
         {
           requiresEmailVerification: true,
           needsBusinessOnboarding,
           email: user.email,
+          role: user.role,
           ...emailPayload,
         },
         { status: 200 }

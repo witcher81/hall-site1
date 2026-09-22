@@ -129,22 +129,18 @@ export default function RegisterForm({
 
       const userRole =
         (typeof data?.user?.role === "string" ? data.user.role : null) ??
+        (typeof data?.role === "string" ? data.role : null) ??
         effectiveRole;
+      const needsVerify = data?.requiresEmailVerification === true;
       const nextPath =
         afterRegister ?? defaultPathAfterAuth(userRole);
-      const needsVerify = data?.requiresEmailVerification === true;
-      const isFreelancer =
-        userRole === "FREELANCER" && Boolean(data?.user);
 
-      if (needsVerify && !isFreelancer) {
+      if (needsVerify) {
         storeVerifySession(data ?? {});
         router.push(
           `/auth/verify-email?redirect=${encodeURIComponent(nextPath)}`
         );
       } else {
-        if (needsVerify && isFreelancer) {
-          storeVerifySession(data ?? {});
-        }
         router.push(nextPath);
       }
       router.refresh();

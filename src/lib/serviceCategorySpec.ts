@@ -186,6 +186,14 @@ export const SECONDARY_CATALOG_HINTS: Partial<
     catalogSectionPlaceholder: "למשל: בשרים, תוספות, סלטים",
     catalogItemPlaceholder: "למשל: אנטריקוט, כנפיים, תפוחי אדמה",
   },
+  "מסעדה לאירועים": {
+    packagesHint:
+      "למשל: ארוחת ערב לאירוע, בראנץ׳, חבילת ימי חול — מחיר לאורח.",
+    packageNamePlaceholder: "למשל: ארוחת ערב לאירוע",
+    catalogSectionPlaceholder: "למשל: מנות ראשונות, עיקריות, קינוחים",
+    catalogItemPlaceholder: "למשל: סלט הבית, פילה דג, מוס שוקולד",
+    notesPlaceholder: "למשל: כשרות, שעות פתיחה לאירוע, קיבולת ישיבה במסעדה",
+  },
   "סדנאות אוכל": {
     packagesHint:
       "למשל: סדנת פיצה / סושי / אפייה — מחיר למשתתף (לראש).",
@@ -732,9 +740,9 @@ export function verifyServiceCategorySpec(): void {
       }
     }
   }
-  if (count !== 131) {
+  if (count !== 132) {
     throw new Error(
-      `serviceCategorySpec: צפויות 131 תתי־קטגוריות, נמצאו ${count}`
+      `serviceCategorySpec: צפויות 132 תתי־קטגוריות, נמצאו ${count}`
     );
   }
 }

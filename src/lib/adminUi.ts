@@ -56,7 +56,7 @@ export function roleTagClass(role: string): string {
 
 export const MODERATION_STATUS_HE: Record<string, string> = {
   APPROVED: "באוויר",
-  PENDING: "ממתין",
+  PENDING: "טרם פורסם",
   REJECTED: "הוסר",
 };
 

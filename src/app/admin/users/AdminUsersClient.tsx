@@ -33,7 +33,7 @@ const STATUS_FILTERS = [
   { id: "", label: "כל הסטטוסים" },
   { id: "unverified", label: "אימייל לא מאומת" },
   { id: "blocked", label: "חסומים" },
-  { id: "unreviewed", label: "עסקים לבדיקה" },
+  { id: "unreviewed", label: "עסקים לסקירה" },
 ];
 
 export default function AdminUsersClient() {
@@ -219,7 +219,7 @@ export default function AdminUsersClient() {
                         {(u.role === "VENUE_OWNER" || u.role === "FREELANCER") &&
                         !u.adminReviewedAt &&
                         !u.isBlocked ? (
-                          <span className="admin-tag admin-tag--pending">חדש לצוות</span>
+                          <span className="admin-tag admin-tag--pending">לסקירה</span>
                         ) : null}
                       </div>
                     </td>

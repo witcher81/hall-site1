@@ -104,6 +104,8 @@ export async function POST(req: NextRequest) {
 
     const skipEmailVerification = !isEmailVerificationRequired();
     const passwordHash = await hashPassword(passwordPlain);
+    const isBusinessRole =
+      selectedRole === "FREELANCER" || selectedRole === "VENUE_OWNER";
     let user;
     try {
       user = await prisma.user.create({
@@ -114,6 +116,8 @@ export async function POST(req: NextRequest) {
           role: selectedRole,
           phone: phoneResult.value,
           emailVerified: skipEmailVerification,
+          // אין שער אישור תוכן — עסקים חדשים לא נכנסים לתור «לבדיקה»
+          ...(isBusinessRole ? { adminReviewedAt: new Date() } : {}),
         },
       });
     } catch (e) {
@@ -176,39 +180,10 @@ export async function POST(req: NextRequest) {
 
     const emailPayload = verificationEmailClientPayload(emailSend);
 
-    const authUser: AuthUser = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      emailVerified: false,
-    };
-
-    // פרילנסרים מקבלים סשן גם לפני אימות — כדי לאפשר יצירת שירות
-    if (user.role === "FREELANCER") {
-      const token = createSessionToken(authUser);
-      await setSessionCookie(token);
-      const res = NextResponse.json(
-        {
-          user: authUser,
-          email: user.email,
-          requiresEmailVerification: true,
-          ...emailPayload,
-        },
-        { status: 201 }
-      );
-      setSessionCookieOnResponse(res, token);
-      setPendingVerificationCookieOnResponse(res, user.id);
-      const { claimDevManagedUserOnResponse } = await import(
-        "@/lib/devManageSession"
-      );
-      await claimDevManagedUserOnResponse(res, user.id);
-      return res;
-    }
-
     const res = NextResponse.json(
       {
         email: user.email,
+        role: user.role,
         requiresEmailVerification: true,
         ...emailPayload,
       },
